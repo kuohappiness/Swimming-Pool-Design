@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>中師實小游泳池改建 V02 白模型</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#dfe7ef;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft JhengHei",sans-serif}
+*{box-sizing:border-box} canvas{display:block;width:100%;height:100%;touch-action:none}
+.panel{position:fixed;background:rgba(22,28,36,.88);color:#fff;border-radius:12px;padding:10px;z-index:2;box-shadow:0 8px 30px rgba(0,0,0,.22)}
+#title{left:12px;top:12px;max-width:390px} #layers{right:12px;top:12px;width:170px}
+#views{left:12px;bottom:12px;display:flex;gap:6px;flex-wrap:wrap}
+button{border:0;border-radius:8px;padding:8px 10px;background:#eef3f8;color:#22303f}
+small{display:block;color:#c7d1dc;line-height:1.45;margin-top:4px}
+.layer{margin:7px 0;font-size:14px}
+@media(max-width:680px){#layers{top:auto;bottom:70px;width:150px}#title{font-size:13px;max-width:calc(100vw - 24px)}button{padding:7px 8px;font-size:13px}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="title" class="panel"><b>中師實小游泳池改建｜V02 白模型</b>
+<small>暫估尺寸。西側短邊入口；淺端 1.2 m，向東側緩坡至深端 1.5 m；單斜玻璃屋頂 10°，入口側高、對側低。</small></div>
+<div id="layers" class="panel">
+<div class="layer"><input id="roof" type="checkbox" checked> 玻璃屋頂</div>
+<div class="layer"><input id="upper" type="checkbox" checked> 二樓量體</div>
+<div class="layer"><input id="glass" type="checkbox" checked> 玻璃帷幕</div>
+<div class="layer"><input id="pool" type="checkbox" checked> 泳池</div>
+<div class="layer"><input id="stair" type="checkbox" checked> 靠窗樓梯</div>
+</div>
+<div id="views" class="panel">
+<button data-view="iso">鳥瞰</button><button data-view="entry">入口</button><button data-view="side">長邊</button>
+<button data-view="top">俯視</button><button data-view="section">剖面</button><button id="reset">重設</button>
+</div>
+<script>
+const P={"building_length":30,"building_width":12.5,"floor2_z":4.2,"roof_high":10.5,"roof_slope_deg":10,"pool":{"x0":8.5,"x1":29,"y0":2.5,"y1":10,"shallow_depth":1.2,"deep_depth":1.5},"entrance":{"projection":2.2,"width":4.2,"y0":4.15,"y1":8.35},"upper_floor_x1":8.5,"walkway":{"x0":7.6,"x1":28.5,"y0":0.35,"y1":2},"roof_low":5.210190578746051};
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let DPR=Math.min(devicePixelRatio||1,2);
+let state={yaw:-0.72,pitch:0.48,zoom:25,panX:0,panY:20,section:false};
+let flags={roof:true,upper:true,glass:true,pool:true,stair:true};
+function resize(){canvas.width=innerWidth*DPR;canvas.height=innerHeight*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);draw()}
+addEventListener('resize',resize);
+function V(x,y,z){return{x:x,y:y,z:z}}
+function sub(a,b){return V(a.x-b.x,a.y-b.y,a.z-b.z)}
+function cross(a,b){return V(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x)}
+function dot(a,b){return a.x*b.x+a.y*b.y+a.z*b.z}
+function norm(a){let n=Math.hypot(a.x,a.y,a.z)||1;return V(a.x/n,a.y/n,a.z/n)}
+function basis(){let cy=Math.cos(state.yaw),sy=Math.sin(state.yaw),cp=Math.cos(state.pitch),sp=Math.sin(state.pitch);let f=norm(V(-cy*cp,-sy*cp,-sp));let r=norm(cross(f,V(0,0,1)));let u=norm(cross(r,f));return{f:f,r:r,u:u}}
+function project(p){let c=V(P.building_length/2,P.building_width/2,3.6),q=sub(p,c),b=basis();return{x:innerWidth/2+state.panX+dot(q,b.r)*state.zoom,y:innerHeight/2+state.panY-dot(q,b.u)*state.zoom,z:dot(q,b.f)}}
+function face(points,color,group){let ps=points.map(project);return{ps:ps,z:ps.reduce((a,p)=>a+p.z,0)/ps.length,color:color,group:group}}
+function box(x0,y0,z0,x1,y1,z1,color,group){return[
+face([V(x0,y0,z0),V(x1,y0,z0),V(x1,y1,z0),V(x0,y1,z0)],color,group),
+face([V(x0,y0,z1),V(x0,y1,z1),V(x1,y1,z1),V(x1,y0,z1)],color,group),
+face([V(x0,y0,z0),V(x0,y0,z1),V(x1,y0,z1),V(x1,y0,z0)],color,group),
+face([V(x1,y0,z0),V(x1,y0,z1),V(x1,y1,z1),V(x1,y1,z0)],color,group),
+face([V(x1,y1,z0),V(x1,y1,z1),V(x0,y1,z1),V(x0,y1,z0)],color,group),
+face([V(x0,y1,z0),V(x0,y1,z1),V(x0,y0,z1),V(x0,y0,z0)],color,group)]}
+function build(){
+let f=[],q=P.pool;
+f.push(...box(0,0,-.2,P.building_length,P.building_width,0,'#cfd4da','base'));
+if(flags.pool){
+f.push(face([V(q.x0,q.y0,-q.shallow_depth),V(q.x1,q.y0,-q.deep_depth),V(q.x1,q.y1,-q.deep_depth),V(q.x0,q.y1,-q.shallow_depth)],'#b8d7e8','pool'));
+f.push(face([V(q.x0,q.y0,0),V(q.x1,q.y0,0),V(q.x1,q.y0,-q.deep_depth),V(q.x0,q.y0,-q.shallow_depth)],'#b8d7e8','pool'));
+f.push(face([V(q.x0,q.y1,0),V(q.x0,q.y1,-q.shallow_depth),V(q.x1,q.y1,-q.deep_depth),V(q.x1,q.y1,0)],'#b8d7e8','pool'));
+f.push(face([V(q.x0,q.y0,0),V(q.x0,q.y0,-q.shallow_depth),V(q.x0,q.y1,-q.shallow_depth),V(q.x0,q.y1,0)],'#b8d7e8','pool'));
+f.push(face([V(q.x1,q.y0,0),V(q.x1,q.y1,0),V(q.x1,q.y1,-q.deep_depth),V(q.x1,q.y0,-q.deep_depth)],'#b8d7e8','pool'));
+f.push(face([V(q.x0+.12,q.y0+.12,-.08),V(q.x1-.12,q.y0+.12,-.08),V(q.x1-.12,q.y1-.12,-.08),V(q.x0+.12,q.y1-.12,-.08)],'rgba(55,165,230,.76)','pool'))}
+f.push(...box(-.25,0,0,0,P.entrance.y0,P.roof_high,'#e6e8ea','wall'));
+f.push(...box(-.25,P.entrance.y1,0,0,P.building_width,P.roof_high,'#e6e8ea','wall'));
+f.push(...box(P.building_length,0,0,P.building_length+.25,P.building_width,P.roof_low,'#e6e8ea','wall'));
+if(flags.glass){
+f.push(face([V(0,0,0),V(P.building_length,0,0),V(P.building_length,0,P.roof_low),V(0,0,P.roof_high)],'rgba(110,195,235,.30)','glass'));
+f.push(face([V(0,P.building_width,0),V(0,P.building_width,P.roof_high),V(P.building_length,P.building_width,P.roof_low),V(P.building_length,P.building_width,0)],'rgba(110,195,235,.30)','glass'))}
+if(flags.upper){
+f.push(...box(0,0,P.floor2_z-.18,P.upper_floor_x1,P.building_width,P.floor2_z,'#d9dde1','upper'));
+f.push(...box(.35,.65,P.floor2_z,P.upper_floor_x1-.35,P.building_width/2-.2,7.6,'#e3d3dc','upper'));
+f.push(...box(.35,P.building_width/2+.2,P.floor2_z,P.upper_floor_x1-.35,P.building_width-.65,7.6,'#cfd7e5','upper'));
+let w=P.walkway;f.push(...box(w.x0,w.y0,P.floor2_z-.16,w.x1,w.y1,P.floor2_z,'#cfd8d2','upper'))}
+if(flags.stair){let n=14,x0=.9,x1=7,y0=P.building_width-2.1,y1=P.building_width-.65;for(let i=0;i<n;i++){let a=x0+i*(x1-x0)/n,b=x0+(i+1)*(x1-x0)/n;f.push(...box(a,y0,0,b,y1,(i+1)*P.floor2_z/n,'#aeb4ba','stair'))}}
+f.push(...box(-P.entrance.projection,P.entrance.y0,0,0,P.entrance.y1,.35,'#c9cdd1','entrance'));
+f.push(...box(-P.entrance.projection,P.entrance.y0,0,-P.entrance.projection+.25,P.entrance.y1,4.2,'#c9cdd1','entrance'));
+f.push(...box(-.25,P.entrance.y0,0,0,P.entrance.y1,4.2,'#c9cdd1','entrance'));
+f.push(...box(-P.entrance.projection,P.entrance.y0,3.9,.7,P.entrance.y1,4.2,'#c9cdd1','entrance'));
+if(flags.roof)f.push(face([V(0,0,P.roof_high),V(P.building_length,0,P.roof_low),V(P.building_length,P.building_width,P.roof_low),V(0,P.building_width,P.roof_high)],'rgba(115,190,230,.42)','roof'));
+if(state.section)f=f.filter(x=>x.ps.reduce((a,p)=>a+p.x,0)/x.ps.length<innerWidth*.56);
+return f}
+function draw(){
+ctx.clearRect(0,0,innerWidth,innerHeight);let g=ctx.createLinearGradient(0,0,0,innerHeight);g.addColorStop(0,'#dfe8f1');g.addColorStop(1,'#f8fafc');ctx.fillStyle=g;ctx.fillRect(0,0,innerWidth,innerHeight);
+let fs=build().sort((a,b)=>a.z-b.z);for(const f of fs){ctx.beginPath();ctx.moveTo(f.ps[0].x,f.ps[0].y);for(let i=1;i<f.ps.length;i++)ctx.lineTo(f.ps[i].x,f.ps[i].y);ctx.closePath();ctx.fillStyle=f.color;ctx.fill();ctx.strokeStyle='rgba(25,35,45,.65)';ctx.lineWidth=.7;ctx.stroke()}
+if(flags.pool){let q=P.pool;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;for(let k=1;k<3;k++){let y=q.y0+(q.y1-q.y0)*k/3,a=project(V(q.x0+.3,y,-.06)),b=project(V(q.x1-.3,y,-.06));ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}}
+let drag=false,last=null,mode='rotate';
+canvas.addEventListener('pointerdown',e=>{drag=true;last=[e.clientX,e.clientY];mode=(e.shiftKey||e.button===2)?'pan':'rotate';canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-last[0],dy=e.clientY-last[1];last=[e.clientX,e.clientY];if(mode==='rotate'){state.yaw+=dx*.008;state.pitch=Math.max(-1.25,Math.min(1.25,state.pitch+dy*.008))}else{state.panX+=dx;state.panY+=dy}draw()});
+canvas.addEventListener('pointerup',()=>drag=false);canvas.oncontextmenu=e=>e.preventDefault();
+canvas.addEventListener('wheel',e=>{e.preventDefault();state.zoom=Math.max(8,Math.min(65,state.zoom*Math.exp(-e.deltaY*.001)));draw()},{passive:false});
+let t0=null;
+canvas.addEventListener('touchstart',e=>{if(e.touches.length===2){let a=e.touches[0],b=e.touches[1];t0={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2}}},{passive:false});
+canvas.addEventListener('touchmove',e=>{if(e.touches.length===2&&t0){e.preventDefault();let a=e.touches[0],b=e.touches[1],d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),x=(a.clientX+b.clientX)/2,y=(a.clientY+b.clientY)/2;state.zoom=Math.max(8,Math.min(65,state.zoom*d/t0.d));state.panX+=x-t0.x;state.panY+=y-t0.y;t0={d:d,x:x,y:y};draw()}},{passive:false});
+document.querySelectorAll('#layers input').forEach(el=>el.onchange=()=>{flags[el.id]=el.checked;draw()});
+const views={iso:{yaw:-.72,pitch:.48,zoom:25,panX:0,panY:20,section:false},entry:{yaw:0,pitch:.16,zoom:28,panX:0,panY:80,section:false},side:{yaw:-Math.PI/2,pitch:.12,zoom:27,panX:0,panY:70,section:false},top:{yaw:-.72,pitch:1.22,zoom:22,panX:0,panY:20,section:false},section:{yaw:-Math.PI/2,pitch:.05,zoom:29,panX:0,panY:80,section:true}};
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{Object.assign(state,views[b.dataset.view]);draw()});
+document.getElementById('reset').onclick=()=>{Object.assign(state,views.iso);draw()};
+resize();
+</script>
+</body>
+</html>
