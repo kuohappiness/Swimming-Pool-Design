@@ -1,0 +1,16 @@
+{
+  "name": "swimming-pool-design",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "validate:reference": "node scripts/validate-reference-model.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "build": "npm run validate:reference && npm test && vite build"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}

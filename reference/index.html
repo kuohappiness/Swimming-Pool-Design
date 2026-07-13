@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#07131f" />
+    <title>Swimming Pool Design｜空間參照圖集</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#sheet-stage">跳到圖面</a>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">SWIMMING POOL DESIGN · REFERENCE ATLAS</p>
+        <h1>空間參照圖集</h1>
+        <p id="project-name" class="project-name"></p>
+      </div>
+      <div class="model-chip" aria-label="模型版本資訊">
+        <span id="connection-dot" aria-hidden="true"></span>
+        <span id="model-version"></span>
+      </div>
+    </header>
+
+    <main>
+      <nav id="sheet-tabs" class="sheet-tabs" aria-label="圖面切換"></nav>
+      <section class="workspace">
+        <div id="sheet-stage" class="sheet-stage" tabindex="-1" aria-live="polite"></div>
+        <aside id="detail-panel" class="detail-panel" aria-label="選取物件資料">
+          <div class="detail-empty">
+            <span class="crosshair" aria-hidden="true">＋</span>
+            <h2>選取圖面 ID</h2>
+            <p>點選有編號的空間、入口、樓梯或屋頂，查看統一模型資料。</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <footer>
+      <p id="disclaimer"></p>
+      <p>+X 東 · +Y 北 · +Z 上 · 單位 m</p>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
