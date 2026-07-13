@@ -6,7 +6,9 @@
 
 - 專案仍處於初期探索階段，尚未進行 Design Freeze。
 - 所有未經正式丈量的尺寸均為「暫估」。
-- 最新屋頂修正：單斜玻璃屋頂坡度維持 10°，但屋頂基準位置需依使用者標示的紅色線下修，後續 HTML 與 DXF 需同步校正。
+- 最新版本為 **V03 屋頂位置修正版**。
+- 屋頂維持單斜 10°，長邊立面向左側下降、向右側升高。
+- 屋頂已由原 V02 上方位置調整至使用者標示的紅色線位置。
 
 ## 規劃文件
 
@@ -18,6 +20,20 @@
 - [工作流程與版本管理](docs/06_Workflow_and_Versioning.md)
 - [Parking Lot](docs/07_Parking_Lot.md)
 
+## V03 屋頂修正版
+
+- [V03 3D DXF](versions/V03/ZhongShiPool_V03_RoofCorrected_3D.dxf)
+- [V03 變更紀錄](versions/V03/ZhongShiPool_V03_ChangeLog.md)
+- [V03 屋頂位置預覽](versions/V03/ZhongShiPool_V03_Viewer.html)
+
+### V03 暫估屋頂標高
+
+- 左側低點：7.80 m（暫估）
+- 右側高點：13.09 m（暫估）
+- 坡度：10°
+
+正式剖面高度確認後，需再同步修正 DXF 與 HTML。
+
 ## V02 白模型
 
 目前包含：
@@ -26,7 +42,6 @@
 - 3D DXF 概念量體
 - 西側短邊入口與突出門廳
 - 長邊落地玻璃帷幕
-- 單斜玻璃屋頂，坡度 10°
 - 淺端 1.2 m、深端 1.5 m、緩坡池底
 - 二樓入口側量體
 - 靠窗樓梯
@@ -41,6 +56,7 @@ https://kuohappiness.github.io/Swimming-Pool-Design/
 ## 下載
 
 - `downloads/ZhongShiPool_V02_3D.dxf`
+- `versions/V03/ZhongShiPool_V03_RoofCorrected_3D.dxf`
 
 ## 注意
 
