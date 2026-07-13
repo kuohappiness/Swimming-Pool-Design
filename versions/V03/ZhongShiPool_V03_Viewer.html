@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>中師實小游泳池 V03</title>
+<style>html,body{margin:0;height:100%;background:#eef3f7;font-family:Arial,"Microsoft JhengHei"}canvas{width:100%;height:100%;display:block}#n{position:fixed;left:12px;top:12px;background:#26313d;color:white;padding:12px;border-radius:10px}</style></head>
+<body><div id="n"><b>V03 屋頂修正版</b><br>屋頂 10°，向左下降、向右升高<br>標高為暫估</div><canvas id="c"></canvas>
+<script>
+const P={"building_length": 30.0, "building_width": 12.5, "roof_left_low": 7.8, "roof_right_high": 13.08980942125395, "roof_slope_deg": 10, "pool_shallow": 1.2, "pool_deep": 1.5};
+const c=document.getElementById('c'),x=c.getContext('2d');
+function draw(){let d=devicePixelRatio||1;c.width=innerWidth*d;c.height=innerHeight*d;x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,innerWidth,innerHeight);
+let m=40,base=innerHeight*.72,left=100,right=innerWidth-100,scale=(right-left)/P.building_length;
+let zl=P.roof_left_low*m,zr=P.roof_right_high*m;
+x.fillStyle='rgba(100,190,225,.35)';x.strokeStyle='#273746';x.lineWidth=2;x.beginPath();x.moveTo(left,base);x.lineTo(right,base);x.lineTo(right,base-zr);x.lineTo(left,base-zl);x.closePath();x.fill();x.stroke();
+x.strokeStyle='red';x.lineWidth=5;x.beginPath();x.moveTo(left,base-zl);x.lineTo(right,base-zr);x.stroke();
+x.fillStyle='#4bb7e8';x.fillRect(left+8.5*scale,base-5,right-(left+8.5*scale)-1.0*scale,5);
+x.fillStyle='#222';x.font='18px Arial';x.fillText('左側低點',left,base-zl-14);x.fillText('右側高點',right-90,base-zr-14);
+}
+addEventListener('resize',draw);draw();
+</script></body></html>
