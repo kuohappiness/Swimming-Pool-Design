@@ -1,4 +1,5 @@
 import type { ProjectModel } from './types';
+import type { PlanBounds } from '../../scripts/reference-geometry.mjs';
 
 export const PLAN = { x: 112, y: 128, scale: 26 };
 
@@ -66,6 +67,7 @@ export function sheetSvg(model: ProjectModel, sheetId: string, title: string, co
     <defs>
       <pattern id="water-grid" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M0 9 Q4 5 9 9 T18 9" fill="none" stroke="currentColor" stroke-opacity=".22"/></pattern>
       <pattern id="glass-hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="14" stroke="currentColor" stroke-opacity=".18"/></pattern>
+      <pattern id="deferred-hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="12" stroke="currentColor" stroke-opacity=".28"/></pattern>
       <filter id="soft-shadow"><feDropShadow dx="0" dy="7" stdDeviation="7" flood-opacity=".18"/></filter>
     </defs>
     ${content}
@@ -73,27 +75,44 @@ export function sheetSvg(model: ProjectModel, sheetId: string, title: string, co
   </svg>`;
 }
 
+export function boundsRect(bounds: PlanBounds, buildingWidth: number): { x: number; y: number; width: number; height: number } {
+  return {
+    x: planX(bounds.x1),
+    y: planY(bounds.y2, buildingWidth),
+    width: px(bounds.x2 - bounds.x1),
+    height: px(bounds.y2 - bounds.y1),
+  };
+}
+
 export function cubicleMarkup(
-  ids: string[], expansionIds: string[], prefix: 'M' | 'F', zoneY: number, model: ProjectModel,
+  ids: string[],
+  expansionIds: string[],
+  prefix: 'M' | 'F',
+  bounds: PlanBounds,
+  model: ProjectModel,
 ): string {
   const all = [...ids, ...expansionIds];
-  const width = model.geometry.combinedCubicle.width;
-  const depth = model.geometry.combinedCubicle.depth;
-  const serviceStart = model.geometry.building.poolHallLength.value;
+  const unitAlongY = model.geometry.combinedCubicle.width;
+  const unitAlongX = model.geometry.combinedCubicle.depth;
+  const yStart = bounds.y1 + 1.35;
+  const yStep = 1.08;
+  const xInset = 0.55;
+  const bankX = [bounds.x1 + xInset, bounds.x2 - xInset - unitAlongX];
+
   return all.map((id, index) => {
-    const column = index % 10;
-    const row = Math.floor(index / 10);
-    const x = serviceStart + 0.5 + column * width;
-    const y = zoneY + (row === 0 ? 0 : 4.1);
+    const bank = Math.floor(index / 10);
+    const position = index % 10;
+    const x = bankX[bank];
+    const y = yStart + position * yStep;
     const screenX = planX(x);
-    const screenY = planY(y + depth, model.geometry.building.width.value);
+    const screenY = planY(y + unitAlongY, model.geometry.building.width.value);
     const isExpansion = expansionIds.includes(id);
     const classes = `cubicle ${prefix === 'M' ? 'male' : 'female'} ${isExpansion ? 'expansion' : 'active'}`;
     return `<g class="${classes}" data-cubicle="${id}" tabindex="0" role="button" aria-label="${id} ${isExpansion ? '擴充位置' : '正式單元'}">
-      <rect x="${screenX}" y="${screenY}" width="${px(width)}" height="${px(depth)}" rx="2"/>
-      <path class="door-swing" d="M${screenX + 3} ${screenY + px(depth)}v-${Math.min(15, px(width) - 6)}a${Math.min(15, px(width) - 6)} ${Math.min(15, px(width) - 6)} 0 0 1 ${Math.min(15, px(width) - 6)} ${Math.min(15, px(width) - 6)}"/>
-      <rect class="cabinet" x="${screenX + px(width) - 8}" y="${screenY + 4}" width="5" height="12"/>
-      <text x="${screenX + px(width) / 2}" y="${screenY + px(depth) / 2 + 4}" text-anchor="middle">${id.slice(-2)}</text>
+      <rect x="${screenX}" y="${screenY}" width="${px(unitAlongX)}" height="${px(unitAlongY)}" rx="2"/>
+      <path class="door-swing" d="M${screenX + 3} ${screenY + px(unitAlongY)}h${Math.min(15, px(unitAlongX) - 6)}"/>
+      <rect class="cabinet" x="${screenX + px(unitAlongX) - 8}" y="${screenY + 4}" width="5" height="12"/>
+      <text x="${screenX + px(unitAlongX) / 2}" y="${screenY + px(unitAlongY) / 2 + 3}" text-anchor="middle">${id.slice(-2)}</text>
     </g>`;
   }).join('');
 }

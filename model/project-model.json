@@ -1,28 +1,28 @@
 {
-  "schemaVersion": "1.0.0",
-  "modelVersion": "0.1.0-atlas.1",
-  "revision": "2026-07-13",
+  "schemaVersion": "1.1.0",
+  "modelVersion": "0.1.0-atlas.2",
+  "revision": "2026-07-14",
   "project": {
-    "name": "國立臺中教育大學附設實驗國民小學游泳池翻修概念設計",
+    "name": "臺中市忠信國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
-    "purpose": "個人概念規劃與空間討論",
-    "disclaimer": "概念設計，非施工、發包、結構或法規簽證文件"
+    "purpose": "概念設計與空間參照",
+    "disclaimer": "概念設計，非施工、結構、消防或法規核定圖說"
   },
   "referenceSystem": {
     "unit": "m",
     "angleUnit": "degree",
     "axes": { "x": "east", "y": "north", "z": "up" },
-    "localLongAxisBearingFromTrueNorth": 127,
+    "localLongAxisBearingFromTrueNorth": 307,
     "worldOriginEntityId": "O-SITE-01",
     "worldTransform": {
-      "localOrigin": [24.5, 0, 0],
+      "localOrigin": [27, 0, 0],
       "worldOrigin": [0, 0, 0],
-      "rotationFromTrueNorth": 127
+      "rotationFromTrueNorth": 307
     },
     "levels": [
       { "id": "L1", "name": "一樓", "elevation": 0 },
       { "id": "L2", "name": "二樓", "elevation": 3.6 },
-      { "id": "RF", "name": "屋頂", "elevation": 6 }
+      { "id": "RF", "name": "屋頂", "elevation": null, "status": "deferred", "openItemId": "OPEN-010" }
     ],
     "grids": {
       "x": [
@@ -46,7 +46,8 @@
       "length": { "value": 35, "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
       "width": { "value": 13.5, "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
       "poolHallLength": { "value": 24, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
-      "serviceCoreLength": { "value": 11, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] }
+      "serviceCoreLength": { "value": 11, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
+      "l2ExtensionLength": { "value": 5, "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] }
     },
     "pool": {
       "origin": [1.75, 3],
@@ -60,15 +61,19 @@
       "coverageZoneId": "Z-PH-01",
       "type": "single-slope-glass",
       "lowEdge": "far-pool-end",
-      "highEdge": "service-core-end",
-      "pitch": { "value": 10, "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
-      "lowElevation": { "value": 6, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
-      "highElevation": { "value": 10.231, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] }
+      "highEdge": "l2-extension-edge",
+      "pitch": { "value": 10, "status": "confirmed", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] },
+      "lowElevation": { "value": null, "status": "deferred", "sourceIds": [], "openItemId": "OPEN-010" },
+      "highElevation": { "value": null, "status": "deferred", "sourceIds": [], "openItemId": "OPEN-010" },
+      "jointEntityId": "J-RF-L2-01",
+      "supportedByExtension": false
     },
     "stair": {
       "id": "ST-01",
       "type": "two-run-straight-with-floating-mid-landing",
-      "origin": [20.4, 0.5, 0],
+      "originY": 0.5,
+      "originZ": 0,
+      "upperEndAlignment": "l2-split-axis",
       "width": 1.8,
       "totalRise": 3.6,
       "riserCount": 22,
@@ -93,16 +98,39 @@
     }
   },
   "program": {
-    "entrance": { "entityId": "EN-01", "dailyPeopleEntrance": true },
+    "entrance": {
+      "entityId": "EN-01",
+      "dailyPeopleEntrance": true,
+      "sharedVestibuleZoneId": "Z-L1-ENTRY-01",
+      "geometryStatus": "deferred",
+      "openItemId": "OPEN-008"
+    },
     "l1": {
-      "maleToilet": { "zoneId": "Z-WC-M-01", "toilets": 3, "urinals": 3 },
-      "femaleToilet": { "zoneId": "Z-WC-F-01", "toilets": 5, "urinals": 0 }
+      "maleToilet": {
+        "zoneId": "Z-WC-M-01",
+        "side": "lower-x",
+        "toilets": 3,
+        "urinals": 3,
+        "frontDoor": { "connectsTo": "Z-L1-ENTRY-01", "access": "daily-open" },
+        "rearDoor": { "connectsTo": "pool-side-dry-passage", "access": "pool-hours-only" },
+        "doorsDirectlyAligned": false
+      },
+      "femaleToilet": {
+        "zoneId": "Z-WC-F-01",
+        "side": "higher-x",
+        "toilets": 5,
+        "urinals": 0,
+        "frontDoor": { "connectsTo": "Z-L1-ENTRY-01", "access": "daily-open" },
+        "rearDoor": { "connectsTo": "pool-side-dry-passage", "access": "pool-hours-only" },
+        "doorsDirectlyAligned": false
+      }
     },
     "l2": {
       "strictGenderSeparation": true,
       "sharedDistributionZoneId": "Z-L2-LOBBY-01",
       "male": {
         "zoneId": "Z-CS-M-01",
+        "side": "lower-x",
         "baseCount": 15,
         "maximumCount": 20,
         "activeIds": ["CS-M-01", "CS-M-02", "CS-M-03", "CS-M-04", "CS-M-05", "CS-M-06", "CS-M-07", "CS-M-08", "CS-M-09", "CS-M-10", "CS-M-11", "CS-M-12", "CS-M-13", "CS-M-14", "CS-M-15"],
@@ -110,6 +138,7 @@
       },
       "female": {
         "zoneId": "Z-CS-F-01",
+        "side": "higher-x",
         "baseCount": 15,
         "maximumCount": 20,
         "activeIds": ["CS-F-01", "CS-F-02", "CS-F-03", "CS-F-04", "CS-F-05", "CS-F-06", "CS-F-07", "CS-F-08", "CS-F-09", "CS-F-10", "CS-F-11", "CS-F-12", "CS-F-13", "CS-F-14", "CS-F-15"],
@@ -118,29 +147,32 @@
     }
   },
   "entities": [
-    { "id": "O-SITE-01", "name": "基地本地原點（與 EN-01 共點）", "type": "datum", "level": "L1", "grid": "E/1", "status": "confirmed", "sourceIds": ["SRC-SITE-002"] },
-    { "id": "SITE-01", "name": "整體規劃基地", "type": "site", "level": "L1", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-SITE-002"] },
-    { "id": "BLDG-01", "name": "泳池建築", "type": "building", "level": "L1-RF", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001"] },
+    { "id": "O-SITE-01", "name": "基地世界原點（與 EN-01 門檻共點）", "type": "datum", "level": "L1", "grid": "E/1", "status": "confirmed", "sourceIds": ["SRC-SITE-002"] },
+    { "id": "SITE-01", "name": "忠信國小游泳池基地", "type": "site", "level": "L1", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-SITE-002"] },
+    { "id": "BLDG-01", "name": "游泳池建築", "type": "building", "level": "L1-RF", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001"] },
     { "id": "Z-PH-01", "name": "泳池大廳", "type": "zone", "level": "L1-RF", "grid": "A-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-004", "SRC-CONCEPT-005"] },
     { "id": "POOL-01", "name": "三水道主泳池", "type": "pool", "level": "L1", "grid": "A-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-003"] },
-    { "id": "CORE-01", "name": "重建服務核心", "type": "service-core", "level": "L1-RF", "grid": "E-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
-    { "id": "EN-01", "name": "唯一日常人員入口", "type": "entrance", "level": "L1", "grid": "E/1", "status": "confirmed", "sourceIds": ["SRC-SITE-002", "SRC-CONCEPT-005"] },
-    { "id": "ST-01", "name": "A2 懸空式雙鋼梯梁樓梯", "type": "stair", "level": "L1-L2", "grid": "D-F/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
-    { "id": "Z-ST-01", "name": "透明乾式樓梯廊", "type": "zone", "level": "L1-L2", "grid": "D-F/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
-    { "id": "Z-WC-M-01", "name": "一樓男廁", "type": "zone", "level": "L1", "grid": "E-F/3-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
-    { "id": "Z-WC-F-01", "name": "一樓女廁", "type": "zone", "level": "L1", "grid": "E-F/2-3", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
-    { "id": "Z-L2-LOBBY-01", "name": "二樓男女分流前室", "type": "zone", "level": "L2", "grid": "E-F/2-3", "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
-    { "id": "Z-CS-M-01", "name": "二樓男生更衣淋浴區", "type": "zone", "level": "L2", "grid": "E-F/3-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
-    { "id": "Z-CS-F-01", "name": "二樓女生更衣淋浴區", "type": "zone", "level": "L2", "grid": "E-F/1-2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
-    { "id": "RF-GL-01", "name": "10 度單坡玻璃屋頂", "type": "roof", "level": "RF", "grid": "A-E/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-002", "SRC-CONCEPT-005"] }
+    { "id": "CORE-01", "name": "原廁所基地服務核心", "type": "service-core", "level": "L1-RF", "grid": "E-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
+    { "id": "EXT-L2-01", "name": "二樓專用擴建量體", "type": "l2-extension", "level": "L2", "grid": "D-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] },
+    { "id": "EN-01", "name": "操場側日常人員入口", "type": "entrance", "level": "L1", "grid": "E/1", "status": "confirmed", "sourceIds": ["SRC-SITE-002", "SRC-CONCEPT-005"] },
+    { "id": "Z-L1-ENTRY-01", "name": "操場側有遮蔽共用前室", "type": "zone", "level": "L1", "grid": "E-F/1", "status": "deferred", "sourceIds": ["SRC-CONCEPT-003", "SRC-CONCEPT-005"] },
+    { "id": "ST-01", "name": "A2 兩段同向懸空樓梯", "type": "stair", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
+    { "id": "Z-ST-01", "name": "乾式透明樓梯廊", "type": "zone", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
+    { "id": "Z-WC-M-01", "name": "一樓男廁", "type": "zone", "level": "L1", "grid": "E-F/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
+    { "id": "Z-WC-F-01", "name": "一樓女廁", "type": "zone", "level": "L1", "grid": "E-F/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
+    { "id": "Z-L2-LOBBY-01", "name": "二樓男女分流前室", "type": "zone", "level": "L2", "grid": "E/1", "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
+    { "id": "Z-CS-M-01", "name": "二樓男更衣淋浴區", "type": "zone", "level": "L2", "grid": "D-E/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
+    { "id": "Z-CS-F-01", "name": "二樓女更衣淋浴區", "type": "zone", "level": "L2", "grid": "E-F/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
+    { "id": "RF-GL-01", "name": "10° 單坡玻璃屋頂", "type": "roof", "level": "RF", "grid": "A-D/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-002", "SRC-CONCEPT-005"] },
+    { "id": "J-RF-L2-01", "name": "玻璃屋頂與二樓擴建交界", "type": "deferred-joint", "level": "RF", "grid": "D/1-4", "status": "deferred", "sourceIds": ["SRC-CONCEPT-001"] }
   ],
   "sheets": [
     { "id": "REF-001", "title": "基地與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
-    { "id": "REF-101", "title": "L1 平面參照圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "POOL-01", "CORE-01", "EN-01", "ST-01", "Z-WC-M-01", "Z-WC-F-01"] },
-    { "id": "REF-201", "title": "L2 平面參照圖", "level": "L2", "referencedEntityIds": ["CORE-01", "ST-01", "Z-L2-LOBBY-01", "Z-CS-M-01", "Z-CS-F-01"] },
-    { "id": "REF-301", "title": "屋頂參照圖", "level": "RF", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "CORE-01", "RF-GL-01"] },
-    { "id": "REF-401", "title": "A–A 縱剖面參照圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "RF-GL-01"] },
-    { "id": "REF-501", "title": "3D 軸測參照圖", "level": "3D", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "POOL-01", "CORE-01", "ST-01", "RF-GL-01"] }
+    { "id": "REF-101", "title": "L1 平面參照圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "POOL-01", "CORE-01", "EN-01", "Z-L1-ENTRY-01", "ST-01", "Z-WC-M-01", "Z-WC-F-01"] },
+    { "id": "REF-201", "title": "L2 平面參照圖", "level": "L2", "referencedEntityIds": ["CORE-01", "EXT-L2-01", "ST-01", "Z-L2-LOBBY-01", "Z-CS-M-01", "Z-CS-F-01"] },
+    { "id": "REF-301", "title": "屋頂參照圖", "level": "RF", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "CORE-01", "EXT-L2-01", "RF-GL-01", "J-RF-L2-01"] },
+    { "id": "REF-401", "title": "A–A 縱剖面參照圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "EXT-L2-01", "ST-01", "RF-GL-01", "J-RF-L2-01"] },
+    { "id": "REF-501", "title": "3D 軸測參照圖", "level": "3D", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "POOL-01", "CORE-01", "EXT-L2-01", "ST-01", "RF-GL-01", "J-RF-L2-01"] }
   ],
   "sources": [
     { "id": "SRC-SITE-001", "path": "source-materials/site/SRC-SITE-001_google-maps-satellite-annotated.jpeg", "kind": "satellite", "pixelSize": [812, 1536], "sha256": "46EB14BE28E419999F664D43920BF6717CEA2558F25700735C5078A9EB1107C2" },

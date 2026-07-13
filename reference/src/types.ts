@@ -1,10 +1,20 @@
 export type Status = 'confirmed' | 'working' | 'deferred' | 'legacy';
+export type NumericStatus = Exclude<Status, 'deferred'>;
 
-export interface Measure {
+export interface NumericMeasure {
   value: number;
-  status: Status;
+  status: NumericStatus;
   sourceIds: string[];
 }
+
+export interface DeferredMeasure {
+  value: null;
+  status: 'deferred';
+  sourceIds: string[];
+  openItemId: string;
+}
+
+export type Measure = NumericMeasure | DeferredMeasure;
 
 export interface Entity {
   id: string;
@@ -23,8 +33,24 @@ export interface Sheet {
   referencedEntityIds: string[];
 }
 
+export interface DoorProgram {
+  connectsTo: string;
+  access: 'daily-open' | 'pool-hours-only';
+}
+
+export interface ToiletProgram {
+  zoneId: string;
+  side: 'lower-x' | 'higher-x';
+  toilets: number;
+  urinals: number;
+  frontDoor: DoorProgram;
+  rearDoor: DoorProgram;
+  doorsDirectlyAligned: false;
+}
+
 export interface GenderProgram {
   zoneId: string;
+  side: 'lower-x' | 'higher-x';
   baseCount: number;
   maximumCount: number;
   activeIds: string[];
@@ -43,27 +69,86 @@ export interface ProjectModel {
     localLongAxisBearingFromTrueNorth: number;
     worldOriginEntityId: string;
     worldTransform: { localOrigin: number[]; worldOrigin: number[]; rotationFromTrueNorth: number };
-    levels: Array<{ id: string; name: string; elevation: number }>;
+    levels: Array<{
+      id: string;
+      name: string;
+      elevation: number | null;
+      status?: 'deferred';
+      openItemId?: string;
+    }>;
     grids: { x: Array<{ id: string; position: number }>; y: Array<{ id: string; position: number }> };
   };
   geometry: {
-    building: { length: Measure; width: Measure; poolHallLength: Measure; serviceCoreLength: Measure };
-    pool: { origin: number[]; length: Measure; width: Measure; shallowDepth: Measure; deepDepth: Measure; laneCount: number };
-    roof: { coverageZoneId: string; type: string; lowEdge: string; highEdge: string; pitch: Measure; lowElevation: Measure; highElevation: Measure };
+    building: {
+      length: NumericMeasure;
+      width: NumericMeasure;
+      poolHallLength: NumericMeasure;
+      serviceCoreLength: NumericMeasure;
+      l2ExtensionLength: NumericMeasure;
+    };
+    pool: {
+      origin: number[];
+      length: NumericMeasure;
+      width: NumericMeasure;
+      shallowDepth: NumericMeasure;
+      deepDepth: NumericMeasure;
+      laneCount: number;
+    };
+    roof: {
+      coverageZoneId: string;
+      type: string;
+      lowEdge: string;
+      highEdge: string;
+      pitch: NumericMeasure;
+      lowElevation: DeferredMeasure;
+      highElevation: DeferredMeasure;
+      jointEntityId: string;
+      supportedByExtension: false;
+    };
     stair: {
-      id: string; type: string; origin: number[]; width: number; totalRise: number; riserCount: number;
-      runs: number; risersPerRun: number; treadDepth: number; midLandingLength: number; stringers: number;
-      stringerDescription: string; guardrail: string; underStair: string; enclosure: string; supportedByRoof: boolean;
+      id: string;
+      type: string;
+      originY: number;
+      originZ: number;
+      upperEndAlignment: 'l2-split-axis';
+      width: number;
+      totalRise: number;
+      riserCount: number;
+      runs: number;
+      risersPerRun: number;
+      treadDepth: number;
+      midLandingLength: number;
+      stringers: number;
+      stringerDescription: string;
+      guardrail: string;
+      underStair: string;
+      enclosure: string;
+      supportedByRoof: boolean;
     };
     combinedCubicle: {
-      width: number; depth: number; integratedChangingShower: boolean; wallMountedCabinet: boolean;
-      centralLockerArea: boolean; cabinet: { width: number; depth: number; height: number; bottomElevation: number };
+      width: number;
+      depth: number;
+      integratedChangingShower: boolean;
+      wallMountedCabinet: boolean;
+      centralLockerArea: boolean;
+      cabinet: { width: number; depth: number; height: number; bottomElevation: number };
     };
   };
   program: {
-    entrance: { entityId: string; dailyPeopleEntrance: boolean };
-    l1: Record<string, { zoneId: string; toilets: number; urinals: number }>;
-    l2: { strictGenderSeparation: boolean; sharedDistributionZoneId: string; male: GenderProgram; female: GenderProgram };
+    entrance: {
+      entityId: string;
+      dailyPeopleEntrance: boolean;
+      sharedVestibuleZoneId: string;
+      geometryStatus: 'deferred';
+      openItemId: string;
+    };
+    l1: { maleToilet: ToiletProgram; femaleToilet: ToiletProgram };
+    l2: {
+      strictGenderSeparation: boolean;
+      sharedDistributionZoneId: string;
+      male: GenderProgram;
+      female: GenderProgram;
+    };
   };
   entities: Entity[];
   sheets: Sheet[];

@@ -101,6 +101,18 @@ footer p { margin: 0; }
 .service-zone { stroke-width: 2; cursor: pointer; }
 .service-zone.male { fill: rgba(74,143,214,.18); stroke: var(--male); }
 .service-zone.female { fill: rgba(203,111,150,.17); stroke: var(--female); }
+.privacy-wall { stroke: #243b46; stroke-width: 3; }
+.privacy-screen { fill: none; stroke: #253d48; stroke-width: 5; stroke-linecap: round; }
+.deferred-zone { color: #b5862f; fill: rgba(244,191,79,.14); stroke: #b5862f; stroke-width: 2.5; stroke-dasharray: 8 6; cursor: pointer; }
+.deferred-label { fill: #875f18 !important; font-size: 12px !important; font-weight: 800; }
+.deferred-label.small { font-size: 9px !important; }
+.door-opening { fill: none; stroke: var(--paper); stroke-width: 8; }
+.door-leaf { fill: none; stroke: #344d59; stroke-width: 1.6; }
+.rear-door .door-leaf { stroke: #ac7225; }
+.access-note { fill: #8f6320 !important; font-size: 10px !important; font-weight: 800; }
+.building-outline.ghost { fill: #f3f0e8; stroke-dasharray: 7 6; }
+.l2-extension { fill: rgba(225,82,70,.16); stroke: #c94f45; stroke-width: 4; cursor: pointer; }
+.extension-boundary-plan { stroke: #3d8b69; stroke-width: 4; stroke-dasharray: 7 5; }
 .stair-gallery { fill: rgba(73,212,229,.11); stroke: #2694a4; stroke-width: 2; cursor: pointer; }
 .stair-tread { stroke: #375a6c; stroke-width: 1.4; }
 .entrance { fill: none; stroke: #d94d48; stroke-width: 7; stroke-linecap: round; cursor: pointer; }
@@ -109,6 +121,7 @@ footer p { margin: 0; }
 .pool-hall-void { fill: #f0ede5; stroke: #99a7ac; stroke-width: 1.5; stroke-dasharray: 9 7; cursor: pointer; }
 .void-label { fill: #80929a !important; font-size: 17px !important; letter-spacing: .12em; }
 .distribution-lobby { fill: #d9d3c6; stroke: #746f67; stroke-width: 1.5; cursor: pointer; }
+.extension-label { fill: #a64138 !important; font-size: 11px !important; font-weight: 850; letter-spacing: .04em; }
 .cubicle { cursor: pointer; }
 .cubicle rect:first-child { stroke-width: 1.2; }
 .cubicle.male rect:first-child { fill: #d9e8f6; stroke: #3779b8; }
@@ -124,14 +137,19 @@ footer p { margin: 0; }
 .legend .expansion { fill: transparent; stroke-dasharray: 4 3; }
 .legend .cabinet { fill: var(--yellow); }
 
-.glass-roof { fill: url(#glass-hatch), rgba(86,191,211,.23); stroke: #257f94; stroke-width: 3; cursor: pointer; }
+.glass-roof { fill: rgba(86,191,211,.23); stroke: #257f94; stroke-width: 3; cursor: pointer; }
 .roof-mullion { stroke: #4d9cad; stroke-width: 1; }
 .opaque-roof { fill: #9a9d9b; stroke: #464f53; stroke-width: 2.5; cursor: pointer; }
+.l2-roof-extension { fill: rgba(211,81,68,.22); stroke: #9d443b; stroke-width: 2.5; cursor: pointer; }
+.l2-roof-core { fill: rgba(76,166,125,.2); stroke: #357b5e; stroke-width: 2.5; cursor: pointer; }
+.deferred-joint { stroke: #d3922d; stroke-width: 5; stroke-dasharray: 9 7; cursor: pointer; }
 .elevation-label { font: 800 12px/1 monospace !important; }
 .ground-line { stroke: #1f3038; stroke-width: 4; }
 .level-line { stroke: #82949d; stroke-width: 1.3; stroke-dasharray: 8 6; }
 .service-section { fill: #d2cdc2; stroke: #303f45; stroke-width: 2.5; cursor: pointer; }
 .glass-roof-section { fill: #a7e1e7; stroke: #27798a; stroke-width: 2; cursor: pointer; }
+.l2-section-volume { fill: rgba(208,92,77,.2); stroke: #884b42; stroke-width: 2.5; cursor: pointer; }
+.open-below-extension { fill: rgba(255,255,255,.14); stroke: #b0aaa0; stroke-width: 1.5; stroke-dasharray: 8 6; }
 .glass-wall { stroke: #58aab8; stroke-width: 4; }
 .section-step { fill: none; stroke: #314b57; stroke-width: 1.2; }
 .stringer { stroke: #172d38; stroke-width: 8; stroke-linecap: round; }
@@ -145,9 +163,15 @@ footer p { margin: 0; }
 .iso-core-roof { fill: #c7cecd; stroke: #3d525c; stroke-width: 2; }
 .iso-glass-roof { fill: rgba(125,219,231,.45); stroke: #3f9bab; stroke-width: 2; cursor: pointer; }
 .iso-glass-edge { stroke: #227a8c; stroke-width: 3; }
+.iso-l2-extension-front { fill: rgba(215,84,70,.72); stroke: #7b3832; stroke-width: 2; cursor: pointer; }
+.iso-l2-extension-roof { fill: rgba(232,125,112,.72); stroke: #7b3832; stroke-width: 2; }
+.iso-l2-core-front { fill: rgba(67,156,112,.7); stroke: #2d674d; stroke-width: 2; cursor: pointer; }
+.iso-l2-core-side { fill: rgba(48,124,87,.72); stroke: #2d674d; stroke-width: 2; }
+.iso-l2-core-roof { fill: rgba(103,185,143,.7); stroke: #2d674d; stroke-width: 2; }
 .iso-glass-wall { fill: rgba(126,219,230,.16); stroke: #5aa7b4; stroke-width: 1.5; }
 .iso-stair { cursor: pointer; }
 .iso-stair line { stroke: #182d38; stroke-width: 6; }
+.iso-deferred-joint { stroke: #d3922d; stroke-width: 5; stroke-dasharray: 8 6; cursor: pointer; }
 .coordinate-triad path { fill: none; stroke: #375564; stroke-width: 2; }
 .coordinate-triad circle { fill: #375564; }
 .coordinate-triad text { font: 700 11px/1 monospace; }
@@ -165,6 +189,8 @@ footer p { margin: 0; }
 [data-entity]:hover, [data-cubicle]:hover, [data-entity]:focus, [data-cubicle]:focus { filter: brightness(1.1) drop-shadow(0 0 5px rgba(73,212,229,.8)); outline: none; }
 .selected { filter: drop-shadow(0 0 7px #e4b547) !important; }
 .hide-working .expansion { opacity: 0; pointer-events: none; }
+.entity-badge.extension rect { fill: #a74339; }
+.entity-badge.deferred rect { fill: #a87120; stroke-dasharray: 4 3; }
 .title-block line { stroke: #6a7c84; stroke-width: 1; }
 .title-block text { font: 700 10px/1 monospace; fill: #60737c; }
 .title-block .title-main { font-family: Inter, "Noto Sans TC", sans-serif; font-size: 20px; fill: var(--ink); }

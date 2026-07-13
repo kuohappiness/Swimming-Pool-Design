@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { deriveReferenceGeometry } from './reference-geometry.mjs';
 
 const closeTo = (actual, expected, tolerance = 0.002) =>
   Math.abs(actual - expected) <= tolerance;
@@ -15,97 +16,187 @@ const duplicateValues = (values) => {
   return [...duplicates];
 };
 
+const isDeferredMeasure = (measure, openItemId) => measure?.value === null
+  && measure?.status === 'deferred'
+  && measure?.openItemId === openItemId
+  && Array.isArray(measure?.sourceIds);
+
 export function validateModel(model) {
   const errors = [];
-  const entityIds = model.entities.map((entity) => entity.id);
-  const sheetIds = model.sheets.map((sheet) => sheet.id);
-  const sourceIds = model.sources.map((source) => source.id);
+  const entities = Array.isArray(model.entities) ? model.entities : [];
+  const sheets = Array.isArray(model.sheets) ? model.sheets : [];
+  const sources = Array.isArray(model.sources) ? model.sources : [];
+  const entityIds = entities.map((entity) => entity.id);
+  const sheetIds = sheets.map((sheet) => sheet.id);
+  const sourceIds = sources.map((source) => source.id);
 
   for (const [label, ids] of [
     ['entity', entityIds],
     ['sheet', sheetIds],
     ['source', sourceIds],
   ]) {
-    for (const duplicate of duplicateValues(ids)) {
-      errors.push(`${label} ID 重複：${duplicate}`);
-    }
+    for (const duplicate of duplicateValues(ids)) errors.push(`${label} ID is duplicated: ${duplicate}`);
   }
 
   const entitySet = new Set(entityIds);
   const sourceSet = new Set(sourceIds);
-  for (const sheet of model.sheets) {
-    for (const entityId of sheet.referencedEntityIds) {
-      if (!entitySet.has(entityId)) {
-        errors.push(`${sheet.id} 引用了不存在的 entity：${entityId}`);
-      }
+  for (const sheet of sheets) {
+    for (const entityId of sheet.referencedEntityIds ?? []) {
+      if (!entitySet.has(entityId)) errors.push(`${sheet.id} references unknown entity: ${entityId}`);
     }
   }
-  for (const entity of model.entities) {
-    for (const sourceId of entity.sourceIds) {
-      if (!sourceSet.has(sourceId)) {
-        errors.push(`${entity.id} 引用了不存在的 source：${sourceId}`);
-      }
+  for (const entity of entities) {
+    for (const sourceId of entity.sourceIds ?? []) {
+      if (!sourceSet.has(sourceId)) errors.push(`${entity.id} references unknown source: ${sourceId}`);
     }
   }
 
-  const { building, pool, roof, stair, combinedCubicle } = model.geometry;
+  const geometry = model.geometry ?? {};
+  const { building, pool, roof, stair, combinedCubicle } = geometry;
+  if (!building || !pool || !roof || !stair || !combinedCubicle) {
+    errors.push('model.geometry must include building, pool, roof, stair, and combinedCubicle');
+    return errors;
+  }
+
+  const numericMeasures = [
+    ['building.length', building.length],
+    ['building.width', building.width],
+    ['building.poolHallLength', building.poolHallLength],
+    ['building.serviceCoreLength', building.serviceCoreLength],
+    ['building.l2ExtensionLength', building.l2ExtensionLength],
+    ['pool.length', pool.length],
+    ['pool.width', pool.width],
+    ['pool.shallowDepth', pool.shallowDepth],
+    ['pool.deepDepth', pool.deepDepth],
+    ['roof.pitch', roof.pitch],
+  ];
+  for (const [label, measure] of numericMeasures) {
+    if (!Number.isFinite(measure?.value) || measure.value <= 0 || measure.status === 'deferred') {
+      errors.push(`${label} must be a positive numeric measure`);
+      continue;
+    }
+    for (const sourceId of measure.sourceIds ?? []) {
+      if (!sourceSet.has(sourceId)) errors.push(`${label} references unknown source: ${sourceId}`);
+    }
+  }
+
+  let derived;
+  try {
+    derived = deriveReferenceGeometry(model);
+  } catch (error) {
+    errors.push(`reference geometry cannot be derived: ${error.message}`);
+  }
+
   if (!closeTo(building.length.value, building.poolHallLength.value + building.serviceCoreLength.value)) {
-    errors.push('整體建築長度必須等於泳池大廳與服務核心長度總和');
+    errors.push('building length must equal pool hall length plus service core length');
   }
-  const poolRight = pool.origin[0] + pool.length.value;
-  const poolTop = pool.origin[1] + pool.width.value;
-  if (pool.origin[0] <= 0 || pool.origin[1] <= 0 || poolRight >= building.poolHallLength.value || poolTop >= building.width.value) {
-    errors.push('主泳池必須完整位於泳池大廳內，且四周池畔淨寬必須大於零');
+  const poolRight = pool.origin?.[0] + pool.length.value;
+  const poolTop = pool.origin?.[1] + pool.width.value;
+  if (!Number.isFinite(poolRight) || !Number.isFinite(poolTop)
+    || pool.origin[0] <= 0 || pool.origin[1] <= 0
+    || poolRight >= building.poolHallLength.value || poolTop >= building.width.value) {
+    errors.push('pool must remain inside the pool hall with positive deck clearances');
+  }
+  if (pool.deepDepth.value <= pool.shallowDepth.value) errors.push('pool deep depth must exceed shallow depth');
+
+  const bearing = model.referenceSystem?.localLongAxisBearingFromTrueNorth;
+  const rotation = model.referenceSystem?.worldTransform?.rotationFromTrueNorth;
+  if (bearing !== 307 || rotation !== 307) errors.push('orientation fields must both equal 307 degrees');
+  if (bearing !== rotation) errors.push('orientation may only have one transform answer');
+  if (model.referenceSystem?.worldOriginEntityId !== 'O-SITE-01') errors.push('world origin entity must be O-SITE-01');
+  if (model.referenceSystem?.axes?.x !== 'east' || model.referenceSystem?.axes?.y !== 'north' || model.referenceSystem?.axes?.z !== 'up') {
+    errors.push('world axes must remain +X east, +Y north, +Z up');
+  }
+  const rfLevel = model.referenceSystem?.levels?.find((level) => level.id === 'RF');
+  if (rfLevel?.elevation !== null || rfLevel?.status !== 'deferred' || rfLevel?.openItemId !== 'OPEN-010') {
+    errors.push('RF level elevation must remain deferred under OPEN-010');
   }
 
-  const expectedRoofHigh = roof.lowElevation.value
-    + building.poolHallLength.value * Math.tan(roof.pitch.value * Math.PI / 180);
-  if (!closeTo(roof.highElevation.value, expectedRoofHigh)) {
-    errors.push(`屋頂高側標高與 ${roof.pitch.value}° 坡度不一致；應為 ${expectedRoofHigh.toFixed(3)} m`);
+  if (roof.coverageZoneId !== 'Z-PH-01') errors.push('roof coverage zone must remain Z-PH-01');
+  if (roof.pitch?.value !== 10 || roof.pitch?.status !== 'confirmed') errors.push('roof pitch must remain confirmed at 10 degrees');
+  if (roof.highEdge !== 'l2-extension-edge' || roof.lowEdge !== 'far-pool-end') {
+    errors.push('roof must rise from the far pool end to the L2 extension edge');
   }
-  if (roof.coverageZoneId !== 'Z-PH-01') errors.push('玻璃屋頂只能覆蓋 Z-PH-01 泳池大廳');
-  if (roof.highEdge !== 'service-core-end' || roof.lowEdge !== 'far-pool-end') {
-    errors.push('玻璃屋頂必須服務核心端高、泳池遠端低');
+  if (!isDeferredMeasure(roof.lowElevation, 'OPEN-010') || !isDeferredMeasure(roof.highElevation, 'OPEN-010')) {
+    errors.push('roof elevations must remain deferred under OPEN-010');
   }
+  if (roof.jointEntityId !== 'J-RF-L2-01') errors.push('roof joint must use J-RF-L2-01');
+  if (roof.supportedByExtension !== false) errors.push('glass roof and L2 extension must remain structurally independent');
 
   if (stair.runs !== 2 || stair.risersPerRun * stair.runs !== stair.riserCount) {
-    errors.push('ST-01 必須是兩段等階數樓梯，階數總和須一致');
+    errors.push('ST-01 must contain two equal stair runs');
   }
   if (stair.stringers !== 2 || stair.underStair !== 'fully-open' || stair.supportedByRoof !== false) {
-    errors.push('ST-01 必須使用雙鋼梯梁、梯下完全開放，且不得由玻璃屋頂承重');
+    errors.push('ST-01 must retain dual stringers, open underside, and independent roof support');
   }
   if (stair.guardrail !== 'transparent' || stair.enclosure !== 'dry-glass-gallery') {
-    errors.push('ST-01 必須具有透明欄杆並位於乾式玻璃樓梯廊');
+    errors.push('ST-01 must retain transparent guards and a dry glass gallery');
   }
+  if (stair.upperEndAlignment !== 'l2-split-axis') errors.push('ST-01 upper end must align with the L2 split axis');
+  if (derived && !closeTo(derived.stairEndX, derived.l2SplitAxisX)) errors.push('derived stair end must equal the L2 split axis');
 
   if (!combinedCubicle.integratedChangingShower || !combinedCubicle.wallMountedCabinet) {
-    errors.push('每一單元必須整合更衣、淋浴及壁掛置物櫃');
+    errors.push('combined cubicles must integrate changing, showering, and a wall cabinet');
   }
-  if (combinedCubicle.centralLockerArea) errors.push('不得設置集中式置物櫃區');
-  if (!model.program.l2.strictGenderSeparation) errors.push('L2 男女更衣淋浴區必須完全分離');
+  if (combinedCubicle.centralLockerArea) errors.push('centralLockerArea must remain false');
+
+  const entrance = model.program?.entrance;
+  if (entrance?.entityId !== 'EN-01' || entrance?.dailyPeopleEntrance !== true) errors.push('EN-01 must remain the daily people entrance');
+  if (entrance?.sharedVestibuleZoneId !== 'Z-L1-ENTRY-01'
+    || entrance?.geometryStatus !== 'deferred' || entrance?.openItemId !== 'OPEN-008') {
+    errors.push('L1 shared entrance vestibule must remain deferred under OPEN-008');
+  }
+
+  const maleToilet = model.program?.l1?.maleToilet;
+  const femaleToilet = model.program?.l1?.femaleToilet;
+  if (maleToilet?.side !== 'lower-x' || femaleToilet?.side !== 'higher-x') {
+    errors.push('L1 toilets must be male lower-X and female higher-X');
+  }
+  for (const toilet of [maleToilet, femaleToilet]) {
+    if (toilet?.frontDoor?.connectsTo !== 'Z-L1-ENTRY-01' || toilet?.frontDoor?.access !== 'daily-open') {
+      errors.push('L1 toilet front doors must connect to the shared vestibule');
+    }
+    if (toilet?.rearDoor?.connectsTo !== 'pool-side-dry-passage' || toilet?.rearDoor?.access !== 'pool-hours-only') {
+      errors.push('L1 toilet rear doors must be pool-hours-only');
+    }
+    if (toilet?.doorsDirectlyAligned !== false) errors.push('L1 toilet front and rear doors must be offset');
+  }
+
+  const l2 = model.program?.l2;
+  if (!l2?.strictGenderSeparation) errors.push('L2 gender zones must remain strictly separated');
+  if (l2?.male?.side !== 'lower-x' || l2?.female?.side !== 'higher-x') errors.push('L2 must be male lower-X and female higher-X');
 
   const allCubicleIds = [];
-  for (const [label, area] of Object.entries({
-    male: model.program.l2.male,
-    female: model.program.l2.female,
-  })) {
-    if (area.baseCount !== 15 || area.activeIds.length !== 15) {
-      errors.push(`${label} 必須配置 15 間正式更衣淋浴單元`);
+  for (const [label, area] of Object.entries({ male: l2?.male, female: l2?.female })) {
+    if (!area || area.baseCount !== 15 || area.activeIds?.length !== 15) {
+      errors.push(`${label} must contain 15 active cubicles`);
+      continue;
     }
     if (area.maximumCount !== 20 || area.activeIds.length + area.expansionIds.length !== 20) {
-      errors.push(`${label} 必須保留擴充至 20 間的空間`);
+      errors.push(`${label} must retain capacity for 20 cubicles`);
     }
     allCubicleIds.push(...area.activeIds, ...area.expansionIds);
   }
-  for (const duplicate of duplicateValues(allCubicleIds)) errors.push(`更衣淋浴單元 ID 重複：${duplicate}`);
+  for (const duplicate of duplicateValues(allCubicleIds)) errors.push(`cubicle ID is duplicated: ${duplicate}`);
 
+  const requiredEntityIds = ['Z-L1-ENTRY-01', 'EXT-L2-01', 'J-RF-L2-01'];
+  for (const id of requiredEntityIds) {
+    if (!entitySet.has(id)) errors.push(`required entity is missing: ${id}`);
+  }
   const requiredSheetIds = ['REF-001', 'REF-101', 'REF-201', 'REF-301', 'REF-401', 'REF-501'];
   for (const id of requiredSheetIds) {
-    if (!sheetIds.includes(id)) errors.push(`缺少必要圖面：${id}`);
+    if (!sheetIds.includes(id)) errors.push(`required sheet is missing: ${id}`);
   }
-  if (model.referenceSystem.worldOriginEntityId !== 'O-SITE-01') errors.push('世界座標原點必須綁定 O-SITE-01');
-  if (model.referenceSystem.axes.x !== 'east' || model.referenceSystem.axes.y !== 'north' || model.referenceSystem.axes.z !== 'up') {
-    errors.push('世界座標軸必須為 +X 東、+Y 北、+Z 上');
+  const requiredSheetReferences = {
+    'REF-101': ['Z-L1-ENTRY-01'],
+    'REF-201': ['EXT-L2-01'],
+    'REF-301': ['EXT-L2-01', 'J-RF-L2-01'],
+    'REF-401': ['EXT-L2-01', 'J-RF-L2-01'],
+    'REF-501': ['EXT-L2-01', 'J-RF-L2-01'],
+  };
+  for (const [sheetId, ids] of Object.entries(requiredSheetReferences)) {
+    const referenced = new Set(sheets.find((sheet) => sheet.id === sheetId)?.referencedEntityIds ?? []);
+    for (const id of ids) if (!referenced.has(id)) errors.push(`${sheetId} must reference ${id}`);
   }
 
   return errors;
@@ -118,9 +209,9 @@ export async function validateSourceFiles(model, repoRoot) {
     try {
       const bytes = await readFile(fullPath);
       const hash = createHash('sha256').update(bytes).digest('hex').toUpperCase();
-      if (hash !== source.sha256) errors.push(`${source.id} SHA-256 不一致`);
+      if (hash !== source.sha256) errors.push(`${source.id} SHA-256 does not match`);
     } catch (error) {
-      errors.push(`${source.id} 圖檔不存在或無法讀取：${error.message}`);
+      errors.push(`${source.id} cannot be read: ${error.message}`);
     }
   }
   return errors;

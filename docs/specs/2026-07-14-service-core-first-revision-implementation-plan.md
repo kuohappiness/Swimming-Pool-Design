@@ -2,7 +2,7 @@
 
 - 日期：2026-07-14
 - 依據：[服務核心第一階段修正設計](2026-07-14-service-core-first-revision-design.md)
-- 狀態：執行中
+- 狀態：已完成
 - 範圍：`DEC-022`～`DEC-026`、`DB-003`
 - 排除：`OPEN-009` 專業結構／機電細節、`OPEN-010` 屋頂交界構造
 
@@ -223,3 +223,20 @@ git diff --check
 
 - 把本計畫狀態改為「已完成」，記錄驗證結果與 Demo：`npm run dev` → `reference/index.html`。
 - `OPEN-009`、`OPEN-010` 保持未決，第一階段不新增施工式屋頂接縫細節。
+
+## 10. 完成紀錄
+
+- 模型已升級為 `0.1.0-atlas.2`，六張圖共用 `deriveReferenceGeometry(model)` 推導 L2 擴建、中央分流、樓梯與屋頂平面終點。
+- `CORE-01`／`BLDG-01` 基地方向統一為 307°；`EN-01` 對應衛星圖紅箭頭入口。
+- L1 已改為男左女右、操場側前門與泳池側時段管制後門，並保留 `Z-L1-ENTRY-01` 前室為 deferred 工作區。
+- L2 已以紅色 `EXT-L2-01` 擴建區整合綠色原核心，中央樓梯分流為男左女右，兩側入口錯開。
+- `RF-GL-01` 已改為 10° 向左下並終止於擴建邊緣；`J-RF-L2-01` 的標高、密封與結構做法維持 `OPEN-010`，未寫死施工答案。
+
+驗證結果：
+
+- `npm run validate:reference`：通過，18 個 entity、6 張 sheet、9 個 source。
+- `node --test tests/reference-model.test.mjs`：12 項測試通過，包含 4.0 m 可變參數 clone。
+- `npm run build`：使用工作區 Node 24.14.0 通過。
+- 瀏覽器 smoke：`REF-001`～`REF-501` 桌面版逐張通過；行動版頁籤、橫向捲動及 detail panel 通過；無 runtime error。
+
+本機 Demo：執行 `npm run dev` 後開啟 Vite 顯示的網址；預設通常為 `http://127.0.0.1:4173/`。
