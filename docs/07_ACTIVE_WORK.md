@@ -11,11 +11,11 @@
 | TASK-001 | 太陽研究 180° 方位修正 | ready | 0.2.0 | [DEC-029](04_DECISIONS_AND_OPEN_ITEMS.md)、[修正計畫](specs/2026-07-14-solar-orientation-correction-implementation-plan.md)、[solar contract](contracts/solar-study.md) | TASK-003 | 固定建築與 2F 使用本地 +X 307° transform；127° 只作面池法線／反射目標；方位一致性測試通過 |
 | TASK-002 | L1 戶外入口與廁所雙動線 | done | 0.2.0 | [DEC-028](04_DECISIONS_AND_OPEN_ITEMS.md)、[服務核心設計](archive/specs/2026-07-14-service-core-first-revision-design.md)、[入口修正計畫](archive/specs/2026-07-14-l1-outdoor-entry-correction-implementation-plan.md) | TASK-003 | 綠框為戶外；泳池、男廁、女廁三個獨立戶外開口；兩廁可由泳池側乾式通道進入；模型、圖集與測試一致 |
 | TASK-003 | 文件架構重構 | done | 0.2.0 | [設計](archive/specs/2026-07-14-documentation-architecture-refactor-design.md)、[實作紀錄](archive/specs/2026-07-14-documentation-architecture-refactor-implementation-plan.md) | — | 07 成為唯一 task status；owner、contracts、spec archive、versions、來源與文件檢查完成 |
-| TASK-006 | REF-401 屋頂、入口戶外區與鏡牆概念修正 | in_progress | 0.2.0 | [縱剖面修正設計](specs/2026-07-15-longitudinal-section-concept-correction-design.md)、[實作計畫](specs/2026-07-15-longitudinal-section-concept-correction-implementation-plan.md)、[DEC-030](04_DECISIONS_AND_OPEN_ITEMS.md) | TASK-002 | 屋頂接近 L2 樓板且維持 deferred；入口區開放；面池端鏡牆外傾示意；來源、模型、圖集與測試一致 |
+| TASK-006 | REF-401 屋頂、入口戶外區與鏡牆概念修正 | done | 0.2.0 | [縱剖面修正設計](archive/specs/2026-07-15-longitudinal-section-concept-correction-design.md)、[實作計畫](archive/specs/2026-07-15-longitudinal-section-concept-correction-implementation-plan.md)、[DEC-030](04_DECISIONS_AND_OPEN_ITEMS.md) | TASK-002 | 屋頂接近 L2 樓板且維持 deferred；入口區開放；面池端鏡牆外傾示意；來源、模型、圖集與測試一致 |
 | TASK-004 | 套件、模型與現行文件同步至 0.2.0 | queued | 0.2.0 | [版本流程](06_WORKFLOW_AND_RELEASES.md) | TASK-001、TASK-002、TASK-003、TASK-006 | `package.json`、lockfile、modelVersion、revision 與現行文件一致為 0.2.0 |
 | TASK-005 | 完整驗證與本機 release commit | queued | 0.2.0 | [發布門檻](06_WORKFLOW_AND_RELEASES.md) | TASK-001～TASK-004、TASK-006 | 文件、模型、測試、build、視覺 smoke 與 diff 檢查通過；建立 release 記錄與本機 `release: v0.2.0` commit；不 tag、不 push |
 
-`TASK-006` 的依賴已解除並正在執行；完成後按版本順序執行 `TASK-001`，再依 `TASK-004`、`TASK-005` 順序處理。
+`TASK-006` 已完成；按版本順序執行 `TASK-001`，再依 `TASK-004`、`TASK-005` 順序處理。
 
 ## 2. 未排程設計問題
 
