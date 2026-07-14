@@ -107,6 +107,22 @@ export function validateModel(model) {
   if (model.referenceSystem?.axes?.x !== 'east' || model.referenceSystem?.axes?.y !== 'north' || model.referenceSystem?.axes?.z !== 'up') {
     errors.push('world axes must remain +X east, +Y north, +Z up');
   }
+
+  if (model.project?.name !== '國立臺中教育大學附設實驗國民小學游泳池改善概念設計') {
+    errors.push('project name must identify the current school site');
+  }
+
+  const siteLocation = model.referenceSystem?.siteLocation;
+  const latitude = siteLocation?.latitude?.value;
+  const longitude = siteLocation?.longitude?.value;
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) errors.push('site latitude must be valid');
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) errors.push('site longitude must be valid');
+  if (siteLocation?.timeZone !== 'Asia/Taipei' || siteLocation?.utcOffsetHours !== 8) {
+    errors.push('site timezone must remain Asia/Taipei UTC+8');
+  }
+  for (const sourceId of [...(siteLocation?.latitude?.sourceIds ?? []), ...(siteLocation?.longitude?.sourceIds ?? [])]) {
+    if (!sourceIds.includes(sourceId)) errors.push(`site location references missing source ${sourceId}`);
+  }
   const rfLevel = model.referenceSystem?.levels?.find((level) => level.id === 'RF');
   if (rfLevel?.elevation !== null || rfLevel?.status !== 'deferred' || rfLevel?.openItemId !== 'OPEN-010') {
     errors.push('RF level elevation must remain deferred under OPEN-010');

@@ -8,6 +8,7 @@
 
 - `model/project-model.json` 是圖面、ID、尺寸、狀態與來源的單一權威模型。
 - `reference/index.html` 提供六張可縮放、可點選 ID、支援手機的空間參照圖。
+- `reference/solar-study/index.html` 提供固定 1F、2F 水平旋轉與鏡牆外傾的冬夏日照互動研究。
 - 模型方位以本地長軸 307° 為單一答案；`CORE-01` 與入口 `EN-01` 已依衛星圖修正方向。
 - L1 男廁在左、女廁在右，操場側各有前門，泳池側各有可於非使用時間關閉的後門；入口前室尺寸仍可調整。
 - L2 男、女更衣淋浴區嚴格分離，各配置 15 間整合式單元，另保留 5 間擴充位置。
@@ -41,6 +42,8 @@ npm run build
 - [空間參照圖集實作計畫](docs/specs/2026-07-13-spatial-reference-atlas-implementation-plan.md)
 - [服務核心第一階段修正設計](docs/specs/2026-07-14-service-core-first-revision-design.md)
 - [服務核心第一階段修正實作紀錄](docs/specs/2026-07-14-service-core-first-revision-implementation-plan.md)
+- [冬夏日照互動展示設計](docs/specs/2026-07-14-solar-reflection-explainer-design.md)
+- [冬夏日照互動展示實作計畫](docs/specs/2026-07-14-solar-reflection-explainer-implementation-plan.md)
 - [repo-local Codex skill](.codex/skill/SKILL.md)
 
 ## 歷史成果

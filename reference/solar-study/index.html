@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f0e6" />
+    <link rel="icon" href="data:," />
+    <title>中教大實小｜2F 旋轉鏡牆冬夏日照研究</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#study-stage">跳到互動研究</a>
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">SWIMMING POOL DESIGN · SOLAR REFLECTION STUDY</p>
+        <h1>固定 1F，讓 2F 旋轉成為<br />季節性的光線導引器</h1>
+        <p id="project-name" class="project-name"></p>
+      </div>
+      <div class="header-actions">
+        <a class="atlas-link" href="../">返回空間參照圖集</a>
+        <span id="model-version" class="model-chip"></span>
+      </div>
+    </header>
+
+    <main id="study-stage" class="wrap">
+      <p class="lead">左側平面只處理 <strong>2F 水平旋轉</strong>，右側剖面只處理 <strong>鏡牆外傾</strong>；兩個角度共同決定反射光是否進入泳池。1F 泳池、地基與長邊玻璃牆全程固定。</p>
+
+      <div class="facts" aria-label="基地與方向資料">
+        <span id="coord-fact" class="pill"></span>
+        <span id="axis-fact" class="pill"></span>
+        <span id="pool-fact" class="pill"></span>
+        <span id="timezone-fact" class="pill"></span>
+      </div>
+
+      <section class="stage" aria-label="平面與剖面互動研究">
+        <article class="panel">
+          <h2>平面：2F 旋轉改變鏡牆朝向</h2>
+          <p class="sub">綠色 1F 永遠不動；紅色 2F 整體旋轉。藍色短邊是面向泳池的鏡牆。中央圓點只表達旋轉角度，不代表最後的結構支點。</p>
+          <svg id="plan" viewBox="0 0 560 470" role="img" aria-labelledby="plan-title plan-desc">
+            <title id="plan-title">基地平面、太陽方位與二樓水平旋轉示意</title>
+            <desc id="plan-desc">固定的一樓泳池量體上方，有一個可水平旋轉的二樓更衣量體。冬至與夏至上午太陽方位顯示於羅盤上。</desc>
+            <circle cx="280" cy="235" r="190" class="compass-disc" />
+            <circle cx="280" cy="235" r="108" class="compass-inner" />
+            <line x1="280" y1="30" x2="280" y2="440" class="compass-axis" />
+            <line x1="75" y1="235" x2="485" y2="235" class="compass-axis" />
+            <text x="280" y="21" text-anchor="middle" class="cardinal">N</text>
+            <text x="280" y="462" text-anchor="middle" class="cardinal">S</text>
+            <text x="506" y="240" class="cardinal">E</text>
+            <text x="48" y="240" class="cardinal">W</text>
+            <g id="planRays"></g>
+
+            <g id="buildingPlan" transform="translate(280 235)">
+              <rect x="-110" y="-43" width="220" height="86" rx="8" class="fixed-footprint" />
+              <rect x="-99" y="-24" width="129" height="48" rx="10" class="pool-plan" />
+              <rect x="41" y="-43" width="69" height="86" rx="6" class="core-plan" />
+              <text x="-35" y="5" text-anchor="middle" class="building-label">固定 1F 泳池</text>
+              <text x="75" y="5" text-anchor="middle" class="small-building-label">CORE-01</text>
+
+              <g id="upperBoxPlan" transform="rotate(4.5 60 0)">
+                <rect x="9" y="-39" width="101" height="78" rx="8" class="upper-plan" />
+                <line x1="9" y1="-39" x2="9" y2="39" class="mirror-edge" />
+                <text x="60" y="-5" text-anchor="middle" class="building-label">旋轉 2F</text>
+                <text x="60" y="14" text-anchor="middle" class="small-building-label">男女更衣量體</text>
+              </g>
+              <circle cx="60" cy="0" r="6" class="study-pivot" />
+              <text x="60" y="60" text-anchor="middle" class="pivot-label">角度示意中心</text>
+            </g>
+
+            <line id="wallNormal" x1="280" y1="235" x2="431" y2="348" class="wall-normal" />
+            <text id="wallAzLabel" x="366" y="380" class="wall-label">鏡牆法線</text>
+            <g id="selectedSun"></g>
+          </svg>
+          <div class="legend" aria-label="平面圖例">
+            <span><i class="swatch fixed"></i>固定 1F</span>
+            <span><i class="swatch upper"></i>旋轉 2F</span>
+            <span><i class="swatch wall"></i>鏡牆法線</span>
+            <span><i class="swatch winter"></i>冬至上午</span>
+            <span><i class="swatch summer"></i>夏至上午</span>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>剖面：外傾角改變反射下射角</h2>
+          <p class="sub">此剖面沿鏡牆法線切取，因此水平旋轉本身在右圖不會看起來旋轉；它的作用會反映在最下方的 3D 方位判讀。</p>
+          <svg id="section" viewBox="0 0 720 430" role="img" aria-labelledby="section-title section-desc">
+            <title id="section-title">二樓鏡牆反射日光的建築剖面示意</title>
+            <desc id="section-desc">日光射向二樓外傾鏡牆，再反射到一樓泳池水面或避開泳池。</desc>
+            <rect x="0" y="0" width="720" height="430" class="section-bg" />
+            <rect x="42" y="332" width="448" height="30" rx="6" class="water-section" />
+            <text x="58" y="353" class="building-label">固定 1F 泳池水面</text>
+            <line x1="28" y1="363" x2="690" y2="363" class="ground-line" />
+            <polygon id="upperSection" points="495,363 690,363 690,105 452,105" class="upper-section" />
+            <text x="592" y="292" text-anchor="middle" class="building-label">旋轉 2F 更衣量體</text>
+            <line id="wall" x1="495" y1="363" x2="452" y2="105" class="mirror-wall" />
+            <line id="incoming" x1="175" y1="70" x2="470" y2="230" class="incoming-ray" marker-end="url(#arrow-sun)" />
+            <line id="reflected" x1="470" y1="230" x2="310" y2="332" class="reflected-ray" marker-end="url(#arrow-reflected)" />
+            <defs>
+              <marker id="arrow-sun" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path id="sunArrow" d="M0,0 L0,6 L9,3 z" />
+              </marker>
+              <marker id="arrow-reflected" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path id="reflectedArrow" d="M0,0 L0,6 L9,3 z" />
+              </marker>
+            </defs>
+            <text id="sunLabel" x="56" y="48" class="sun-label">冬至 09:00</text>
+            <text id="rayLabel" x="185" y="298" class="ray-label">反射朝向池面</text>
+            <text id="sideLabel" x="38" y="401" class="side-label">平面方向與剖面落點同時通過</text>
+          </svg>
+
+          <div class="controls">
+            <label class="control" for="season">
+              <span>季節</span>
+              <select id="season">
+                <option value="winter" selected>冬至 2026-12-21</option>
+                <option value="summer">夏至 2026-06-21</option>
+              </select>
+            </label>
+            <label class="control" for="time">
+              <span>觀察時間</span>
+              <select id="time">
+                <option>08:00</option>
+                <option selected>09:00</option>
+                <option>10:00</option>
+                <option>11:00</option>
+                <option>12:00</option>
+              </select>
+            </label>
+            <label class="control" for="planRotation">
+              <span>2F 水平旋轉 <b id="planValue">+4.5°</b></span>
+              <input id="planRotation" type="range" min="-12" max="18" value="4.5" step="0.5" />
+            </label>
+            <label class="control" for="lean">
+              <span>鏡牆外傾角（相對垂直） <b id="leanValue">9.5°</b></span>
+              <input id="lean" type="range" min="0" max="30" value="9.5" step="0.5" />
+            </label>
+          </div>
+
+          <div class="readout" aria-label="即時幾何讀值">
+            <div class="metric"><b id="altitude">26.2°</b><span>太陽高度角</span></div>
+            <div class="metric"><b id="azimuth">135.0°</b><span>太陽方位角</span></div>
+            <div class="metric"><b id="mirrorAz">131.5°</b><span>鏡牆朝向</span></div>
+            <div class="metric"><b id="downAngle">45.0°</b><span>反射向下角</span></div>
+          </div>
+          <div id="result" class="result" aria-live="polite">
+            <strong id="resultTitle">冬季上午：導向泳池</strong>
+            <span id="resultDetail">平面方位與剖面下射角同時通過概念判讀。</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel season-table-panel">
+        <h2>冬至與夏至代表時刻</h2>
+        <p class="sub">高度角是太陽離地平線的角度；方位角由真北順時針計。所有數值由同一基地座標及太陽位置函式產生。</p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>季節／時間</th><th>08:00</th><th>09:00</th><th>10:00</th><th>11:00</th><th>12:00</th></tr>
+            </thead>
+            <tbody id="solar-table-body"></tbody>
+          </table>
+        </div>
+        <p class="table-note">夏至接近中午時太陽幾乎位於天頂，方位角會對幾分鐘的時間差特別敏感。</p>
+      </section>
+
+      <section class="panel principles">
+        <h2>這個設計語言的重點</h2>
+        <div class="principle-grid">
+          <div><b>1F 是不可變的基準</b><span>泳池、地基與長邊玻璃牆不參與角度調整，避免誤以為基地可以轉向。</span></div>
+          <div><b>平面旋轉與剖面外傾分工</b><span>2F 水平旋轉負責朝哪裡反射；鏡牆外傾負責向下多少。兩者需同時通過才算命中泳池。</span></div>
+          <div><b>冬季利用、夏季避開</b><span>目標不是全年增加反射，而是冬季上午導入、夏季上午偏離或背光。</span></div>
+        </div>
+        <div class="note"><strong>OPEN-011：</strong>目前角度只是操作預設。旋轉支點、正式角度、牆高、材質反射率、遮蔭、眩光、結構與熱效益仍待後續專題驗證。</div>
+      </section>
+    </main>
+
+    <footer>
+      <p>太陽位置採 NOAA 公開近似式；精密工程分析可改用 NREL SPA。幾何反射不等於實際升溫。</p>
+      <p><a href="https://gml.noaa.gov/grad/solcalc/calcdetails.html">NOAA 計算說明</a> · <a href="https://midcdmz.nrel.gov/spa/">NREL SPA</a></p>
+    </footer>
+    <script type="module" src="/src/solar-study/main.ts"></script>
+  </body>
+</html>

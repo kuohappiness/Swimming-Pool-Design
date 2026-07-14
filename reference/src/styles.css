@@ -27,6 +27,9 @@ button { color: inherit; }
 .eyebrow, .detail-eyebrow { margin: 0 0 8px; color: var(--cyan); font-size: 11px; font-weight: 800; letter-spacing: .18em; }
 h1 { margin: 0; font-size: clamp(28px, 5vw, 50px); line-height: 1; font-weight: 680; letter-spacing: -.04em; }
 .project-name { margin: 10px 0 0; color: #9eb3c0; font-size: 13px; }
+.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.solar-study-link { padding: 9px 13px; border: 1px solid #3c7186; border-radius: 999px; color: #dbf8fb; background: linear-gradient(135deg, rgba(73,212,229,.18), rgba(244,191,79,.12)); font-size: 12px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.solar-study-link:hover, .solar-study-link:focus-visible { border-color: var(--cyan); outline: none; box-shadow: 0 0 0 3px rgba(73,212,229,.12); }
 .model-chip { display: flex; align-items: center; gap: 9px; padding: 8px 12px; border: 1px solid #275065; border-radius: 999px; color: #b7ccd6; font: 700 11px/1 monospace; white-space: nowrap; }
 #connection-dot { width: 8px; height: 8px; border-radius: 50%; background: #63dba0; box-shadow: 0 0 12px #63dba0; }
 
@@ -197,7 +200,8 @@ footer p { margin: 0; }
 
 @media (max-width: 820px) {
   .app-header { display: block; padding-top: 20px; }
-  .model-chip { position: static; width: max-content; margin-top: 12px; font-size: 9px; }
+  .header-actions { justify-content: flex-start; margin-top: 14px; }
+  .model-chip { position: static; width: max-content; font-size: 9px; }
   .project-name { max-width: 78vw; }
   .workspace { grid-template-columns: 1fr; }
   .detail-panel { position: static; min-height: 0; }

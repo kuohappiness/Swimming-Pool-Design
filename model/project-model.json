@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.1.0",
-  "modelVersion": "0.1.0-atlas.2",
+  "modelVersion": "0.1.0-atlas.3",
   "revision": "2026-07-14",
   "project": {
-    "name": "臺中市忠信國民小學游泳池改善概念設計",
+    "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
     "purpose": "概念設計與空間參照",
     "disclaimer": "概念設計，非施工、結構、消防或法規核定圖說"
@@ -18,6 +18,12 @@
       "localOrigin": [27, 0, 0],
       "worldOrigin": [0, 0, 0],
       "rotationFromTrueNorth": 307
+    },
+    "siteLocation": {
+      "latitude": { "value": 24.14434, "status": "working", "sourceIds": ["SRC-SITE-001"] },
+      "longitude": { "value": 120.67341, "status": "working", "sourceIds": ["SRC-SITE-001"] },
+      "timeZone": "Asia/Taipei",
+      "utcOffsetHours": 8
     },
     "levels": [
       { "id": "L1", "name": "一樓", "elevation": 0 },
@@ -148,7 +154,7 @@
   },
   "entities": [
     { "id": "O-SITE-01", "name": "基地世界原點（與 EN-01 門檻共點）", "type": "datum", "level": "L1", "grid": "E/1", "status": "confirmed", "sourceIds": ["SRC-SITE-002"] },
-    { "id": "SITE-01", "name": "忠信國小游泳池基地", "type": "site", "level": "L1", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-SITE-002"] },
+    { "id": "SITE-01", "name": "中教大附小游泳池基地", "type": "site", "level": "L1", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-SITE-002"] },
     { "id": "BLDG-01", "name": "游泳池建築", "type": "building", "level": "L1-RF", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001"] },
     { "id": "Z-PH-01", "name": "泳池大廳", "type": "zone", "level": "L1-RF", "grid": "A-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-004", "SRC-CONCEPT-005"] },
     { "id": "POOL-01", "name": "三水道主泳池", "type": "pool", "level": "L1", "grid": "A-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-003"] },

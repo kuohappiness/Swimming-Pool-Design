@@ -69,6 +69,12 @@ export interface ProjectModel {
     localLongAxisBearingFromTrueNorth: number;
     worldOriginEntityId: string;
     worldTransform: { localOrigin: number[]; worldOrigin: number[]; rotationFromTrueNorth: number };
+    siteLocation: {
+      latitude: NumericMeasure;
+      longitude: NumericMeasure;
+      timeZone: string;
+      utcOffsetHours: number;
+    };
     levels: Array<{
       id: string;
       name: string;

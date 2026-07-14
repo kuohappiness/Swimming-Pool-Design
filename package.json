@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "validate:reference": "node scripts/validate-reference-model.mjs",
     "test": "node --test tests/*.test.mjs",
-    "build": "npm run validate:reference && npm test && vite build"
+    "clean:reference": "node scripts/clean-reference-dist.mjs",
+    "build": "npm run validate:reference && npm test && npm run clean:reference && vite build"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
