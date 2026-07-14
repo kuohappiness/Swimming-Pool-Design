@@ -24,6 +24,29 @@ export interface ReferenceGeometry {
   roofPlanStartX: number;
   roofPlanEndX: number;
   roofPlanRun: number;
+  diagrammaticL1: {
+    outdoorForecourtBounds: PlanBounds;
+    dryPassageBounds: PlanBounds;
+    poolHallOpening: PlanPoint;
+    arrivalPath: {
+      entityId: 'RTE-L1-ARRIVAL-01';
+      width: number;
+      thresholdBypassBounds: PlanBounds;
+      clearRunBounds: PlanBounds;
+      stairBounds: PlanBounds;
+      minimumStairClearance: number;
+      points: PlanPoint[];
+    };
+    maleFrontDoor: PlanPoint;
+    maleRearDoor: PlanPoint;
+    femaleFrontDoor: PlanPoint;
+    femaleRearDoor: PlanPoint;
+  };
+}
+
+export interface PlanPoint {
+  x: number;
+  y: number;
 }
 
 export function deriveReferenceGeometry(model: unknown): ReferenceGeometry;

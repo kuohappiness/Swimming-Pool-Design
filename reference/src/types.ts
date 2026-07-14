@@ -34,6 +34,7 @@ export interface Sheet {
 }
 
 export interface DoorProgram {
+  entityId: string;
   connectsTo: string;
   access: 'daily-open' | 'pool-hours-only';
 }
@@ -46,6 +47,24 @@ export interface ToiletProgram {
   frontDoor: DoorProgram;
   rearDoor: DoorProgram;
   doorsDirectlyAligned: false;
+  privacyScreen: true;
+}
+
+export interface DryPassageProgram {
+  entityId: string;
+  side: 'pool-side';
+  connectsFromZoneId: string;
+  connectsToDoorEntityIds: string[];
+  continuous: true;
+  geometryStatus: 'deferred';
+  openItemId: string;
+}
+
+export interface L1AccessConflicts {
+  stairEntityId: string;
+  blocksOutdoorOpenings: false;
+  blocksToiletDoors: false;
+  blocksDryPassage: false;
 }
 
 export interface GenderProgram {
@@ -144,11 +163,23 @@ export interface ProjectModel {
     entrance: {
       entityId: string;
       dailyPeopleEntrance: boolean;
-      sharedVestibuleZoneId: string;
+      arrivalContext: 'school-playground';
+      outdoorForecourtZoneId: string;
+      forecourtEnvironment: 'outdoor';
+      arrivalPathEntityId: string;
+      clearsStairEntityId: string;
+      positiveStairClearanceRequired: true;
+      outdoorOpeningEntityIds: string[];
+      openingsIndependent: true;
       geometryStatus: 'deferred';
       openItemId: string;
     };
-    l1: { maleToilet: ToiletProgram; femaleToilet: ToiletProgram };
+    l1: {
+      dryPassage: DryPassageProgram;
+      accessConflicts: L1AccessConflicts;
+      maleToilet: ToiletProgram;
+      femaleToilet: ToiletProgram;
+    };
     l2: {
       strictGenderSeparation: boolean;
       sharedDistributionZoneId: string;

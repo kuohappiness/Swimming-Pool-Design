@@ -106,6 +106,15 @@ footer p { margin: 0; }
 .service-zone.female { fill: rgba(203,111,150,.17); stroke: var(--female); }
 .privacy-wall { stroke: #243b46; stroke-width: 3; }
 .privacy-screen { fill: none; stroke: #253d48; stroke-width: 5; stroke-linecap: round; }
+.outdoor-hit { fill: transparent; stroke: none; cursor: pointer; }
+.outdoor-edge-clear { fill: none; stroke: var(--paper); stroke-width: 10; stroke-linecap: square; }
+.outdoor-forecourt-guide { fill: none; stroke: #2d9b6f; stroke-width: 3; stroke-dasharray: 9 6; }
+.outdoor-label { fill: #247c5c !important; font-size: 15px !important; font-weight: 850; }
+.outdoor-label.small { font-size: 9px !important; }
+.dry-passage { fill: rgba(65,150,171,.08); stroke: #277d8c; stroke-width: 2; cursor: pointer; }
+.dry-route { fill: none; stroke: #ca8a20; stroke-width: 3; stroke-dasharray: 9 6; stroke-linecap: round; }
+.clear-route-area { fill: rgba(45,155,111,.08); stroke: rgba(45,155,111,.52); stroke-width: 1; stroke-dasharray: 4 3; cursor: pointer; }
+.clear-route { fill: none; stroke: #2d9b6f; stroke-width: 3; stroke-dasharray: 7 5; stroke-linecap: round; }
 .deferred-zone { color: #b5862f; fill: rgba(244,191,79,.14); stroke: #b5862f; stroke-width: 2.5; stroke-dasharray: 8 6; cursor: pointer; }
 .deferred-label { fill: #875f18 !important; font-size: 12px !important; font-weight: 800; }
 .deferred-label.small { font-size: 9px !important; }
@@ -113,6 +122,7 @@ footer p { margin: 0; }
 .door-leaf { fill: none; stroke: #344d59; stroke-width: 1.6; }
 .rear-door .door-leaf { stroke: #ac7225; }
 .access-note { fill: #8f6320 !important; font-size: 10px !important; font-weight: 800; }
+.opening-label { fill: #1d3b49 !important; font-size: 9px !important; font-weight: 850; }
 .building-outline.ghost { fill: #f3f0e8; stroke-dasharray: 7 6; }
 .l2-extension { fill: rgba(225,82,70,.16); stroke: #c94f45; stroke-width: 4; cursor: pointer; }
 .extension-boundary-plan { stroke: #3d8b69; stroke-width: 4; stroke-dasharray: 7 5; }

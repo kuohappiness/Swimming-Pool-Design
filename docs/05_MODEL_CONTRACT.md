@@ -24,6 +24,8 @@
 
 `scripts/reference-geometry.mjs` 是 L2 起點、外框、中央分流軸、樓梯定位與屋頂平面跨度的唯一推導層。模型保存基礎參數，consumer 使用推導結果，不保存結果常數。
 
+`program.entrance` 以 `outdoorForecourtZoneId`、`arrivalPathEntityId` 與 `outdoorOpeningEntityIds` 表達戶外到達；不得再出現 `sharedVestibuleZoneId`。`referenceSystem.worldTransform.localOrigin` 必須精確維持 `[27, 0, 0]`，使 `RTE-L1-ARRIVAL-01` 從仍與 `O-SITE-01` 共點的 `EN-01` 門檻出發，在 `ST-01` 前轉至樓梯外側；validator 必須確認門檻連接、路徑 bounds 完整位於戶外前場內，並以路徑與樓梯 bounds 證明存在大於 `0.002 m` 的淨空，不得只信任 `accessConflicts` 布林值。`program.l1.dryPassage` 保存泳池大廳至兩樘後門的拓撲。`Z-L1-ENTRY-01` 為保留既有跨輸出引用而遷移的穩定 ID，其現行類型是 `outdoor-forecourt`，不再代表室內前室。
+
 ## 3. 狀態與溯源
 
 ```ts
@@ -58,8 +60,13 @@ type Measure = NumericMeasure | DeferredMeasure;
 
 - `EN-01` 是由校園／操場到達 L1 戶外前場的日常到達入口，不是室內共用前室入口。
 - L1 戶外前場分別提供泳池大廳、男廁、女廁三個獨立開口。
+- `RTE-L1-ARRIVAL-01` 必須由 `[27, 0, 0]` 的 `EN-01`／`O-SITE-01` 共點門檻出發、完整位於戶外前場 bounds 內，並以大於 `0.002 m` 的淨空繞至 `ST-01` 外側；相切或次容差間距視為不合格，renderer 必須在樓梯之後繪製路徑，使其不被疊壓。
 - 男女廁各有戶外前門與泳池側時段管制後門；同一廁所前後門不得正對。
 - 泳池側乾式通道必須由泳池大廳連續通達兩樘廁所後門。
+- 三個戶外開口使用 `OP-L1-PH-01`、`DR-L1-WC-M-FRONT-01`、`DR-L1-WC-F-FRONT-01`；泳池側後門使用 `DR-L1-WC-M-REAR-01`、`DR-L1-WC-F-REAR-01`，乾式通道使用 `PSG-L1-DRY-01`。
+- validator 必須逐一鎖定 TASK-002 新增 entity 的 `type`、`level`、`status` 與完整 expected `sourceIds`。實際來源必須唯一、長度相等且與 expected 雙向集合相等（順序可忽略）；任何 entity 不得漂移成屋頂、RF、legacy、無來源記錄、額外來源或重複來源。
+- `REF-101` 中每個 TASK-002 entity 只能對應一個 `<g data-entity>` 互動目標；該 group 必須具有 `tabindex="0"`、`role="button"` 與以 entity ID 開頭的 `aria-label`，子圖形不得重複宣告 `data-entity`。
+- `OPEN-008` 關閉前，`REF-101` 的前場、通道與門位置只表達已確認拓撲，不宣稱精確尺寸；示意 bounds 統一由 geometry helper 推導。
 - `Z-CS-M-01` 與 `Z-CS-F-01` 嚴格分離，男女各 15 間正式單元及 5 間擴充位置。
 - 每間單元整合更衣、淋浴與壁掛櫃；`centralLockerArea` 必須為 `false`。
 - `ST-01` 為兩段、雙鋼梯梁、透明欄杆、乾式玻璃廊、梯下開放，且不由屋頂承重。
@@ -75,7 +82,7 @@ type Measure = NumericMeasure | DeferredMeasure;
 2. 來源檔案存在，像素與 SHA-256 符合登錄。
 3. 建築長度等於泳池大廳加服務核心，池體位於泳池大廳內。
 4. 男女 15＋5、整合機能、壁掛櫃及無集中櫃區成立。
-5. 樓梯、屋頂、分區與結構獨立規則成立。
+5. 樓梯、屋頂、分區與結構獨立規則成立；入口路徑與樓梯 bounds 不相交也不相切，且淨空大於零。
 6. 修改 `l2ExtensionLength` 後，L2 起點、外框、分流軸、樓梯與屋頂跨度同步更新。
 7. deferred 量測具有 OPEN ID 且沒有數值。
 8. consumer 需要的 entity 與 sheet 引用完整。

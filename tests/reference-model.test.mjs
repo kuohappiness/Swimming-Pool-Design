@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import ts from 'typescript';
 import { deriveReferenceGeometry } from '../scripts/reference-geometry.mjs';
 import { validateModel } from '../scripts/reference-validation.mjs';
 
@@ -10,6 +11,41 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sourceModel = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const clone = () => structuredClone(sourceModel);
 const closeTo = (actual, expected, tolerance = 0.002) => Math.abs(actual - expected) <= tolerance;
+const modelStairTop = (model) => model.geometry.stair.originY + model.geometry.stair.width;
+let rendererModulePromise;
+
+function sourceModuleUrl(source) {
+  return `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
+}
+
+function importRendererModule() {
+  if (!rendererModulePromise) {
+    rendererModulePromise = Promise.all([
+      readFile(resolve(repoRoot, 'reference/src/geometry.ts'), 'utf8'),
+      readFile(resolve(repoRoot, 'reference/src/sheets.ts'), 'utf8'),
+    ]).then(([geometrySource, sheetsSource]) => {
+      const compilerOptions = { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext };
+      const geometryModuleUrl = sourceModuleUrl(ts.transpileModule(geometrySource, {
+        compilerOptions,
+        fileName: 'geometry.ts',
+      }).outputText);
+      const geometryHelperUrl = pathToFileURL(resolve(repoRoot, 'scripts/reference-geometry.mjs')).href;
+      const executableSheetsSource = sheetsSource
+        .replace("from '../../scripts/reference-geometry.mjs';", `from '${geometryHelperUrl}';`)
+        .replace("} from './geometry';", `} from '${geometryModuleUrl}';`)
+        .replace(
+          /const siteImage = new URL\([^\r\n]+\)\.href;/,
+          "const siteImage = 'test://site-image';",
+        );
+      const sheetsModuleUrl = sourceModuleUrl(ts.transpileModule(executableSheetsSource, {
+        compilerOptions,
+        fileName: 'sheets.ts',
+      }).outputText);
+      return import(sheetsModuleUrl);
+    });
+  }
+  return rendererModulePromise;
+}
 
 test('derives the approved 5 m extension geometry from one base parameter', () => {
   const derived = deriveReferenceGeometry(clone());
@@ -51,15 +87,199 @@ test('derived L2 zones stay equal and the stair ends on the split axis', () => {
   assert.equal(derived.stairEndX, derived.l2SplitAxisX);
 });
 
-test('renderer uses the shared derivation layer and first-revision semantics', async () => {
-  const renderer = await readFile(resolve(repoRoot, 'reference/src/sheets.ts'), 'utf8');
-  assert.match(renderer, /deriveReferenceGeometry\(model\)/);
-  for (const token of ['Z-L1-ENTRY-01', 'EXT-L2-01', 'J-RF-L2-01', 'pool-hours-only']) {
-    assert.match(renderer, new RegExp(token));
+test('derives a diagrammatic L1 topology with outdoor forecourt, dry passage, and offset doors', () => {
+  const { diagrammaticL1 } = deriveReferenceGeometry(clone());
+  assert.equal(diagrammaticL1.outdoorForecourtBounds.x1, 24);
+  assert.equal(diagrammaticL1.outdoorForecourtBounds.x2, 35);
+  assert.equal(diagrammaticL1.dryPassageBounds.x1, 23);
+  assert.equal(diagrammaticL1.dryPassageBounds.x2, 35);
+  assert.equal(diagrammaticL1.poolHallOpening.x, 24);
+  assert.notEqual(diagrammaticL1.maleFrontDoor.x, diagrammaticL1.maleRearDoor.x);
+  assert.notEqual(diagrammaticL1.femaleFrontDoor.x, diagrammaticL1.femaleRearDoor.x);
+  assert.ok(diagrammaticL1.poolHallOpening.y > modelStairTop(clone()));
+  assert.ok(diagrammaticL1.arrivalPath.minimumStairClearance > 0);
+});
+
+test('rendered REF-101 uses outdoor-entry semantics and includes every toilet door', async () => {
+  const { renderSheets } = await importRendererModule();
+  const markup = renderSheets(clone()).find((sheet) => sheet.id === 'REF-101')?.markup ?? '';
+  for (const token of [
+    'Z-L1-ENTRY-01',
+    'RTE-L1-ARRIVAL-01',
+    'OP-L1-PH-01',
+    'DR-L1-WC-M-FRONT-01',
+    'DR-L1-WC-M-REAR-01',
+    'DR-L1-WC-F-FRONT-01',
+    'DR-L1-WC-F-REAR-01',
+    'PSG-L1-DRY-01',
+    '戶外前場',
+    '泳池入口',
+    '男廁入口',
+    '女廁入口',
+    '泳池側乾式通道',
+    'pool-hours-only',
+  ]) {
+    assert.match(markup, new RegExp(token));
   }
-  assert.doesNotMatch(renderer, /LOW 6\.000/);
-  assert.doesNotMatch(renderer, /HIGH 10\.231/);
-  assert.doesNotMatch(renderer, /採 127°/);
+  assert.doesNotMatch(markup, /共用前室|vestibule/i);
+  assert.doesNotMatch(markup, /LOW 6\.000/);
+  assert.doesNotMatch(markup, /HIGH 10\.231/);
+  assert.doesNotMatch(markup, /採 127°/);
+  assert.ok(
+    markup.indexOf('data-entity="Z-ST-01"') < markup.lastIndexOf('class="clear-route"'),
+    'arrival route must render after the stair and remain visually legible',
+  );
+});
+
+test('rejects legacy shared indoor vestibule semantics', () => {
+  const model = clone();
+  model.program.entrance.sharedVestibuleZoneId = 'Z-L1-ENTRY-01';
+  assert.match(validateModel(model).join('\n'), /must not define a shared indoor vestibule/);
+});
+
+test('requires three distinct registered outdoor openings', () => {
+  const model = clone();
+  model.program.entrance.outdoorOpeningEntityIds[2] = model.program.entrance.outdoorOpeningEntityIds[1];
+  assert.match(validateModel(model).join('\n'), /three distinct outdoor openings/);
+});
+
+test('requires a continuous pool-side dry passage to both rear doors', () => {
+  const model = clone();
+  model.program.l1.dryPassage.continuous = false;
+  model.program.l1.dryPassage.connectsToDoorEntityIds.pop();
+  const errors = validateModel(model).join('\n');
+  assert.match(errors, /dry passage must be continuous/);
+  assert.match(errors, /dry passage must connect to both toilet rear doors/);
+});
+
+test('requires offset screened toilet doors and no stair obstruction', () => {
+  const model = clone();
+  model.program.l1.maleToilet.doorsDirectlyAligned = true;
+  model.program.l1.femaleToilet.privacyScreen = false;
+  model.program.l1.accessConflicts.blocksDryPassage = true;
+  const errors = validateModel(model).join('\n');
+  assert.match(errors, /front and rear doors must be offset/);
+  assert.match(errors, /toilet entrances must include privacy screens/);
+  assert.match(errors, /ST-01 must not block/);
+});
+
+test('rejects an arrival path that geometrically intersects ST-01 even when conflict flags are false', () => {
+  const model = clone();
+  model.referenceSystem.worldTransform.localOrigin[0] = 26;
+  assert.deepEqual(model.program.l1.accessConflicts, {
+    stairEntityId: 'ST-01',
+    blocksOutdoorOpenings: false,
+    blocksToiletDoors: false,
+    blocksDryPassage: false,
+  });
+  assert.match(
+    validateModel(model).join('\n'),
+    /arrival path must maintain positive clearance from ST-01/,
+  );
+});
+
+test('rejects any local origin that drifts from the EN-01 and O-SITE-01 contract', () => {
+  for (const localOrigin of [[100, 0, 0], [27, -2, 0], [27, 0, 1], [27.001, 0, 0]]) {
+    const model = clone();
+    model.referenceSystem.worldTransform.localOrigin = localOrigin;
+    assert.match(
+      validateModel(model).join('\n'),
+      /local origin must remain \[27, 0, 0\]/,
+    );
+  }
+});
+
+test('requires the arrival route to join its threshold and stay inside the outdoor forecourt', () => {
+  const model = clone();
+  const { diagrammaticL1 } = deriveReferenceGeometry(model);
+  assert.deepEqual(diagrammaticL1.arrivalPath.points[0], { x: 27, y: 0 });
+
+  model.referenceSystem.worldTransform.localOrigin[0] = 34;
+  assert.match(
+    validateModel(model).join('\n'),
+    /arrival path bounds must remain inside the outdoor forecourt/,
+  );
+});
+
+test('treats a sub-tolerance stair gap as no positive clearance', () => {
+  const model = clone();
+  model.referenceSystem.worldTransform.localOrigin[0] = 26.335;
+  assert.match(
+    validateModel(model).join('\n'),
+    /arrival path must maintain positive clearance from ST-01/,
+  );
+});
+
+test('enforces TASK-002 registry entity type, level, status, and sources', () => {
+  for (const id of [
+    'Z-L1-ENTRY-01',
+    'RTE-L1-ARRIVAL-01',
+    'OP-L1-PH-01',
+    'DR-L1-WC-M-FRONT-01',
+    'DR-L1-WC-M-REAR-01',
+    'DR-L1-WC-F-FRONT-01',
+    'DR-L1-WC-F-REAR-01',
+    'PSG-L1-DRY-01',
+  ]) {
+    for (const [field, value] of [
+      ['type', 'roof'],
+      ['level', 'RF'],
+      ['status', 'legacy'],
+      ['sourceIds', []],
+    ]) {
+      const model = clone();
+      const entity = model.entities.find((candidate) => candidate.id === id);
+      entity[field] = value;
+      assert.match(
+        validateModel(model).join('\n'),
+        new RegExp(`${id} registry contract mismatch`),
+      );
+    }
+  }
+});
+
+test('rejects an extra existing source in a TASK-002 registry contract', () => {
+  const model = clone();
+  const passage = model.entities.find((entity) => entity.id === 'PSG-L1-DRY-01');
+  passage.sourceIds.push('SRC-CONCEPT-001');
+
+  assert.deepEqual(validateModel(model), [
+    'PSG-L1-DRY-01 registry contract mismatch: sourceIds must be the exact unique set [SRC-CONCEPT-005, SRC-CONCEPT-008]',
+  ]);
+});
+
+test('rejects a duplicate source in a TASK-002 registry contract', () => {
+  const model = clone();
+  const passage = model.entities.find((entity) => entity.id === 'PSG-L1-DRY-01');
+  passage.sourceIds.push('SRC-CONCEPT-005');
+
+  assert.deepEqual(validateModel(model), [
+    'PSG-L1-DRY-01 registry contract mismatch: sourceIds must be the exact unique set [SRC-CONCEPT-005, SRC-CONCEPT-008]',
+  ]);
+});
+
+test('renders one accessible focus target for each TASK-002 entity', async () => {
+  const { renderSheets } = await importRendererModule();
+  const markup = renderSheets(clone()).find((sheet) => sheet.id === 'REF-101')?.markup ?? '';
+  const taskEntityIds = [
+    'Z-L1-ENTRY-01',
+    'RTE-L1-ARRIVAL-01',
+    'OP-L1-PH-01',
+    'DR-L1-WC-M-FRONT-01',
+    'DR-L1-WC-M-REAR-01',
+    'DR-L1-WC-F-FRONT-01',
+    'DR-L1-WC-F-REAR-01',
+    'PSG-L1-DRY-01',
+  ];
+
+  for (const id of taskEntityIds) {
+    const occurrences = markup.match(new RegExp(`data-entity="${id}"`, 'g')) ?? [];
+    assert.equal(occurrences.length, 1, `${id} must expose exactly one interaction target`);
+    const groupTag = markup.match(new RegExp(`<g[^>]*data-entity="${id}"[^>]*>`))?.[0] ?? '';
+    assert.match(groupTag, /tabindex="0"/);
+    assert.match(groupTag, /role="button"/);
+    assert.match(groupTag, new RegExp(`aria-label="${id}[^"]*"`));
+  }
 });
 
 test('rejects a missing base cubicle', () => {

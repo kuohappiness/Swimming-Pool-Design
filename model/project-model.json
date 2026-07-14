@@ -107,28 +107,52 @@
     "entrance": {
       "entityId": "EN-01",
       "dailyPeopleEntrance": true,
-      "sharedVestibuleZoneId": "Z-L1-ENTRY-01",
+      "arrivalContext": "school-playground",
+      "outdoorForecourtZoneId": "Z-L1-ENTRY-01",
+      "forecourtEnvironment": "outdoor",
+      "arrivalPathEntityId": "RTE-L1-ARRIVAL-01",
+      "clearsStairEntityId": "ST-01",
+      "positiveStairClearanceRequired": true,
+      "outdoorOpeningEntityIds": ["OP-L1-PH-01", "DR-L1-WC-M-FRONT-01", "DR-L1-WC-F-FRONT-01"],
+      "openingsIndependent": true,
       "geometryStatus": "deferred",
       "openItemId": "OPEN-008"
     },
     "l1": {
+      "dryPassage": {
+        "entityId": "PSG-L1-DRY-01",
+        "side": "pool-side",
+        "connectsFromZoneId": "Z-PH-01",
+        "connectsToDoorEntityIds": ["DR-L1-WC-M-REAR-01", "DR-L1-WC-F-REAR-01"],
+        "continuous": true,
+        "geometryStatus": "deferred",
+        "openItemId": "OPEN-008"
+      },
+      "accessConflicts": {
+        "stairEntityId": "ST-01",
+        "blocksOutdoorOpenings": false,
+        "blocksToiletDoors": false,
+        "blocksDryPassage": false
+      },
       "maleToilet": {
         "zoneId": "Z-WC-M-01",
         "side": "lower-x",
         "toilets": 3,
         "urinals": 3,
-        "frontDoor": { "connectsTo": "Z-L1-ENTRY-01", "access": "daily-open" },
-        "rearDoor": { "connectsTo": "pool-side-dry-passage", "access": "pool-hours-only" },
-        "doorsDirectlyAligned": false
+        "frontDoor": { "entityId": "DR-L1-WC-M-FRONT-01", "connectsTo": "Z-L1-ENTRY-01", "access": "daily-open" },
+        "rearDoor": { "entityId": "DR-L1-WC-M-REAR-01", "connectsTo": "PSG-L1-DRY-01", "access": "pool-hours-only" },
+        "doorsDirectlyAligned": false,
+        "privacyScreen": true
       },
       "femaleToilet": {
         "zoneId": "Z-WC-F-01",
         "side": "higher-x",
         "toilets": 5,
         "urinals": 0,
-        "frontDoor": { "connectsTo": "Z-L1-ENTRY-01", "access": "daily-open" },
-        "rearDoor": { "connectsTo": "pool-side-dry-passage", "access": "pool-hours-only" },
-        "doorsDirectlyAligned": false
+        "frontDoor": { "entityId": "DR-L1-WC-F-FRONT-01", "connectsTo": "Z-L1-ENTRY-01", "access": "daily-open" },
+        "rearDoor": { "entityId": "DR-L1-WC-F-REAR-01", "connectsTo": "PSG-L1-DRY-01", "access": "pool-hours-only" },
+        "doorsDirectlyAligned": false,
+        "privacyScreen": true
       }
     },
     "l2": {
@@ -161,7 +185,14 @@
     { "id": "CORE-01", "name": "原廁所基地服務核心", "type": "service-core", "level": "L1-RF", "grid": "E-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
     { "id": "EXT-L2-01", "name": "二樓專用擴建量體", "type": "l2-extension", "level": "L2", "grid": "D-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] },
     { "id": "EN-01", "name": "操場側日常人員入口", "type": "entrance", "level": "L1", "grid": "E/1", "status": "confirmed", "sourceIds": ["SRC-SITE-002", "SRC-CONCEPT-005"] },
-    { "id": "Z-L1-ENTRY-01", "name": "操場側有遮蔽共用前室", "type": "zone", "level": "L1", "grid": "E-F/1", "status": "deferred", "sourceIds": ["SRC-CONCEPT-003", "SRC-CONCEPT-005"] },
+    { "id": "Z-L1-ENTRY-01", "name": "操場側戶外前場", "type": "outdoor-forecourt", "level": "L1", "grid": "E-F/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
+    { "id": "RTE-L1-ARRIVAL-01", "name": "EN-01 至戶外前場正淨空到達路徑", "type": "arrival-route", "level": "L1", "grid": "E/1-2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
+    { "id": "OP-L1-PH-01", "name": "泳池大廳戶外入口", "type": "outdoor-opening", "level": "L1", "grid": "D-E/1-2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
+    { "id": "DR-L1-WC-M-FRONT-01", "name": "男廁戶外前門", "type": "door", "level": "L1", "grid": "E/2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
+    { "id": "DR-L1-WC-M-REAR-01", "name": "男廁泳池側管制後門", "type": "door", "level": "L1", "grid": "E/4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005", "SRC-CONCEPT-008"] },
+    { "id": "DR-L1-WC-F-FRONT-01", "name": "女廁戶外前門", "type": "door", "level": "L1", "grid": "E-F/2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
+    { "id": "DR-L1-WC-F-REAR-01", "name": "女廁泳池側管制後門", "type": "door", "level": "L1", "grid": "E-F/4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005", "SRC-CONCEPT-008"] },
+    { "id": "PSG-L1-DRY-01", "name": "泳池側連續乾式通道", "type": "dry-passage", "level": "L1", "grid": "D-F/4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005", "SRC-CONCEPT-008"] },
     { "id": "ST-01", "name": "A2 兩段同向懸空樓梯", "type": "stair", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
     { "id": "Z-ST-01", "name": "乾式透明樓梯廊", "type": "zone", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
     { "id": "Z-WC-M-01", "name": "一樓男廁", "type": "zone", "level": "L1", "grid": "E-F/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
@@ -174,7 +205,7 @@
   ],
   "sheets": [
     { "id": "REF-001", "title": "基地與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
-    { "id": "REF-101", "title": "L1 平面參照圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "POOL-01", "CORE-01", "EN-01", "Z-L1-ENTRY-01", "ST-01", "Z-WC-M-01", "Z-WC-F-01"] },
+    { "id": "REF-101", "title": "L1 平面參照圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "POOL-01", "CORE-01", "EN-01", "Z-L1-ENTRY-01", "RTE-L1-ARRIVAL-01", "OP-L1-PH-01", "DR-L1-WC-M-FRONT-01", "DR-L1-WC-M-REAR-01", "DR-L1-WC-F-FRONT-01", "DR-L1-WC-F-REAR-01", "PSG-L1-DRY-01", "ST-01", "Z-WC-M-01", "Z-WC-F-01"] },
     { "id": "REF-201", "title": "L2 平面參照圖", "level": "L2", "referencedEntityIds": ["CORE-01", "EXT-L2-01", "ST-01", "Z-L2-LOBBY-01", "Z-CS-M-01", "Z-CS-F-01"] },
     { "id": "REF-301", "title": "屋頂參照圖", "level": "RF", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "CORE-01", "EXT-L2-01", "RF-GL-01", "J-RF-L2-01"] },
     { "id": "REF-401", "title": "A–A 縱剖面參照圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "EXT-L2-01", "ST-01", "RF-GL-01", "J-RF-L2-01"] },

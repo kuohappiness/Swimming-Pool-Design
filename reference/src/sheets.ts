@@ -59,22 +59,22 @@ function renderL1(model: ProjectModel): SheetRender {
   const poolY = planY(pool.origin[1] + pool.width.value, building.width.value);
   const male = boundsRect(derived.maleL1Bounds, building.width.value);
   const female = boundsRect(derived.femaleL1Bounds, building.width.value);
+  const forecourt = boundsRect(derived.diagrammaticL1.outdoorForecourtBounds, building.width.value);
+  const dryPassage = boundsRect(derived.diagrammaticL1.dryPassageBounds, building.width.value);
   const entranceX = planX(model.referenceSystem.worldTransform.localOrigin[0]);
-  const vestibuleSize = Math.min(building.serviceCoreLength.value / 2, building.width.value * .42);
-  const vestibuleX1 = derived.stairEndX + .15;
-  const vestibuleY2 = vestibuleSize;
-  const vestibule = {
-    x: planX(vestibuleX1),
-    y: planY(vestibuleY2, building.width.value),
-    width: px(vestibuleSize),
-    height: px(vestibuleSize),
-  };
-  const maleFrontX = Math.min(derived.l1SplitAxisX - .85, vestibuleX1 + 1.1);
-  const femaleFrontY = vestibuleSize * .58;
-  const maleRearX = derived.maleL1Bounds.x1 + (derived.maleL1Bounds.x2 - derived.maleL1Bounds.x1) * .42;
-  const femaleRearX = derived.femaleL1Bounds.x1 + (derived.femaleL1Bounds.x2 - derived.femaleL1Bounds.x1) * .68;
+  const {
+    arrivalPath, poolHallOpening, maleFrontDoor, maleRearDoor, femaleFrontDoor, femaleRearDoor,
+  } = derived.diagrammaticL1;
+  const arrivalBypass = boundsRect(arrivalPath.thresholdBypassBounds, building.width.value);
+  const arrivalClearRun = boundsRect(arrivalPath.clearRunBounds, building.width.value);
+  const arrivalRoutePath = arrivalPath.points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'}${planX(point.x)} ${planY(point.y)}`)
+    .join(' ');
   const stairY1 = model.geometry.stair.originY;
   const stairY2 = stairY1 + model.geometry.stair.width;
+  const frontDoorY = planY(maleFrontDoor.y, building.width.value);
+  const rearDoorY = planY(maleRearDoor.y, building.width.value);
+  const openingHalf = 15;
 
   const content = `
     <rect class="sheet-bg" width="1200" height="740"/>
@@ -85,35 +85,65 @@ function renderL1(model: ProjectModel): SheetRender {
     <text class="zone-label" x="${planX(12)}" y="${planY(6.75)}" text-anchor="middle">泳池大廳 · Z-PH-01</text>
     <rect class="service-zone male" x="${male.x}" y="${male.y}" width="${male.width}" height="${male.height}" data-entity="Z-WC-M-01"/>
     <rect class="service-zone female" x="${female.x}" y="${female.y}" width="${female.width}" height="${female.height}" data-entity="Z-WC-F-01"/>
-    <line class="privacy-wall" x1="${planX(derived.l1SplitAxisX)}" y1="${PLAN.y}" x2="${planX(derived.l1SplitAxisX)}" y2="${PLAN.y + width}"/>
-    <text class="room-label" x="${planX((derived.maleL1Bounds.x1 + derived.maleL1Bounds.x2) / 2)}" y="${planY(8.3)}" text-anchor="middle">男廁 · 左</text>
-    <text class="room-label" x="${planX((derived.femaleL1Bounds.x1 + derived.femaleL1Bounds.x2) / 2)}" y="${planY(8.3)}" text-anchor="middle">女廁 · 右</text>
+    <line class="privacy-wall" x1="${planX(derived.l1SplitAxisX)}" y1="${dryPassage.y + dryPassage.height}" x2="${planX(derived.l1SplitAxisX)}" y2="${forecourt.y}"/>
+    <text class="room-label" x="${planX((derived.maleL1Bounds.x1 + derived.maleL1Bounds.x2) / 2)}" y="${planY((derived.maleL1Bounds.y1 + derived.maleL1Bounds.y2) / 2)}" text-anchor="middle">男廁 · 左</text>
+    <text class="room-label" x="${planX((derived.femaleL1Bounds.x1 + derived.femaleL1Bounds.x2) / 2)}" y="${planY((derived.femaleL1Bounds.y1 + derived.femaleL1Bounds.y2) / 2)}" text-anchor="middle">女廁 · 右</text>
 
-    <rect class="deferred-zone" x="${vestibule.x}" y="${vestibule.y}" width="${vestibule.width}" height="${vestibule.height}" data-entity="Z-L1-ENTRY-01"/>
-    <text class="deferred-label" x="${vestibule.x + vestibule.width / 2}" y="${vestibule.y + vestibule.height / 2 - 8}" text-anchor="middle">共用前室</text>
-    <text class="deferred-label small" x="${vestibule.x + vestibule.width / 2}" y="${vestibule.y + vestibule.height / 2 + 12}" text-anchor="middle">示意／尺寸待 OPEN-008</text>
+    <g data-entity="PSG-L1-DRY-01" tabindex="0" role="button" aria-label="PSG-L1-DRY-01 泳池側連續乾式通道">
+      <rect class="dry-passage" x="${dryPassage.x}" y="${dryPassage.y}" width="${dryPassage.width}" height="${dryPassage.height}"/>
+      <path class="dry-route" d="M${planX(derived.diagrammaticL1.dryPassageBounds.x1 + .2)} ${planY((derived.diagrammaticL1.dryPassageBounds.y1 + derived.diagrammaticL1.dryPassageBounds.y2) / 2)}H${planX(derived.diagrammaticL1.dryPassageBounds.x2 - .2)}"/>
+      <text class="access-note" x="${dryPassage.x + dryPassage.width / 2}" y="${dryPassage.y + 14}" text-anchor="middle">泳池側乾式通道 · 後門時段管制</text>
+    </g>
+
+    <g data-entity="Z-L1-ENTRY-01" tabindex="0" role="button" aria-label="Z-L1-ENTRY-01 操場側戶外前場">
+      <rect class="outdoor-hit" x="${forecourt.x}" y="${forecourt.y}" width="${forecourt.width}" height="${forecourt.height}"/>
+      <path class="outdoor-edge-clear" d="M${forecourt.x} ${forecourt.y + forecourt.height}H${forecourt.x + forecourt.width} M${forecourt.x + forecourt.width} ${forecourt.y}V${forecourt.y + forecourt.height}"/>
+      <path class="outdoor-forecourt-guide" d="M${forecourt.x + 8} ${forecourt.y + 8}H${forecourt.x + forecourt.width - 8} M${forecourt.x + 8} ${forecourt.y + 8}V${forecourt.y + forecourt.height - 8}"/>
+      <text class="outdoor-label" x="${forecourt.x + forecourt.width * .66}" y="${forecourt.y + forecourt.height * .62}" text-anchor="middle">戶外前場</text>
+      <text class="outdoor-label small" x="${forecourt.x + forecourt.width * .66}" y="${forecourt.y + forecourt.height * .62 + 18}" text-anchor="middle">開放空間 · 範圍示意／尺寸待 OPEN-008</text>
+    </g>
     <path class="entrance" d="M${entranceX - 17} ${PLAN.y + width}h34" data-entity="EN-01"/>
     <path class="entry-arrow" d="M${entranceX} ${PLAN.y + width + 58}v-45m0 0l-9 14m9-14l9 14"/>
 
-    <g class="door-group front-door" data-access="daily-open">
-      <path class="door-opening" d="M${planX(maleFrontX) - 14} ${planY(vestibuleY2)}h28"/>
-      <path class="door-leaf" d="M${planX(maleFrontX) - 14} ${planY(vestibuleY2)}l24-24"/>
-      <path class="door-opening" d="M${planX(vestibuleX1 + vestibuleSize)} ${planY(femaleFrontY) - 14}v28"/>
-      <path class="door-leaf" d="M${planX(vestibuleX1 + vestibuleSize)} ${planY(femaleFrontY) - 14}l24 24"/>
+    <g class="door-group outdoor-opening pool-hall-opening" data-access="daily-open" data-entity="OP-L1-PH-01" tabindex="0" role="button" aria-label="OP-L1-PH-01 泳池大廳戶外入口">
+      <path class="door-opening" d="M${planX(poolHallOpening.x)} ${planY(poolHallOpening.y) - openingHalf}v${openingHalf * 2}"/>
+      <path class="door-leaf" d="M${planX(poolHallOpening.x)} ${planY(poolHallOpening.y) - openingHalf}l-${openingHalf + 7} ${openingHalf + 7}"/>
+      <text class="opening-label" x="${planX(poolHallOpening.x) + 10}" y="${planY(poolHallOpening.y) - 20}">泳池入口</text>
     </g>
-    <path class="privacy-screen" d="M${planX(maleFrontX + .7)} ${planY(vestibuleY2 + .2)}v-${px(1.1)}"/>
-    <path class="privacy-screen" d="M${planX(vestibuleX1 + vestibuleSize + .2)} ${planY(femaleFrontY + .7)}h${px(1.1)}"/>
+
+    <g class="door-group front-door" data-access="daily-open">
+      <g data-entity="DR-L1-WC-M-FRONT-01" tabindex="0" role="button" aria-label="DR-L1-WC-M-FRONT-01 男廁戶外前門">
+        <path class="door-opening" d="M${planX(maleFrontDoor.x) - openingHalf} ${frontDoorY}h${openingHalf * 2}"/>
+        <path class="door-leaf" d="M${planX(maleFrontDoor.x) - openingHalf} ${frontDoorY}l${openingHalf + 8}-${openingHalf + 8}"/>
+        <text class="opening-label" x="${planX(maleFrontDoor.x)}" y="${frontDoorY + 21}" text-anchor="middle">男廁入口</text>
+      </g>
+      <g data-entity="DR-L1-WC-F-FRONT-01" tabindex="0" role="button" aria-label="DR-L1-WC-F-FRONT-01 女廁戶外前門">
+        <path class="door-opening" d="M${planX(femaleFrontDoor.x) - openingHalf} ${frontDoorY}h${openingHalf * 2}"/>
+        <path class="door-leaf" d="M${planX(femaleFrontDoor.x) + openingHalf} ${frontDoorY}l-${openingHalf + 8}-${openingHalf + 8}"/>
+        <text class="opening-label" x="${planX(femaleFrontDoor.x)}" y="${frontDoorY + 21}" text-anchor="middle">女廁入口</text>
+      </g>
+    </g>
+    <path class="privacy-screen" d="M${planX(maleFrontDoor.x + .78)} ${planY(maleFrontDoor.y + .18)}v-${px(1.05)}"/>
+    <path class="privacy-screen" d="M${planX(femaleFrontDoor.x - .78)} ${planY(femaleFrontDoor.y + .18)}v-${px(1.05)}"/>
 
     <g class="door-group rear-door" data-access="pool-hours-only">
-      <path class="door-opening" d="M${planX(maleRearX) - 14} ${PLAN.y}h28"/>
-      <path class="door-leaf" d="M${planX(maleRearX) - 14} ${PLAN.y}l24 24"/>
-      <path class="door-opening" d="M${planX(femaleRearX) - 14} ${PLAN.y}h28"/>
-      <path class="door-leaf" d="M${planX(femaleRearX) + 14} ${PLAN.y}l-24 24"/>
+      <g data-entity="DR-L1-WC-M-REAR-01" tabindex="0" role="button" aria-label="DR-L1-WC-M-REAR-01 男廁泳池側管制後門">
+        <path class="door-opening" d="M${planX(maleRearDoor.x) - openingHalf} ${rearDoorY}h${openingHalf * 2}"/>
+        <path class="door-leaf" d="M${planX(maleRearDoor.x) - openingHalf} ${rearDoorY}l${openingHalf + 8} ${openingHalf + 8}"/>
+      </g>
+      <g data-entity="DR-L1-WC-F-REAR-01" tabindex="0" role="button" aria-label="DR-L1-WC-F-REAR-01 女廁泳池側管制後門">
+        <path class="door-opening" d="M${planX(femaleRearDoor.x) - openingHalf} ${rearDoorY}h${openingHalf * 2}"/>
+        <path class="door-leaf" d="M${planX(femaleRearDoor.x) + openingHalf} ${rearDoorY}l-${openingHalf + 8} ${openingHalf + 8}"/>
+      </g>
     </g>
-    <text class="access-note" x="${planX((derived.l1ServiceStartX + derived.l1ServiceEndX) / 2)}" y="${PLAN.y - 18}" text-anchor="middle">泳池側乾式通道 · 後門非使用時間關閉</text>
 
     <rect class="stair-gallery" x="${planX(derived.stairStartX)}" y="${planY(stairY2)}" width="${px(derived.stairTotalRun)}" height="${px(model.geometry.stair.width)}" data-entity="Z-ST-01"/>
     ${Array.from({ length: model.geometry.stair.riserCount }, (_, index) => `<line class="stair-tread" x1="${planX(derived.stairStartX + .18 + index * (derived.stairTotalRun - .36) / (model.geometry.stair.riserCount - 1))}" y1="${planY(stairY2 - .12)}" x2="${planX(derived.stairStartX + .18 + index * (derived.stairTotalRun - .36) / (model.geometry.stair.riserCount - 1))}" y2="${planY(stairY1 + .12)}"/>`).join('')}
+    <g data-entity="RTE-L1-ARRIVAL-01" tabindex="0" role="button" aria-label="RTE-L1-ARRIVAL-01 EN-01 至戶外前場正淨空到達路徑">
+      <rect class="clear-route-area" x="${arrivalBypass.x}" y="${arrivalBypass.y}" width="${arrivalBypass.width}" height="${arrivalBypass.height}"/>
+      <rect class="clear-route-area" x="${arrivalClearRun.x}" y="${arrivalClearRun.y}" width="${arrivalClearRun.width}" height="${arrivalClearRun.height}"/>
+      <path class="clear-route" d="${arrivalRoutePath}"/>
+    </g>
     ${badge('POOL-01', planX(11.9), planY(5.5), 'pool')}
     ${badge('ST-01', planX((derived.stairStartX + derived.stairEndX) / 2), planY(stairY1 + .9), 'stair')}
     ${badge('EN-01', entranceX, PLAN.y + width + 70, 'entry')}
@@ -127,7 +157,7 @@ function renderL1(model: ProjectModel): SheetRender {
   return {
     id: 'REF-101',
     markup: sheetSvg(model, 'REF-101', 'L1 平面參照圖', content),
-    note: 'L1 男左女右；操場側共用前室分流，男女各有前門與泳池側時段管制後門。前後門錯位，ST-01 動線獨立。',
+    note: '操場側為戶外前場；泳池大廳、男廁、女廁各有獨立戶外開口。兩廁前後門錯位，泳池側後門經連續乾式通道通達並採時段管制；ST-01 不阻擋動線。',
   };
 }
 

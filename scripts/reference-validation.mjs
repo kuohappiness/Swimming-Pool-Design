@@ -3,7 +3,20 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { deriveReferenceGeometry } from './reference-geometry.mjs';
 
-const closeTo = (actual, expected, tolerance = 0.002) =>
+const GEOMETRY_TOLERANCE = 0.002;
+const EXPECTED_LOCAL_ORIGIN = [27, 0, 0];
+const TASK_002_ENTITY_CONTRACTS = {
+  'Z-L1-ENTRY-01': { type: 'outdoor-forecourt', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
+  'RTE-L1-ARRIVAL-01': { type: 'arrival-route', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
+  'OP-L1-PH-01': { type: 'outdoor-opening', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
+  'DR-L1-WC-M-FRONT-01': { type: 'door', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
+  'DR-L1-WC-M-REAR-01': { type: 'door', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-005', 'SRC-CONCEPT-008'] },
+  'DR-L1-WC-F-FRONT-01': { type: 'door', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
+  'DR-L1-WC-F-REAR-01': { type: 'door', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-005', 'SRC-CONCEPT-008'] },
+  'PSG-L1-DRY-01': { type: 'dry-passage', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-005', 'SRC-CONCEPT-008'] },
+};
+
+const closeTo = (actual, expected, tolerance = GEOMETRY_TOLERANCE) =>
   Math.abs(actual - expected) <= tolerance;
 
 const duplicateValues = (values) => {
@@ -20,6 +33,24 @@ const isDeferredMeasure = (measure, openItemId) => measure?.value === null
   && measure?.status === 'deferred'
   && measure?.openItemId === openItemId
   && Array.isArray(measure?.sourceIds);
+
+const boundsIntersectOrTouch = (a, b, tolerance = GEOMETRY_TOLERANCE) => Boolean(a && b)
+  && a.x1 <= b.x2 + tolerance
+  && a.x2 >= b.x1 - tolerance
+  && a.y1 <= b.y2 + tolerance
+  && a.y2 >= b.y1 - tolerance;
+
+const boundsContainedBy = (inner, outer, tolerance = GEOMETRY_TOLERANCE) => Boolean(inner && outer)
+  && inner.x1 >= outer.x1 - tolerance
+  && inner.x2 <= outer.x2 + tolerance
+  && inner.y1 >= outer.y1 - tolerance
+  && inner.y2 <= outer.y2 + tolerance;
+
+const pointContainedBy = (point, bounds, tolerance = GEOMETRY_TOLERANCE) => Boolean(point && bounds)
+  && point.x >= bounds.x1 - tolerance
+  && point.x <= bounds.x2 + tolerance
+  && point.y >= bounds.y1 - tolerance
+  && point.y <= bounds.y2 + tolerance;
 
 export function validateModel(model) {
   const errors = [];
@@ -39,6 +70,7 @@ export function validateModel(model) {
   }
 
   const entitySet = new Set(entityIds);
+  const entityById = new Map(entities.map((entity) => [entity.id, entity]));
   const sourceSet = new Set(sourceIds);
   for (const sheet of sheets) {
     for (const entityId of sheet.referencedEntityIds ?? []) {
@@ -48,6 +80,28 @@ export function validateModel(model) {
   for (const entity of entities) {
     for (const sourceId of entity.sourceIds ?? []) {
       if (!sourceSet.has(sourceId)) errors.push(`${entity.id} references unknown source: ${sourceId}`);
+    }
+  }
+  for (const [id, contract] of Object.entries(TASK_002_ENTITY_CONTRACTS)) {
+    const entity = entityById.get(id);
+    const sourceIdsForEntity = entity?.sourceIds;
+    if (!entity
+      || entity.type !== contract.type
+      || entity.level !== contract.level
+      || entity.status !== contract.status) {
+      errors.push(`${id} registry contract mismatch`);
+      continue;
+    }
+
+    const hasExactUniqueSourceSet = Array.isArray(sourceIdsForEntity)
+      && sourceIdsForEntity.length === contract.sourceIds.length
+      && new Set(sourceIdsForEntity).size === sourceIdsForEntity.length
+      && contract.sourceIds.every((sourceId) => sourceIdsForEntity.includes(sourceId))
+      && sourceIdsForEntity.every((sourceId) => contract.sourceIds.includes(sourceId));
+    if (!hasExactUniqueSourceSet) {
+      errors.push(
+        `${id} registry contract mismatch: sourceIds must be the exact unique set [${contract.sourceIds.join(', ')}]`,
+      );
     }
   }
 
@@ -104,6 +158,12 @@ export function validateModel(model) {
   if (bearing !== 307 || rotation !== 307) errors.push('orientation fields must both equal 307 degrees');
   if (bearing !== rotation) errors.push('orientation may only have one transform answer');
   if (model.referenceSystem?.worldOriginEntityId !== 'O-SITE-01') errors.push('world origin entity must be O-SITE-01');
+  const localOrigin = model.referenceSystem?.worldTransform?.localOrigin;
+  if (!Array.isArray(localOrigin)
+    || localOrigin.length !== EXPECTED_LOCAL_ORIGIN.length
+    || localOrigin.some((value, index) => !Number.isFinite(value) || value !== EXPECTED_LOCAL_ORIGIN[index])) {
+    errors.push('local origin must remain [27, 0, 0] for the EN-01 and O-SITE-01 contract');
+  }
   if (model.referenceSystem?.axes?.x !== 'east' || model.referenceSystem?.axes?.y !== 'north' || model.referenceSystem?.axes?.z !== 'up') {
     errors.push('world axes must remain +X east, +Y north, +Z up');
   }
@@ -158,9 +218,37 @@ export function validateModel(model) {
 
   const entrance = model.program?.entrance;
   if (entrance?.entityId !== 'EN-01' || entrance?.dailyPeopleEntrance !== true) errors.push('EN-01 must remain the daily people entrance');
-  if (entrance?.sharedVestibuleZoneId !== 'Z-L1-ENTRY-01'
-    || entrance?.geometryStatus !== 'deferred' || entrance?.openItemId !== 'OPEN-008') {
-    errors.push('L1 shared entrance vestibule must remain deferred under OPEN-008');
+  if (entrance && Object.hasOwn(entrance, 'sharedVestibuleZoneId')) {
+    errors.push('L1 entrance must not define a shared indoor vestibule');
+  }
+  if (entrance?.arrivalContext !== 'school-playground'
+    || entrance?.outdoorForecourtZoneId !== 'Z-L1-ENTRY-01'
+    || entrance?.forecourtEnvironment !== 'outdoor') {
+    errors.push('EN-01 must arrive from the school playground into the outdoor forecourt');
+  }
+  if (entrance?.arrivalPathEntityId !== 'RTE-L1-ARRIVAL-01'
+    || entrance?.clearsStairEntityId !== 'ST-01'
+    || entrance?.positiveStairClearanceRequired !== true) {
+    errors.push('EN-01 must use RTE-L1-ARRIVAL-01 with positive clearance from ST-01');
+  }
+  if (entrance?.geometryStatus !== 'deferred' || entrance?.openItemId !== 'OPEN-008') {
+    errors.push('L1 outdoor forecourt geometry must remain deferred under OPEN-008');
+  }
+  const expectedOutdoorOpenings = ['OP-L1-PH-01', 'DR-L1-WC-M-FRONT-01', 'DR-L1-WC-F-FRONT-01'];
+  const outdoorOpenings = entrance?.outdoorOpeningEntityIds ?? [];
+  if (entrance?.openingsIndependent !== true
+    || outdoorOpenings.length !== expectedOutdoorOpenings.length
+    || new Set(outdoorOpenings).size !== expectedOutdoorOpenings.length
+    || expectedOutdoorOpenings.some((id) => !outdoorOpenings.includes(id))) {
+    errors.push('L1 must define three distinct outdoor openings for the pool hall, male toilet, and female toilet');
+  }
+  for (const id of outdoorOpenings) {
+    if (!entitySet.has(id)) errors.push(`outdoor opening references missing entity ${id}`);
+  }
+  const forecourtEntity = entityById.get('Z-L1-ENTRY-01');
+  if (forecourtEntity?.type !== 'outdoor-forecourt' || forecourtEntity?.status !== 'confirmed'
+    || /共用前室|vestibule/i.test(forecourtEntity?.name ?? '')) {
+    errors.push('Z-L1-ENTRY-01 must be the confirmed outdoor forecourt, not an indoor vestibule');
   }
 
   const maleToilet = model.program?.l1?.maleToilet;
@@ -168,14 +256,80 @@ export function validateModel(model) {
   if (maleToilet?.side !== 'lower-x' || femaleToilet?.side !== 'higher-x') {
     errors.push('L1 toilets must be male lower-X and female higher-X');
   }
-  for (const toilet of [maleToilet, femaleToilet]) {
-    if (toilet?.frontDoor?.connectsTo !== 'Z-L1-ENTRY-01' || toilet?.frontDoor?.access !== 'daily-open') {
-      errors.push('L1 toilet front doors must connect to the shared vestibule');
+  const expectedDoorIds = {
+    male: { front: 'DR-L1-WC-M-FRONT-01', rear: 'DR-L1-WC-M-REAR-01' },
+    female: { front: 'DR-L1-WC-F-FRONT-01', rear: 'DR-L1-WC-F-REAR-01' },
+  };
+  for (const [label, toilet] of Object.entries({ male: maleToilet, female: femaleToilet })) {
+    if (toilet?.frontDoor?.entityId !== expectedDoorIds[label].front
+      || toilet?.frontDoor?.connectsTo !== 'Z-L1-ENTRY-01'
+      || toilet?.frontDoor?.access !== 'daily-open') {
+      errors.push('L1 toilet front doors must independently connect to the outdoor forecourt');
     }
-    if (toilet?.rearDoor?.connectsTo !== 'pool-side-dry-passage' || toilet?.rearDoor?.access !== 'pool-hours-only') {
+    if (toilet?.rearDoor?.entityId !== expectedDoorIds[label].rear
+      || toilet?.rearDoor?.connectsTo !== 'PSG-L1-DRY-01'
+      || toilet?.rearDoor?.access !== 'pool-hours-only') {
       errors.push('L1 toilet rear doors must be pool-hours-only');
     }
     if (toilet?.doorsDirectlyAligned !== false) errors.push('L1 toilet front and rear doors must be offset');
+    if (toilet?.privacyScreen !== true) errors.push('L1 toilet entrances must include privacy screens');
+  }
+
+  const dryPassage = model.program?.l1?.dryPassage;
+  const expectedRearDoors = ['DR-L1-WC-M-REAR-01', 'DR-L1-WC-F-REAR-01'];
+  if (dryPassage?.entityId !== 'PSG-L1-DRY-01' || dryPassage?.side !== 'pool-side'
+    || dryPassage?.connectsFromZoneId !== 'Z-PH-01' || dryPassage?.continuous !== true) {
+    errors.push('L1 pool-side dry passage must be continuous from the pool hall');
+  }
+  const passageRearDoors = dryPassage?.connectsToDoorEntityIds ?? [];
+  if (passageRearDoors.length !== expectedRearDoors.length
+    || new Set(passageRearDoors).size !== expectedRearDoors.length
+    || expectedRearDoors.some((id) => !passageRearDoors.includes(id))) {
+    errors.push('L1 dry passage must connect to both toilet rear doors');
+  }
+  if (dryPassage?.geometryStatus !== 'deferred' || dryPassage?.openItemId !== 'OPEN-008') {
+    errors.push('L1 dry passage geometry must remain deferred under OPEN-008');
+  }
+
+  const accessConflicts = model.program?.l1?.accessConflicts;
+  if (accessConflicts?.stairEntityId !== 'ST-01'
+    || accessConflicts?.blocksOutdoorOpenings !== false
+    || accessConflicts?.blocksToiletDoors !== false
+    || accessConflicts?.blocksDryPassage !== false) {
+    errors.push('ST-01 must not block outdoor openings, toilet doors, or the dry passage');
+  }
+  if (derived) {
+    const l1 = derived.diagrammaticL1;
+    const stairTopY = stair.originY + stair.width;
+    if (!l1 || l1.outdoorForecourtBounds.x1 !== derived.l1ServiceStartX
+      || l1.outdoorForecourtBounds.x2 !== derived.l1ServiceEndX
+      || l1.dryPassageBounds.x1 >= derived.l1ServiceStartX
+      || l1.poolHallOpening.y <= stairTopY
+      || closeTo(l1.maleFrontDoor.x, l1.maleRearDoor.x)
+      || closeTo(l1.femaleFrontDoor.x, l1.femaleRearDoor.x)) {
+      errors.push('derived L1 topology must keep the outdoor forecourt, continuous dry passage, offset doors, and stair clearance');
+    }
+    const arrivalPath = l1?.arrivalPath;
+    const thresholdPoint = arrivalPath?.points?.[0];
+    if (!thresholdPoint
+      || !Array.isArray(localOrigin)
+      || !closeTo(thresholdPoint.x, localOrigin[0])
+      || !closeTo(thresholdPoint.y, localOrigin[1])
+      || !pointContainedBy(thresholdPoint, arrivalPath?.thresholdBypassBounds)) {
+      errors.push('L1 arrival path threshold must remain connected to EN-01 and O-SITE-01');
+    }
+    if (!boundsContainedBy(arrivalPath?.thresholdBypassBounds, l1?.outdoorForecourtBounds)
+      || !boundsContainedBy(arrivalPath?.clearRunBounds, l1?.outdoorForecourtBounds)) {
+      errors.push('L1 arrival path bounds must remain inside the outdoor forecourt');
+    }
+    if (!arrivalPath
+      || arrivalPath.entityId !== 'RTE-L1-ARRIVAL-01'
+      || !Number.isFinite(arrivalPath.minimumStairClearance)
+      || arrivalPath.minimumStairClearance <= GEOMETRY_TOLERANCE
+      || boundsIntersectOrTouch(arrivalPath.thresholdBypassBounds, arrivalPath.stairBounds)
+      || boundsIntersectOrTouch(arrivalPath.clearRunBounds, arrivalPath.stairBounds)) {
+      errors.push('L1 arrival path must maintain positive clearance from ST-01');
+    }
   }
 
   const l2 = model.program?.l2;
@@ -195,7 +349,15 @@ export function validateModel(model) {
   }
   for (const duplicate of duplicateValues(allCubicleIds)) errors.push(`cubicle ID is duplicated: ${duplicate}`);
 
-  const requiredEntityIds = ['Z-L1-ENTRY-01', 'EXT-L2-01', 'J-RF-L2-01'];
+  const requiredEntityIds = [
+    'Z-L1-ENTRY-01',
+    'RTE-L1-ARRIVAL-01',
+    ...expectedOutdoorOpenings,
+    ...expectedRearDoors,
+    'PSG-L1-DRY-01',
+    'EXT-L2-01',
+    'J-RF-L2-01',
+  ];
   for (const id of requiredEntityIds) {
     if (!entitySet.has(id)) errors.push(`required entity is missing: ${id}`);
   }
@@ -204,7 +366,13 @@ export function validateModel(model) {
     if (!sheetIds.includes(id)) errors.push(`required sheet is missing: ${id}`);
   }
   const requiredSheetReferences = {
-    'REF-101': ['Z-L1-ENTRY-01'],
+    'REF-101': [
+      'Z-L1-ENTRY-01',
+      'RTE-L1-ARRIVAL-01',
+      ...expectedOutdoorOpenings,
+      ...expectedRearDoors,
+      'PSG-L1-DRY-01',
+    ],
     'REF-201': ['EXT-L2-01'],
     'REF-301': ['EXT-L2-01', 'J-RF-L2-01'],
     'REF-401': ['EXT-L2-01', 'J-RF-L2-01'],
