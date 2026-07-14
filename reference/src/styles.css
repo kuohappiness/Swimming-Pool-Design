@@ -160,10 +160,15 @@ footer p { margin: 0; }
 .ground-line { stroke: #1f3038; stroke-width: 4; }
 .level-line { stroke: #82949d; stroke-width: 1.3; stroke-dasharray: 8 6; }
 .service-section { fill: #d2cdc2; stroke: #303f45; stroke-width: 2.5; cursor: pointer; }
+.entry-outdoor-section { fill: var(--paper); stroke: #2f9c6d; stroke-width: 3; stroke-dasharray: 9 6; cursor: pointer; }
+.entry-outdoor-label { fill: #287d59 !important; font-size: 13px !important; font-weight: 850; }
 .glass-roof-section { fill: #a7e1e7; stroke: #27798a; stroke-width: 2; cursor: pointer; }
 .l2-section-volume { fill: rgba(208,92,77,.2); stroke: #884b42; stroke-width: 2.5; cursor: pointer; }
 .open-below-extension { fill: rgba(255,255,255,.14); stroke: #b0aaa0; stroke-width: 1.5; stroke-dasharray: 8 6; }
 .glass-wall { stroke: #58aab8; stroke-width: 4; }
+.mirror-facade-section { stroke: #4f91a5; stroke-width: 9; stroke-linecap: round; cursor: pointer; }
+.mirror-label { fill: #397b8f !important; font-size: 10px !important; font-weight: 850; }
+.section-concept-note { letter-spacing: .01em; }
 .section-step { fill: none; stroke: #314b57; stroke-width: 1.2; }
 .stringer { stroke: #172d38; stroke-width: 8; stroke-linecap: round; }
 .floating-landing { fill: #172d38; }
@@ -199,6 +204,7 @@ footer p { margin: 0; }
 .entity-badge.female rect { fill: #a94d75; }
 .entity-badge.roof rect { fill: #247d8c; }
 .entity-badge.core rect { fill: #376c59; }
+.entity-badge.mirror rect { fill: #3f7e91; }
 [data-entity]:hover, [data-cubicle]:hover, [data-entity]:focus, [data-cubicle]:focus { filter: brightness(1.1) drop-shadow(0 0 5px rgba(73,212,229,.8)); outline: none; }
 .selected { filter: drop-shadow(0 0 7px #e4b547) !important; }
 .hide-working .expansion { opacity: 0; pointer-events: none; }

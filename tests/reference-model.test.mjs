@@ -457,3 +457,72 @@ test('forbidden geometry checks ignore inherited keys and string values', () => 
   model.geometry.stair.stringerDescription = 'mirrorFacade leanAngle displayRoofElevation';
   assert.deepEqual(validateModel(model), []);
 });
+
+test('REF-401 renders the approved conceptual section language and accessible targets', async () => {
+  const [{ renderSheets }, styles] = await Promise.all([
+    importRendererModule(),
+    readFile(resolve(repoRoot, 'reference/src/styles.css'), 'utf8'),
+  ]);
+  const section = renderSheets(clone()).find((sheet) => sheet.id === 'REF-401');
+  assert.ok(section, 'REF-401 must render');
+  const { markup, note } = section;
+
+  for (const token of [
+    'entry-outdoor-section',
+    'mirror-facade-section',
+    'section-concept-note',
+    '入口戶外區',
+    '位置示意；標高／交界待 OPEN-010',
+    '外傾示意；角度待 OPEN-011',
+  ]) {
+    assert.match(markup, new RegExp(token));
+  }
+  assert.match(note, /F-MIR-01 向泳池側外傾/);
+  assert.doesNotMatch(markup, /9\.5°|\+4\.5°/);
+
+  for (const [id, label] of [
+    ['Z-L1-ENTRY-01', '入口戶外區'],
+    ['F-MIR-01', '面池端鏡面反射牆'],
+  ]) {
+    const occurrences = markup.match(new RegExp(`data-entity="${id}"`, 'g')) ?? [];
+    assert.equal(occurrences.length, 1, `${id} must expose exactly one interaction target`);
+    const groupTag = markup.match(new RegExp(`<g[^>]*data-entity="${id}"[^>]*>`))?.[0] ?? '';
+    assert.match(groupTag, /tabindex="0"/);
+    assert.match(groupTag, /role="button"/);
+    assert.match(groupTag, new RegExp(`aria-label="${id} [^"]*${label}[^"]*"`));
+  }
+
+  const roofPoints = markup.match(/<polygon class="glass-roof-section" points="([^"]+)"/)?.[1]
+    .split(' ')
+    .map((point) => point.split(',').map(Number));
+  assert.equal(roofPoints?.length, 4);
+  const l2FloorY = 530 - sourceModel.geometry.stair.totalRise * 36;
+  assert.ok(closeTo(roofPoints[1][1], l2FloorY - 16), 'roof high end must use the approved SVG-only offset');
+  assert.ok(roofPoints[0][1] > roofPoints[1][1], 'the 10-degree roof must still rise toward L2');
+
+  const mirror = markup.match(/<line class="mirror-facade-section" x1="([^"]+)" y1="([^"]+)" x2="([^"]+)" y2="([^"]+)"/);
+  assert.ok(mirror, 'F-MIR-01 mirror line must render');
+  assert.ok(Number(mirror[1]) < Number(mirror[3]), 'mirror top must lean toward the pool-side low-X direction');
+  assert.ok(Number(mirror[2]) < Number(mirror[4]), 'mirror top must remain above its base');
+  const extensionPoints = markup.match(/<polygon class="l2-section-volume" points="([^"]+)"/)?.[1]
+    .split(' ')
+    .map((point) => point.split(',').map(Number));
+  assert.deepEqual(extensionPoints?.[0], [Number(mirror[1]), Number(mirror[2])]);
+  assert.deepEqual(extensionPoints?.at(-1), [Number(mirror[3]), Number(mirror[4])]);
+
+  const coreIndex = markup.indexOf('class="service-section l1-core"');
+  const entryIndex = markup.indexOf('data-entity="Z-L1-ENTRY-01"');
+  assert.ok(coreIndex >= 0 && coreIndex < entryIndex, 'the open entry treatment must render over the core fill');
+  const core = markup.match(/<rect class="service-section l1-core" x="([^"]+)"[^>]*width="([^"]+)"/);
+  const entry = markup.match(/<rect class="entry-outdoor-section" x="([^"]+)"[^>]*width="([^"]+)"/);
+  assert.ok(core && entry, 'core and outdoor entry geometry must both render');
+  assert.ok(Number(entry[1]) >= Number(core[1]), 'the outdoor entry must occupy the core-side section bay');
+  assert.ok(
+    closeTo(Number(entry[1]) + Number(entry[2]), Number(core[1]) + Number(core[2])),
+    'the outdoor entry must terminate at the service core edge',
+  );
+  assert.match(styles, /\.entry-outdoor-section\s*\{[^}]*fill:\s*var\(--paper\)/s);
+  assert.match(styles, /\.entry-outdoor-section\s*\{[^}]*stroke-dasharray:/s);
+  assert.match(styles, /\.mirror-facade-section\s*\{/);
+  assert.match(styles, /\.entity-badge\.mirror rect\s*\{/);
+});

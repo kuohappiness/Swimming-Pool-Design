@@ -259,24 +259,42 @@ function renderSection(model: ProjectModel): SheetRender {
     const z = sz(baseZ + (runIndex + 1) * stair.totalRise / stair.riserCount);
     return `<path class="section-step" d="M${x} ${z}h${stair.treadDepth * 27}v${stair.totalRise / stair.riserCount * 36}"/>`;
   }).join('');
-  const roofLowY = 345;
-  const roofHighY = roofLowY - derived.roofPlanRun * 27 * Math.tan(model.geometry.roof.pitch.value * Math.PI / 180);
-  const volumeTopY = Math.min(roofHighY - 8, 236);
+  // SVG-only concept offsets. They are not architectural elevations or angles.
+  const l2FloorY = sz(stair.totalRise);
+  const roofHighY = l2FloorY - 16;
+  const roofLowY = roofHighY
+    + derived.roofPlanRun * 27 * Math.tan(model.geometry.roof.pitch.value * Math.PI / 180);
+  const volumeTopY = 236;
+  const mirrorTopX = sx(derived.l2StartX) - 18;
+  const entryOutdoorWidth = 128;
+  const entryOutdoorX = sx(derived.l2EndX) - entryOutdoorWidth;
   const content = `
     <rect class="sheet-bg" width="1200" height="740"/>
     <line class="ground-line" x1="62" y1="${groundY}" x2="1138" y2="${groundY}"/>
     <rect class="pool-section" x="${sx(model.geometry.pool.origin[0])}" y="${groundY}" width="${model.geometry.pool.length.value * 27}" height="${model.geometry.pool.deepDepth.value * 36}" data-entity="POOL-01"/>
-    <line class="level-line" x1="${sx(derived.l2StartX)}" y1="${sz(stair.totalRise)}" x2="${sx(derived.l2EndX)}" y2="${sz(stair.totalRise)}"/>
-    <rect class="service-section l1-core" x="${sx(derived.l1ServiceStartX)}" y="${sz(stair.totalRise)}" width="${model.geometry.building.serviceCoreLength.value * 27}" height="${stair.totalRise * 36}" data-entity="CORE-01"/>
-    <rect class="l2-section-volume" x="${sx(derived.l2StartX)}" y="${volumeTopY}" width="${derived.l2Length * 27}" height="${sz(stair.totalRise) - volumeTopY}" data-entity="EXT-L2-01"/>
-    <line class="extension-boundary-plan" x1="${sx(derived.l1ServiceStartX)}" y1="${volumeTopY}" x2="${sx(derived.l1ServiceStartX)}" y2="${sz(stair.totalRise)}"/>
-    <rect class="open-below-extension" x="${sx(derived.l2StartX)}" y="${sz(stair.totalRise)}" width="${model.geometry.building.l2ExtensionLength.value * 27}" height="${groundY - sz(stair.totalRise)}"/>
+    <line class="level-line" x1="${sx(derived.l2StartX)}" y1="${l2FloorY}" x2="${sx(derived.l2EndX)}" y2="${l2FloorY}"/>
+    <rect class="service-section l1-core" x="${sx(derived.l1ServiceStartX)}" y="${l2FloorY}" width="${model.geometry.building.serviceCoreLength.value * 27}" height="${groundY - l2FloorY}" data-entity="CORE-01"/>
+    <g data-entity="Z-L1-ENTRY-01" tabindex="0" role="button" aria-label="Z-L1-ENTRY-01 入口戶外區">
+      <rect class="entry-outdoor-section" x="${entryOutdoorX}" y="${l2FloorY}" width="${entryOutdoorWidth}" height="${groundY - l2FloorY}"/>
+      <text class="entry-outdoor-label" x="${entryOutdoorX + entryOutdoorWidth / 2}" y="${sz(1.35)}" text-anchor="middle">入口戶外區</text>
+    </g>
+    <polygon class="l2-section-volume" points="${mirrorTopX},${volumeTopY} ${sx(derived.l2EndX)},${volumeTopY} ${sx(derived.l2EndX)},${l2FloorY} ${sx(derived.l2StartX)},${l2FloorY}" data-entity="EXT-L2-01"/>
+    <line class="extension-boundary-plan" x1="${sx(derived.l1ServiceStartX)}" y1="${volumeTopY}" x2="${sx(derived.l1ServiceStartX)}" y2="${l2FloorY}"/>
+    <rect class="open-below-extension" x="${sx(derived.l2StartX)}" y="${l2FloorY}" width="${model.geometry.building.l2ExtensionLength.value * 27}" height="${groundY - l2FloorY}"/>
     <text class="void-label" x="${sx((derived.l2StartX + derived.l1ServiceStartX) / 2)}" y="${sz(1.4)}" text-anchor="middle">L1 開放</text>
     <polygon class="glass-roof-section" points="${sx(derived.roofPlanStartX)},${roofLowY} ${sx(derived.roofPlanEndX)},${roofHighY} ${sx(derived.roofPlanEndX)},${roofHighY + 7} ${sx(derived.roofPlanStartX)},${roofLowY + 7}" data-entity="RF-GL-01"/>
     <line class="glass-wall" x1="${sx(0)}" y1="${groundY}" x2="${sx(0)}" y2="${roofLowY}"/>
-    <line class="deferred-joint" x1="${sx(derived.roofPlanEndX)}" y1="${roofHighY - 12}" x2="${sx(derived.roofPlanEndX)}" y2="${volumeTopY + 22}" data-entity="J-RF-L2-01"/>
-    <text class="deferred-label" x="${sx(derived.roofPlanEndX) + 12}" y="${roofHighY - 17}">J-RF-L2-01</text>
-    <text class="deferred-label small" x="${sx(derived.roofPlanEndX) + 12}" y="${roofHighY + 2}">標高／構造待 OPEN-010</text>
+    <g data-entity="F-MIR-01" tabindex="0" role="button" aria-label="F-MIR-01 EXT-L2-01 面池端鏡面反射牆">
+      <line class="mirror-facade-section" x1="${mirrorTopX}" y1="${volumeTopY}" x2="${sx(derived.l2StartX)}" y2="${l2FloorY}"/>
+      <text class="mirror-label section-concept-note" x="${sx(derived.l2StartX) + 18}" y="${volumeTopY + 82}">外傾示意；角度待 OPEN-011</text>
+      <g class="entity-badge mirror" transform="translate(${sx(derived.l2StartX) + 64} ${volumeTopY + 110})" aria-hidden="true">
+        <rect x="-36" y="-14" width="72" height="28" rx="5"/>
+        <text text-anchor="middle" dy="5">F-MIR-01</text>
+      </g>
+    </g>
+    <line class="deferred-joint" x1="${sx(derived.roofPlanEndX)}" y1="${roofHighY}" x2="${sx(derived.l2StartX)}" y2="${l2FloorY}" data-entity="J-RF-L2-01"/>
+    <text class="deferred-label" x="${sx(derived.roofPlanEndX) + 12}" y="${roofHighY - 14}">J-RF-L2-01</text>
+    <text class="deferred-label small section-concept-note" x="${sx(derived.roofPlanEndX) + 12}" y="${roofHighY + 2}">位置示意；標高／交界待 OPEN-010</text>
     ${steps}
     <line class="stringer" x1="${sx(derived.stairStartX)}" y1="${sz(.08)}" x2="${sx(midStart)}" y2="${sz(1.88)}"/>
     <line class="stringer" x1="${sx(secondStart)}" y1="${sz(1.88)}" x2="${sx(derived.stairEndX)}" y2="${sz(3.68)}"/>
@@ -295,7 +313,7 @@ function renderSection(model: ProjectModel): SheetRender {
   return {
     id: 'REF-401',
     markup: sheetSvg(model, 'REF-401', 'A–A 縱剖面參照圖', content),
-    note: 'EXT-L2-01 只存在於二樓，其下 L1 開放；玻璃屋頂 10° 向左下，J-RF-L2-01 的標高與構造仍待第二階段。',
+    note: 'REF-401 為概念關係：玻璃屋頂維持 10° 並下移接近 L2 樓板；入口端為戶外區；F-MIR-01 向泳池側外傾。正式標高、交界與鏡牆角度仍待 OPEN-010／011。',
   };
 }
 
