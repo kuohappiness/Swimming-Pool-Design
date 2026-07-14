@@ -4,7 +4,7 @@
 
 - 日期：2026-07-15
 - 類型：implementation-plan
-- 狀態：approved
+- 狀態：in_progress
 - 任務：TASK-006
 - 目標版本：0.2.0
 - 依據：[縱剖面概念關係修正設計](2026-07-15-longitudinal-section-concept-correction-design.md)
@@ -80,7 +80,7 @@ Expected: 第一個命令只命中 `TASK-002` 的 `done` 列；沒有其他 `in_
 Use `apply_patch` to make these exact metadata/state changes:
 
 ```diff
--| TASK-006 | REF-401 屋頂、入口戶外區與鏡牆概念修正 | queued |
+-| TASK-006 | REF-401 屋頂、入口戶外區與鏡牆概念修正 | ready |
 +| TASK-006 | REF-401 屋頂、入口戶外區與鏡牆概念修正 | in_progress |
 ```
 
@@ -114,13 +114,13 @@ Expected: `Bytes=312250`、`Width=2216`、`Height=1130`、SHA-256 為 `3CD710CEC
 Use `apply_patch` to add the following exact source row to `docs/02_SITE_AND_SOURCES.md`:
 
 ```markdown
-| SRC-CONCEPT-009 | `source-materials/concepts/SRC-CONCEPT-009_longitudinal-section-correction-annotated.png` | 使用者在 `REF-401` 標註：紅線修正屋頂概念位置、綠框指定入口戶外區，文字確認 `EXT-L2-01` 面池端為外傾鏡面反射牆 | 2216 × 1130 | `3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034` |
+| SRC-CONCEPT-009 | `source-materials/concepts/SRC-CONCEPT-009_longitudinal-section-correction-annotated.png` | 使用者在 `REF-401` 圖面以紅色斜線標示屋頂概念位置、以綠框圈出入口戶外區；隨附文字另指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜 | 2216 × 1130 | `3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034` |
 ```
 
 Add this observation/interpretation paragraph after the source table:
 
 ```markdown
-`SRC-CONCEPT-009` 可直接觀察到紅色斜線位於既有屋頂下方、綠框圈出 L1 右端灰色區域，以及鏡牆／傾斜的文字指示。設計上解讀為：`REF-401` 屋頂高端應靠近 L2 樓板、綠框是入口戶外區、`EXT-L2-01` 低 X 面池端牆是向泳池側外傾的鏡面牆；圖中不提供正式標高、入口寬度或外傾角。
+`SRC-CONCEPT-009` 圖面可直接觀察到紅色斜線位於既有屋頂下方，以及綠框圈出 L1 右端灰色區域。使用者隨附文字指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜。設計上解讀為：`REF-401` 屋頂高端應靠近 L2 樓板、綠框是入口戶外區、`EXT-L2-01` 低 X 面池端牆是向泳池側外傾的鏡面牆；圖面與隨附文字都不提供正式標高、入口寬度或外傾角。
 ```
 
 Add this decision row to the confirmed table in `docs/04_DECISIONS_AND_OPEN_ITEMS.md`:

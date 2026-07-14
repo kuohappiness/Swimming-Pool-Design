@@ -73,6 +73,8 @@ type Measure = NumericMeasure | DeferredMeasure;
 - L2 外框由原核心與 `EXT-L2-01` 組成；擴建量體下方 L1 保持開放。
 - `RF-GL-01` 由泳池遠端以 10° 上升至 L2 擴建邊緣，平面跨度由 `l2ExtensionLength` 推導。
 - `RF-GL-01` 標高與 `J-RF-L2-01` 在 `OPEN-010` 關閉前維持 `deferred`，且與擴建量體結構獨立。
+- `F-MIR-01` 是 `EXT-L2-01` 低 X 面池端鏡面反射牆；存在、用途與外傾方向為 confirmed，正式角度、牆高與性能不得在 `OPEN-011` 關閉前寫入模型。
+- `REF-401` 可使用明確標示為 display-only 的 SVG 偏移表達屋頂、入口戶外區與鏡牆概念關係；consumer 不得把偏移換算為設計尺寸。
 
 ## 6. 模型驗證門檻
 
