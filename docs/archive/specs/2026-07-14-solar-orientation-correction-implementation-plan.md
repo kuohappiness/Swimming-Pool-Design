@@ -2,10 +2,11 @@
 
 - 日期：2026-07-14
 - 類型：implementation-plan
-- 狀態：approved
+- 狀態：completed
+- 完成日期：2026-07-15
 - 任務：TASK-001
 - 目標版本：0.2.0
-- 依據：`DEC-022`、`DEC-029`、[太陽研究契約](../contracts/solar-study.md)
+- 依據：`DEC-022`、`DEC-029`、[太陽研究契約](../../contracts/solar-study.md)
 
 ## 目標
 
