@@ -31,8 +31,9 @@
 | SRC-CONCEPT-005 | `source-materials/concepts/SRC-CONCEPT-005_service-core-program-annotated.png` | 彩框概念；入口、原廁所重建、L2 更衣淋浴及屋頂坡向 | 1452 × 1042 | `B08B1781004983F2BEEFA1271361B9EB5A7C585F8BB59D3947FE83847059EE94` |
 | SRC-CONCEPT-006 | `source-materials/concepts/SRC-CONCEPT-006_floating-stair-location-annotated.png` | 藍框概念；長邊玻璃外牆旁的懸空樓梯位置 | 2080 × 1466 | `157200EA2BE6C1EF1A213D4DE89589B0D18F9C184E490349F9E58919D6E16681` |
 | SRC-CONCEPT-007 | `source-materials/concepts/SRC-CONCEPT-007_floating-stair-dual-stringer-annotated.png` | 紅線概念；雙厚鋼梯梁、懸空梯段及開放梯下 | 1430 × 920 | `D62448F0A987900F2C3208EE17D3B57FC2AE2DCDCE358002A294E4B54746F592` |
+| SRC-CONCEPT-008 | `source-materials/concepts/SRC-CONCEPT-008_l1-outdoor-entries-annotated.png` | 使用者在現行 L1 圖面標註：紅框為男女廁、綠框為戶外、藍框為兩廁朝下的獨立戶外前門 | 2194 × 1120 | `BBAE9566DF0107810CFE3E499C0D32E0DB68A66B1CC846D3AD815F31FF7BDB0E` |
 
-雜湊確認 repo 圖檔與本輪討論使用的原始檔一致。
+雜湊確認 repo 圖檔與各輪討論使用的原始檔一致。`SRC-CONCEPT-008` 直接支持 `DEC-028` 的入口語意，但它是在待修圖面上的使用者標註，不證明開口、通道或廁所隔間的精確尺寸；尺寸仍由 `OPEN-008` 管理。
 
 ## 4. 證據解讀規則
 
@@ -46,7 +47,7 @@
 
 ## 5. 公開與署名
 
-九張來源圖可直接存於公開 repo。Google Maps 截圖保留原有品牌、指南針及比例尺；地圖資料與影像權利歸 Google 及適用資料提供者，彩框與箭頭為使用者註記。本 repo 只把它保存為概念設計來源證據。
+十張來源圖可直接存於公開 repo。Google Maps 截圖保留原有品牌、指南針及比例尺；地圖資料與影像權利歸 Google 及適用資料提供者，彩框與箭頭為使用者註記。本 repo 只把它保存為概念設計來源證據。
 
 ## 6. 已知限制
 
@@ -56,4 +57,4 @@
 - 新資料應新增修訂紀錄，再由單一模型切換至新值，不覆寫來源歷史。
 - 校址中心座標不是泳池局部測量點；正式日照分析可用測量座標取代，但不得在頁面另寫第二套位置資料。
 
-來源新增程序見 [06_WORKFLOW_AND_VERSIONING](06_WORKFLOW_AND_VERSIONING.md)。
+來源新增程序見 [06_WORKFLOW_AND_RELEASES](06_WORKFLOW_AND_RELEASES.md)。

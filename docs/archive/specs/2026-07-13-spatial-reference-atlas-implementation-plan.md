@@ -1,8 +1,12 @@
 # 空間參照圖集實作計畫
 
 - 日期：2026-07-13
+- 類型：implementation-plan
+- 狀態：completed
+- 任務：legacy
+- 目標版本：0.1.0-atlas.1
+- 完成日期：2026-07-13
 - 依據：[空間參照圖集設計規格](2026-07-13-spatial-reference-atlas-design.md)
-- 狀態：已完成
 
 ## 1. 本輪成果
 

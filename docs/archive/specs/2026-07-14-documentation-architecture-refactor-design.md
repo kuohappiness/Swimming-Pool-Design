@@ -2,11 +2,12 @@
 
 - 日期：2026-07-14
 - 類型：design
-- 狀態：draft
-- 審閱：設計方向已核准；書面規格待使用者審閱
+- 狀態：completed
+- 審閱：使用者已於 2026-07-14 核准完整書面規格
 - 任務：TASK-003
 - 依據：使用者於 2026-07-14 核准文件架構重構方向
 - 目標版本：0.2.0
+- 完成日期：2026-07-14
 - 範圍：README、權威文件、Active Work、契約、specs、release 記錄、legacy versions 與 repo-local skill 引用
 
 ## 1. 目的

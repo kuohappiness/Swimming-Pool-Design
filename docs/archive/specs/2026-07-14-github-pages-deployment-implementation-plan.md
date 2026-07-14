@@ -1,6 +1,11 @@
 # GitHub Pages 自動部署實作計畫
 
-日期：2026-07-14
+- 日期：2026-07-14
+- 類型：implementation-plan
+- 狀態：completed
+- 任務：legacy
+- 目標版本：pre-0.2.0
+- 完成日期：2026-07-14
 
 ## 1. 文件與入口
 

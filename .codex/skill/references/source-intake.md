@@ -44,7 +44,7 @@ Do not claim that a sketch confirms a dimension merely because its shape appears
 - A source registry change belongs only in `02_SITE_AND_SOURCES.md`.
 - A new or revised numeric planning value belongs in `03_DESIGN_BASIS.md`.
 - A user-confirmed choice or newly discovered conflict belongs in `04_DECISIONS_AND_OPEN_ITEMS.md`.
-- A change to how model data or output behaves belongs in `05_MODEL_AND_VIEWER_CONTRACT.md`.
+- A change to shared model behavior belongs in `docs/05_MODEL_CONTRACT.md`; output-specific behavior belongs in the affected `docs/contracts/` file.
 
 Link between owners instead of copying the same explanation into all four.
 

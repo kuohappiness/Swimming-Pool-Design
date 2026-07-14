@@ -1,63 +1,44 @@
 # Swimming Pool Design
 
-國立臺中教育大學附設實驗國民小學游泳池翻修的概念設計、空間參照圖集與可信即時 3D Viewer 專案。
+國立臺中教育大學附設實驗國民小學游泳池翻修的概念設計、空間參照圖集與互動研究專案。現有衛星圖、手繪概念、使用者標註與明確設計值共同形成可追溯、可修訂的單一規劃模型。
 
-本專案使用現有衛星圖、照片、手繪概念與明確設計數值建立可持續修正的規劃模型。所有成果均為概念設計用途，不作為施工、發包、結構或法規簽證文件。
+本專案為概念設計用途，不是施工、發包、結構、消防或法規簽證文件。
 
-## 目前成果
+## 目前版本
 
-- `model/project-model.json` 是圖面、ID、尺寸、狀態與來源的單一權威模型。
-- `reference/index.html` 提供六張可縮放、可點選 ID、支援手機的空間參照圖。
-- `reference/solar-study/index.html` 提供固定 1F、2F 水平旋轉與鏡牆外傾的冬夏日照互動研究。
-- 模型方位以本地長軸 307° 為單一答案；`CORE-01` 與入口 `EN-01` 已依衛星圖修正方向。
-- L1 男廁在左、女廁在右，操場側各有前門，泳池側各有可於非使用時間關閉的後門；入口前室尺寸仍可調整。
-- L2 男、女更衣淋浴區嚴格分離，各配置 15 間整合式單元，另保留 5 間擴充位置。
-- L2 由原核心上方與 5.0 m 工作值擴建區整合，樓梯在中央分流，男左女右且入口錯開。
-- 每間單元內設壁掛置物櫃，不設集中式置物櫃區。
-- `ST-01` 採 A2 兩段同向懸空式樓梯、雙側厚鋼梯梁、透明欄杆與開放梯下。
-- 10° 玻璃屋頂向泳池遠端左下傾斜，平面終止於 L2 擴建邊緣；最終標高與屋頂交界構造保留在 `OPEN-010` 第二階段討論。
+- 套件版本：`0.1.0`
+- 模型版本：`0.1.0-atlas.3`
+- 下一個目標版本：`0.2.0`
+- 當前工作與待修順序：[07｜Active Work](docs/07_ACTIVE_WORK.md)
 
-## 本機 Demo
+## 本機使用
 
 ```powershell
 npm install
 npm run dev
 ```
 
-Vite 顯示的 Network URL 可直接由同一 Wi-Fi 的手機開啟。靜態成果與完整驗證：
+Vite 顯示的 Network URL 可由同一 Wi-Fi 的手機開啟。提交前完整驗證：
 
 ```powershell
 npm run build
 ```
 
-## 公開網站
+## 公開成果
 
-- [空間參照圖集首頁](https://kuohappiness.github.io/Swimming-Pool-Design/)
+- [空間參照圖集](https://kuohappiness.github.io/Swimming-Pool-Design/)
 - [冬夏日照互動研究](https://kuohappiness.github.io/Swimming-Pool-Design/solar-study/)
 
-每次 `main` 通過驗證並推送後，GitHub Actions 會由同一模型重新建置及更新公開網站；本機尚未 push 的變更不會上線。
+每次 `main` 通過驗證並推送後，GitHub Actions 會重新建置及更新公開網站；本機尚未 push 的變更不會上線。
 
-## 專案導覽
+## 權威文件
 
-- [專案簡報](docs/01_PROJECT_BRIEF.md)
-- [基地與來源](docs/02_SITE_AND_SOURCES.md)
-- [設計基準](docs/03_DESIGN_BASIS.md)
-- [決策與待決事項](docs/04_DECISIONS_AND_OPEN_ITEMS.md)
-- [模型與 Viewer 契約](docs/05_MODEL_AND_VIEWER_CONTRACT.md)
-- [工作流程與版本規範](docs/06_WORKFLOW_AND_VERSIONING.md)
-- [空間參照圖集設計規格](docs/specs/2026-07-13-spatial-reference-atlas-design.md)
-- [空間參照圖集實作計畫](docs/specs/2026-07-13-spatial-reference-atlas-implementation-plan.md)
-- [服務核心第一階段修正設計](docs/specs/2026-07-14-service-core-first-revision-design.md)
-- [服務核心第一階段修正實作紀錄](docs/specs/2026-07-14-service-core-first-revision-implementation-plan.md)
-- [冬夏日照互動展示設計](docs/specs/2026-07-14-solar-reflection-explainer-design.md)
-- [冬夏日照互動展示實作計畫](docs/specs/2026-07-14-solar-reflection-explainer-implementation-plan.md)
-- [GitHub Pages 自動部署設計](docs/specs/2026-07-14-github-pages-deployment-design.md)
-- [GitHub Pages 自動部署實作計畫](docs/specs/2026-07-14-github-pages-deployment-implementation-plan.md)
-- [repo-local Codex skill](.codex/skill/SKILL.md)
+1. [專案簡報](docs/01_PROJECT_BRIEF.md)
+2. [基地與來源](docs/02_SITE_AND_SOURCES.md)
+3. [設計基準](docs/03_DESIGN_BASIS.md)
+4. [決策與待決事項](docs/04_DECISIONS_AND_OPEN_ITEMS.md)
+5. [模型契約](docs/05_MODEL_CONTRACT.md)
+6. [工作流程與發布](docs/06_WORKFLOW_AND_RELEASES.md)
+7. [Active Work](docs/07_ACTIVE_WORK.md)
 
-## 歷史成果
-
-- [V02 Viewer](index.html)
-- [V03 Viewer](versions/V03/ZhongShiPool_V03_Viewer.html)
-
-V02／V03 只代表當時版本。若歷史成果與 `docs/` 或 `model/project-model.json` 衝突，以目前模型及權威文件為準。
+文件責任與生命週期見 [DOCUMENT_OWNERSHIP](docs/governance/DOCUMENT_OWNERSHIP.md)。已完成規格保存在 `docs/archive/specs/`，歷史成果集中於 [versions](versions/README.md)；兩者都不是現行設計真相。
