@@ -79,6 +79,18 @@ test('authoritative reference model is internally consistent', () => {
   assert.deepEqual(validateModel(clone()), []);
 });
 
+test('package, lockfile, model, and README release versions stay synchronized', async () => {
+  const packageJson = JSON.parse(await readFile(resolve(repoRoot, 'package.json'), 'utf8'));
+  const packageLock = JSON.parse(await readFile(resolve(repoRoot, 'package-lock.json'), 'utf8'));
+  const readme = await readFile(resolve(repoRoot, 'README.md'), 'utf8');
+  assert.equal(packageLock.version, packageJson.version);
+  assert.equal(packageLock.packages[''].version, packageJson.version);
+  assert.equal(sourceModel.modelVersion, packageJson.version);
+  assert.ok(readme.includes(`套件版本：\`${packageJson.version}\``));
+  assert.ok(readme.includes(`模型版本：\`${sourceModel.modelVersion}\``));
+  assert.match(sourceModel.revision, /^\d{4}-\d{2}-\d{2}$/);
+});
+
 test('derived L2 zones stay equal and the stair ends on the split axis', () => {
   const derived = deriveReferenceGeometry(clone());
   const area = (bounds) => (bounds.x2 - bounds.x1) * (bounds.y2 - bounds.y1);
