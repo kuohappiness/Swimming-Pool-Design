@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import ts from 'typescript';
 import { deriveReferenceGeometry } from '../scripts/reference-geometry.mjs';
-import { validateModel } from '../scripts/reference-validation.mjs';
+import { validateModel, validateSourceFiles } from '../scripts/reference-validation.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sourceModel = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
@@ -316,4 +316,144 @@ test('rejects unregistered sheet references', () => {
   const model = clone();
   model.sheets[0].referencedEntityIds.push('UNKNOWN-01');
   assert.match(validateModel(model).join('\n'), /references unknown entity/);
+});
+
+test('registers the confirmed pool-facing mirror facade without a formal angle', () => {
+  const model = clone();
+  const mirror = model.entities.find((entity) => entity.id === 'F-MIR-01');
+  assert.deepEqual(mirror, {
+    id: 'F-MIR-01',
+    name: 'EXT-L2-01 面池端鏡面反射牆',
+    type: 'mirror-facade',
+    level: 'L2',
+    grid: 'D/1-4',
+    status: 'confirmed',
+    sourceIds: ['SRC-CONCEPT-009'],
+  });
+  for (const field of ['mirrorFacade', 'leanAngle', 'displayRoofElevation']) {
+    assert.equal(Object.hasOwn(model.geometry, field), false, `${field} must not enter formal geometry`);
+  }
+  assert.equal(model.geometry.roof.highElevation.value, null);
+  assert.equal(model.geometry.roof.lowElevation.value, null);
+});
+
+test('keeps the TASK-002 outdoor entry semantics while adding the new section source', () => {
+  const entry = clone().entities.find((entity) => entity.id === 'Z-L1-ENTRY-01');
+  assert.deepEqual(entry, {
+    id: 'Z-L1-ENTRY-01',
+    name: '操場側入口戶外區',
+    type: 'outdoor-forecourt',
+    level: 'L1',
+    grid: 'E-F/1',
+    status: 'confirmed',
+    sourceIds: ['SRC-CONCEPT-008', 'SRC-CONCEPT-009'],
+  });
+});
+
+test('requires every REF-401 conceptual section entity reference', () => {
+  for (const id of [
+    'Z-L1-ENTRY-01',
+    'EXT-L2-01',
+    'F-MIR-01',
+    'ST-01',
+    'RF-GL-01',
+    'J-RF-L2-01',
+  ]) {
+    const model = clone();
+    const section = model.sheets.find((sheet) => sheet.id === 'REF-401');
+    assert.ok(section.referencedEntityIds.includes(id), `canonical REF-401 must reference ${id}`);
+    section.referencedEntityIds = section.referencedEntityIds.filter((candidate) => candidate !== id);
+    assert.match(
+      validateModel(model).join('\n'),
+      new RegExp(`REF-401 must reference ${id}`),
+    );
+  }
+});
+
+test('registers SRC-CONCEPT-009 with the approved immutable identity', () => {
+  const source = clone().sources.find((item) => item.id === 'SRC-CONCEPT-009');
+  assert.deepEqual(source, {
+    id: 'SRC-CONCEPT-009',
+    path: 'source-materials/concepts/SRC-CONCEPT-009_longitudinal-section-correction-annotated.png',
+    kind: 'annotated-concept',
+    pixelSize: [2216, 1130],
+    sha256: '3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034',
+  });
+});
+
+test('rejects each field of a drifted SRC-CONCEPT-009 identity', () => {
+  for (const [field, value, expectedError] of [
+    ['id', 'SRC-CONCEPT-010', /id must remain SRC-CONCEPT-009/],
+    ['path', 'source-materials/concepts/SRC-CONCEPT-008_l1-outdoor-entries-annotated.png', /path must remain/],
+    ['kind', 'hand-sketch', /kind must remain annotated-concept/],
+    ['pixelSize', [2194, 1120], /pixelSize must remain \[2216, 1130\]/],
+    ['sha256', 'BBAE9566DF0107810CFE3E499C0D32E0DB68A66B1CC846D3AD815F31FF7BDB0E', /sha256 must remain/],
+  ]) {
+    const model = clone();
+    const source = model.sources.find((item) => item.id === 'SRC-CONCEPT-009');
+    source[field] = value;
+    assert.match(validateModel(model).join('\n'), expectedError);
+  }
+});
+
+test('rejects SRC-CONCEPT-009 impersonating a byte-valid registered source', async () => {
+  const model = clone();
+  const approved = model.sources.find((item) => item.id === 'SRC-CONCEPT-009');
+  const impostor = model.sources.find((item) => item.id === 'SRC-CONCEPT-008');
+  Object.assign(approved, {
+    path: impostor.path,
+    kind: impostor.kind,
+    pixelSize: [...impostor.pixelSize],
+    sha256: impostor.sha256,
+  });
+
+  assert.deepEqual(await validateSourceFiles(model, repoRoot), []);
+  assert.match(validateModel(model).join('\n'), /SRC-CONCEPT-009 source contract mismatch/);
+});
+
+test('enforces the exact F-MIR-01 registry contract', () => {
+  for (const [field, value] of [
+    ['type', 'wall'],
+    ['level', 'RF'],
+    ['status', 'working'],
+    ['sourceIds', []],
+    ['sourceIds', ['SRC-CONCEPT-009', 'SRC-CONCEPT-001']],
+    ['sourceIds', ['SRC-CONCEPT-009', 'SRC-CONCEPT-009']],
+  ]) {
+    const model = clone();
+    const mirror = model.entities.find((entity) => entity.id === 'F-MIR-01');
+    assert.ok(mirror, 'F-MIR-01 must exist before its registry contract can be mutated');
+    mirror[field] = value;
+    assert.match(
+      validateModel(model).join('\n'),
+      /F-MIR-01 registry contract mismatch/,
+    );
+  }
+});
+
+test('rejects formal mirror and display-only geometry fields', () => {
+  for (const [path, value] of [
+    [['mirrorFacade'], { leanAngle: 9.5 }],
+    [['leanAngle'], 9.5],
+    [['displayRoofElevation'], 4.5],
+    [['roof', 'leanAngle'], 9.5],
+  ]) {
+    const model = clone();
+    const field = path.at(-1);
+    const owner = path.slice(0, -1).reduce((current, segment) => current[segment], model.geometry);
+    owner[field] = value;
+    assert.match(
+      validateModel(model).join('\n'),
+      new RegExp(`model\\.geometry(?:\\.${path.slice(0, -1).join('\\.')})? must not define ${field}`),
+    );
+    assert.equal(model.geometry.roof.highElevation.value, null);
+    assert.equal(model.geometry.roof.lowElevation.value, null);
+  }
+});
+
+test('forbidden geometry checks ignore inherited keys and string values', () => {
+  const model = clone();
+  Object.setPrototypeOf(model.geometry.roof, { leanAngle: 9.5 });
+  model.geometry.stair.stringerDescription = 'mirrorFacade leanAngle displayRoofElevation';
+  assert.deepEqual(validateModel(model), []);
 });

@@ -5,8 +5,18 @@ import { deriveReferenceGeometry } from './reference-geometry.mjs';
 
 const GEOMETRY_TOLERANCE = 0.002;
 const EXPECTED_LOCAL_ORIGIN = [27, 0, 0];
-const TASK_002_ENTITY_CONTRACTS = {
-  'Z-L1-ENTRY-01': { type: 'outdoor-forecourt', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
+const FORBIDDEN_FORMAL_GEOMETRY_FIELDS = new Set(['mirrorFacade', 'leanAngle', 'displayRoofElevation']);
+const SOURCE_CONTRACTS = {
+  'SRC-CONCEPT-009': {
+    id: 'SRC-CONCEPT-009',
+    path: 'source-materials/concepts/SRC-CONCEPT-009_longitudinal-section-correction-annotated.png',
+    kind: 'annotated-concept',
+    pixelSize: [2216, 1130],
+    sha256: '3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034',
+  },
+};
+const ENTITY_REGISTRY_CONTRACTS = {
+  'Z-L1-ENTRY-01': { type: 'outdoor-forecourt', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008', 'SRC-CONCEPT-009'] },
   'RTE-L1-ARRIVAL-01': { type: 'arrival-route', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
   'OP-L1-PH-01': { type: 'outdoor-opening', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
   'DR-L1-WC-M-FRONT-01': { type: 'door', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
@@ -14,6 +24,7 @@ const TASK_002_ENTITY_CONTRACTS = {
   'DR-L1-WC-F-FRONT-01': { type: 'door', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008'] },
   'DR-L1-WC-F-REAR-01': { type: 'door', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-005', 'SRC-CONCEPT-008'] },
   'PSG-L1-DRY-01': { type: 'dry-passage', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-005', 'SRC-CONCEPT-008'] },
+  'F-MIR-01': { type: 'mirror-facade', level: 'L2', status: 'confirmed', sourceIds: ['SRC-CONCEPT-009'] },
 };
 
 const closeTo = (actual, expected, tolerance = GEOMETRY_TOLERANCE) =>
@@ -52,6 +63,24 @@ const pointContainedBy = (point, bounds, tolerance = GEOMETRY_TOLERANCE) => Bool
   && point.y >= bounds.y1 - tolerance
   && point.y <= bounds.y2 + tolerance;
 
+const findForbiddenGeometryFields = (geometry) => {
+  const findings = [];
+  const visited = new WeakSet();
+
+  const visit = (value, ownerPath) => {
+    if (!value || typeof value !== 'object' || visited.has(value)) return;
+    visited.add(value);
+
+    for (const field of Object.keys(value)) {
+      if (FORBIDDEN_FORMAL_GEOMETRY_FIELDS.has(field)) findings.push({ ownerPath, field });
+      visit(value[field], `${ownerPath}.${field}`);
+    }
+  };
+
+  visit(geometry, 'model.geometry');
+  return findings;
+};
+
 export function validateModel(model) {
   const errors = [];
   const entities = Array.isArray(model.entities) ? model.entities : [];
@@ -72,6 +101,28 @@ export function validateModel(model) {
   const entitySet = new Set(entityIds);
   const entityById = new Map(entities.map((entity) => [entity.id, entity]));
   const sourceSet = new Set(sourceIds);
+  const sourceById = new Map(sources.map((source) => [source.id, source]));
+  for (const [id, contract] of Object.entries(SOURCE_CONTRACTS)) {
+    const source = sourceById.get(id);
+    if (!source) {
+      errors.push(`${id} source contract mismatch: id must remain ${contract.id}`);
+      continue;
+    }
+    if (source.path !== contract.path) {
+      errors.push(`${id} source contract mismatch: path must remain ${contract.path}`);
+    }
+    if (source.kind !== contract.kind) {
+      errors.push(`${id} source contract mismatch: kind must remain ${contract.kind}`);
+    }
+    if (!Array.isArray(source.pixelSize)
+      || source.pixelSize.length !== contract.pixelSize.length
+      || source.pixelSize.some((value, index) => value !== contract.pixelSize[index])) {
+      errors.push(`${id} source contract mismatch: pixelSize must remain [${contract.pixelSize.join(', ')}]`);
+    }
+    if (source.sha256 !== contract.sha256) {
+      errors.push(`${id} source contract mismatch: sha256 must remain ${contract.sha256}`);
+    }
+  }
   for (const sheet of sheets) {
     for (const entityId of sheet.referencedEntityIds ?? []) {
       if (!entitySet.has(entityId)) errors.push(`${sheet.id} references unknown entity: ${entityId}`);
@@ -82,7 +133,7 @@ export function validateModel(model) {
       if (!sourceSet.has(sourceId)) errors.push(`${entity.id} references unknown source: ${sourceId}`);
     }
   }
-  for (const [id, contract] of Object.entries(TASK_002_ENTITY_CONTRACTS)) {
+  for (const [id, contract] of Object.entries(ENTITY_REGISTRY_CONTRACTS)) {
     const entity = entityById.get(id);
     const sourceIdsForEntity = entity?.sourceIds;
     if (!entity
@@ -106,6 +157,9 @@ export function validateModel(model) {
   }
 
   const geometry = model.geometry ?? {};
+  for (const { ownerPath, field } of findForbiddenGeometryFields(geometry)) {
+    errors.push(`${ownerPath} must not define ${field} before the related OPEN item is resolved`);
+  }
   const { building, pool, roof, stair, combinedCubicle } = geometry;
   if (!building || !pool || !roof || !stair || !combinedCubicle) {
     errors.push('model.geometry must include building, pool, roof, stair, and combinedCubicle');
@@ -356,6 +410,7 @@ export function validateModel(model) {
     ...expectedRearDoors,
     'PSG-L1-DRY-01',
     'EXT-L2-01',
+    'F-MIR-01',
     'J-RF-L2-01',
   ];
   for (const id of requiredEntityIds) {
@@ -375,7 +430,7 @@ export function validateModel(model) {
     ],
     'REF-201': ['EXT-L2-01'],
     'REF-301': ['EXT-L2-01', 'J-RF-L2-01'],
-    'REF-401': ['EXT-L2-01', 'J-RF-L2-01'],
+    'REF-401': ['Z-L1-ENTRY-01', 'EXT-L2-01', 'F-MIR-01', 'ST-01', 'RF-GL-01', 'J-RF-L2-01'],
     'REF-501': ['EXT-L2-01', 'J-RF-L2-01'],
   };
   for (const [sheetId, ids] of Object.entries(requiredSheetReferences)) {
