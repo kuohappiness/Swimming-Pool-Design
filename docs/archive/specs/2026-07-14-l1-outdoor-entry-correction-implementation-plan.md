@@ -2,10 +2,11 @@
 
 - 日期：2026-07-14
 - 類型：implementation-plan
-- 狀態：in_progress
+- 狀態：completed
+- 完成日期：2026-07-15
 - 任務：TASK-002
 - 目標版本：0.2.0
-- 依據：`DEC-028`、`SRC-CONCEPT-008`、[服務核心設計](2026-07-14-service-core-first-revision-design.md)、[圖集契約](../contracts/reference-atlas.md)
+- 依據：`DEC-028`、`SRC-CONCEPT-008`、[服務核心設計](2026-07-14-service-core-first-revision-design.md)、[圖集契約](../../contracts/reference-atlas.md)
 
 ## 目標
 

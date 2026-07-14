@@ -6,7 +6,7 @@
 - 任務：legacy
 - 目標版本：0.1.0-atlas.3
 - 完成日期：2026-07-14
-- 依據：[服務核心第一階段修正設計](../../specs/2026-07-14-service-core-first-revision-design.md)
+- 依據：[服務核心第一階段修正設計](2026-07-14-service-core-first-revision-design.md)
 - 範圍：`DEC-022`～`DEC-026`、`DB-003`
 - 排除：`OPEN-009` 專業結構／機電細節、`OPEN-010` 屋頂交界構造
 
