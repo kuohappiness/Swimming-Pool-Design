@@ -94,6 +94,7 @@ h1 {
 
 .stage { display: grid; grid-template-columns: 1fr 1.22fr; gap: 18px; }
 .panel {
+  min-width: 0;
   padding: 20px;
   border: 1px solid #d7d0c4;
   border-radius: 16px;

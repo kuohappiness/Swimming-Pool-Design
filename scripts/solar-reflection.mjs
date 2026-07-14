@@ -19,6 +19,25 @@ export function circularAngleDelta(first, second) {
   return Math.abs(((a - b + 540) % 360) - 180);
 }
 
+export function deriveSolarPlanOrientation(referenceSystem) {
+  const localLongAxisBearing = normalizeAzimuth(finite(
+    referenceSystem?.localLongAxisBearingFromTrueNorth,
+    'referenceSystem.localLongAxisBearingFromTrueNorth',
+  ));
+  const buildingAzimuth = normalizeAzimuth(finite(
+    referenceSystem?.worldTransform?.rotationFromTrueNorth,
+    'referenceSystem.worldTransform.rotationFromTrueNorth',
+  ));
+  if (buildingAzimuth !== localLongAxisBearing) {
+    throw new RangeError('solar plan orientation fields must match.');
+  }
+  return {
+    buildingAzimuth,
+    poolFacingAzimuth: normalizeAzimuth(buildingAzimuth + 180),
+    svgRotationFromLocalX: normalizeAzimuth(buildingAzimuth - 90),
+  };
+}
+
 const dayOfYear = (year, month, day) => {
   const date = new Date(Date.UTC(year, month - 1, day));
   if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {

@@ -6,6 +6,7 @@ import { dirname, resolve } from 'node:path';
 import {
   calculateSolarPosition,
   circularAngleDelta,
+  deriveSolarPlanOrientation,
   evaluatePoolReflection,
   normalizeAzimuth,
   reflectSolarRay,
@@ -73,4 +74,39 @@ test('model owns the correct school identity and one solar location', () => {
   assert.equal(site.timeZone, 'Asia/Taipei');
   assert.equal(site.utcOffsetHours, 8);
   assert.equal(poolAzimuth, 127);
+});
+
+test('derives the fixed solar plan from the 307 degree world transform without swapping ends', () => {
+  assert.deepEqual(deriveSolarPlanOrientation(model.referenceSystem), {
+    buildingAzimuth: 307,
+    poolFacingAzimuth: 127,
+    svgRotationFromLocalX: 217,
+  });
+});
+
+test('rejects a second fixed-building orientation answer', () => {
+  const referenceSystem = structuredClone(model.referenceSystem);
+  referenceSystem.worldTransform.rotationFromTrueNorth = 127;
+  assert.throws(
+    () => deriveSolarPlanOrientation(referenceSystem),
+    /orientation fields must match/,
+  );
+});
+
+test('solar-study consumer rotates the fixed plan from the shared world transform', async () => {
+  const mainSource = await readFile(resolve(repoRoot, 'reference/src/solar-study/main.ts'), 'utf8');
+  assert.match(
+    mainSource,
+    /deriveSolarPlanOrientation\(model\.referenceSystem\)/,
+  );
+  assert.match(
+    mainSource,
+    /buildingPlan\.setAttribute\([\s\S]*planOrientation\.svgRotationFromLocalX/,
+  );
+  assert.doesNotMatch(mainSource, /poolAzimuth\s*-\s*90/);
+});
+
+test('solar-study panels can shrink without clipping controls on a 320px viewport', async () => {
+  const styles = await readFile(resolve(repoRoot, 'reference/src/solar-study/styles.css'), 'utf8');
+  assert.match(styles, /\.panel\s*\{[^}]*min-width:\s*0;/s);
 });

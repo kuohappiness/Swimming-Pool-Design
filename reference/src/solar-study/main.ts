@@ -3,6 +3,7 @@ import rawModel from '../../../model/project-model.json';
 import type { ProjectModel } from '../types';
 import {
   calculateSolarPosition,
+  deriveSolarPlanOrientation,
   evaluatePoolReflection,
   normalizeAzimuth,
   reflectSolarRay,
@@ -10,7 +11,8 @@ import {
 
 const model = rawModel as ProjectModel;
 const location = model.referenceSystem.siteLocation;
-const poolAzimuth = normalizeAzimuth(model.referenceSystem.localLongAxisBearingFromTrueNorth + 180);
+const planOrientation = deriveSolarPlanOrientation(model.referenceSystem);
+const poolAzimuth = planOrientation.poolFacingAzimuth;
 const times = ['08:00', '09:00', '10:00', '11:00', '12:00'] as const;
 const seasons = {
   winter: { name: '冬至', year: 2026, month: 12, day: 21, color: '#e5a23d' },
@@ -187,8 +189,10 @@ function update(): void {
   required<HTMLElement>('#planValue').textContent = signed(rotation);
   required<HTMLElement>('#leanValue').textContent = lean.toFixed(1) + '°';
 
-  const baseRotation = normalizeAzimuth(poolAzimuth - 90);
-  buildingPlan.setAttribute('transform', 'translate(280 235) rotate(' + baseRotation.toFixed(3) + ')');
+  buildingPlan.setAttribute(
+    'transform',
+    'translate(280 235) rotate(' + planOrientation.svgRotationFromLocalX.toFixed(3) + ')',
+  );
   upperBoxPlan.setAttribute('transform', 'rotate(' + rotation + ' 60 0)');
 
   const normalEnd = polar(wallAzimuth, 190);
