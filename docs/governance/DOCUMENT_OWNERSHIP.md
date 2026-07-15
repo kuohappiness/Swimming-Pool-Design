@@ -15,6 +15,7 @@
 | 模型 schema、座標、溯源與跨輸出不變條件 | `05_MODEL_CONTRACT.md` |
 | 收件、變更、驗證、部署、版本與發布流程 | `06_WORKFLOW_AND_RELEASES.md` |
 | TASK 狀態、依賴、目標版本與驗收入口 | `07_ACTIVE_WORK.md` |
+| 專題分析的輸入、方法、比較表與限制 | `docs/analysis/<topic>.md` |
 | 個別現行輸出行為 | `docs/contracts/<output>.md` |
 | 核准設計及實作步驟 | `docs/specs/` |
 | 已完成／被取代規格 | `docs/archive/specs/` |

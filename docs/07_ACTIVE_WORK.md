@@ -17,7 +17,13 @@
 
 0.2.0 的 `TASK-001`～`TASK-005` 與 `TASK-006` 均已完成；下一個目標版本尚未排定。
 
-## 2. 未排程設計問題
+## 2. 0.3.0 任務
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-007 | 日照分析、2F 水平旋轉、鏡牆外傾與 `solar-study` 同步 | done | 0.3.0 | [日照分析](analysis/solar-analysis.md)、[completed design](archive/specs/2026-07-15-solar-analysis-design.md)、[completed implementation plan](archive/specs/2026-07-15-solar-analysis-implementation-plan.md)、[DEC-031／DEC-032](04_DECISIONS_AND_OPEN_ITEMS.md)、[solar contract](contracts/solar-study.md) | DEC-027、DEC-029、DEC-030 | 水平 +9.5° 與鏡牆外傾 +8.5° 已建立可重現分析；03／04、模型、REF-401、solar contract、HTML、測試與行動版說明一致；幾何結果未被誤述為實際熱效益或眩光安全結論 |
+
+## 3. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
@@ -25,6 +31,6 @@
 - [OPEN-008](04_DECISIONS_AND_OPEN_ITEMS.md)：廁所、開口與乾式通道精確尺寸。
 - [OPEN-009](04_DECISIONS_AND_OPEN_ITEMS.md)：逃生、無障礙、結構與機電。
 - [OPEN-010](04_DECISIONS_AND_OPEN_ITEMS.md)：玻璃屋頂與 L2 量體交界。
-- [OPEN-011](04_DECISIONS_AND_OPEN_ITEMS.md)：2F 旋轉／鏡牆最終幾何與性能。
+- [OPEN-011](04_DECISIONS_AND_OPEN_ITEMS.md)：水平 +9.5° 與鏡牆外傾 +8.5° 已確認；結構支點、牆高、材料與最終性能仍待完成。
 
-這些 OPEN 在取得新輸入、形成可核准設計並建立 TASK 前，不列入 0.2.0 執行順序。
+這些 OPEN 在取得新輸入、形成可核准設計並建立 TASK 前，不列入執行順序。
