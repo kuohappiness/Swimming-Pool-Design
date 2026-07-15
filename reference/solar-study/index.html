@@ -31,6 +31,20 @@
         <span id="timezone-fact" class="pill"></span>
       </div>
 
+      <section class="decision-summary" aria-labelledby="decision-title">
+        <div class="decision-summary-copy">
+          <p class="eyebrow">CONFIRMED · 0.3.0</p>
+          <h2 id="decision-title">已確認日照角度</h2>
+          <p>設計先把夏季反射不命中泳池視為硬條件，再比較冬季上午的反射機會。這是幾何方向研究，不代表眩光安全、實際熱效益或水溫模擬結果。</p>
+        </div>
+        <dl>
+          <div><dt>2F 水平旋轉</dt><dd><strong id="confirmed-plan">+9.5°</strong></dd></div>
+          <div><dt>鏡牆外傾</dt><dd><strong id="confirmed-lean">+8.5°</strong></dd></div>
+          <div><dt>鏡牆法線</dt><dd><strong id="confirmed-normal">136.5°</strong></dd></div>
+        </dl>
+        <a href="https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/analysis/solar-analysis.md">日照分析完整方法</a>
+      </section>
+
       <section class="stage" aria-label="平面與剖面互動研究">
         <article class="panel">
           <h2>平面：2F 旋轉改變鏡牆朝向</h2>
@@ -55,7 +69,7 @@
               <text x="-35" y="5" text-anchor="middle" class="building-label">固定 1F 泳池</text>
               <text x="75" y="5" text-anchor="middle" class="small-building-label">CORE-01</text>
 
-              <g id="upperBoxPlan" transform="rotate(4.5 60 0)">
+              <g id="upperBoxPlan" transform="rotate(9.5 60 0)">
                 <rect x="9" y="-39" width="101" height="78" rx="8" class="upper-plan" />
                 <line x1="9" y1="-39" x2="9" y2="39" class="mirror-edge" />
                 <text x="60" y="-5" text-anchor="middle" class="building-label">旋轉 2F</text>
@@ -65,7 +79,7 @@
               <text x="60" y="60" text-anchor="middle" class="pivot-label">角度示意中心</text>
             </g>
 
-            <line id="wallNormal" x1="280" y1="235" x2="431" y2="348" class="wall-normal" />
+            <line id="wallNormal" x1="280" y1="235" x2="411" y2="373" class="wall-normal" />
             <text id="wallAzLabel" x="366" y="380" class="wall-label">鏡牆法線</text>
             <g id="selectedSun"></g>
           </svg>
@@ -88,9 +102,9 @@
             <rect x="42" y="332" width="448" height="30" rx="6" class="water-section" />
             <text x="58" y="353" class="building-label">固定 1F 泳池水面</text>
             <line x1="28" y1="363" x2="690" y2="363" class="ground-line" />
-            <polygon id="upperSection" points="495,363 690,363 690,105 452,105" class="upper-section" />
+            <polygon id="upperSection" points="495,363 690,363 690,105 456.4,105" class="upper-section" />
             <text x="592" y="292" text-anchor="middle" class="building-label">旋轉 2F 更衣量體</text>
-            <line id="wall" x1="495" y1="363" x2="452" y2="105" class="mirror-wall" />
+            <line id="wall" x1="495" y1="363" x2="456.4" y2="105" class="mirror-wall" />
             <line id="incoming" x1="175" y1="70" x2="470" y2="230" class="incoming-ray" marker-end="url(#arrow-sun)" />
             <line id="reflected" x1="470" y1="230" x2="310" y2="332" class="reflected-ray" marker-end="url(#arrow-reflected)" />
             <defs>
@@ -107,6 +121,7 @@
           </svg>
 
           <div class="controls">
+            <p class="controls-intro">以下保留為研究控制器；載入時會回到上方已確認角度，調整滑桿只用於比較情境，不會改寫正式設計值。</p>
             <label class="control" for="season">
               <span>季節</span>
               <select id="season">
@@ -125,20 +140,20 @@
               </select>
             </label>
             <label class="control" for="planRotation">
-              <span>2F 水平旋轉 <b id="planValue">+4.5°</b></span>
-              <input id="planRotation" type="range" min="-12" max="18" value="4.5" step="0.5" />
+              <span>2F 水平旋轉 <b id="planValue">+9.5°</b></span>
+              <input id="planRotation" type="range" min="-12" max="18" value="9.5" step="0.5" />
             </label>
             <label class="control" for="lean">
-              <span>鏡牆外傾角（相對垂直） <b id="leanValue">9.5°</b></span>
-              <input id="lean" type="range" min="0" max="30" value="9.5" step="0.5" />
+              <span>鏡牆外傾角（相對垂直） <b id="leanValue">8.5°</b></span>
+              <input id="lean" type="range" min="0" max="30" value="8.5" step="0.5" />
             </label>
           </div>
 
           <div class="readout" aria-label="即時幾何讀值">
             <div class="metric"><b id="altitude">26.2°</b><span>太陽高度角</span></div>
             <div class="metric"><b id="azimuth">135.0°</b><span>太陽方位角</span></div>
-            <div class="metric"><b id="mirrorAz">131.5°</b><span>鏡牆朝向</span></div>
-            <div class="metric"><b id="downAngle">45.0°</b><span>反射向下角</span></div>
+            <div class="metric"><b id="mirrorAz">136.5°</b><span>鏡牆朝向</span></div>
+            <div class="metric"><b id="downAngle">43.2°</b><span>反射向下角</span></div>
           </div>
           <div id="result" class="result" aria-live="polite">
             <strong id="resultTitle">冬季上午：導向泳池</strong>
@@ -168,7 +183,7 @@
           <div><b>平面旋轉與剖面外傾分工</b><span>2F 水平旋轉負責朝哪裡反射；鏡牆外傾負責向下多少。兩者需同時通過才算命中泳池。</span></div>
           <div><b>冬季利用、夏季避開</b><span>目標不是全年增加反射，而是冬季上午導入、夏季上午偏離或背光。</span></div>
         </div>
-        <div class="note"><strong>OPEN-011：</strong>目前角度只是操作預設。旋轉支點、正式角度、牆高、材質反射率、遮蔭、眩光、結構與熱效益仍待後續專題驗證。</div>
+        <div class="note"><strong>OPEN-011：</strong>水平 +9.5° 與鏡牆外傾 +8.5° 已確認。旋轉支點、鏡牆牆高、材料反射率、實際池面命中區、眩光，以及 3D 光線追蹤與熱分析仍待後續專題驗證。</div>
       </section>
     </main>
 

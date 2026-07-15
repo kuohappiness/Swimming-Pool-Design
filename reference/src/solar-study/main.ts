@@ -13,19 +13,15 @@ const model = rawModel as ProjectModel;
 const location = model.referenceSystem.siteLocation;
 const planOrientation = deriveSolarPlanOrientation(model.referenceSystem);
 const poolAzimuth = planOrientation.poolFacingAzimuth;
+const study = model.geometry.solarReflection;
+const defaultPlanRotation = study.planRotation.value;
+const defaultWallLean = study.mirrorLeanFromVertical.value;
 const times = ['08:00', '09:00', '10:00', '11:00', '12:00'] as const;
 const seasons = {
   winter: { name: '冬至', year: 2026, month: 12, day: 21, color: '#e5a23d' },
   summer: { name: '夏至', year: 2026, month: 6, day: 21, color: '#e15a4f' },
 } as const;
 type SeasonKey = keyof typeof seasons;
-
-const study = {
-  defaultPlanRotation: 4.5,
-  defaultWallLean: 9.5,
-  azimuthTolerance: 28,
-  minimumDownwardAngle: 8,
-} as const;
 
 function required<T extends Element>(selector: string): T {
   const found = document.querySelector<T>(selector);
@@ -65,9 +61,13 @@ required<HTMLElement>('#axis-fact').textContent =
 required<HTMLElement>('#pool-fact').textContent = '泳池方向 −X ' + poolAzimuth.toFixed(0) + '°';
 required<HTMLElement>('#timezone-fact').textContent =
   location.timeZone + ' · UTC+' + location.utcOffsetHours;
+required<HTMLElement>('#confirmed-plan').textContent = signed(defaultPlanRotation);
+required<HTMLElement>('#confirmed-lean').textContent = signed(defaultWallLean);
+required<HTMLElement>('#confirmed-normal').textContent =
+  normalizeAzimuth(poolAzimuth + defaultPlanRotation).toFixed(1) + '°';
 
-rotationControl.value = String(study.defaultPlanRotation);
-leanControl.value = String(study.defaultWallLean);
+rotationControl.value = String(defaultPlanRotation);
+leanControl.value = String(defaultWallLean);
 
 function parseTime(value: string): { hour: number; minute: number } {
   const parts = value.split(':').map(Number);
@@ -181,8 +181,8 @@ function update(): void {
   });
   const evaluation = evaluatePoolReflection(reflection, {
     poolTargetAzimuth: poolAzimuth,
-    azimuthTolerance: study.azimuthTolerance,
-    minimumDownwardAngle: study.minimumDownwardAngle,
+    azimuthTolerance: study.azimuthTolerance.value,
+    minimumDownwardAngle: study.minimumDownwardAngle.value,
   });
   const summerSafe = seasonKey === 'summer' && !evaluation.hitsPool;
 

@@ -92,6 +92,27 @@ h1 {
   font: 700 13px/1.2 ui-monospace, monospace;
 }
 
+.decision-summary {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(360px, 1.35fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin: 0 0 24px;
+  padding: 18px 20px;
+  border: 1px solid #b9d8cb;
+  border-radius: 14px;
+  background: #edf6f1;
+}
+.decision-summary > * { min-width: 0; }
+.decision-summary h2, .decision-summary p { margin: 0; }
+.decision-summary h2 { margin-top: 5px; }
+.decision-summary-copy > p:last-child { margin-top: 8px; color: var(--muted); line-height: 1.55; }
+.decision-summary dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.decision-summary dl div { min-width: 0; padding: 10px; border-radius: 9px; background: white; }
+.decision-summary dt { color: var(--muted); font-size: 11px; }
+.decision-summary dd { margin: 3px 0 0; font-size: 19px; }
+.decision-summary a { color: var(--wall); font-weight: 800; overflow-wrap: anywhere; }
+
 .stage { display: grid; grid-template-columns: 1fr 1.22fr; gap: 18px; }
 .panel {
   min-width: 0;
@@ -155,6 +176,13 @@ svg text { font-family: inherit; }
 .side-label { fill: var(--muted); font-size: 13px; }
 
 .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+.controls-intro {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
 .control {
   display: block;
   padding: 12px;
@@ -237,7 +265,7 @@ footer a:hover, footer a:focus-visible { color: var(--wall); }
   .site-header { display: block; padding: 20px 17px 8px; }
   .header-actions { justify-content: flex-start; margin-top: 14px; }
   .wrap { padding: 10px 17px 24px; }
-  .stage, .principle-grid { grid-template-columns: 1fr; }
+  .decision-summary, .stage, .principle-grid { grid-template-columns: 1fr; }
   .controls { grid-template-columns: 1fr; }
   footer { display: block; padding: 0 17px 24px; }
   footer p + p { margin-top: 5px; }
@@ -248,6 +276,8 @@ footer a:hover, footer a:focus-visible { color: var(--wall); }
   .lead { font-size: 15px; }
   .facts { gap: 7px; }
   .pill { width: 100%; font-size: 12px; }
+  .decision-summary { padding: 14px; }
+  .decision-summary dl { grid-template-columns: 1fr; }
   .panel { padding: 14px; border-radius: 12px; }
   .readout { grid-template-columns: 1fr 1fr; }
   .result { align-items: flex-start; flex-direction: column; }

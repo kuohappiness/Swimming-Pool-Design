@@ -16,6 +16,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const site = model.referenceSystem.siteLocation;
 const poolAzimuth = normalizeAzimuth(model.referenceSystem.localLongAxisBearingFromTrueNorth + 180);
+const solarStudy = model.geometry.solarReflection;
 const closeTo = (actual, expected, tolerance = 0.15) => Math.abs(actual - expected) <= tolerance;
 
 const solarAt = (month, day, hour) => calculateSolarPosition({
@@ -28,14 +29,21 @@ const solarAt = (month, day, hour) => calculateSolarPosition({
   utcOffsetHours: site.utcOffsetHours,
 });
 
-const evaluatePreset = (solar) => {
+const evaluateConfirmedDesign = (solar) => {
   const reflection = reflectSolarRay({
     solarAltitude: solar.altitude,
     solarAzimuth: solar.azimuth,
-    wallNormalAzimuth: poolAzimuth + 4.5,
-    wallLeanFromVertical: 9.5,
+    wallNormalAzimuth: poolAzimuth + solarStudy.planRotation.value,
+    wallLeanFromVertical: solarStudy.mirrorLeanFromVertical.value,
   });
-  return { reflection, evaluation: evaluatePoolReflection(reflection, { poolTargetAzimuth: poolAzimuth }) };
+  return {
+    reflection,
+    evaluation: evaluatePoolReflection(reflection, {
+      poolTargetAzimuth: poolAzimuth,
+      azimuthTolerance: solarStudy.azimuthTolerance.value,
+      minimumDownwardAngle: solarStudy.minimumDownwardAngle.value,
+    }),
+  };
 };
 
 test('calculates representative winter and summer solar positions for the model site', () => {
@@ -47,18 +55,18 @@ test('calculates representative winter and summer solar positions for the model 
   assert.ok(closeTo(summer.azimuth, 81.51));
 });
 
-test('illustrative preset sends winter 09:00 toward the pool', () => {
-  const { reflection, evaluation } = evaluatePreset(solarAt(12, 21, 9));
+test('confirmed design sends winter 09:00 toward the pool', () => {
+  const { reflection, evaluation } = evaluateConfirmedDesign(solarAt(12, 21, 9));
   assert.equal(evaluation.hitsPool, true);
-  assert.ok(closeTo(reflection.reflectedAzimuth, 127.05, 0.25));
-  assert.ok(closeTo(reflection.reflectedDownwardAngle, 45.16, 0.25));
+  assert.ok(closeTo(reflection.reflectedAzimuth, 138.41, 0.25));
+  assert.ok(closeTo(reflection.reflectedDownwardAngle, 43.23, 0.25));
 });
 
-test('the same preset avoids the pool at summer 09:00', () => {
-  const { reflection, evaluation } = evaluatePreset(solarAt(6, 21, 9));
+test('confirmed design avoids the pool at summer 09:00', () => {
+  const { reflection, evaluation } = evaluateConfirmedDesign(solarAt(6, 21, 9));
   assert.equal(reflection.frontLit, true);
   assert.equal(evaluation.hitsPool, false);
-  assert.ok(evaluation.azimuthDelta > 70);
+  assert.ok(evaluation.azimuthDelta > 85);
 });
 
 test('azimuth helpers handle north wraparound', () => {
@@ -104,6 +112,22 @@ test('solar-study consumer rotates the fixed plan from the shared world transfor
     /buildingPlan\.setAttribute\([\s\S]*planOrientation\.svgRotationFromLocalX/,
   );
   assert.doesNotMatch(mainSource, /poolAzimuth\s*-\s*90/);
+});
+
+test('solar-study loads confirmed angles from the model and exposes the analysis summary', async () => {
+  const [mainSource, html, styles] = await Promise.all([
+    readFile(resolve(repoRoot, 'reference/src/solar-study/main.ts'), 'utf8'),
+    readFile(resolve(repoRoot, 'reference/solar-study/index.html'), 'utf8'),
+    readFile(resolve(repoRoot, 'reference/src/solar-study/styles.css'), 'utf8'),
+  ]);
+  assert.match(mainSource, /model\.geometry\.solarReflection/);
+  assert.doesNotMatch(mainSource, /defaultPlanRotation:\s*4\.5|defaultWallLean:\s*9\.5/);
+  assert.match(html, /已確認日照角度/);
+  assert.match(html, /2F 水平旋轉[\s\S]*?<strong id="confirmed-plan">\+9\.5°<\/strong>/);
+  assert.match(html, /鏡牆外傾[\s\S]*?<strong id="confirmed-lean">\+8\.5°<\/strong>/);
+  assert.match(html, /鏡牆法線[\s\S]*?<strong id="confirmed-normal">136\.5°<\/strong>/);
+  assert.match(html, /日照分析完整方法/);
+  assert.match(styles, /\.decision-summary/);
 });
 
 test('solar-study panels can shrink without clipping controls on a 320px viewport', async () => {
