@@ -37,7 +37,7 @@
 
 - 屋頂維持 10° 並下移至高端靠近 L2 樓板，附 `OPEN-010` 概念位置標示。
 - `Z-L1-ENTRY-01` 顯示為無灰色實體填色的入口戶外區，精確寬度不標尺寸。
-- `F-MIR-01` 顯示於 `EXT-L2-01` 低 X 面池端，牆頂向泳池側外傾並使用鏡面視覺語彙；不得顯示正式角度。
+- `F-MIR-01` 顯示於 `EXT-L2-01` 低 X 面池端，牆頂依 `geometry.solarReflection.mirrorLeanFromVertical` 的 confirmed +8.5° 向泳池側外傾並使用鏡面視覺語彙；牆高、材料、分格與最終性能仍由 `OPEN-011` 管理。
 
 ## 驗收
 
@@ -45,6 +45,7 @@
 - 真北只使用模型 transform。
 - `l2ExtensionLength` 修改時，L2、樓梯及屋頂相關圖面一起更新。
 - deferred 幾何具有可辨識狀態，不顯示偽精確 fallback。
+- `REF-401` 鏡牆線的斜率由 canonical +8.5° 推導，且標籤明確區分已確認角度與 `OPEN-011` 尚待確認的牆高。
 - `REF-101` 的戶外前場、三個開口、兩套廁所雙入口及乾式通道具有模型、renderer 與文字測試。
 - validator 鎖定 `[27, 0, 0]` 本地原點、門檻連接、路徑位於戶外前場內、路徑與樓梯的大於容差淨空，以及 TASK-002 entity registry contract；registry 的實際 `sourceIds` 必須是 expected sources 的唯一且雙向相等集合，順序可忽略但不得增加或重複。
 - 實際 renderer 測試逐一確認 TASK-002 entity 只有一個可聚焦、可啟用且帶有可讀標籤的 SVG group。

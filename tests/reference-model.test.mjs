@@ -511,12 +511,12 @@ test('REF-401 renders the approved conceptual section language and accessible ta
     'section-concept-note',
     '入口戶外區',
     '位置示意；標高／交界待 OPEN-010',
-    '外傾示意；角度待 OPEN-011',
+    '外傾 \\+8\\.5°；牆高待 OPEN-011',
   ]) {
     assert.match(markup, new RegExp(token));
   }
   assert.match(note, /F-MIR-01 向泳池側外傾/);
-  assert.doesNotMatch(markup, /9\.5°|\+4\.5°/);
+  assert.doesNotMatch(markup, /外傾示意；角度待 OPEN-011|9\.5°|\+4\.5°/);
 
   for (const [id, label] of [
     ['Z-L1-ENTRY-01', '入口戶外區'],
@@ -542,6 +542,13 @@ test('REF-401 renders the approved conceptual section language and accessible ta
   assert.ok(mirror, 'F-MIR-01 mirror line must render');
   assert.ok(Number(mirror[1]) < Number(mirror[3]), 'mirror top must lean toward the pool-side low-X direction');
   assert.ok(Number(mirror[2]) < Number(mirror[4]), 'mirror top must remain above its base');
+  const mirrorHeight = Number(mirror[4]) - Number(mirror[2]);
+  const mirrorOffset = Number(mirror[3]) - Number(mirror[1]);
+  assert.ok(closeTo(
+    Math.atan2(mirrorOffset, mirrorHeight) * 180 / Math.PI,
+    sourceModel.geometry.solarReflection.mirrorLeanFromVertical.value,
+    0.05,
+  ));
   const extensionPoints = markup.match(/<polygon class="l2-section-volume" points="([^"]+)"/)?.[1]
     .split(' ')
     .map((point) => point.split(',').map(Number));

@@ -259,13 +259,16 @@ function renderSection(model: ProjectModel): SheetRender {
     const z = sz(baseZ + (runIndex + 1) * stair.totalRise / stair.riserCount);
     return `<path class="section-step" d="M${x} ${z}h${stair.treadDepth * 27}v${stair.totalRise / stair.riserCount * 36}"/>`;
   }).join('');
-  // SVG-only concept offsets. They are not architectural elevations or angles.
+  // SVG-only concept elevations and dimensions; the mirror slope uses the canonical angle.
   const l2FloorY = sz(stair.totalRise);
   const roofHighY = l2FloorY - 16;
   const roofLowY = roofHighY
     + derived.roofPlanRun * 27 * Math.tan(model.geometry.roof.pitch.value * Math.PI / 180);
   const volumeTopY = 236;
-  const mirrorTopX = sx(derived.l2StartX) - 18;
+  const mirrorLean = model.geometry.solarReflection.mirrorLeanFromVertical.value;
+  const mirrorPixelHeight = l2FloorY - volumeTopY;
+  const mirrorTopX = sx(derived.l2StartX)
+    - Math.tan(mirrorLean * Math.PI / 180) * mirrorPixelHeight;
   const entryOutdoorWidth = 128;
   const entryOutdoorX = sx(derived.l2EndX) - entryOutdoorWidth;
   const content = `
@@ -286,7 +289,7 @@ function renderSection(model: ProjectModel): SheetRender {
     <line class="glass-wall" x1="${sx(0)}" y1="${groundY}" x2="${sx(0)}" y2="${roofLowY}"/>
     <g data-entity="F-MIR-01" tabindex="0" role="button" aria-label="F-MIR-01 EXT-L2-01 面池端鏡面反射牆">
       <line class="mirror-facade-section" x1="${mirrorTopX}" y1="${volumeTopY}" x2="${sx(derived.l2StartX)}" y2="${l2FloorY}"/>
-      <text class="mirror-label section-concept-note" x="${sx(derived.l2StartX) + 18}" y="${volumeTopY + 82}">外傾示意；角度待 OPEN-011</text>
+      <text class="mirror-label section-concept-note" x="${sx(derived.l2StartX) + 18}" y="${volumeTopY + 82}">外傾 +${mirrorLean.toFixed(1)}°；牆高待 OPEN-011</text>
       <g class="entity-badge mirror" transform="translate(${sx(derived.l2StartX) + 64} ${volumeTopY + 110})" aria-hidden="true">
         <rect x="-36" y="-14" width="72" height="28" rx="5"/>
         <text text-anchor="middle" dy="5">F-MIR-01</text>
@@ -313,7 +316,7 @@ function renderSection(model: ProjectModel): SheetRender {
   return {
     id: 'REF-401',
     markup: sheetSvg(model, 'REF-401', 'A–A 縱剖面參照圖', content),
-    note: 'REF-401 為概念關係：玻璃屋頂維持 10° 並下移接近 L2 樓板；入口端為戶外區；F-MIR-01 向泳池側外傾。正式標高、交界與鏡牆角度仍待 OPEN-010／011。',
+    note: `REF-401 為概念關係：玻璃屋頂維持 10° 並下移接近 L2 樓板；入口端為戶外區；F-MIR-01 向泳池側外傾，依 confirmed +${mirrorLean.toFixed(1)}° 呈現。正式標高、交界與鏡牆牆高、材料及性能仍待 OPEN-010／011。`,
   };
 }
 
