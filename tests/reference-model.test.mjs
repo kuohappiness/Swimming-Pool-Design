@@ -53,8 +53,16 @@ test('derives the approved 5 m extension geometry from one base parameter', () =
   assert.equal(derived.l2Length, 16);
   assert.equal(derived.l2SplitAxisX, 27);
   assert.equal(derived.roofPlanRun, 19);
-  assert.ok(closeTo(derived.stairStartX, 19.04));
+  assert.equal(derived.roofPlanStartX, -1.2);
+  assert.equal(derived.roofTotalRun, 20.2);
+  assert.ok(closeTo(derived.roofFarWallElevation, 3.005));
+  assert.ok(closeTo(derived.roofLowElevation, 2.91));
+  assert.ok(closeTo(derived.stairStartX, 16.8));
   assert.equal(derived.stairEndX, 27);
+  assert.ok(closeTo(derived.flightRun, 4.2));
+  assert.ok(closeTo(derived.stairTotalRun, 10.2));
+  assert.equal(derived.riserHeight, 0.15);
+  assert.equal(derived.midLandingElevation, 2.25);
 });
 
 test('re-derives every dependent position when the extension changes', () => {
@@ -65,7 +73,8 @@ test('re-derives every dependent position when the extension changes', () => {
   assert.equal(derived.l2Length, 15);
   assert.equal(derived.l2SplitAxisX, 27.5);
   assert.equal(derived.roofPlanRun, 20);
-  assert.ok(closeTo(derived.stairStartX, 19.54));
+  assert.equal(derived.roofTotalRun, 21.2);
+  assert.ok(closeTo(derived.stairStartX, 17.3));
   assert.equal(derived.stairEndX, 27.5);
 });
 
@@ -97,6 +106,70 @@ test('derived L2 zones stay equal and the stair ends on the split axis', () => {
   assert.equal(area(derived.maleL2Bounds), area(derived.femaleL2Bounds));
   assert.equal(derived.maleL2Bounds.x2, derived.femaleL2Bounds.x1);
   assert.equal(derived.stairEndX, derived.l2SplitAxisX);
+});
+
+test('ST-01 stores the approved 4.5 m geometry and conditional guard strategy', () => {
+  const stair = clone().geometry.stair;
+  assert.equal(stair.totalRise, 4.5);
+  assert.equal(stair.riserCount, 30);
+  assert.equal(stair.risersPerRun, 15);
+  assert.equal(stair.treadsPerRun, 14);
+  assert.equal(stair.treadDepth, 0.3);
+  assert.equal(stair.midLandingLength, 1.8);
+  assert.equal(stair.supportSystem, 'S1-continuous-twin-box-stringers');
+  assert.equal(stair.riserClosure, 'closed');
+  assert.deepEqual(stair.guardrail, {
+    primaryType: 'full-height-vertical-tension-screen',
+    fallbackType: 'laminated-glass',
+    minimumHeight: 2.4,
+    fallbackHeight: 1.35,
+    nominalLineSpacing: 0.04,
+    collectorBeam: 'concealed-independent-l2-or-gallery-structure',
+    materialStatus: 'deferred',
+    openItemId: 'OPEN-013',
+  });
+});
+
+test('roof owns the approved 4.5 degree joint, passive curtain, and roof-only reuse strategy', () => {
+  const roof = clone().geometry.roof;
+  assert.equal(roof.pitch.value, 4.5);
+  assert.equal(roof.highElevation.value, 4.5);
+  assert.equal(roof.lowOverhang.value, 1.2);
+  assert.equal(roof.supportedByExtension, false);
+  assert.equal(roof.l2Visor.supportsRoof, false);
+  assert.equal(roof.rainCurtain.dryWeatherRecirculation, false);
+  assert.equal(roof.rainCurtain.groundRunoffIsolated, true);
+  assert.equal(roof.rainwaterReuse.source, 'roof-only');
+  assert.equal(roof.rainwaterReuse.use, 'l1-toilet-flushing');
+  assert.equal(roof.rainwaterReuse.openItemId, 'OPEN-014');
+});
+
+test('rejects stale ST-01 geometry, unsafe guard resolution, and active roof support', () => {
+  const staleRise = clone();
+  staleRise.geometry.stair.totalRise = 3.6;
+  assert.match(validateModel(staleRise).join('\n'), /ST-01 approved geometry/);
+
+  const staleTreads = clone();
+  staleTreads.geometry.stair.treadsPerRun = 15;
+  assert.match(validateModel(staleTreads).join('\n'), /treadsPerRun must equal/);
+
+  const unsafeGuard = clone();
+  unsafeGuard.geometry.stair.guardrail.materialStatus = 'confirmed';
+  assert.match(validateModel(unsafeGuard).join('\n'), /OPEN-013/);
+
+  const roofLoad = clone();
+  roofLoad.geometry.stair.guardrail.collectorBeam = 'glass-roof';
+  assert.match(validateModel(roofLoad).join('\n'), /independent L2 or gallery structure/);
+});
+
+test('rejects pumped dry-weather curtains and ground runoff in the toilet reuse system', () => {
+  const pumped = clone();
+  pumped.geometry.roof.rainCurtain.dryWeatherRecirculation = true;
+  assert.match(validateModel(pumped).join('\n'), /rain curtain must remain passive/);
+
+  const groundRunoff = clone();
+  groundRunoff.geometry.roof.rainwaterReuse.source = 'roof-and-ground';
+  assert.match(validateModel(groundRunoff).join('\n'), /rainwater reuse must remain roof-only/);
 });
 
 test('derives a diagrammatic L1 topology with outdoor forecourt, dry passage, and offset doors', () => {
@@ -141,6 +214,30 @@ test('rendered REF-101 uses outdoor-entry semantics and includes every toilet do
     markup.indexOf('data-entity="Z-ST-01"') < markup.lastIndexOf('class="clear-route"'),
     'arrival route must render after the stair and remain visually legible',
   );
+});
+
+test('REF-001, REF-101, REF-301, and REF-501 expose the approved 0.3.0 hierarchy', async () => {
+  const { renderSheets } = await importRendererModule();
+  const sheets = renderSheets(clone());
+  const site = sheets.find((sheet) => sheet.id === 'REF-001')?.markup ?? '';
+  const plan = sheets.find((sheet) => sheet.id === 'REF-101')?.markup ?? '';
+  const roof = sheets.find((sheet) => sheet.id === 'REF-301')?.markup ?? '';
+  const iso = sheets.find((sheet) => sheet.id === 'REF-501')?.markup ?? '';
+
+  assert.doesNotMatch(site, /axis-arrow/);
+  assert.equal((plan.match(/data-stair-tread-plan=/g) ?? []).length, 28);
+  for (const token of [
+    '4.5° 向低端',
+    '全寬被動雨簾',
+    '屋頂水 → 濾網／初雨',
+    '極端雨量 → 獨立高位旁通',
+    '外挑 1.2',
+  ]) assert.match(roof, new RegExp(token));
+  assert.match(iso, /data-stair-mid-elevation="2\.25"/);
+  assert.match(iso, /data-stair-top-elevation="4\.5"/);
+  assert.match(iso, /data-guard-primary="B"/);
+  assert.match(iso, /data-supported-by-roof="false"/);
+  assert.doesNotMatch(iso, /data-stair-top-elevation="3\.6"/);
 });
 
 test('rejects legacy shared indoor vestibule semantics', () => {
@@ -306,10 +403,10 @@ test('rejects a central locker area', () => {
   assert.match(validateModel(model).join('\n'), /centralLockerArea must remain false/);
 });
 
-test('rejects numeric roof elevations before OPEN-010 is resolved', () => {
+test('rejects roof elevations that drift from the approved 4.5 degree geometry', () => {
   const model = clone();
   model.geometry.roof.highElevation = { value: 9, status: 'working', sourceIds: [] };
-  assert.match(validateModel(model).join('\n'), /roof elevations must remain deferred under OPEN-010/);
+  assert.match(validateModel(model).join('\n'), /roof elevations must derive from \+4\.500 m/);
 });
 
 test('rejects a second orientation answer', () => {
@@ -342,8 +439,8 @@ test('registers the confirmed pool-facing mirror facade', () => {
     status: 'confirmed',
     sourceIds: ['SRC-CONCEPT-009'],
   });
-  assert.equal(model.geometry.roof.highElevation.value, null);
-  assert.equal(model.geometry.roof.lowElevation.value, null);
+  assert.equal(model.geometry.roof.highElevation.value, 4.5);
+  assert.equal(model.geometry.roof.lowElevation.value, 2.91);
 });
 
 test('owns the confirmed solar reflection geometry in one model object', () => {
@@ -484,8 +581,8 @@ test('rejects formal mirror and display-only geometry fields', () => {
       validateModel(model).join('\n'),
       new RegExp(`model\\.geometry(?:\\.${path.slice(0, -1).join('\\.')})? must not define ${field}`),
     );
-    assert.equal(model.geometry.roof.highElevation.value, null);
-    assert.equal(model.geometry.roof.lowElevation.value, null);
+    assert.equal(model.geometry.roof.highElevation.value, 4.5);
+    assert.equal(model.geometry.roof.lowElevation.value, 2.91);
   }
 });
 
@@ -510,13 +607,15 @@ test('REF-401 renders the approved conceptual section language and accessible ta
     'mirror-facade-section',
     'section-concept-note',
     '入口戶外區',
-    '位置示意；標高／交界待 OPEN-010',
+    'J-RF-L2-01 · 獨立止水坎／活動縫／雙泛水',
+    '被動雨簾 · 滴水端約 \\+2\\.910',
+    'B 主案 · 2\\.4 m 全高垂直弦幕',
     '外傾 \\+8\\.5°；牆高待 OPEN-011',
   ]) {
     assert.match(markup, new RegExp(token));
   }
-  assert.match(note, /F-MIR-01 向泳池側外傾/);
-  assert.doesNotMatch(markup, /外傾示意；角度待 OPEN-011|9\.5°|\+4\.5°/);
+  assert.match(note, /X／Z 同尺度/);
+  assert.doesNotMatch(markup, /10°|L2 \+3\.600|標高／交界待 OPEN-010/);
 
   for (const [id, label] of [
     ['Z-L1-ENTRY-01', '入口戶外區'],
@@ -534,9 +633,18 @@ test('REF-401 renders the approved conceptual section language and accessible ta
     .split(' ')
     .map((point) => point.split(',').map(Number));
   assert.equal(roofPoints?.length, 4);
-  const l2FloorY = 530 - sourceModel.geometry.stair.totalRise * 36;
-  assert.ok(closeTo(roofPoints[1][1], l2FloorY - 16), 'roof high end must use the approved SVG-only offset');
-  assert.ok(roofPoints[0][1] > roofPoints[1][1], 'the 10-degree roof must still rise toward L2');
+  const l2FloorY = 530 - sourceModel.geometry.stair.totalRise * 27;
+  assert.ok(closeTo(roofPoints[1][1], l2FloorY), 'roof high end must align with the L2 floor');
+  assert.ok(roofPoints[0][0] < 105, 'roof low edge must project beyond the far wall');
+  assert.ok(closeTo(
+    Math.atan2(roofPoints[0][1] - roofPoints[1][1], roofPoints[1][0] - roofPoints[0][0]) * 180 / Math.PI,
+    4.5,
+    0.02,
+  ), 'REF-401 must use equal X/Z scale for the 4.5 degree roof');
+  assert.equal((markup.match(/data-stair-riser=/g) ?? []).length, 30);
+  assert.equal((markup.match(/data-stair-tread=/g) ?? []).length, 28);
+  assert.equal(markup.match(/data-stair-mid-elevation="2\.25"/)?.length, 1);
+  assert.match(markup, /data-supported-by-roof="false"/);
 
   const mirror = markup.match(/<line class="mirror-facade-section" x1="([^"]+)" y1="([^"]+)" x2="([^"]+)" y2="([^"]+)"/);
   assert.ok(mirror, 'F-MIR-01 mirror line must render');

@@ -21,9 +21,15 @@ export interface ReferenceGeometry {
   stairTotalRun: number;
   stairStartX: number;
   stairEndX: number;
+  riserHeight: number;
+  midLandingElevation: number;
   roofPlanStartX: number;
   roofPlanEndX: number;
   roofPlanRun: number;
+  roofTotalRun: number;
+  roofFarWallElevation: number;
+  roofLowElevation: number;
+  roofHighElevation: number;
   diagrammaticL1: {
     outdoorForecourtBounds: PlanBounds;
     dryPassageBounds: PlanBounds;

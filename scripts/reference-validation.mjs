@@ -25,6 +25,10 @@ const ENTITY_REGISTRY_CONTRACTS = {
   'DR-L1-WC-F-REAR-01': { type: 'door', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-005', 'SRC-CONCEPT-008'] },
   'PSG-L1-DRY-01': { type: 'dry-passage', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-005', 'SRC-CONCEPT-008'] },
   'F-MIR-01': { type: 'mirror-facade', level: 'L2', status: 'confirmed', sourceIds: ['SRC-CONCEPT-009'] },
+  'J-RF-L2-01': { type: 'roof-joint', level: 'RF', status: 'confirmed', sourceIds: ['SRC-CONCEPT-001'] },
+  'RC-RF-01': { type: 'rain-curtain', level: 'RF-L1', status: 'confirmed', sourceIds: [] },
+  'RW-TR-01': { type: 'rainwater-catch-trench', level: 'L1', status: 'confirmed', sourceIds: [] },
+  'RW-01': { type: 'rainwater-reuse-system', level: 'L1', status: 'working', sourceIds: [] },
 };
 
 const closeTo = (actual, expected, tolerance = GEOMETRY_TOLERANCE) =>
@@ -204,6 +208,9 @@ export function validateModel(model) {
     ['pool.shallowDepth', pool.shallowDepth],
     ['pool.deepDepth', pool.deepDepth],
     ['roof.pitch', roof.pitch],
+    ['roof.lowOverhang', roof.lowOverhang],
+    ['roof.lowElevation', roof.lowElevation],
+    ['roof.highElevation', roof.highElevation],
   ];
   for (const [label, measure] of numericMeasures) {
     if (!Number.isFinite(measure?.value) || measure.value <= 0 || measure.status === 'deferred') {
@@ -265,29 +272,99 @@ export function validateModel(model) {
     if (!sourceIds.includes(sourceId)) errors.push(`site location references missing source ${sourceId}`);
   }
   const rfLevel = model.referenceSystem?.levels?.find((level) => level.id === 'RF');
-  if (rfLevel?.elevation !== null || rfLevel?.status !== 'deferred' || rfLevel?.openItemId !== 'OPEN-010') {
-    errors.push('RF level elevation must remain deferred under OPEN-010');
+  const l2Level = model.referenceSystem?.levels?.find((level) => level.id === 'L2');
+  if (l2Level?.elevation !== 4.5) errors.push('L2 level must remain +4.500 m');
+  if (rfLevel?.elevation !== null || rfLevel?.status !== 'working' || Object.hasOwn(rfLevel ?? {}, 'openItemId')) {
+    errors.push('RF must remain a working sloped level without a false single elevation');
   }
 
   if (roof.coverageZoneId !== 'Z-PH-01') errors.push('roof coverage zone must remain Z-PH-01');
-  if (roof.pitch?.value !== 10 || roof.pitch?.status !== 'confirmed') errors.push('roof pitch must remain confirmed at 10 degrees');
+  if (!exactMeasure(roof.pitch, 4.5, 'confirmed')) errors.push('roof pitch must remain confirmed at 4.5 degrees');
+  if (!exactMeasure(roof.lowOverhang, 1.2, 'confirmed')) errors.push('roof low overhang must remain confirmed at 1.2 m');
   if (roof.highEdge !== 'l2-extension-edge' || roof.lowEdge !== 'far-pool-end') {
     errors.push('roof must rise from the far pool end to the L2 extension edge');
   }
-  if (!isDeferredMeasure(roof.lowElevation, 'OPEN-010') || !isDeferredMeasure(roof.highElevation, 'OPEN-010')) {
-    errors.push('roof elevations must remain deferred under OPEN-010');
+  if (roof.highElevation?.value !== 4.5 || roof.highElevation?.status !== 'confirmed'
+    || roof.lowElevation?.status !== 'working'
+    || !derived
+    || !closeTo(roof.lowElevation?.value, derived.roofLowElevation)
+    || !closeTo(derived.roofFarWallElevation, 3.005, 0.002)) {
+    errors.push('roof elevations must derive from +4.500 m, 4.5 degrees, 19.0 m run, and 1.2 m overhang');
   }
   if (roof.jointEntityId !== 'J-RF-L2-01') errors.push('roof joint must use J-RF-L2-01');
   if (roof.supportedByExtension !== false) errors.push('glass roof and L2 extension must remain structurally independent');
-
-  if (stair.runs !== 2 || stair.risersPerRun * stair.runs !== stair.riserCount) {
-    errors.push('ST-01 must contain two equal stair runs');
+  if (roof.jointStrategy !== 'independent-curb-movement-joint-double-flashing'
+    || roof.l2Visor?.projection !== 0.75
+    || roof.l2Visor?.visualThickness !== 0.15
+    || roof.l2Visor?.shadowGap !== 0.12
+    || roof.l2Visor?.sideReturn !== 0.6
+    || roof.l2Visor?.supportsRoof !== false) {
+    errors.push('J-RF-L2-01 must retain the approved independent joint and L2 visor hierarchy');
   }
-  if (stair.stringers !== 2 || stair.underStair !== 'fully-open' || stair.supportedByRoof !== false) {
+  const curtain = roof.rainCurtain;
+  if (curtain?.entityId !== 'RC-RF-01'
+    || curtain?.type !== 'passive-full-width-overflow-curtain'
+    || curtain?.equalizationTrough !== true
+    || curtain?.dryWeatherRecirculation !== false
+    || curtain?.catchTrenchEntityId !== 'RW-TR-01'
+    || curtain?.catchTrenchType !== 'closed-isolated-removable-grating'
+    || curtain?.groundRunoffIsolated !== true
+    || curtain?.extremeRainBypass !== 'independent-high-level-overflow') {
+    errors.push('roof rain curtain must remain passive, full-width, isolated, and independently bypassed');
+  }
+  const reuse = roof.rainwaterReuse;
+  if (reuse?.entityId !== 'RW-01'
+    || reuse?.source !== 'roof-only'
+    || reuse?.firstFlush !== true
+    || reuse?.debrisScreen !== true
+    || reuse?.settlingAndFiltration !== true
+    || reuse?.coveredStorage !== true
+    || reuse?.use !== 'l1-toilet-flushing'
+    || reuse?.potableMakeupIsolation !== 'visible-air-gap-or-approved-equivalent'
+    || reuse?.identifiedSeparatePipework !== true
+    || reuse?.overflow !== 'site-stormwater-or-infiltration'
+    || reuse?.capacityStatus !== 'deferred'
+    || reuse?.openItemId !== 'OPEN-014') {
+    errors.push('rainwater reuse must remain roof-only, maintainable, isolated, and linked to OPEN-014 sizing');
+  }
+
+  if (stair.totalRise !== 4.5
+    || stair.width !== 1.8
+    || stair.riserCount !== 30
+    || stair.runs !== 2
+    || stair.risersPerRun !== 15
+    || stair.treadsPerRun !== 14
+    || stair.treadDepth !== 0.3
+    || stair.midLandingLength !== 1.8) {
+    errors.push('ST-01 approved geometry must remain 4.5 m / 30 risers / 28 treads / 10.2 m');
+  }
+  if (stair.treadsPerRun !== stair.risersPerRun - 1) {
+    errors.push('ST-01 treadsPerRun must equal risersPerRun - 1');
+  }
+  if (stair.stringers !== 2
+    || stair.supportSystem !== 'S1-continuous-twin-box-stringers'
+    || stair.landingSupport !== 'integrated-torsion-box-no-column'
+    || stair.riserClosure !== 'closed'
+    || stair.underStair !== 'fully-open'
+    || stair.supportedByRoof !== false) {
     errors.push('ST-01 must retain dual stringers, open underside, and independent roof support');
   }
-  if (stair.guardrail !== 'transparent' || stair.enclosure !== 'dry-glass-gallery') {
-    errors.push('ST-01 must retain transparent guards and a dry glass gallery');
+  const guard = stair.guardrail;
+  if (guard?.primaryType !== 'full-height-vertical-tension-screen'
+    || guard?.fallbackType !== 'laminated-glass'
+    || guard?.minimumHeight !== 2.4
+    || guard?.fallbackHeight !== 1.35
+    || guard?.nominalLineSpacing !== 0.04) {
+    errors.push('ST-01 guard must retain B tension-screen primary and A laminated-glass fallback');
+  }
+  if (guard?.collectorBeam !== 'concealed-independent-l2-or-gallery-structure') {
+    errors.push('ST-01 guard collector must use independent L2 or gallery structure');
+  }
+  if (guard?.materialStatus !== 'deferred' || guard?.openItemId !== 'OPEN-013') {
+    errors.push('ST-01 guard material must remain deferred under OPEN-013');
+  }
+  if (stair.enclosure !== 'dry-glass-gallery') {
+    errors.push('ST-01 must retain a dry glass gallery');
   }
   if (stair.upperEndAlignment !== 'l2-split-axis') errors.push('ST-01 upper end must align with the L2 split axis');
   if (derived && !closeTo(derived.stairEndX, derived.l2SplitAxisX)) errors.push('derived stair end must equal the L2 split axis');
@@ -439,6 +516,9 @@ export function validateModel(model) {
     'EXT-L2-01',
     'F-MIR-01',
     'J-RF-L2-01',
+    'RC-RF-01',
+    'RW-TR-01',
+    'RW-01',
   ];
   for (const id of requiredEntityIds) {
     if (!entitySet.has(id)) errors.push(`required entity is missing: ${id}`);
@@ -456,9 +536,9 @@ export function validateModel(model) {
       'PSG-L1-DRY-01',
     ],
     'REF-201': ['EXT-L2-01'],
-    'REF-301': ['EXT-L2-01', 'J-RF-L2-01'],
-    'REF-401': ['Z-L1-ENTRY-01', 'EXT-L2-01', 'F-MIR-01', 'ST-01', 'RF-GL-01', 'J-RF-L2-01'],
-    'REF-501': ['EXT-L2-01', 'J-RF-L2-01'],
+    'REF-301': ['EXT-L2-01', 'J-RF-L2-01', 'RC-RF-01', 'RW-TR-01', 'RW-01'],
+    'REF-401': ['Z-L1-ENTRY-01', 'EXT-L2-01', 'F-MIR-01', 'ST-01', 'RF-GL-01', 'J-RF-L2-01', 'RC-RF-01', 'RW-TR-01'],
+    'REF-501': ['EXT-L2-01', 'J-RF-L2-01', 'RC-RF-01'],
   };
   for (const [sheetId, ids] of Object.entries(requiredSheetReferences)) {
     const referenced = new Set(sheets.find((sheet) => sheet.id === sheetId)?.referencedEntityIds ?? []);

@@ -15,13 +15,16 @@
 | TASK-004 | 套件、模型與現行文件同步至 0.2.0 | done | 0.2.0 | [版本流程](06_WORKFLOW_AND_RELEASES.md) | TASK-001、TASK-002、TASK-003、TASK-006 | `package.json`、lockfile、modelVersion、revision 與現行文件一致為 0.2.0 |
 | TASK-005 | 完整驗證與本機 release commit | done | 0.2.0 | [0.2.0 release](releases/0.2.0.md)、[發布門檻](06_WORKFLOW_AND_RELEASES.md) | TASK-001～TASK-004、TASK-006 | 文件、模型、測試、build、視覺 smoke 與 diff 檢查通過；建立 release 記錄與本機 `release: v0.2.0` commit；不 tag、不 push |
 
-0.2.0 的 `TASK-001`～`TASK-005` 與 `TASK-006` 均已完成；下一個目標版本尚未排定。
+0.2.0 的 `TASK-001`～`TASK-005` 與 `TASK-006` 均已完成；後續工作由 0.3.0 任務接續。
 
 ## 2. 0.3.0 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-007 | 日照分析、2F 水平旋轉、鏡牆外傾與 `solar-study` 同步 | done | 0.3.0 | [日照分析](analysis/solar-analysis.md)、[completed design](archive/specs/2026-07-15-solar-analysis-design.md)、[completed implementation plan](archive/specs/2026-07-15-solar-analysis-implementation-plan.md)、[DEC-031／DEC-032](04_DECISIONS_AND_OPEN_ITEMS.md)、[solar contract](contracts/solar-study.md) | DEC-027、DEC-029、DEC-030 | 水平 +9.5° 與鏡牆外傾 +8.5° 已建立可重現分析；03／04、模型、REF-401、solar contract、HTML、測試與行動版說明一致；幾何結果未被誤述為實際熱效益或眩光安全結論 |
+| TASK-008 | `OPEN-010` 玻璃屋頂、L2 分層交界、雨簾與雨水回用設計 | done | 0.3.0 | [completed design](archive/specs/2026-07-15-open-010-roof-rainwater-design.md)、[completed implementation plan](archive/specs/2026-07-16-open-010-implementation-plan.md)、[DEC-033～DEC-036](04_DECISIONS_AND_OPEN_ITEMS.md) | TASK-007、TASK-009 | 4.5°、+4.500 m、1.2 m 外挑、獨立接縫、被動雨簾與屋頂水沖廁流程已同步模型與 HTML；docs、validator、58 項測試、build、desktop／526px smoke 與 diff 檢查通過，`OPEN-010` 關閉並移交 `OPEN-014` |
+| TASK-009 | `ST-01` 樓梯幾何、S1 鋼梯、B 弦幕主案與 A 玻璃備案定案 | done | 0.3.0 | [completed design](archive/specs/2026-07-16-stair-finalization-design.md)、[DEC-035](04_DECISIONS_AND_OPEN_ITEMS.md)、[OPEN-013](04_DECISIONS_AND_OPEN_ITEMS.md) | DEC-017～DEC-019 | 書面規格與示意圖已由使用者核准；30 級高／28 踏面、10.2 m 總長、S1、封閉踢面但梯下開放、深色懸浮切線、2.4 m B 弦幕主案、1.35 m A 玻璃備案及隱藏集力梁均有明確 owner，專業驗證仍保持 open |
+| TASK-010 | 將核准的 `ST-01` 設計同步至單一模型、REF-101／401／501 與驗證 | done | 0.3.0 | [completed design](archive/specs/2026-07-16-stair-finalization-design.md)、[completed implementation plan](archive/specs/2026-07-16-stair-finalization-implementation-plan.md)、[DEC-035](04_DECISIONS_AND_OPEN_ITEMS.md) | TASK-008、TASK-009 | 模型正確區分級高與踏面並推導 4.20＋1.80＋4.20 m；圖集表達 S1、B 主案／A 備案與隱藏集力梁且不虛構材料定案；schema、validator、58 項測試、build、desktop／526px smoke 與文件檢查通過；320px 實機 smoke 仍保留為已知限制 |
 
 ## 3. 未排程設計問題
 
@@ -30,7 +33,10 @@
 - [OPEN-006](04_DECISIONS_AND_OPEN_ITEMS.md)：基地精確旋轉角與像素校準。
 - [OPEN-008](04_DECISIONS_AND_OPEN_ITEMS.md)：廁所、開口與乾式通道精確尺寸。
 - [OPEN-009](04_DECISIONS_AND_OPEN_ITEMS.md)：逃生、無障礙、結構與機電。
-- [OPEN-010](04_DECISIONS_AND_OPEN_ITEMS.md)：玻璃屋頂與 L2 量體交界。
 - [OPEN-011](04_DECISIONS_AND_OPEN_ITEMS.md)：水平 +9.5° 與鏡牆外傾 +8.5° 已確認；結構支點、牆高、材料與最終性能仍待完成。
+- [OPEN-013](04_DECISIONS_AND_OPEN_ITEMS.md)：全高弦幕材料、集力節點、張力／撓度及專業安全驗證。
+- [OPEN-014](04_DECISIONS_AND_OPEN_ITEMS.md)：屋頂接縫、雨簾與雨水回用的施工尺度、容量與機電／建築物理驗證。
 
 這些 OPEN 在取得新輸入、形成可核准設計並建立 TASK 前，不列入執行順序。
+
+0.3.0 的 `TASK-007`～`TASK-010` 均已完成，驗證與發布證據見 [Release 0.3.0](releases/0.3.0.md)；下一階段只從上述未排程 OPEN 另立設計與任務，不回寫已封存的 0.3.0 規格。

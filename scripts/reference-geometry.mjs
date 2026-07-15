@@ -12,7 +12,8 @@ const finiteNumber = (value, label) => {
 export function deriveReferenceGeometry(model) {
   const building = model?.geometry?.building;
   const stair = model?.geometry?.stair;
-  if (!building || !stair) throw new TypeError('Model building and stair geometry are required.');
+  const roof = model?.geometry?.roof;
+  if (!building || !stair || !roof) throw new TypeError('Model building, stair, and roof geometry are required.');
 
   const buildingLength = numericValue(building.length, 'building.length');
   const buildingWidth = numericValue(building.width, 'building.width');
@@ -28,8 +29,14 @@ export function deriveReferenceGeometry(model) {
     'referenceSystem.worldTransform.localOrigin[1]',
   );
   const risersPerRun = finiteNumber(stair.risersPerRun, 'stair.risersPerRun');
+  const treadsPerRun = finiteNumber(stair.treadsPerRun, 'stair.treadsPerRun');
   const treadDepth = finiteNumber(stair.treadDepth, 'stair.treadDepth');
   const midLandingLength = finiteNumber(stair.midLandingLength, 'stair.midLandingLength');
+  const totalRise = finiteNumber(stair.totalRise, 'stair.totalRise');
+  const riserCount = finiteNumber(stair.riserCount, 'stair.riserCount');
+  const roofPitch = numericValue(roof.pitch, 'roof.pitch');
+  const roofLowOverhang = numericValue(roof.lowOverhang, 'roof.lowOverhang');
+  const roofHighElevation = numericValue(roof.highElevation, 'roof.highElevation');
 
   if (buildingLength <= 0 || buildingWidth <= 0 || poolHallLength <= 0 || serviceCoreLength <= 0) {
     throw new RangeError('Building dimensions must be positive.');
@@ -37,8 +44,13 @@ export function deriveReferenceGeometry(model) {
   if (l2ExtensionLength <= 0 || l2ExtensionLength >= poolHallLength) {
     throw new RangeError('building.l2ExtensionLength must be greater than 0 and smaller than the pool hall length.');
   }
-  if (risersPerRun <= 0 || treadDepth <= 0 || midLandingLength <= 0) {
+  if (risersPerRun <= 0 || treadsPerRun <= 0 || treadDepth <= 0 || midLandingLength <= 0
+    || totalRise <= 0 || riserCount <= 0 || roofPitch <= 0 || roofLowOverhang <= 0) {
     throw new RangeError('Stair run inputs must be positive.');
+  }
+  if (!Number.isInteger(risersPerRun) || !Number.isInteger(treadsPerRun)
+    || treadsPerRun !== risersPerRun - 1) {
+    throw new RangeError('stair.treadsPerRun must equal stair.risersPerRun - 1.');
   }
 
   const l1ServiceStartX = poolHallLength;
@@ -48,10 +60,19 @@ export function deriveReferenceGeometry(model) {
   const l2EndX = buildingLength;
   const l2Length = l2EndX - l2StartX;
   const l2SplitAxisX = (l2StartX + l2EndX) / 2;
-  const flightRun = risersPerRun * treadDepth;
-  const stairTotalRun = flightRun * 2 + midLandingLength;
+  const flightRun = treadsPerRun * treadDepth;
+  const stairTotalRun = flightRun * stair.runs + midLandingLength;
   const stairStartX = l2SplitAxisX - stairTotalRun;
   const stairEndX = l2SplitAxisX;
+  const riserHeight = totalRise / riserCount;
+  const midLandingElevation = riserHeight * risersPerRun;
+  const roofPlanRun = l2StartX;
+  const roofTotalRun = roofPlanRun + roofLowOverhang;
+  const roofPlanStartX = -roofLowOverhang;
+  const roofPlanEndX = l2StartX;
+  const roofPitchRadians = roofPitch * Math.PI / 180;
+  const roofFarWallElevation = roofHighElevation - roofPlanRun * Math.tan(roofPitchRadians);
+  const roofLowElevation = roofHighElevation - roofTotalRun * Math.tan(roofPitchRadians);
   const stairTopY = finiteNumber(stair.originY, 'stair.originY')
     + finiteNumber(stair.width, 'stair.width');
 
@@ -120,9 +141,15 @@ export function deriveReferenceGeometry(model) {
     stairTotalRun,
     stairStartX,
     stairEndX,
-    roofPlanStartX: 0,
-    roofPlanEndX: l2StartX,
-    roofPlanRun: l2StartX,
+    riserHeight,
+    midLandingElevation,
+    roofPlanStartX,
+    roofPlanEndX,
+    roofPlanRun,
+    roofTotalRun,
+    roofFarWallElevation,
+    roofLowElevation,
+    roofHighElevation,
     diagrammaticL1: {
       outdoorForecourtBounds: {
         x1: l1ServiceStartX,

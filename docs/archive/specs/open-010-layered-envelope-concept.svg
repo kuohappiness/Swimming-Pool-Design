@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" role="img" aria-labelledby="title desc">
+  <title id="title">泳池玻璃屋頂與 L2 分層外觀概念</title>
+  <desc id="desc">左側為水平與垂直同尺度的縱剖面，顯示四點五度玻璃屋頂、四點五公尺 L2、一點二公尺低端外挑與雨簾。右側放大顯示 L2 外殼薄遮簷、陰影維修縫、雙層泛水與獨立屋頂支撐。</desc>
+  <style>
+    text { font-family: system-ui, "Noto Sans TC", sans-serif; fill: #153449; }
+    .label { font-size: 15px; font-weight: 600; }
+    .note { font-size: 12px; fill: #607482; }
+    .structure { stroke: #153449; stroke-width: 2; fill: none; }
+    .muted-line { stroke: #a6b0b4; stroke-width: 1.5; fill: none; }
+    .roof { stroke: #28879a; stroke-width: 4; fill: #cbe5e4; }
+    .l2 { stroke: #9d4e44; stroke-width: 2.5; fill: #ecd0ca; }
+    .visor { stroke: #153449; stroke-width: 1.5; fill: #153449; }
+    .shadow { fill: #344b58; }
+    .water { stroke: #2a91ac; stroke-width: 2.5; fill: #b9e1e8; }
+    .joint { stroke: #bd8a22; stroke-width: 3; fill: none; }
+    .dimension { stroke: #607482; stroke-width: 1.2; fill: none; }
+    .number { fill: #153449; stroke: #f7f3e9; stroke-width: 1; }
+    .number-text { fill: #f7f3e9; font-size: 12px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+  </style>
+  <rect width="1000" height="620" fill="#f7f3e9"/>
+  <text x="36" y="36" class="label">整體剖面｜水平與垂直同尺度</text>
+  <text x="724" y="36" class="label">J-RF-L2-01｜放大概念</text>
+  <line x1="700" y1="22" x2="700" y2="590" class="muted-line"/>
+
+  <line x1="35" y1="470" x2="675" y2="470" class="structure"/>
+  <rect x="120" y="474" width="390" height="62" class="water"/>
+  <text x="294" y="510" class="note">POOL-01</text>
+  <polygon points="572,258 675,258 675,358 585,358" class="l2"/>
+  <line x1="585" y1="358" x2="572" y2="258" class="structure"/>
+  <text x="610" y="292" class="label">L2 量體</text>
+  <text x="610" y="313" class="note">高端／地坪 +4.500</text>
+  <rect x="566" y="338" width="35" height="6" class="visor"/>
+  <rect x="566" y="344" width="19" height="5" class="shadow"/>
+  <text x="485" y="324" class="note">0.75 m 薄遮簷</text>
+  <line x1="548" y1="327" x2="574" y2="338" class="dimension"/>
+
+  <polygon points="80,397 585,357 585,364 80,404" class="roof"/>
+  <line x1="110" y1="395" x2="110" y2="470" class="structure"/>
+  <text x="285" y="374" class="label">RF-GL-01 · 4.5°</text>
+  <text x="285" y="395" class="note">玻璃屋頂／天花板</text>
+  <line x1="80" y1="403" x2="80" y2="466" class="water"/>
+  <line x1="86" y1="403" x2="86" y2="466" class="water" opacity="0.55"/>
+  <path d="M58 468 L108 468 L102 478 L64 478 Z" class="water"/>
+  <text x="16" y="438" class="note">全寬被動雨簾</text>
+  <text x="16" y="456" class="note">滴水端 +2.910</text>
+
+  <line x1="110" y1="555" x2="585" y2="555" class="dimension"/>
+  <line x1="110" y1="548" x2="110" y2="562" class="dimension"/>
+  <line x1="585" y1="548" x2="585" y2="562" class="dimension"/>
+  <text x="347" y="578" class="note" text-anchor="middle">室內水平跨度 19.0 m</text>
+  <line x1="80" y1="530" x2="110" y2="530" class="dimension"/>
+  <line x1="80" y1="523" x2="80" y2="537" class="dimension"/>
+  <line x1="110" y1="523" x2="110" y2="537" class="dimension"/>
+  <text x="95" y="519" class="note" text-anchor="middle">1.2 m</text>
+  <line x1="600" y1="358" x2="600" y2="470" class="dimension"/>
+  <line x1="594" y1="358" x2="606" y2="358" class="dimension"/>
+  <line x1="594" y1="470" x2="606" y2="470" class="dimension"/>
+  <text x="614" y="418" class="note">+4.500 m</text>
+  <text x="126" y="426" class="note">短邊牆處</text>
+  <text x="126" y="446" class="note">+3.005 m</text>
+  <circle cx="585" cy="358" r="24" class="joint"/>
+  <path d="M607 346 C650 310 680 280 716 246" class="joint"/>
+
+  <polygon points="891,118 982,118 982,346 906,346" class="l2"/>
+  <rect x="906" y="346" width="76" height="42" class="l2"/>
+  <line x1="906" y1="346" x2="982" y2="346" class="structure"/>
+  <text x="920" y="145" class="label">L2 外殼</text>
+  <text x="910" y="165" class="note">上部量體完整</text>
+  <polygon points="790,277 924,277 924,298 790,298" class="visor"/>
+  <rect x="790" y="298" width="114" height="13" class="shadow"/>
+  <line x1="924" y1="288" x2="948" y2="288" class="structure"/>
+  <polygon points="735,382 895,343 895,352 735,391" class="roof"/>
+  <path d="M842 365 L895 352 L895 367 L842 380 Z" fill="#d9dedf" stroke="#153449" stroke-width="1.5"/>
+  <line x1="866" y1="371" x2="866" y2="447" class="structure"/>
+  <line x1="852" y1="447" x2="880" y2="447" class="structure"/>
+  <path d="M895 352 L901 352 L901 318 L912 318" class="joint"/>
+  <path d="M889 358 L898 358 L898 325 L909 325" class="joint" opacity="0.6"/>
+
+  <circle cx="770" cy="278" r="11" class="number"/><text x="770" y="278" class="number-text">1</text>
+  <text x="727" y="250" class="label">薄遮簷</text><text x="727" y="269" class="note">出挑 0.75 m</text>
+  <circle cx="770" cy="309" r="11" class="number"/><text x="770" y="309" class="number-text">2</text>
+  <text x="727" y="330" class="note">連續陰影／維修縫</text><text x="727" y="348" class="note">視覺高度 0.12 m</text>
+  <circle cx="917" cy="320" r="11" class="number"/><text x="917" y="320" class="number-text">3</text>
+  <text x="920" y="308" class="note">雙層泛水</text><text x="920" y="327" class="note">＋活動接縫</text>
+  <circle cx="840" cy="399" r="11" class="number"/><text x="840" y="399" class="number-text">4</text>
+  <text x="742" y="425" class="label">獨立屋頂框架</text><text x="742" y="444" class="note">荷重直接落地，不傳給 L2</text>
+
+  <line x1="724" y1="486" x2="982" y2="486" class="muted-line"/>
+  <text x="724" y="516" class="label">外觀讀法</text>
+  <rect x="724" y="536" width="258" height="30" class="l2"/>
+  <rect x="724" y="566" width="258" height="8" class="shadow"/>
+  <polygon points="724,598 914,574 982,574 782,606" class="roof"/>
+  <text x="740" y="556" class="note">厚實 L2 量體</text>
+  <text x="856" y="588" class="note">陰影縫</text>
+  <text x="740" y="602" class="note">透明斜屋頂</text>
+</svg>

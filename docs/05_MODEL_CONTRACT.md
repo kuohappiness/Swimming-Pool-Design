@@ -71,12 +71,17 @@ type Measure = NumericMeasure | DeferredMeasure;
 - `OPEN-008` 關閉前，`REF-101` 的前場、通道與門位置只表達已確認拓撲，不宣稱精確尺寸；示意 bounds 統一由 geometry helper 推導。
 - `Z-CS-M-01` 與 `Z-CS-F-01` 嚴格分離，男女各 15 間正式單元及 5 間擴充位置。
 - 每間單元整合更衣、淋浴與壁掛櫃；`centralLockerArea` 必須為 `false`。
-- `ST-01` 為兩段、雙鋼梯梁、透明欄杆、乾式玻璃廊、梯下開放，且不由屋頂承重。
+- `ST-01` 為兩段同向、S1 雙連續箱型鋼梯梁、封閉踢面、乾式玻璃廊、梯下開放，且不由屋頂承重。模型精確保存 30 級高／兩跑各 15、兩跑各 14 踏面、0.300 m 踏深、1.800 m 平台與 10.200 m 總平面長度；geometry helper 由踏面數而非級高數推導 4.200 m 梯段。防墜以 B 全高弦幕為主、A 夾層玻璃為備，材料與集力節點維持 `deferred` 並連結 `OPEN-013`。
 - L2 外框由原核心與 `EXT-L2-01` 組成；擴建量體下方 L1 保持開放。
-- `RF-GL-01` 由泳池遠端以 10° 上升至 L2 擴建邊緣，平面跨度由 `l2ExtensionLength` 推導。
-- `RF-GL-01` 標高與 `J-RF-L2-01` 在 `OPEN-010` 關閉前維持 `deferred`，且與擴建量體結構獨立。
+- `RF-GL-01` 由泳池遠端以 4.5° 上升至 L2 擴建邊緣；室內平面跨度由 `l2ExtensionLength` 推導為 19.0 m，低端再向遠端短邊牆外延伸 1.2 m。
+- `RF-GL-01` 高端與 `level.L2` 同為 +4.500 m；遠端短邊牆處約 +3.005 m，外側滴水端約 +2.910 m。模型保存 4.5°、1.2 m 外挑及高／低標高，helper 重新推導 19.0／20.2 m 水平長度與短邊牆標高並由 validator 比對。
+- `J-RF-L2-01` 必須保持玻璃屋頂與擴建量體結構獨立；L2 外殼薄遮簷只形成遮蔽與視覺層次，不得成為 `RF-GL-01` 的必要支承。
+- `RC-RF-01` 是全寬被動雨簾，`RW-TR-01` 是封閉、可拆洗且與地坪逕流隔離的承接溝；模型明確要求 `dryWeatherRecirculation = false`、`groundRunoffIsolated = true` 及獨立高位極端雨量旁通。
+- `RW-01` 只使用屋頂水，固定濾網、初雨分流、沉砂／過濾、加蓋儲存、獨立標示管線、防回流補水與 L1 沖廁語意；容量仍為 `deferred` 並連結 `OPEN-014`。
 - `F-MIR-01` 是 `EXT-L2-01` 低 X 面池端鏡面反射牆；2F 由上往下看順時針 +9.5°、牆面由垂直向泳池側外傾 +8.5°，兩者由 `geometry.solarReflection` 保存為 confirmed。旋轉支點、牆高、材料、分格與最終性能仍由 `OPEN-011` 管理，不得以角度確認取代這些待決事項。
-- `REF-401` 可使用明確標示為 display-only 的 SVG 偏移表達屋頂、入口戶外區與鏡牆概念關係；consumer 不得把偏移換算為設計尺寸。
+- `REF-401` 的屋頂必須使用水平／垂直同尺度表達 4.5°、+4.500 m 高端、1.2 m 低端外挑與衍生標高，不得再以 display-only 偏移取代設計幾何；放大的接縫節點則必須明示為非比例概念圖。
+
+上述規則已同步至 0.3.0 模型、validator、測試及 HTML 圖集；施工尺度與專業計算仍不得由概念 renderer 代替。
 
 ## 6. 模型驗證門檻
 
@@ -88,8 +93,9 @@ type Measure = NumericMeasure | DeferredMeasure;
 4. 男女 15＋5、整合機能、壁掛櫃及無集中櫃區成立。
 5. 樓梯、屋頂、分區與結構獨立規則成立；入口路徑與樓梯 bounds 不相交也不相切，且淨空大於零。
 6. 修改 `l2ExtensionLength` 後，L2 起點、外框、分流軸、樓梯與屋頂跨度同步更新。
-7. deferred 量測具有 OPEN ID 且沒有數值。
+7. deferred 量測具有 OPEN ID 且沒有數值；已確認屋頂標高則必須與坡度、跨度及外挑推導值一致。
 8. consumer 需要的 entity 與 sheet 引用完整。
 9. `geometry.solarReflection` 精確保存 confirmed +9.5°／+8.5°、方向、working 判讀門檻及 `OPEN-011` 關聯；legacy `mirrorFacade`、`leanAngle` 或 display-only geometry 欄位仍不得成為第二套答案。
+10. 雨簾維持被動、全寬、封閉隔離承接及獨立旁通；回用來源只能是屋頂水，容量 deferred 必須連結 `OPEN-014`。
 
 尚未符合本契約的已知模型／輸出差異，不在本文件偽裝成另一套答案；其執行狀態由 [07｜Active Work](07_ACTIVE_WORK.md) 管理。

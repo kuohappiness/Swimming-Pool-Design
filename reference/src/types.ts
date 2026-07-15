@@ -108,7 +108,7 @@ export interface ProjectModel {
       id: string;
       name: string;
       elevation: number | null;
-      status?: 'deferred';
+      status?: 'working' | 'deferred';
       openItemId?: string;
     }>;
     grids: { x: Array<{ id: string; position: number }>; y: Array<{ id: string; position: number }> };
@@ -135,10 +135,43 @@ export interface ProjectModel {
       lowEdge: string;
       highEdge: string;
       pitch: NumericMeasure;
-      lowElevation: DeferredMeasure;
-      highElevation: DeferredMeasure;
+      lowOverhang: NumericMeasure;
+      lowElevation: NumericMeasure;
+      highElevation: NumericMeasure;
       jointEntityId: string;
       supportedByExtension: false;
+      jointStrategy: 'independent-curb-movement-joint-double-flashing';
+      l2Visor: {
+        projection: number;
+        visualThickness: number;
+        shadowGap: number;
+        sideReturn: number;
+        supportsRoof: false;
+      };
+      rainCurtain: {
+        entityId: 'RC-RF-01';
+        type: 'passive-full-width-overflow-curtain';
+        equalizationTrough: true;
+        dryWeatherRecirculation: false;
+        catchTrenchEntityId: 'RW-TR-01';
+        catchTrenchType: 'closed-isolated-removable-grating';
+        groundRunoffIsolated: true;
+        extremeRainBypass: 'independent-high-level-overflow';
+      };
+      rainwaterReuse: {
+        entityId: 'RW-01';
+        source: 'roof-only';
+        firstFlush: true;
+        debrisScreen: true;
+        settlingAndFiltration: true;
+        coveredStorage: true;
+        use: 'l1-toilet-flushing';
+        potableMakeupIsolation: 'visible-air-gap-or-approved-equivalent';
+        identifiedSeparatePipework: true;
+        overflow: 'site-stormwater-or-infiltration';
+        capacityStatus: 'deferred';
+        openItemId: 'OPEN-014';
+      };
     };
     stair: {
       id: string;
@@ -151,11 +184,24 @@ export interface ProjectModel {
       riserCount: number;
       runs: number;
       risersPerRun: number;
+      treadsPerRun: number;
       treadDepth: number;
       midLandingLength: number;
       stringers: number;
       stringerDescription: string;
-      guardrail: string;
+      supportSystem: 'S1-continuous-twin-box-stringers';
+      landingSupport: 'integrated-torsion-box-no-column';
+      riserClosure: 'closed';
+      guardrail: {
+        primaryType: 'full-height-vertical-tension-screen';
+        fallbackType: 'laminated-glass';
+        minimumHeight: number;
+        fallbackHeight: number;
+        nominalLineSpacing: number;
+        collectorBeam: 'concealed-independent-l2-or-gallery-structure';
+        materialStatus: 'deferred';
+        openItemId: 'OPEN-013';
+      };
       underStair: string;
       enclosure: string;
       supportedByRoof: boolean;

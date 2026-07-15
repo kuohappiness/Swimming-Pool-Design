@@ -23,7 +23,6 @@ function renderSite(model: ProjectModel): SheetRender {
         <rect class="site-pool" x="0" y="0" width="360" height="139" rx="6" data-entity="BLDG-01"/>
         <rect class="site-core" x="247" y="0" width="113" height="139" rx="3" data-entity="CORE-01"/>
         <circle class="entrance-marker" cx="260" cy="139" r="10" data-entity="EN-01"/>
-        <path class="axis-arrow" d="M72 69H300m0 0l-18-11m18 11l-18 11"/>
       </g>
       ${badge('BLDG-01', 755, 374)}
       ${badge('CORE-01', 1000, 310, 'core')}
@@ -75,6 +74,14 @@ function renderL1(model: ProjectModel): SheetRender {
   const frontDoorY = planY(maleFrontDoor.y, building.width.value);
   const rearDoorY = planY(maleRearDoor.y, building.width.value);
   const openingHalf = 15;
+  const planStairTreads = [0, 1].flatMap((runIndex) => {
+    const runStart = derived.stairStartX
+      + runIndex * (derived.flightRun + model.geometry.stair.midLandingLength);
+    return Array.from({ length: model.geometry.stair.treadsPerRun }, (_, index) => {
+      const x = runStart + (index + 1) * model.geometry.stair.treadDepth;
+      return `<line class="stair-tread" data-stair-tread-plan="${runIndex + 1}-${index + 1}" x1="${planX(x)}" y1="${planY(stairY2 - .12)}" x2="${planX(x)}" y2="${planY(stairY1 + .12)}"/>`;
+    });
+  }).join('');
 
   const content = `
     <rect class="sheet-bg" width="1200" height="740"/>
@@ -138,7 +145,7 @@ function renderL1(model: ProjectModel): SheetRender {
     </g>
 
     <rect class="stair-gallery" x="${planX(derived.stairStartX)}" y="${planY(stairY2)}" width="${px(derived.stairTotalRun)}" height="${px(model.geometry.stair.width)}" data-entity="Z-ST-01"/>
-    ${Array.from({ length: model.geometry.stair.riserCount }, (_, index) => `<line class="stair-tread" x1="${planX(derived.stairStartX + .18 + index * (derived.stairTotalRun - .36) / (model.geometry.stair.riserCount - 1))}" y1="${planY(stairY2 - .12)}" x2="${planX(derived.stairStartX + .18 + index * (derived.stairTotalRun - .36) / (model.geometry.stair.riserCount - 1))}" y2="${planY(stairY1 + .12)}"/>`).join('')}
+    ${planStairTreads}
     <g data-entity="RTE-L1-ARRIVAL-01" tabindex="0" role="button" aria-label="RTE-L1-ARRIVAL-01 EN-01 至戶外前場正淨空到達路徑">
       <rect class="clear-route-area" x="${arrivalBypass.x}" y="${arrivalBypass.y}" width="${arrivalBypass.width}" height="${arrivalBypass.height}"/>
       <rect class="clear-route-area" x="${arrivalClearRun.x}" y="${arrivalClearRun.y}" width="${arrivalClearRun.width}" height="${arrivalClearRun.height}"/>
@@ -217,60 +224,89 @@ function renderRoof(model: ProjectModel): SheetRender {
     <rect class="sheet-bg" width="1200" height="740"/>
     ${grid(model)}
     <rect class="building-outline" x="${PLAN.x}" y="${PLAN.y}" width="${px(building.length.value)}" height="${width}"/>
-    <rect class="glass-roof" x="${planX(derived.roofPlanStartX)}" y="${PLAN.y}" width="${px(derived.roofPlanRun)}" height="${width}" data-entity="RF-GL-01"/>
-    ${Array.from({ length: Math.ceil(derived.roofPlanRun / 3) + 1 }, (_, i) => {
-      const x = Math.min(derived.roofPlanEndX, i * 3);
+    <rect class="glass-roof" x="${planX(derived.roofPlanStartX)}" y="${PLAN.y}" width="${px(derived.roofTotalRun)}" height="${width}" data-entity="RF-GL-01"/>
+    ${Array.from({ length: Math.ceil(derived.roofTotalRun / 3) + 1 }, (_, i) => {
+      const x = Math.min(derived.roofPlanEndX, derived.roofPlanStartX + i * 3);
       return `<line class="roof-mullion" x1="${planX(x)}" y1="${PLAN.y}" x2="${planX(x)}" y2="${PLAN.y + width}"/>`;
     }).join('')}
     <rect class="l2-roof-extension" x="${planX(derived.l2StartX)}" y="${PLAN.y}" width="${px(building.l2ExtensionLength.value)}" height="${width}" data-entity="EXT-L2-01"/>
     <rect class="l2-roof-core" x="${planX(building.poolHallLength.value)}" y="${PLAN.y}" width="${px(building.serviceCoreLength.value)}" height="${width}" data-entity="CORE-01"/>
-    <line class="deferred-joint" x1="${planX(derived.roofPlanEndX)}" y1="${PLAN.y}" x2="${planX(derived.roofPlanEndX)}" y2="${PLAN.y + width}" data-entity="J-RF-L2-01"/>
+    <line class="roof-joint" x1="${planX(derived.roofPlanEndX)}" y1="${PLAN.y}" x2="${planX(derived.roofPlanEndX)}" y2="${PLAN.y + width}" data-entity="J-RF-L2-01"/>
+    <line class="rain-curtain-edge" x1="${planX(derived.roofPlanStartX)}" y1="${PLAN.y}" x2="${planX(derived.roofPlanStartX)}" y2="${PLAN.y + width}" data-entity="RC-RF-01"/>
+    <line class="catch-trench-plan" x1="${planX(derived.roofPlanStartX - .28)}" y1="${PLAN.y}" x2="${planX(derived.roofPlanStartX - .28)}" y2="${PLAN.y + width}" data-entity="RW-TR-01"/>
     <path class="slope-arrow" d="M${planX(derived.roofPlanEndX - 1.2)} ${planY(6.75)}H${planX(2)}m0 0l18-11m-18 11l18 11"/>
-    <text class="zone-label" x="${planX(derived.roofPlanRun / 2)}" y="${planY(7.5)}" text-anchor="middle">10° 向左下 · RF-GL-01</text>
-    <text class="deferred-label" x="${planX(derived.roofPlanEndX)}" y="${planY(5.7)}" text-anchor="middle">J-RF-L2-01</text>
-    <text class="deferred-label small" x="${planX(derived.roofPlanEndX)}" y="${planY(4.9)}" text-anchor="middle">標高／交界待 OPEN-010</text>
+    <text class="zone-label" x="${planX((derived.roofPlanStartX + derived.roofPlanEndX) / 2)}" y="${planY(7.5)}" text-anchor="middle">4.5° 向低端 · RF-GL-01</text>
+    <text class="joint-label" x="${planX(derived.roofPlanEndX)}" y="${planY(5.7)}" text-anchor="middle">J-RF-L2-01 · 獨立雙泛水</text>
+    <text class="rainwater-label" x="${planX(derived.roofPlanStartX + .3)}" y="${planY(2.0)}">全寬被動雨簾</text>
     <text class="room-label" x="${planX((derived.l2StartX + derived.l2EndX) / 2)}" y="${planY(6.75)}" text-anchor="middle">L2 擴建＋原核心上方</text>
-    ${badge('RF-GL-01', planX(derived.roofPlanRun / 2), planY(4.2), 'roof')}
+    ${badge('RF-GL-01', planX((derived.roofPlanStartX + derived.roofPlanEndX) / 2), planY(4.2), 'roof')}
     ${badge('EXT-L2-01', planX((derived.l2StartX + building.poolHallLength.value) / 2), planY(8.5), 'extension')}
-    ${badge('J-RF-L2-01', planX(derived.roofPlanEndX), planY(2.0), 'deferred')}
-    ${dimH(planX(derived.roofPlanStartX), planX(derived.roofPlanEndX), 548, `玻璃屋頂平面 ${metreLabel(derived.roofPlanRun)}`)}
+    ${badge('J-RF-L2-01', planX(derived.roofPlanEndX), planY(2.0), 'roof')}
+    <g class="rainwater-flow" data-entity="RW-01" transform="translate(126 522)">
+      <rect width="610" height="82" rx="8"/>
+      <text x="18" y="26">屋頂水 → 濾網／初雨 → 沉砂過濾 → 加蓋儲水 → L1 沖廁</text>
+      <text x="18" y="52">極端雨量 → 獨立高位旁通　｜　補水採空氣間隙隔離</text>
+      <text x="18" y="70" class="small">容量、泵浦、水質與施工尺度：OPEN-014</text>
+    </g>
+    ${dimH(planX(0), planX(derived.roofPlanEndX), 548, `室內跨度 ${metreLabel(derived.roofPlanRun)}`)}
+    ${dimH(planX(derived.roofPlanStartX), planX(0), 574, `外挑 ${metreLabel(model.geometry.roof.lowOverhang.value)}`)}
     ${dimH(planX(derived.l2StartX), planX(derived.l2EndX), 590, `L2 ${metreLabel(derived.l2Length)}`)}
     ${northArrow(1110, 115)}`;
   return {
     id: 'REF-301',
     markup: sheetSvg(model, 'REF-301', '屋頂參照圖', content),
-    note: '玻璃屋頂平面終止於 L2 擴建邊緣，坡度 10° 向泳池遠端左下；最終標高與交界構造待 OPEN-010。',
+    note: 'RF-GL-01 由 L2 +4.500 m 以 4.5° 降至低端，超出遠端短邊牆 1.2 m；全寬被動雨簾由封閉隔離溝承接，極端雨量獨立旁通，屋頂水經處理後供 L1 沖廁。',
   };
 }
 
 function renderSection(model: ProjectModel): SheetRender {
   const derived = deriveReferenceGeometry(model);
   const groundY = 530;
-  const sx = (x: number) => 105 + x * 27;
-  const sz = (z: number) => groundY - z * 36;
+  const scale = 27;
+  const sx = (x: number) => 105 + x * scale;
+  const sz = (z: number) => groundY - z * scale;
   const stair = model.geometry.stair;
   const midStart = derived.stairStartX + derived.flightRun;
   const secondStart = midStart + stair.midLandingLength;
-  const steps = Array.from({ length: stair.riserCount }, (_, index) => {
-    const runIndex = index < stair.risersPerRun ? index : index - stair.risersPerRun;
-    const baseX = index < stair.risersPerRun ? derived.stairStartX : secondStart;
-    const baseZ = index < stair.risersPerRun ? 0 : stair.totalRise / 2;
-    const x = sx(baseX + runIndex * stair.treadDepth);
-    const z = sz(baseZ + (runIndex + 1) * stair.totalRise / stair.riserCount);
-    return `<path class="section-step" d="M${x} ${z}h${stair.treadDepth * 27}v${stair.totalRise / stair.riserCount * 36}"/>`;
-  }).join('');
-  // SVG-only concept elevations and dimensions; the mirror slope uses the canonical angle.
+  const renderFlight = (baseX: number, baseZ: number, flightIndex: number) => {
+    const risers = Array.from({ length: stair.risersPerRun }, (_, index) => {
+      const x = baseX + Math.min(index, stair.treadsPerRun) * stair.treadDepth;
+      const z0 = baseZ + index * derived.riserHeight;
+      const z1 = z0 + derived.riserHeight;
+      return `<line class="section-riser closed-riser" data-stair-riser="${flightIndex}-${index + 1}" x1="${sx(x)}" y1="${sz(z0)}" x2="${sx(x)}" y2="${sz(z1)}"/>`;
+    }).join('');
+    const treads = Array.from({ length: stair.treadsPerRun }, (_, index) => {
+      const x1 = baseX + index * stair.treadDepth;
+      const x2 = x1 + stair.treadDepth;
+      const z = baseZ + (index + 1) * derived.riserHeight;
+      return `<line class="section-tread" data-stair-tread="${flightIndex}-${index + 1}" x1="${sx(x1)}" y1="${sz(z)}" x2="${sx(x2)}" y2="${sz(z)}"/>`;
+    }).join('');
+    return risers + treads;
+  };
+  const renderTensionScreen = (baseX: number, baseZ: number, flightIndex: number) =>
+    Array.from({ length: 8 }, (_, index) => {
+      const ratio = index / 7;
+      const x = baseX + ratio * derived.flightRun;
+      const z = baseZ + ratio * derived.midLandingElevation;
+      return `<line class="tension-screen-line" data-guard-primary="B-${flightIndex}-${index + 1}" x1="${sx(x)}" y1="${sz(z)}" x2="${sx(x)}" y2="${sz(z + stair.guardrail.minimumHeight)}"/>`;
+    }).join('');
   const l2FloorY = sz(stair.totalRise);
-  const roofHighY = l2FloorY - 16;
-  const roofLowY = roofHighY
-    + derived.roofPlanRun * 27 * Math.tan(model.geometry.roof.pitch.value * Math.PI / 180);
-  const volumeTopY = 236;
+  const roofHighY = sz(derived.roofHighElevation);
+  const roofLowY = sz(derived.roofLowElevation);
+  const farWallRoofY = sz(derived.roofFarWallElevation);
+  const volumeTopY = sz(stair.totalRise + 3.6);
   const mirrorLean = model.geometry.solarReflection.mirrorLeanFromVertical.value;
   const mirrorPixelHeight = l2FloorY - volumeTopY;
   const mirrorTopX = sx(derived.l2StartX)
     - Math.tan(mirrorLean * Math.PI / 180) * mirrorPixelHeight;
   const entryOutdoorWidth = 128;
   const entryOutdoorX = sx(derived.l2EndX) - entryOutdoorWidth;
+  const visor = model.geometry.roof.l2Visor;
+  const visorX = sx(derived.l2StartX - visor.projection);
+  const visorTopY = sz(stair.totalRise + visor.shadowGap + visor.visualThickness);
+  const visorHeight = visor.visualThickness * scale;
+  const roofMidX = (derived.roofPlanStartX + derived.roofPlanEndX) / 2;
+  const roofMidY = (roofLowY + roofHighY) / 2;
   const content = `
     <rect class="sheet-bg" width="1200" height="740"/>
     <line class="ground-line" x1="62" y1="${groundY}" x2="1138" y2="${groundY}"/>
@@ -286,37 +322,64 @@ function renderSection(model: ProjectModel): SheetRender {
     <rect class="open-below-extension" x="${sx(derived.l2StartX)}" y="${l2FloorY}" width="${model.geometry.building.l2ExtensionLength.value * 27}" height="${groundY - l2FloorY}"/>
     <text class="void-label" x="${sx((derived.l2StartX + derived.l1ServiceStartX) / 2)}" y="${sz(1.4)}" text-anchor="middle">L1 開放</text>
     <polygon class="glass-roof-section" points="${sx(derived.roofPlanStartX)},${roofLowY} ${sx(derived.roofPlanEndX)},${roofHighY} ${sx(derived.roofPlanEndX)},${roofHighY + 7} ${sx(derived.roofPlanStartX)},${roofLowY + 7}" data-entity="RF-GL-01"/>
-    <line class="glass-wall" x1="${sx(0)}" y1="${groundY}" x2="${sx(0)}" y2="${roofLowY}"/>
+    <line class="glass-wall" x1="${sx(0)}" y1="${groundY}" x2="${sx(0)}" y2="${farWallRoofY}"/>
+    <text class="roof-on-roof-label" x="${sx(roofMidX)}" y="${roofMidY - 10}" text-anchor="middle" transform="rotate(-4.5 ${sx(roofMidX)} ${roofMidY - 10})">RF-GL-01 · 4.5° · 高端 +4.500 m</text>
+    <g class="rain-curtain-section" data-entity="RC-RF-01" tabindex="0" role="button" aria-label="RC-RF-01 低端全寬被動雨簾">
+      <line x1="${sx(derived.roofPlanStartX)}" y1="${roofLowY + 5}" x2="${sx(derived.roofPlanStartX)}" y2="${groundY - 8}"/>
+      <line x1="${sx(derived.roofPlanStartX) - 5}" y1="${roofLowY + 17}" x2="${sx(derived.roofPlanStartX) - 5}" y2="${groundY - 8}"/>
+      <text x="${sx(derived.roofPlanStartX) + 10}" y="${roofLowY + 34}">被動雨簾 · 滴水端約 +2.910</text>
+    </g>
+    <g class="catch-trench-section" data-entity="RW-TR-01" tabindex="0" role="button" aria-label="RW-TR-01 封閉隔離承接溝">
+      <rect x="${sx(derived.roofPlanStartX) - 11}" y="${groundY - 8}" width="22" height="8"/>
+      <text x="${sx(derived.roofPlanStartX) + 18}" y="${groundY - 12}">封閉隔離承接溝／極端雨量旁通</text>
+    </g>
     <g data-entity="F-MIR-01" tabindex="0" role="button" aria-label="F-MIR-01 EXT-L2-01 面池端鏡面反射牆">
       <line class="mirror-facade-section" x1="${mirrorTopX}" y1="${volumeTopY}" x2="${sx(derived.l2StartX)}" y2="${l2FloorY}"/>
-      <text class="mirror-label section-concept-note" x="${sx(derived.l2StartX) + 18}" y="${volumeTopY + 82}">外傾 +${mirrorLean.toFixed(1)}°；牆高待 OPEN-011</text>
-      <g class="entity-badge mirror" transform="translate(${sx(derived.l2StartX) + 64} ${volumeTopY + 110})" aria-hidden="true">
+      <text class="mirror-label section-concept-note" x="${sx(derived.l2StartX) + 18}" y="${volumeTopY + 27}">外傾 +${mirrorLean.toFixed(1)}°；牆高待 OPEN-011</text>
+      <g class="entity-badge mirror" transform="translate(${sx(derived.l2StartX) + 64} ${volumeTopY + 54})" aria-hidden="true">
         <rect x="-36" y="-14" width="72" height="28" rx="5"/>
         <text text-anchor="middle" dy="5">F-MIR-01</text>
       </g>
     </g>
-    <line class="deferred-joint" x1="${sx(derived.roofPlanEndX)}" y1="${roofHighY}" x2="${sx(derived.l2StartX)}" y2="${l2FloorY}" data-entity="J-RF-L2-01"/>
-    <text class="deferred-label" x="${sx(derived.roofPlanEndX) + 12}" y="${roofHighY - 14}">J-RF-L2-01</text>
-    <text class="deferred-label small section-concept-note" x="${sx(derived.roofPlanEndX) + 12}" y="${roofHighY + 2}">位置示意；標高／交界待 OPEN-010</text>
-    ${steps}
-    <line class="stringer" x1="${sx(derived.stairStartX)}" y1="${sz(.08)}" x2="${sx(midStart)}" y2="${sz(1.88)}"/>
-    <line class="stringer" x1="${sx(secondStart)}" y1="${sz(1.88)}" x2="${sx(derived.stairEndX)}" y2="${sz(3.68)}"/>
-    <rect class="floating-landing" x="${sx(midStart)}" y="${sz(1.88)}" width="${stair.midLandingLength * 27}" height="8"/>
+    <rect class="l2-visor" x="${visorX}" y="${visorTopY}" width="${(visor.projection + .15) * scale}" height="${visorHeight}"/>
+    <line class="roof-joint" x1="${sx(derived.roofPlanEndX)}" y1="${roofHighY}" x2="${sx(derived.roofPlanEndX)}" y2="${visorTopY + visorHeight}" data-entity="J-RF-L2-01"/>
+    <g class="section-callout joint-callout">
+      <path d="M560 255 L${sx(derived.roofPlanEndX)} ${roofHighY - 5}"/>
+      <rect x="390" y="184" width="290" height="71" rx="8"/>
+      <text class="callout-title" x="406" y="204">J-RF-L2-01 · 獨立止水坎／活動縫／雙泛水</text>
+      <text x="406" y="224">高端接 L2 +4.500 · 屋頂不承載 L2</text>
+      <text x="406" y="242">L2 薄遮簷 0.75 · 陰影縫 0.12</text>
+    </g>
+    <g class="stair-section" data-stair-mid-elevation="${derived.midLandingElevation}" data-stair-top-elevation="${stair.totalRise}" data-supported-by-roof="${stair.supportedByRoof}">
+      ${renderFlight(derived.stairStartX, 0, 1)}
+      ${renderFlight(secondStart, derived.midLandingElevation, 2)}
+      <line class="stringer" x1="${sx(derived.stairStartX)}" y1="${sz(.08)}" x2="${sx(midStart)}" y2="${sz(derived.midLandingElevation + .08)}"/>
+      <line class="stringer" x1="${sx(secondStart)}" y1="${sz(derived.midLandingElevation + .08)}" x2="${sx(derived.stairEndX)}" y2="${sz(stair.totalRise + .08)}"/>
+      <rect class="floating-landing" x="${sx(midStart)}" y="${sz(derived.midLandingElevation + .08)}" width="${stair.midLandingLength * scale}" height="8"/>
+      ${renderTensionScreen(derived.stairStartX, 0, 1)}
+      ${renderTensionScreen(secondStart, derived.midLandingElevation, 2)}
+    </g>
     <path class="open-under-stair" d="M${sx(derived.stairStartX)} ${groundY - 3}L${sx(derived.stairEndX)} ${sz(stair.totalRise) + 3}"/>
     <text class="void-label" x="${sx((derived.stairStartX + derived.stairEndX) / 2)}" y="${sz(1.05)}" text-anchor="middle">梯下完全開放</text>
-    <text class="elevation-label" x="${sx(derived.roofPlanRun * .55)}" y="${roofLowY - 38}">10°</text>
-    <text class="extension-label" x="${sx((derived.l2StartX + derived.l2EndX) / 2)}" y="${volumeTopY + 28}" text-anchor="middle">L2 紅框＋綠框整合量體</text>
+    <g class="section-callout guard-callout">
+      <path d="M835 255 L${sx(secondStart + derived.flightRun * .45)} ${sz(3.55)}"/>
+      <rect x="700" y="184" width="320" height="71" rx="8"/>
+      <text class="callout-title" x="716" y="204">B 主案 · 2.4 m 全高垂直弦幕</text>
+      <text x="716" y="224">隱藏集力構件由 L2／獨立梯廊承擔</text>
+      <text x="716" y="242">A 備案 · 1.35 m 夾層安全玻璃 · OPEN-013</text>
+    </g>
+    <text class="extension-label" x="${sx(derived.l2EndX) - 72}" y="${volumeTopY + 28}" text-anchor="middle">L2 紅框＋綠框整合量體</text>
     ${badge('POOL-01', sx(10.5), groundY + 76, 'pool')}
     ${badge('ST-01', sx(derived.stairEndX), sz(2.55), 'stair')}
     ${badge('EXT-L2-01', sx((derived.l2StartX + model.geometry.building.poolHallLength.value) / 2), volumeTopY + 52, 'extension')}
-    ${badge('RF-GL-01', sx(derived.roofPlanRun * .48), roofLowY - 72, 'roof')}
-    ${dimH(sx(derived.roofPlanStartX), sx(derived.roofPlanEndX), 590, `玻璃屋頂 ${metreLabel(derived.roofPlanRun)}`)}
+    ${badge('RF-GL-01', sx(roofMidX), roofMidY - 42, 'roof')}
+    ${dimH(sx(derived.roofPlanStartX), sx(derived.roofPlanEndX), 590, `玻璃屋頂總水平 ${metreLabel(derived.roofTotalRun)}`)}
     ${dimH(sx(derived.l2StartX), sx(derived.l2EndX), 620, `L2 ${metreLabel(derived.l2Length)}`)}
-    ${dimV(1090, sz(stair.totalRise), groundY, 'L2 +3.600')}`;
+    ${dimV(1090, sz(stair.totalRise), groundY, 'L2 +4.500')}`;
   return {
     id: 'REF-401',
     markup: sheetSvg(model, 'REF-401', 'A–A 縱剖面參照圖', content),
-    note: `REF-401 為概念關係：玻璃屋頂維持 10° 並下移接近 L2 樓板；入口端為戶外區；F-MIR-01 向泳池側外傾，依 confirmed +${mirrorLean.toFixed(1)}° 呈現。正式標高、交界與鏡牆牆高、材料及性能仍待 OPEN-010／011。`,
+    note: `REF-401 採 X／Z 同尺度：玻璃屋頂由 +4.500 m 以 4.5° 降至外挑滴水端約 +2.910 m，並在 L2 地坪附近以獨立雙泛水接縫交接；ST-01 為 30 級高／28 踏面與 B 弦幕主案。鏡牆牆高、材料與性能仍待 OPEN-011，弦幕專業驗證仍待 OPEN-013。`,
   };
 }
 
@@ -325,9 +388,10 @@ function renderIsometric(model: ProjectModel): SheetRender {
   const b = model.geometry.building;
   const p = model.geometry.pool;
   const stair = model.geometry.stair;
-  const displayRoofLow = 5.8;
-  const displayRoofHigh = displayRoofLow + derived.roofPlanRun * Math.tan(model.geometry.roof.pitch.value * Math.PI / 180);
-  const l2Base = model.geometry.stair.totalRise;
+  const displayRoofLow = derived.roofLowElevation;
+  const displayRoofHigh = derived.roofHighElevation;
+  const l2Base = stair.totalRise;
+  const l2Top = l2Base + 3.6;
   const p000 = isoPoint(0, 0, 0);
   const p100 = isoPoint(b.length.value, 0, 0);
   const p110 = isoPoint(b.length.value, b.width.value, 0);
@@ -344,16 +408,30 @@ function renderIsometric(model: ProjectModel): SheetRender {
   const l2B = isoPoint(derived.l2EndX, 0, l2Base);
   const l2C = isoPoint(derived.l2EndX, b.width.value, l2Base);
   const l2D = isoPoint(derived.l2StartX, b.width.value, l2Base);
-  const l2AT = isoPoint(derived.l2StartX, 0, displayRoofHigh);
-  const l2BT = isoPoint(derived.l2EndX, 0, displayRoofHigh);
-  const l2CT = isoPoint(derived.l2EndX, b.width.value, displayRoofHigh);
-  const l2DT = isoPoint(derived.l2StartX, b.width.value, displayRoofHigh);
-  const extensionBoundaryFront = isoPoint(derived.l1ServiceStartX, 0, displayRoofHigh);
-  const extensionBoundaryBack = isoPoint(derived.l1ServiceStartX, b.width.value, displayRoofHigh);
+  const l2AT = isoPoint(derived.l2StartX, 0, l2Top);
+  const l2BT = isoPoint(derived.l2EndX, 0, l2Top);
+  const l2CT = isoPoint(derived.l2EndX, b.width.value, l2Top);
+  const l2DT = isoPoint(derived.l2StartX, b.width.value, l2Top);
+  const extensionBoundaryFront = isoPoint(derived.l1ServiceStartX, 0, l2Top);
+  const extensionBoundaryBack = isoPoint(derived.l1ServiceStartX, b.width.value, l2Top);
   const r1 = isoPoint(derived.roofPlanStartX, 0, displayRoofLow);
   const r2 = isoPoint(derived.roofPlanEndX, 0, displayRoofHigh);
   const r3 = isoPoint(derived.roofPlanEndX, b.width.value, displayRoofHigh);
   const r4 = isoPoint(derived.roofPlanStartX, b.width.value, displayRoofLow);
+  const farWallFront = isoPoint(0, 0, derived.roofFarWallElevation);
+  const farWallBack = isoPoint(0, b.width.value, derived.roofFarWallElevation);
+  const isoTensionLines = [0, 1].flatMap((flightIndex) => {
+    const baseX = flightIndex === 0 ? derived.stairStartX : derived.stairEndX - derived.flightRun;
+    const baseZ = flightIndex === 0 ? 0 : derived.midLandingElevation;
+    return Array.from({ length: 6 }, (_, index) => {
+      const ratio = index / 5;
+      const x = baseX + ratio * derived.flightRun;
+      const z = baseZ + ratio * derived.midLandingElevation;
+      const low = isoPoint(x, stair.originY, z);
+      const high = isoPoint(x, stair.originY, z + stair.guardrail.minimumHeight);
+      return `<line data-guard-primary="B" x1="${low[0]}" y1="${low[1]}" x2="${high[0]}" y2="${high[1]}"/>`;
+    });
+  }).join('');
   const poolPts = [
     isoPoint(p.origin[0], p.origin[1], .05),
     isoPoint(p.origin[0] + p.length.value, p.origin[1], .05),
@@ -382,13 +460,18 @@ function renderIsometric(model: ProjectModel): SheetRender {
       <polygon class="iso-glass-roof" points="${points([r1, r2, r3, r4])}" data-entity="RF-GL-01"/>
       <line class="iso-glass-edge" x1="${r1[0]}" y1="${r1[1]}" x2="${r2[0]}" y2="${r2[1]}"/>
       <line class="iso-glass-edge" x1="${r4[0]}" y1="${r4[1]}" x2="${r3[0]}" y2="${r3[1]}"/>
-      <line class="iso-deferred-joint" x1="${r2[0]}" y1="${r2[1]}" x2="${r3[0]}" y2="${r3[1]}" data-entity="J-RF-L2-01"/>
-      <polygon class="iso-glass-wall" points="${points([p000, isoPoint(derived.roofPlanEndX, 0, 0), r2, r1])}"/>
-      <g class="iso-stair" data-entity="ST-01">
-        <line x1="${isoPoint(derived.stairStartX, stair.originY, 0)[0]}" y1="${isoPoint(derived.stairStartX, stair.originY, 0)[1]}" x2="${isoPoint(derived.stairStartX + derived.flightRun, stair.originY, 1.8)[0]}" y2="${isoPoint(derived.stairStartX + derived.flightRun, stair.originY, 1.8)[1]}"/>
-        <line x1="${isoPoint(derived.stairEndX - derived.flightRun, stair.originY, 1.8)[0]}" y1="${isoPoint(derived.stairEndX - derived.flightRun, stair.originY, 1.8)[1]}" x2="${isoPoint(derived.stairEndX, stair.originY, 3.6)[0]}" y2="${isoPoint(derived.stairEndX, stair.originY, 3.6)[1]}"/>
-        <line x1="${isoPoint(derived.stairStartX, stair.originY + stair.width, 0)[0]}" y1="${isoPoint(derived.stairStartX, stair.originY + stair.width, 0)[1]}" x2="${isoPoint(derived.stairStartX + derived.flightRun, stair.originY + stair.width, 1.8)[0]}" y2="${isoPoint(derived.stairStartX + derived.flightRun, stair.originY + stair.width, 1.8)[1]}"/>
-        <line x1="${isoPoint(derived.stairEndX - derived.flightRun, stair.originY + stair.width, 1.8)[0]}" y1="${isoPoint(derived.stairEndX - derived.flightRun, stair.originY + stair.width, 1.8)[1]}" x2="${isoPoint(derived.stairEndX, stair.originY + stair.width, 3.6)[0]}" y2="${isoPoint(derived.stairEndX, stair.originY + stair.width, 3.6)[1]}"/>
+      <line class="iso-roof-joint" x1="${r2[0]}" y1="${r2[1]}" x2="${r3[0]}" y2="${r3[1]}" data-entity="J-RF-L2-01"/>
+      <polygon class="iso-glass-wall" points="${points([p000, p010, farWallBack, farWallFront])}"/>
+      <g class="iso-rain-curtain" data-entity="RC-RF-01">
+        <line x1="${r1[0]}" y1="${r1[1]}" x2="${isoPoint(derived.roofPlanStartX, 0, 0)[0]}" y2="${isoPoint(derived.roofPlanStartX, 0, 0)[1]}"/>
+        <line x1="${r4[0]}" y1="${r4[1]}" x2="${isoPoint(derived.roofPlanStartX, b.width.value, 0)[0]}" y2="${isoPoint(derived.roofPlanStartX, b.width.value, 0)[1]}"/>
+      </g>
+      <g class="iso-stair" data-entity="ST-01" data-stair-mid-elevation="${derived.midLandingElevation}" data-stair-top-elevation="${stair.totalRise}" data-supported-by-roof="${stair.supportedByRoof}">
+        <line x1="${isoPoint(derived.stairStartX, stair.originY, 0)[0]}" y1="${isoPoint(derived.stairStartX, stair.originY, 0)[1]}" x2="${isoPoint(derived.stairStartX + derived.flightRun, stair.originY, derived.midLandingElevation)[0]}" y2="${isoPoint(derived.stairStartX + derived.flightRun, stair.originY, derived.midLandingElevation)[1]}"/>
+        <line x1="${isoPoint(derived.stairEndX - derived.flightRun, stair.originY, derived.midLandingElevation)[0]}" y1="${isoPoint(derived.stairEndX - derived.flightRun, stair.originY, derived.midLandingElevation)[1]}" x2="${isoPoint(derived.stairEndX, stair.originY, stair.totalRise)[0]}" y2="${isoPoint(derived.stairEndX, stair.originY, stair.totalRise)[1]}"/>
+        <line class="secondary-stringer" x1="${isoPoint(derived.stairStartX, stair.originY + stair.width, 0)[0]}" y1="${isoPoint(derived.stairStartX, stair.originY + stair.width, 0)[1]}" x2="${isoPoint(derived.stairStartX + derived.flightRun, stair.originY + stair.width, derived.midLandingElevation)[0]}" y2="${isoPoint(derived.stairStartX + derived.flightRun, stair.originY + stair.width, derived.midLandingElevation)[1]}"/>
+        <line class="secondary-stringer" x1="${isoPoint(derived.stairEndX - derived.flightRun, stair.originY + stair.width, derived.midLandingElevation)[0]}" y1="${isoPoint(derived.stairEndX - derived.flightRun, stair.originY + stair.width, derived.midLandingElevation)[1]}" x2="${isoPoint(derived.stairEndX, stair.originY + stair.width, stair.totalRise)[0]}" y2="${isoPoint(derived.stairEndX, stair.originY + stair.width, stair.totalRise)[1]}"/>
+        <g class="iso-tension-screen">${isoTensionLines}</g>
       </g>
     </g>
     ${badge('POOL-01', 485, 516, 'pool')}
@@ -396,7 +479,7 @@ function renderIsometric(model: ProjectModel): SheetRender {
     ${badge('CORE-01', 995, 292, 'core')}
     ${badge('EXT-L2-01', 910, 284, 'extension')}
     ${badge('RF-GL-01', 520, 210, 'roof')}
-    ${badge('J-RF-L2-01', 745, 238, 'deferred')}
+    ${badge('J-RF-L2-01', 745, 238, 'roof')}
     ${northArrow(1100, 105)}
     <g class="coordinate-triad" transform="translate(100 540)">
       <circle r="4"/><path d="M0 0h62m0 0l-10-6m10 6l-10 6"/><path d="M0 0l-35-22m0 0l5 11m-5-11l12 1"/><path d="M0 0v-62m0 0l-6 10m6-10l6 10"/>
@@ -405,7 +488,7 @@ function renderIsometric(model: ProjectModel): SheetRender {
   return {
     id: 'REF-501',
     markup: sheetSvg(model, 'REF-501', '3D 軸測參照圖', content),
-    note: '綠色 CORE-01、紅色 EXT-L2-01 與玻璃屋頂是獨立量體；紅色擴建下方 L1 開放，交界維持 deferred。',
+    note: 'RF-GL-01 以真實 4.5° 幾何由 L2 +4.500 m 降至 1.2 m 外挑滴水端；玻璃屋頂、L2 與遮簷荷重分離。ST-01 顯示 4.500 m 兩跑與 B 全高弦幕概念，材料及節點仍待 OPEN-013。',
   };
 }
 
