@@ -160,6 +160,33 @@ export function validateModel(model) {
   for (const { ownerPath, field } of findForbiddenGeometryFields(geometry)) {
     errors.push(`${ownerPath} must not define ${field} before the related OPEN item is resolved`);
   }
+  const solar = model.geometry?.solarReflection;
+  const exactMeasure = (measure, value, status) => measure?.value === value
+    && measure?.status === status
+    && Array.isArray(measure?.sourceIds)
+    && measure.sourceIds.length === 0;
+
+  if (!exactMeasure(solar?.planRotation, 9.5, 'confirmed')) {
+    errors.push('solar plan rotation must remain confirmed at 9.5 degrees');
+  }
+  if (!exactMeasure(solar?.mirrorLeanFromVertical, 8.5, 'confirmed')) {
+    errors.push('solar mirror lean must remain confirmed at 8.5 degrees');
+  }
+  if (solar?.rotationDirection !== 'clockwise-from-above') {
+    errors.push('solar rotation direction must remain clockwise-from-above');
+  }
+  if (solar?.mirrorLeanDirection !== 'toward-pool') {
+    errors.push('solar mirror lean direction must remain toward-pool');
+  }
+  if (!exactMeasure(solar?.azimuthTolerance, 28, 'working')) {
+    errors.push('solar azimuth tolerance must remain working at 28 degrees');
+  }
+  if (!exactMeasure(solar?.minimumDownwardAngle, 8, 'working')) {
+    errors.push('solar minimum downward angle must remain working at 8 degrees');
+  }
+  if (solar?.openItemId !== 'OPEN-011') {
+    errors.push('solar reflection must remain linked to OPEN-011');
+  }
   const { building, pool, roof, stair, combinedCubicle } = geometry;
   if (!building || !pool || !roof || !stair || !combinedCubicle) {
     errors.push('model.geometry must include building, pool, roof, stair, and combinedCubicle');

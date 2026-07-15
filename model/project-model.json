@@ -101,6 +101,15 @@
       "wallMountedCabinet": true,
       "centralLockerArea": false,
       "cabinet": { "width": 0.45, "depth": 0.35, "height": 0.45, "bottomElevation": 0.9 }
+    },
+    "solarReflection": {
+      "planRotation": { "value": 9.5, "status": "confirmed", "sourceIds": [] },
+      "mirrorLeanFromVertical": { "value": 8.5, "status": "confirmed", "sourceIds": [] },
+      "rotationDirection": "clockwise-from-above",
+      "mirrorLeanDirection": "toward-pool",
+      "azimuthTolerance": { "value": 28, "status": "working", "sourceIds": [] },
+      "minimumDownwardAngle": { "value": 8, "status": "working", "sourceIds": [] },
+      "openItemId": "OPEN-011"
     }
   },
   "program": {

@@ -330,7 +330,7 @@ test('rejects unregistered sheet references', () => {
   assert.match(validateModel(model).join('\n'), /references unknown entity/);
 });
 
-test('registers the confirmed pool-facing mirror facade without a formal angle', () => {
+test('registers the confirmed pool-facing mirror facade', () => {
   const model = clone();
   const mirror = model.entities.find((entity) => entity.id === 'F-MIR-01');
   assert.deepEqual(mirror, {
@@ -342,11 +342,37 @@ test('registers the confirmed pool-facing mirror facade without a formal angle',
     status: 'confirmed',
     sourceIds: ['SRC-CONCEPT-009'],
   });
-  for (const field of ['mirrorFacade', 'leanAngle', 'displayRoofElevation']) {
-    assert.equal(Object.hasOwn(model.geometry, field), false, `${field} must not enter formal geometry`);
-  }
   assert.equal(model.geometry.roof.highElevation.value, null);
   assert.equal(model.geometry.roof.lowElevation.value, null);
+});
+
+test('owns the confirmed solar reflection geometry in one model object', () => {
+  const solar = clone().geometry.solarReflection;
+  assert.deepEqual(solar, {
+    planRotation: { value: 9.5, status: 'confirmed', sourceIds: [] },
+    mirrorLeanFromVertical: { value: 8.5, status: 'confirmed', sourceIds: [] },
+    rotationDirection: 'clockwise-from-above',
+    mirrorLeanDirection: 'toward-pool',
+    azimuthTolerance: { value: 28, status: 'working', sourceIds: [] },
+    minimumDownwardAngle: { value: 8, status: 'working', sourceIds: [] },
+    openItemId: 'OPEN-011',
+  });
+});
+
+test('rejects drift in confirmed solar reflection geometry', () => {
+  for (const [field, value, error] of [
+    ['planRotation', { value: 9, status: 'confirmed', sourceIds: [] }, /plan rotation must remain confirmed at 9.5 degrees/],
+    ['mirrorLeanFromVertical', { value: 9.5, status: 'confirmed', sourceIds: [] }, /mirror lean must remain confirmed at 8.5 degrees/],
+    ['rotationDirection', 'counter-clockwise-from-above', /rotation direction must remain clockwise-from-above/],
+    ['mirrorLeanDirection', 'away-from-pool', /mirror lean direction must remain toward-pool/],
+    ['azimuthTolerance', { value: 30, status: 'working', sourceIds: [] }, /azimuth tolerance must remain working at 28 degrees/],
+    ['minimumDownwardAngle', { value: 6, status: 'working', sourceIds: [] }, /minimum downward angle must remain working at 8 degrees/],
+    ['openItemId', 'OPEN-010', /solar reflection must remain linked to OPEN-011/],
+  ]) {
+    const model = clone();
+    model.geometry.solarReflection[field] = value;
+    assert.match(validateModel(model).join('\n'), error);
+  }
 });
 
 test('keeps the TASK-002 outdoor entry semantics while adding the new section source', () => {

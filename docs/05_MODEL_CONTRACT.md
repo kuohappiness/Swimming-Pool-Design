@@ -16,13 +16,15 @@
 模型至少包含：
 
 - `referenceSystem`：單位、世界軸、本地 transform、基地位置、樓層、格網與原點。
-- `geometry`：building、pool、roof、stair、combinedCubicle。
+- `geometry`：building、pool、roof、stair、combinedCubicle、solarReflection。
 - `program`：入口、L1 廁所、L2 男女配置與 15＋5 單元。
 - `entities`：跨輸出的穩定 ID registry。
 - `sheets`：現行參照圖及其引用 ID。
 - `sources`：來源路徑、像素與 SHA-256。
 
 `scripts/reference-geometry.mjs` 是 L2 起點、外框、中央分流軸、樓梯定位與屋頂平面跨度的唯一推導層。模型保存基礎參數，consumer 使用推導結果，不保存結果常數。
+
+`geometry.solarReflection` 是日照分析與各輸出的單一角度契約：`planRotation` 為由上往下看順時針 +9.5°、`mirrorLeanFromVertical` 為向泳池側外傾 +8.5°，兩者皆為 confirmed。概念掃描的 `azimuthTolerance` 28° 與 `minimumDownwardAngle` 8° 維持 working；整個物件連結 `OPEN-011`，表示旋轉支點、鏡牆牆高、材料與最終性能仍未解決。角度 consumer 不得另存預設答案。
 
 `program.entrance` 以 `outdoorForecourtZoneId`、`arrivalPathEntityId` 與 `outdoorOpeningEntityIds` 表達戶外到達；不得再出現 `sharedVestibuleZoneId`。`referenceSystem.worldTransform.localOrigin` 必須精確維持 `[27, 0, 0]`，使 `RTE-L1-ARRIVAL-01` 從仍與 `O-SITE-01` 共點的 `EN-01` 門檻出發，在 `ST-01` 前轉至樓梯外側；validator 必須確認門檻連接、路徑 bounds 完整位於戶外前場內，並以路徑與樓梯 bounds 證明存在大於 `0.002 m` 的淨空，不得只信任 `accessConflicts` 布林值。`program.l1.dryPassage` 保存泳池大廳至兩樘後門的拓撲。`Z-L1-ENTRY-01` 為保留既有跨輸出引用而遷移的穩定 ID，其現行類型是 `outdoor-forecourt`，不再代表室內前室。
 
@@ -73,7 +75,7 @@ type Measure = NumericMeasure | DeferredMeasure;
 - L2 外框由原核心與 `EXT-L2-01` 組成；擴建量體下方 L1 保持開放。
 - `RF-GL-01` 由泳池遠端以 10° 上升至 L2 擴建邊緣，平面跨度由 `l2ExtensionLength` 推導。
 - `RF-GL-01` 標高與 `J-RF-L2-01` 在 `OPEN-010` 關閉前維持 `deferred`，且與擴建量體結構獨立。
-- `F-MIR-01` 是 `EXT-L2-01` 低 X 面池端鏡面反射牆；存在、用途與外傾方向為 confirmed，正式角度、牆高與性能不得在 `OPEN-011` 關閉前寫入模型。
+- `F-MIR-01` 是 `EXT-L2-01` 低 X 面池端鏡面反射牆；2F 由上往下看順時針 +9.5°、牆面由垂直向泳池側外傾 +8.5°，兩者由 `geometry.solarReflection` 保存為 confirmed。旋轉支點、牆高、材料、分格與最終性能仍由 `OPEN-011` 管理，不得以角度確認取代這些待決事項。
 - `REF-401` 可使用明確標示為 display-only 的 SVG 偏移表達屋頂、入口戶外區與鏡牆概念關係；consumer 不得把偏移換算為設計尺寸。
 
 ## 6. 模型驗證門檻
@@ -88,5 +90,6 @@ type Measure = NumericMeasure | DeferredMeasure;
 6. 修改 `l2ExtensionLength` 後，L2 起點、外框、分流軸、樓梯與屋頂跨度同步更新。
 7. deferred 量測具有 OPEN ID 且沒有數值。
 8. consumer 需要的 entity 與 sheet 引用完整。
+9. `geometry.solarReflection` 精確保存 confirmed +9.5°／+8.5°、方向、working 判讀門檻及 `OPEN-011` 關聯；legacy `mirrorFacade`、`leanAngle` 或 display-only geometry 欄位仍不得成為第二套答案。
 
 尚未符合本契約的已知模型／輸出差異，不在本文件偽裝成另一套答案；其執行狀態由 [07｜Active Work](07_ACTIVE_WORK.md) 管理。

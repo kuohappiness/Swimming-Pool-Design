@@ -16,6 +16,16 @@ export interface DeferredMeasure {
 
 export type Measure = NumericMeasure | DeferredMeasure;
 
+export interface SolarReflectionGeometry {
+  planRotation: NumericMeasure;
+  mirrorLeanFromVertical: NumericMeasure;
+  rotationDirection: 'clockwise-from-above';
+  mirrorLeanDirection: 'toward-pool';
+  azimuthTolerance: NumericMeasure;
+  minimumDownwardAngle: NumericMeasure;
+  openItemId: 'OPEN-011';
+}
+
 export interface Entity {
   id: string;
   name: string;
@@ -158,6 +168,7 @@ export interface ProjectModel {
       centralLockerArea: boolean;
       cabinet: { width: number; depth: number; height: number; bottomElevation: number };
     };
+    solarReflection: SolarReflectionGeometry;
   };
   program: {
     entrance: {
