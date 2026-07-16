@@ -20,11 +20,11 @@
 - `program`：入口、L1 廁所、L2 男女配置與 15＋5 單元。
 - `entities`：跨輸出的穩定 ID registry。
 - `sheets`：現行參照圖及其引用 ID。
-- `sources`：來源路徑、像素與 SHA-256。
+- `sources`：來源路徑、像素或資料筆數／bytes，以及 SHA-256。
 
 `scripts/reference-geometry.mjs` 是 L2 起點、外框、中央分流軸、樓梯定位與屋頂平面跨度的唯一推導層。模型保存基礎參數，consumer 使用推導結果，不保存結果常數。
 
-`geometry.solarReflection` 是日照分析與各輸出的單一角度契約：`planRotation` 為由上往下看順時針 +9.5°、`mirrorLeanFromVertical` 為向泳池側外傾 +8.5°，兩者皆為 confirmed。概念掃描的 `azimuthTolerance` 28° 與 `minimumDownwardAngle` 8° 維持 working；整個物件連結 `OPEN-011`，表示旋轉支點、鏡牆牆高、材料與最終性能仍未解決。角度 consumer 不得另存預設答案。
+`geometry.solarReflection` 是日照分析與各輸出的單一角度契約：`planRotation` 為由上往下看順時針 +9.5°、`mirrorLeanFromVertical` 為向泳池側外傾 +8.5°，兩者的 confirmed 只表示建築幾何已核准。`azimuthTolerance` 28° 與 `minimumDownwardAngle` 8° 是方向代理篩檢的 working 門檻，不是有限池面、kWh、照度、眩光或熱效能的安全標準。依 `DEC-039`，性能 consumer 必須比較相同氣象、幾何與材料假設下的「有鏡－無鏡」池面入射能量，原本已有直射的區域仍須計入鏡面疊加。整個物件連結 `OPEN-011`，表示旋轉支點、鏡牆上下緣／牆高、季節控制表皮、玻璃與鏡面材料、框架遮蔭與最終性能仍未解決；依 `DEC-040`，季節採光腔、旋轉葉片、捲屏、摺板或外置百葉都不得成為模型預設答案。
 
 `program.entrance` 以 `outdoorForecourtZoneId`、`arrivalPathEntityId` 與 `outdoorOpeningEntityIds` 表達戶外到達；不得再出現 `sharedVestibuleZoneId`。`referenceSystem.worldTransform.localOrigin` 必須精確維持 `[27, 0, 0]`，使 `RTE-L1-ARRIVAL-01` 從仍與 `O-SITE-01` 共點的 `EN-01` 門檻出發，在 `ST-01` 前轉至樓梯外側；validator 必須確認門檻連接、路徑 bounds 完整位於戶外前場內，並以路徑與樓梯 bounds 證明存在大於 `0.002 m` 的淨空，不得只信任 `accessConflicts` 布林值。`program.l1.dryPassage` 保存泳池大廳至兩樘後門的拓撲。`Z-L1-ENTRY-01` 為保留既有跨輸出引用而遷移的穩定 ID，其現行類型是 `outdoor-forecourt`，不再代表室內前室。
 
@@ -78,7 +78,7 @@ type Measure = NumericMeasure | DeferredMeasure;
 - `J-RF-L2-01` 必須保持玻璃屋頂與擴建量體結構獨立；L2 外殼薄遮簷只形成遮蔽與視覺層次，不得成為 `RF-GL-01` 的必要支承。
 - `RC-RF-01` 是全寬被動雨簾，`RW-TR-01` 是封閉、可拆洗且與地坪逕流隔離的承接溝；模型明確要求 `dryWeatherRecirculation = false`、`groundRunoffIsolated = true` 及獨立高位極端雨量旁通。
 - `RW-01` 只使用屋頂水，固定濾網、初雨分流、沉砂／過濾、加蓋儲存、獨立標示管線、防回流補水與 L1 沖廁語意；容量仍為 `deferred` 並連結 `OPEN-014`。
-- `F-MIR-01` 是 `EXT-L2-01` 低 X 面池端鏡面反射牆；2F 由上往下看順時針 +9.5°、牆面由垂直向泳池側外傾 +8.5°，兩者由 `geometry.solarReflection` 保存為 confirmed。旋轉支點、牆高、材料、分格與最終性能仍由 `OPEN-011` 管理，不得以角度確認取代這些待決事項。
+- `F-MIR-01` 是 `EXT-L2-01` 低 X 面池端鏡面反射牆；2F 由上往下看順時針 +9.5°、牆面由垂直向泳池側外傾 +8.5°，兩者由 `geometry.solarReflection` 保存為 confirmed geometry。`DEC-039` 的 PVGIS TMY 工作模型顯示裸露鏡面會同時增加暖冷季池面能量；22°／88°～135°分析用 solar mask 在 9 組工作情境維持暖季 0、冷季正收益，但依 `DEC-040` 不對應任何已核准的季節採光腔、旋轉葉片、捲屏、摺板或外置百葉。旋轉支點、牆高、季節控制構件、材料、分格、框架遮蔭與最終性能仍由 `OPEN-011` 管理。
 - `REF-401` 的屋頂必須使用水平／垂直同尺度表達 4.5°、+4.500 m 高端、1.2 m 低端外挑與衍生標高，不得再以 display-only 偏移取代設計幾何；放大的接縫節點則必須明示為非比例概念圖。
 
 上述規則已同步至 0.3.0 模型、validator、測試及 HTML 圖集；施工尺度與專業計算仍不得由概念 renderer 代替。
@@ -95,7 +95,7 @@ type Measure = NumericMeasure | DeferredMeasure;
 6. 修改 `l2ExtensionLength` 後，L2 起點、外框、分流軸、樓梯與屋頂跨度同步更新。
 7. deferred 量測具有 OPEN ID 且沒有數值；已確認屋頂標高則必須與坡度、跨度及外挑推導值一致。
 8. consumer 需要的 entity 與 sheet 引用完整。
-9. `geometry.solarReflection` 精確保存 confirmed +9.5°／+8.5°、方向、working 判讀門檻及 `OPEN-011` 關聯；legacy `mirrorFacade`、`leanAngle` 或 display-only geometry 欄位仍不得成為第二套答案。
+9. `geometry.solarReflection` 精確保存 confirmed geometry +9.5°／+8.5°、方向、working 方向篩檢門檻及 `OPEN-011` 關聯；legacy `mirrorFacade`、`leanAngle` 或 display-only geometry 欄位仍不得成為第二套答案。日照 consumer 必須區分單一時刻方向代理與 PVGIS TMY 有鏡／無鏡能量結果，不得用方向命中、受光面積或未核准太陽遮罩取代 `DEC-039` 的性能判定。
 10. 雨簾維持被動、全寬、封閉隔離承接及獨立旁通；回用來源只能是屋頂水，容量 deferred 必須連結 `OPEN-014`。
 
 尚未符合本契約的已知模型／輸出差異，不在本文件偽裝成另一套答案；其執行狀態由 [07｜Active Work](07_ACTIVE_WORK.md) 管理。

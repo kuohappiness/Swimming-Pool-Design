@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.1.0",
-  "modelVersion": "0.3.0",
-  "revision": "2026-07-16",
+  "modelVersion": "0.3.1",
+  "revision": "2026-07-17",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -273,6 +273,7 @@
   "sources": [
     { "id": "SRC-SITE-001", "path": "source-materials/site/SRC-SITE-001_google-maps-satellite-annotated.jpeg", "kind": "satellite", "pixelSize": [812, 1536], "sha256": "46EB14BE28E419999F664D43920BF6717CEA2558F25700735C5078A9EB1107C2" },
     { "id": "SRC-SITE-002", "path": "source-materials/site/SRC-SITE-002_entrance-location-annotated.png", "kind": "annotated-satellite", "pixelSize": [814, 1146], "sha256": "7827DC99D33A1EF61470D19208EF58BF57C880420C94F903CC52BB63D5F2C327" },
+    { "id": "SRC-SITE-003", "path": "source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json", "kind": "climate-tmy", "byteSize": 1270483, "recordCount": 8760, "sha256": "1F9E251234F0C5451A77BC20A31C4E83545EC1BAE472CEB65566524E0E451633" },
     { "id": "SRC-CONCEPT-001", "path": "source-materials/concepts/SRC-CONCEPT-001_side-section.jpeg", "kind": "hand-sketch", "pixelSize": [864, 1536], "sha256": "43640E5A1821AA406682A32F421934C6FA75821C07435BD2744DF5AE2BA1F9EC" },
     { "id": "SRC-CONCEPT-002", "path": "source-materials/concepts/SRC-CONCEPT-002_roof-plan.jpeg", "kind": "hand-sketch", "pixelSize": [2267, 2982], "sha256": "59DE06D8B6A82935E772A8B6B61CD92BD7FFB1DA02AF5737B36ABD7F8588A11F" },
     { "id": "SRC-CONCEPT-003", "path": "source-materials/concepts/SRC-CONCEPT-003_ground-floor-plan.jpeg", "kind": "hand-sketch", "pixelSize": [2210, 2931], "sha256": "F7666FED2DC1CDA77B0C7CE8C41FD369E40DA5A5DBCBAA5BF0449E377174F87D" },

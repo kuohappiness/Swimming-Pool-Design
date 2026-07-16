@@ -9,7 +9,11 @@ import {
   deriveSolarPlanOrientation,
   evaluatePoolReflection,
   normalizeAzimuth,
+  polygonIntersectsRectangle,
+  projectMirrorReflectionFootprint,
   reflectSolarRay,
+  reflectionDirectionInLocalCoordinates,
+  solarDirectionInLocalCoordinates,
 } from '../scripts/solar-reflection.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -55,6 +59,40 @@ test('calculates representative winter and summer solar positions for the model 
   assert.ok(closeTo(summer.azimuth, 81.51));
 });
 
+test('uses 366 days for leap-year solar positions', () => {
+  const commonYear = calculateSolarPosition({
+    year: 2027,
+    month: 6,
+    day: 1,
+    hour: 12,
+    latitude: site.latitude.value,
+    longitude: site.longitude.value,
+    utcOffsetHours: site.utcOffsetHours,
+  });
+  const leapYear = calculateSolarPosition({
+    year: 2028,
+    month: 6,
+    day: 1,
+    hour: 12,
+    latitude: site.latitude.value,
+    longitude: site.longitude.value,
+    utcOffsetHours: site.utcOffsetHours,
+  });
+  assert.ok(closeTo(commonYear.altitude, 87.4934, 0.001));
+  assert.ok(closeTo(leapYear.altitude, 87.5747, 0.001));
+  assert.ok(Math.abs(leapYear.azimuth - commonYear.azimuth) > 0.4);
+});
+
+test('keeps the June 1 near-zenith 11:00 to 12:00 transition numerically reproducible', () => {
+  const eleven = solarAt(6, 1, 11);
+  const noon = solarAt(6, 1, 12);
+  assert.ok(closeTo(eleven.altitude, 77.2235, 0.001));
+  assert.ok(closeTo(eleven.azimuth, 97.1791, 0.001));
+  assert.ok(closeTo(noon.altitude, 87.4934, 0.001));
+  assert.ok(closeTo(noon.azimuth, 209.1322, 0.001));
+  assert.ok(noon.altitude > eleven.altitude);
+});
+
 test('confirmed design sends winter 09:00 toward the pool', () => {
   const { reflection, evaluation } = evaluateConfirmedDesign(solarAt(12, 21, 9));
   assert.equal(evaluation.hitsPool, true);
@@ -67,6 +105,66 @@ test('confirmed design avoids the pool at summer 09:00', () => {
   assert.equal(reflection.frontLit, true);
   assert.equal(evaluation.hitsPool, false);
   assert.ok(evaluation.azimuthDelta > 85);
+});
+
+test('converts the reflected world bearing into the model local coordinate system', () => {
+  const direction = reflectionDirectionInLocalCoordinates({
+    reflectedAzimuth: 307,
+    reflectedDownwardAngle: 30,
+  }, 307);
+  assert.ok(closeTo(direction.x, Math.cos(Math.PI / 6), 1e-9));
+  assert.ok(closeTo(direction.y, 0, 1e-9));
+  assert.ok(closeTo(direction.z, -0.5, 1e-9));
+});
+
+test('converts the sun bearing into the same model local coordinate system', () => {
+  const direction = solarDirectionInLocalCoordinates({ altitude: 30, azimuth: 307 }, 307);
+  assert.ok(closeTo(direction.x, Math.cos(Math.PI / 6), 1e-9));
+  assert.ok(closeTo(direction.y, 0, 1e-9));
+  assert.ok(closeTo(direction.z, 0.5, 1e-9));
+});
+
+test('detects polygon overlap with a pool rectangle, including edge crossings', () => {
+  const pool = { x1: 1.75, x2: 22.25, y1: 3, y2: 10.5 };
+  assert.equal(polygonIntersectsRectangle([
+    { x: 17, y: 11 },
+    { x: 20, y: -2 },
+    { x: 19, y: -4 },
+    { x: 16, y: 9 },
+  ], pool), true);
+  assert.equal(polygonIntersectsRectangle([
+    { x: 25, y: 12 },
+    { x: 27, y: 12 },
+    { x: 27, y: 14 },
+    { x: 25, y: 14 },
+  ], pool), false);
+});
+
+test('projects the confirmed mirror geometry onto the working pool surface', () => {
+  const solar = solarAt(6, 21, 9);
+  const reflection = reflectSolarRay({
+    solarAltitude: solar.altitude,
+    solarAzimuth: solar.azimuth,
+    wallNormalAzimuth: poolAzimuth + solarStudy.planRotation.value,
+    wallLeanFromVertical: solarStudy.mirrorLeanFromVertical.value,
+  });
+  const footprint = projectMirrorReflectionFootprint({
+    reflection,
+    localLongAxisBearingFromTrueNorth: model.referenceSystem.localLongAxisBearingFromTrueNorth,
+    baseCenter: { x: 19, y: 6.75 },
+    pivot: { x: 19, y: 6.75 },
+    width: 13.5,
+    verticalHeight: 3,
+    baseElevation: 4.5,
+    planRotation: solarStudy.planRotation.value,
+    leanFromVertical: solarStudy.mirrorLeanFromVertical.value,
+    poolRectangle: { x1: 1.75, x2: 22.25, y1: 3, y2: 10.5 },
+  });
+  assert.equal(footprint.reachesPoolPlane, true);
+  assert.equal(footprint.hitsPool, true);
+  assert.equal(footprint.footprint.length, 4);
+  assert.ok(closeTo(footprint.footprint[0].x, 17.638, 0.001));
+  assert.ok(closeTo(footprint.footprint[0].y, 10.447, 0.001));
 });
 
 test('azimuth helpers handle north wraparound', () => {
@@ -122,12 +220,35 @@ test('solar-study loads confirmed angles from the model and exposes the analysis
   ]);
   assert.match(mainSource, /model\.geometry\.solarReflection/);
   assert.doesNotMatch(mainSource, /defaultPlanRotation:\s*4\.5|defaultWallLean:\s*9\.5/);
-  assert.match(html, /已確認日照角度/);
+  assert.match(html, /已確認角度，性能需季節遮罩/);
   assert.match(html, /2F 水平旋轉[\s\S]*?<strong id="confirmed-plan">\+9\.5°<\/strong>/);
   assert.match(html, /鏡牆外傾[\s\S]*?<strong id="confirmed-lean">\+8\.5°<\/strong>/);
   assert.match(html, /鏡牆法線[\s\S]*?<strong id="confirmed-normal">136\.5°<\/strong>/);
   assert.match(html, /日照分析完整方法/);
+  assert.match(html, /暖季增加 786\.673 kWh、冷季增加 3,445\.526 kWh/);
+  assert.match(html, /高度 ≤22°、方位 88°～135°/);
+  assert.match(html, /工作遮罩冷季收益[\s\S]*?\+597\.5 kWh/);
+  assert.match(html, /2,124\.036 kWh/);
+  assert.match(mainSource, /原本已有直射仍須計入鏡面疊加能量/);
+  assert.match(mainSource, /此夏季時刻方向診斷/);
+  assert.doesNotMatch(mainSource, /夏季上午：未增加池面反射/);
   assert.match(styles, /\.decision-summary/);
+});
+
+test('solar-study exposes continuous year, date, time, and below-horizon interaction', async () => {
+  const [mainSource, html] = await Promise.all([
+    readFile(resolve(repoRoot, 'reference/src/solar-study/main.ts'), 'utf8'),
+    readFile(resolve(repoRoot, 'reference/solar-study/index.html'), 'utf8'),
+  ]);
+  assert.match(html, /id="year"[\s\S]*?id="currentYear"/);
+  assert.match(html, /id="date" type="range" min="0" max="13"/);
+  assert.match(html, /每月 1 日，加上 6 月 21 日夏至與 12 月 21 日冬至/);
+  assert.match(html, /id="time" type="range" min="7" max="18"/);
+  assert.doesNotMatch(html, /class="sun-path-index"/);
+  assert.match(mainSource, /const dateStops = \[/);
+  assert.match(mainSource, /42 \+ 136 \* Math\.cos/);
+  assert.match(mainSource, /solar\.altitude <= 0/);
+  assert.match(mainSource, /window\.setInterval\(syncCurrentYear/);
 });
 
 test('solar-study panels can shrink without clipping controls on a 320px viewport', async () => {

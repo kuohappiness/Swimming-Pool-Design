@@ -33,14 +33,15 @@
 
       <section class="decision-summary" aria-labelledby="decision-title">
         <div class="decision-summary-copy">
-          <p class="eyebrow">CONFIRMED · 0.3.0</p>
-          <h2 id="decision-title">已確認日照角度</h2>
-          <p>設計先把夏季反射不命中泳池視為硬條件，再比較冬季上午的反射機會。這是幾何方向研究，不代表眩光安全、實際熱效益或水溫模擬結果。</p>
+          <p class="eyebrow">CONFIRMED GEOMETRY · PVGIS TMY ENERGY SCREEN</p>
+          <h2 id="decision-title">已確認角度，性能需季節遮罩</h2>
+          <p>真正指標是有鏡與無鏡的池面太陽能量差。現行鏡面若全年裸露，暖季增加 786.673 kWh、冷季增加 3,445.526 kWh；加入工作太陽遮罩（高度 ≤22°、方位 88°～135°）後，暖季為 0、冷季保留 +597.502 kWh。遮罩仍屬 OPEN-011 工作建議；下方控制器只顯示單一時刻方向。</p>
         </div>
         <dl>
           <div><dt>2F 水平旋轉</dt><dd><strong id="confirmed-plan">+9.5°</strong></dd></div>
           <div><dt>鏡牆外傾</dt><dd><strong id="confirmed-lean">+8.5°</strong></dd></div>
           <div><dt>鏡牆法線</dt><dd><strong id="confirmed-normal">136.5°</strong></dd></div>
+          <div><dt>工作遮罩冷季收益</dt><dd><strong>+597.5 kWh</strong></dd></div>
         </dl>
         <a href="https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/analysis/solar-analysis.md">日照分析完整方法</a>
       </section>
@@ -51,7 +52,7 @@
           <p class="sub">綠色 1F 永遠不動；紅色 2F 整體旋轉。藍色短邊是面向泳池的鏡牆。中央圓點只表達旋轉角度，不代表最後的結構支點。</p>
           <svg id="plan" viewBox="0 0 560 470" role="img" aria-labelledby="plan-title plan-desc">
             <title id="plan-title">基地平面、太陽方位與二樓水平旋轉示意</title>
-            <desc id="plan-desc">固定的一樓泳池量體上方，有一個可水平旋轉的二樓更衣量體。冬至與夏至上午太陽方位顯示於羅盤上。</desc>
+            <desc id="plan-desc">固定的一樓泳池量體上方，有一個可水平旋轉的二樓更衣量體。羅盤顯示目前日期 7 點至 18 點的太陽路徑，光線長度依高度角縮放。</desc>
             <circle cx="280" cy="235" r="190" class="compass-disc" />
             <circle cx="280" cy="235" r="108" class="compass-inner" />
             <line x1="280" y1="30" x2="280" y2="440" class="compass-axis" />
@@ -87,8 +88,8 @@
             <span><i class="swatch fixed"></i>固定 1F</span>
             <span><i class="swatch upper"></i>旋轉 2F</span>
             <span><i class="swatch wall"></i>鏡牆法線</span>
-            <span><i class="swatch winter"></i>冬至上午</span>
-            <span><i class="swatch summer"></i>夏至上午</span>
+            <span><i class="swatch current-path"></i>所選日期 07–18 時路徑</span>
+            <span><i class="swatch selected-time"></i>目前整點</span>
           </div>
         </article>
 
@@ -122,23 +123,47 @@
 
           <div class="controls">
             <p class="controls-intro">以下保留為研究控制器；載入時會回到上方已確認角度，調整滑桿只用於比較情境，不會改寫正式設計值。</p>
-            <label class="control" for="season">
-              <span>季節</span>
-              <select id="season">
-                <option value="winter" selected>冬至 2026-12-21</option>
-                <option value="summer">夏至 2026-06-21</option>
-              </select>
-            </label>
-            <label class="control" for="time">
-              <span>觀察時間</span>
-              <select id="time">
-                <option>08:00</option>
-                <option selected>09:00</option>
-                <option>10:00</option>
-                <option>11:00</option>
-                <option>12:00</option>
-              </select>
-            </label>
+            <div class="control control-year">
+              <label for="year">觀察年份 <b id="yearValue">自動 · 今年</b></label>
+              <div class="year-input-row">
+                <input id="year" type="number" min="2000" max="2100" step="1" inputmode="numeric" aria-describedby="yearHelp" />
+                <button id="currentYear" type="button">回到今年</button>
+              </div>
+              <small id="yearHelp">預設跟隨台北目前年份；也可輸入其他年份比較。太陽位置由瀏覽器即時計算，不需等待外部資料更新。</small>
+            </div>
+            <div class="control control-date">
+              <label for="date">觀察日期 <b id="dateValue">冷季 · 12月21日（冬至）</b></label>
+              <input id="date" type="range" min="0" max="13" value="13" step="1" list="monthTicks" aria-describedby="dateHelp" />
+              <datalist id="monthTicks">
+                <option value="0"></option><option value="1"></option><option value="2"></option>
+                <option value="3"></option><option value="4"></option><option value="5"></option>
+                <option value="6"></option><option value="7"></option><option value="8"></option>
+                <option value="9"></option><option value="10"></option><option value="11"></option>
+                <option value="12"></option><option value="13"></option>
+              </datalist>
+              <div class="range-ends" aria-hidden="true"><span>1月1日</span><span>6月21日<br />夏至</span><span>12月21日<br />冬至</span></div>
+              <small id="dateHelp">共 14 格：每月 1 日，加上 6 月 21 日夏至與 12 月 21 日冬至；只有拉到至日時才在圖中標示冬至／夏至。</small>
+            </div>
+            <div class="control control-time">
+              <label for="time">觀察時間 <b id="timeValue">09:00</b></label>
+              <input id="time" type="range" min="7" max="18" value="9" step="1" list="hourTicks" aria-describedby="timeHelp" />
+              <datalist id="hourTicks">
+                <option value="7"></option>
+                <option value="8"></option>
+                <option value="9"></option>
+                <option value="10"></option>
+                <option value="11"></option>
+                <option value="12"></option>
+                <option value="13"></option>
+                <option value="14"></option>
+                <option value="15"></option>
+                <option value="16"></option>
+                <option value="17"></option>
+                <option value="18"></option>
+              </datalist>
+              <div class="time-scale" aria-hidden="true"><span>07</span><span>09</span><span>12</span><span>15</span><span>18</span></div>
+              <small id="timeHelp">07:00–18:00，每格一個整點；拖曳時即時重算。太陽在地平線下時，圖面停止繪製入射與反射光。</small>
+            </div>
             <label class="control" for="planRotation">
               <span>2F 水平旋轉 <b id="planValue">+9.5°</b></span>
               <input id="planRotation" type="range" min="-12" max="18" value="9.5" step="0.5" />
@@ -168,12 +193,12 @@
         <div class="table-scroll">
           <table>
             <thead>
-              <tr><th>季節／時間</th><th>08:00</th><th>09:00</th><th>10:00</th><th>11:00</th><th>12:00</th></tr>
+              <tr id="solar-table-head"></tr>
             </thead>
             <tbody id="solar-table-body"></tbody>
           </table>
         </div>
-        <p class="table-note">夏至接近中午時太陽幾乎位於天頂，方位角會對幾分鐘的時間差特別敏感。</p>
+        <p class="table-note">夏至接近中午時太陽幾乎位於天頂，方位角可在一小時內跨越很大角度；平面圖以高度角縮短近天頂光線，避免固定半徑造成視覺誇大。負高度角代表太陽在地平線下。</p>
       </section>
 
       <section class="panel principles">
@@ -181,15 +206,17 @@
         <div class="principle-grid">
           <div><b>1F 是不可變的基準</b><span>泳池、地基與長邊玻璃牆不參與角度調整，避免誤以為基地可以轉向。</span></div>
           <div><b>平面旋轉與剖面外傾分工</b><span>2F 水平旋轉負責朝哪裡反射；鏡牆外傾負責向下多少。兩者需同時通過才算命中泳池。</span></div>
-          <div><b>冬季利用、夏季避開</b><span>目標不是全年增加反射，而是冬季上午導入、夏季上午偏離或背光。</span></div>
+          <div><b>能量差才是性能指標</b><span>反射落在本來已有直射的池面仍會增加能量；必須比較同一 TMY 下有鏡與無鏡的 kWh。</span></div>
+          <div><b>角度不是季節開關</b><span>3,111 組固定角度沒有嚴格暖季零／冷季正收益解；鏡面角度負責導向，建築遮罩負責選季。</span></div>
+          <div><b>上部採光是第二效益</b><span>工作遮罩冷季把 2,124.036 kWh 導向屋頂／上部接收面；實際 lux 仍需材料 BSDF 與年度日光模擬。</span></div>
         </div>
-        <div class="note"><strong>OPEN-011：</strong>水平 +9.5° 與鏡牆外傾 +8.5° 已確認。旋轉支點、鏡牆牆高、材料反射率、實際池面命中區、眩光，以及 3D 光線追蹤與熱分析仍待後續專題驗證。</div>
+        <div class="note"><strong>OPEN-011：</strong>正式支點、鏡牆上下緣／牆高、季節採光腔與百葉／側翼、玻璃與鏡面材料、屋頂擴散比例、框架遮蔭、眩光、專業 3D 光線追蹤與熱分析仍待驗證。工作 kWh 不是施工節能保證。</div>
       </section>
     </main>
 
     <footer>
-      <p>太陽位置採 NOAA 公開近似式；精密工程分析可改用 NREL SPA。幾何反射不等於實際升溫。</p>
-      <p><a href="https://gml.noaa.gov/grad/solcalc/calcdetails.html">NOAA 計算說明</a> · <a href="https://midcdmz.nrel.gov/spa/">NREL SPA</a></p>
+      <p>太陽位置採 NOAA 公開近似式，含平／閏年日數修正並在瀏覽器即時計算；不需逐年抓取外部角度資料。年度能量仍採固定版本的基地 PVGIS TMY。精密工程分析需再以 NREL SPA、Radiance／EnergyPlus 類模型與材料光學資料驗證。</p>
+      <p><a href="https://gml.noaa.gov/grad/solcalc/calcdetails.html">NOAA 計算說明</a> · <a href="https://midcdmz.nrel.gov/spa/">NREL SPA</a> · <a href="https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en">PVGIS API</a></p>
     </footer>
     <script type="module" src="/src/solar-study/main.ts"></script>
   </body>

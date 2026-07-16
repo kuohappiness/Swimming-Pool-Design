@@ -4,8 +4,11 @@ import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  evaluateContinuousWarmSeason,
+  evaluateContinuousWarmSeasonEnvelope,
   evaluateHorizontalScan,
   evaluateMirrorEnvelope,
+  evaluatePoolSurfaceSensitivity,
   evaluateSolarCandidate,
 } from '../scripts/solar-angle-analysis.mjs';
 
@@ -65,6 +68,49 @@ test('keeps 8.5 degrees safe across the approved error envelope', () => {
   assert.equal(safe.maximumSummerHits, 0);
   assert.deepEqual(safe.winterHitRange, [665, 699]);
   assert.equal(unsafe.maximumSummerHits, 6);
+});
+
+test('continuous warm-season scan exposes the late-summer gap in the representative dates', () => {
+  const result = evaluateContinuousWarmSeason(model);
+  assert.equal(result.daylightSamples, 119364);
+  assert.equal(result.hits, 1577);
+  assert.equal(result.hitRatePercent, 1.321);
+  assert.equal(result.firstHit, '2026-08-25 11:11');
+  assert.equal(result.lastHit, '2026-09-30 10:57');
+  assert.equal(result.dailyWindows.length, 37);
+});
+
+test('continuous error envelope has no zero-hit configuration', () => {
+  const envelope = evaluateContinuousWarmSeasonEnvelope(model);
+  assert.equal(envelope.configurationCount, 27);
+  assert.equal(envelope.zeroHitConfigurationCount, 0);
+  assert.equal(envelope.maximumHits, 1918);
+  assert.equal(envelope.earliestHit, '2026-08-22 11:12');
+  assert.equal(envelope.worstInput.planRotation, 9);
+  assert.equal(envelope.worstInput.mirrorLeanFromVertical, 8);
+  assert.equal(envelope.worstInput.bearingOffset, -1);
+});
+
+test('working pool-surface scenarios all retain a geometric reflection path', () => {
+  const sensitivity = evaluatePoolSurfaceSensitivity(model);
+  assert.equal(sensitivity.scenarioCount, 9);
+  assert.equal(sensitivity.zeroHitScenarioCount, 0);
+  assert.equal(sensitivity.minimumHits, 43094);
+  assert.equal(sensitivity.maximumHits, 47211);
+  assert.equal(sensitivity.earliestHit, '2026-05-01 06:28');
+  assert.equal(sensitivity.latestHit, '2026-09-30 12:49');
+  assert.deepEqual(
+    sensitivity.results.map((result) => [
+      result.input.pivotX,
+      result.input.mirrorHeight,
+      result.hits,
+    ]),
+    [
+      [19, 2.5, 47211], [19, 3, 47211], [19, 3.6, 47211],
+      [27, 2.5, 45389], [27, 3, 45389], [27, 3.6, 45389],
+      [35, 2.5, 43094], [35, 3, 43094], [35, 3.6, 43094],
+    ],
+  );
 });
 
 test('rejects a non-positive analysis interval', () => {

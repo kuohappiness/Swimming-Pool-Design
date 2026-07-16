@@ -24,6 +24,7 @@
 | --- | --- | --- | --- | --- |
 | SRC-SITE-001 | `source-materials/site/SRC-SITE-001_google-maps-satellite-annotated.jpeg` | 衛星截圖；黃色／綠色基地、指南針與比例尺 | 812 × 1536 | `46EB14BE28E419999F664D43920BF6717CEA2558F25700735C5078A9EB1107C2` |
 | SRC-SITE-002 | `source-materials/site/SRC-SITE-002_entrance-location-annotated.png` | 衛星圖紅箭頭；確認 `EN-01` 位於兩基地交界的校園側 | 814 × 1146 | `7827DC99D33A1EF61470D19208EF58BF57C880420C94F903CC52BB63D5F2C327` |
+| SRC-SITE-003 | `source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json` | European Commission JRC PVGIS 5.3；基地座標標準氣象年，用於 `TASK-013` 鏡牆能量差分析 | JSON；1,270,483 bytes；8760 hourly records | `1F9E251234F0C5451A77BC20A31C4E83545EC1BAE472CEB65566524E0E451633` |
 | SRC-CONCEPT-001 | `source-materials/concepts/SRC-CONCEPT-001_side-section.jpeg` | 手繪側視／剖面；泳池大廳、男女空間與廁所關係 | 864 × 1536 | `43640E5A1821AA406682A32F421934C6FA75821C07435BD2744DF5AE2BA1F9EC` |
 | SRC-CONCEPT-002 | `source-materials/concepts/SRC-CONCEPT-002_roof-plan.jpeg` | 手繪屋頂平面；玻璃屋頂及男女空間關係 | 2267 × 2982 | `59DE06D8B6A82935E772A8B6B61CD92BD7FFB1DA02AF5737B36ABD7F8588A11F` |
 | SRC-CONCEPT-003 | `source-materials/concepts/SRC-CONCEPT-003_ground-floor-plan.jpeg` | 手繪一樓平面；泳池、廁所、門與樓梯的早期想法 | 2210 × 2931 | `F7666FED2DC1CDA77B0C7CE8C41FD369E40DA5A5DBCBAA5BF0449E377174F87D` |
@@ -35,6 +36,8 @@
 | SRC-CONCEPT-009 | `source-materials/concepts/SRC-CONCEPT-009_longitudinal-section-correction-annotated.png` | 使用者在 `REF-401` 圖面以紅色斜線標示屋頂概念位置、以綠框圈出入口戶外區；隨附文字另指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜 | 2216 × 1130 | `3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034` |
 
 `SRC-CONCEPT-009` 圖面可直接觀察到紅色斜線位於既有屋頂下方，以及綠框圈出 L1 右端灰色區域。使用者隨附文字指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜。設計上解讀為：`REF-401` 屋頂高端應靠近 L2 樓板、綠框是入口戶外區、`EXT-L2-01` 低 X 面池端牆是向泳池側外傾的鏡面牆；圖面與隨附文字都不提供正式標高、入口寬度或外傾角。
+
+`SRC-SITE-003` 於 2026-07-16 由 PVGIS 5.3 TMY API 以 `24.14434°N, 120.67341°E` 取得；原始 metadata 記錄海拔 84 m、`PVGIS-ERA5`／ERA5、2005～2023、啟用 DEM horizon，12 個月份各選一個典型月份。觀察資料包含逐時 GHI `G(h)`、DNI `Gb(n)`、DHI `Gd(h)`、溫度、濕度、風與氣壓；本專案只解讀輻射欄位作概念能量比較。TMY 是長期典型月份的組合，不代表 2026 年實際天氣，也不是施工熱負荷保證。來源：[PVGIS 5.3 API](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en)、[PVGIS TMY 說明](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/pvgis-5-tools/pvgis-typical-meteorological-year-tmy-generator_en)。
 
 雜湊確認 repo 圖檔與各輪討論使用的原始檔一致。`SRC-CONCEPT-008` 直接支持 `DEC-028` 的入口語意，但它是在待修圖面上的使用者標註，不證明開口、通道或廁所隔間的精確尺寸；尺寸仍由 `OPEN-008` 管理。
 
