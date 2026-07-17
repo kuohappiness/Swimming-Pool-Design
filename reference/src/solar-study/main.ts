@@ -76,6 +76,11 @@ const leanControl = required<HTMLInputElement>('#lean');
 const dateValue = required<HTMLElement>('#dateValue');
 const timeValue = required<HTMLElement>('#timeValue');
 const yearValue = required<HTMLElement>('#yearValue');
+const planSvg = required<SVGSVGElement>('#plan');
+const sectionSvg = required<SVGSVGElement>('#section');
+const previewPlanButton = required<HTMLButtonElement>('#previewPlan');
+const previewSectionButton = required<HTMLButtonElement>('#previewSection');
+const mobilePreviewViewport = required<HTMLElement>('#mobilePreviewViewport');
 const planRays = required<SVGGElement>('#planRays');
 const selectedSun = required<SVGGElement>('#selectedSun');
 const upperBoxPlan = required<SVGGElement>('#upperBoxPlan');
@@ -94,6 +99,67 @@ const sideLabel = required<SVGTextElement>('#sideLabel');
 const result = required<HTMLElement>('#result');
 const resultTitle = required<HTMLElement>('#resultTitle');
 const resultDetail = required<HTMLElement>('#resultDetail');
+type MobilePreviewMode = 'plan' | 'section';
+const mobilePreviewMedia = window.matchMedia('(max-width: 920px)');
+let mobilePreviewMode: MobilePreviewMode = 'plan';
+
+function clonePreviewSvg(source: SVGSVGElement, mode: MobilePreviewMode): SVGSVGElement {
+  const clone = source.cloneNode(true) as SVGSVGElement;
+  clone.removeAttribute('id');
+  clone.removeAttribute('role');
+  clone.removeAttribute('aria-labelledby');
+  clone.removeAttribute('aria-describedby');
+  clone.setAttribute('aria-hidden', 'true');
+  clone.setAttribute('focusable', 'false');
+
+  const idMap = new Map<string, string>();
+  Array.from(clone.querySelectorAll<SVGElement>('[id]')).forEach((element) => {
+    const oldId = element.id;
+    const newId = 'mobile-preview-' + mode + '-' + oldId;
+    idMap.set(oldId, newId);
+    element.id = newId;
+  });
+
+  Array.from(clone.querySelectorAll<SVGElement>('*')).forEach((element) => {
+    Array.from(element.attributes).forEach((attribute) => {
+      let value = attribute.value;
+      idMap.forEach((newId, oldId) => {
+        value = value.replaceAll('url(#' + oldId + ')', 'url(#' + newId + ')');
+        if (value === '#' + oldId) value = '#' + newId;
+        if (attribute.name === 'aria-labelledby' || attribute.name === 'aria-describedby') {
+          value = value.split(/\s+/).map((token) => token === oldId ? newId : token).join(' ');
+        }
+      });
+      if (value !== attribute.value) element.setAttribute(attribute.name, value);
+    });
+  });
+
+  return clone;
+}
+
+function renderMobilePreview(): void {
+  if (!mobilePreviewMedia.matches) {
+    mobilePreviewViewport.replaceChildren();
+    return;
+  }
+  const source = mobilePreviewMode === 'plan' ? planSvg : sectionSvg;
+  mobilePreviewViewport.replaceChildren(clonePreviewSvg(source, mobilePreviewMode));
+  previewPlanButton.setAttribute('aria-pressed', String(mobilePreviewMode === 'plan'));
+  previewSectionButton.setAttribute('aria-pressed', String(mobilePreviewMode === 'section'));
+}
+
+function setMobilePreview(mode: MobilePreviewMode): void {
+  mobilePreviewMode = mode;
+  renderMobilePreview();
+}
+
+function bindMobilePreview(control: HTMLElement, mode: MobilePreviewMode): void {
+  control.addEventListener('pointerdown', () => setMobilePreview(mode));
+  control.addEventListener('focus', () => setMobilePreview(mode));
+  control.addEventListener('input', () => {
+    mobilePreviewMode = mode;
+  });
+}
 
 required<HTMLElement>('#project-name').textContent = model.project.name;
 required<HTMLElement>('#model-version').textContent = 'MODEL ' + model.modelVersion;
@@ -361,6 +427,7 @@ function update(): void {
     result.classList.remove('is-warn');
     resultTitle.textContent = '此時刻方向診斷：太陽已在地平線下';
     resultDetail.textContent = '沒有可用直射日光，因此不計算鏡面反射命中；年度性能仍以 PVGIS TMY 能量分析為準。';
+    renderMobilePreview();
     return;
   }
 
@@ -427,10 +494,19 @@ function update(): void {
       ? '此時刻未通過方向代理門檻，但不能直接推論整個暖季零增量；仍須看年度能量分析。'
       : (evaluation.planPass ? '平面方向通過，但剖面反射沒有向下進池。' : '平面反射方向偏離泳池。');
   }
+  renderMobilePreview();
 }
 
 renderSolarTable();
 update();
+bindMobilePreview(yearControl, 'plan');
+bindMobilePreview(dateControl, 'plan');
+bindMobilePreview(timeControl, 'plan');
+bindMobilePreview(rotationControl, 'plan');
+bindMobilePreview(leanControl, 'section');
+previewPlanButton.addEventListener('click', () => setMobilePreview('plan'));
+previewSectionButton.addEventListener('click', () => setMobilePreview('section'));
+mobilePreviewMedia.addEventListener('change', renderMobilePreview);
 dateControl.addEventListener('input', update);
 timeControl.addEventListener('input', update);
 rotationControl.addEventListener('input', update);
@@ -444,6 +520,7 @@ yearControl.addEventListener('input', () => {
   update();
 });
 currentYearButton.addEventListener('click', () => {
+  setMobilePreview('plan');
   studyYear = taipeiNow().year;
   followsCurrentYear = true;
   yearControl.value = String(studyYear);

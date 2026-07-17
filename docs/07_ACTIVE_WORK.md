@@ -35,7 +35,13 @@
 | TASK-013 | 依修正後目標建立有鏡／無鏡能量差、暖冷季選擇性與天花板採光分析 | done | 0.3.1 | [日照分析](analysis/solar-analysis.md)、[completed implementation plan](archive/specs/2026-07-16-mirror-energy-and-daylight-analysis-plan.md)、[DEC-039／OPEN-011](04_DECISIONS_AND_OPEN_ITEMS.md) | TASK-012 | 8,760 筆 PVGIS TMY 逐時資料與 3,111 組固定角度掃描可重現；含閏年日數修正後，現行裸露鏡面暖季／冷季增量為 +786.673／+3,445.526 kWh，工作遮罩降為 0／+597.502 kWh，並分列上部採光潛力；現行 owner、HTML、測試、完整 build 與 diff 檢查一致，舊新增受光面積不再作現行性能結論 |
 | TASK-014 | 完成太陽研究互動控制、版本同步與 0.3.1 發布 | done | 0.3.1 | [solar contract](contracts/solar-study.md)、[Release 0.3.1](releases/0.3.1.md) | TASK-011～TASK-013 | 年份自動跟隨台北今年且可手動比較；日期採每月 1 日加冬夏至共 14 點，時間採 07～18 整點；目前日期路徑依高度縮放，地平線下不畫反射；平／閏年、2026/6/1 近天頂轉向與行動版來源回歸皆有測試，套件、模型、README 與發布記錄同步為 0.3.1 |
 
-## 4. 未排程設計問題
+## 4. 0.3.2 任務
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-015 | 修正手機滑桿與互動圖距離過遠，完成 0.3.2 發布 | done | 0.3.2 | [solar contract](contracts/solar-study.md)、[Release 0.3.2](releases/0.3.2.md) | TASK-014 | 920 px 以下控制區提供 sticky 即時預覽；年份、日期、時間與水平旋轉顯示平面，外傾角顯示剖面並可手動切換；390 × 844 Chrome smoke、73 項測試、完整 build 與 diff 檢查通過 |
+
+## 5. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
@@ -51,3 +57,5 @@
 0.3.0 的 `TASK-007`～`TASK-010` 均已完成，驗證與發布證據見 [Release 0.3.0](releases/0.3.0.md)；下一階段只從上述未排程 OPEN 另立設計與任務，不回寫已封存的 0.3.0 規格。
 
 `TASK-011`～`TASK-014` 已完成並收斂為 [Release 0.3.1](releases/0.3.1.md)；tag 仍依專案慣例不建立，push／部署狀態以 release 記錄及 GitHub workflow 為準。
+
+`TASK-015` 已完成並收斂為 [Release 0.3.2](releases/0.3.2.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。

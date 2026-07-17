@@ -123,6 +123,17 @@
 
           <div class="controls">
             <p class="controls-intro">以下保留為研究控制器；載入時會回到上方已確認角度，調整滑桿只用於比較情境，不會改寫正式設計值。</p>
+            <div class="mobile-live-preview" aria-label="手機版滑桿即時預覽">
+              <div class="mobile-preview-toolbar">
+                <strong>即時預覽</strong>
+                <div class="mobile-preview-tabs" role="group" aria-label="切換即時預覽圖示">
+                  <button id="previewPlan" type="button" aria-pressed="true">平面</button>
+                  <button id="previewSection" type="button" aria-pressed="false">剖面</button>
+                </div>
+              </div>
+              <div id="mobilePreviewViewport" class="mobile-preview-viewport" aria-hidden="true"></div>
+              <small>年份、日期、時間與水平旋轉顯示平面；外傾角顯示剖面，也可手動切換。</small>
+            </div>
             <div class="control control-year">
               <label for="year">觀察年份 <b id="yearValue">自動 · 今年</b></label>
               <div class="year-input-row">

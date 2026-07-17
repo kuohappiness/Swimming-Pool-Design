@@ -255,3 +255,16 @@ test('solar-study panels can shrink without clipping controls on a 320px viewpor
   const styles = await readFile(resolve(repoRoot, 'reference/src/solar-study/styles.css'), 'utf8');
   assert.match(styles, /\.panel\s*\{[^}]*min-width:\s*0;/s);
 });
+
+test('solar-study keeps a sticky live diagram beside mobile controls', async () => {
+  const [mainSource, html, styles] = await Promise.all([
+    readFile(resolve(repoRoot, 'reference/src/solar-study/main.ts'), 'utf8'),
+    readFile(resolve(repoRoot, 'reference/solar-study/index.html'), 'utf8'),
+    readFile(resolve(repoRoot, 'reference/src/solar-study/styles.css'), 'utf8'),
+  ]);
+  assert.match(html, /class="mobile-live-preview"[\s\S]*id="previewPlan"[\s\S]*id="previewSection"/);
+  assert.match(mainSource, /bindMobilePreview\(dateControl, 'plan'\)/);
+  assert.match(mainSource, /bindMobilePreview\(leanControl, 'section'\)/);
+  assert.match(mainSource, /mobilePreviewViewport\.replaceChildren\(clonePreviewSvg/);
+  assert.match(styles, /@media \(max-width: 920px\)[\s\S]*\.mobile-live-preview\s*\{[\s\S]*position:\s*sticky/);
+});
