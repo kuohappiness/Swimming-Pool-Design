@@ -41,7 +41,13 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-015 | 修正手機滑桿與互動圖距離過遠，完成 0.3.2 發布 | done | 0.3.2 | [solar contract](contracts/solar-study.md)、[Release 0.3.2](releases/0.3.2.md) | TASK-014 | 920 px 以下控制區提供 sticky 即時預覽；年份、日期、時間與水平旋轉顯示平面，外傾角顯示剖面並可手動切換；390 × 844 Chrome smoke、73 項測試、完整 build 與 diff 檢查通過 |
 
-## 5. 未排程設計問題
+## 5. 0.3.3 任務
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-016 | 擴充 2F 水平旋轉互動範圍並完成 0.3.3 發布 | done | 0.3.3 | [solar contract](contracts/solar-study.md)、[Release 0.3.3](releases/0.3.3.md) | TASK-015 | 水平旋轉可於 −20°～+40° 以 0.5° 拖曳；平面量體、鏡牆法線、反射診斷、即時讀值及手機 sticky 預覽同步更新；初始與 confirmed 模型仍為 +9.5°；測試、build、手機 smoke 與 diff 檢查通過 |
+
+## 6. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
@@ -59,3 +65,5 @@
 `TASK-011`～`TASK-014` 已完成並收斂為 [Release 0.3.1](releases/0.3.1.md)；tag 仍依專案慣例不建立，push／部署狀態以 release 記錄及 GitHub workflow 為準。
 
 `TASK-015` 已完成並收斂為 [Release 0.3.2](releases/0.3.2.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
+
+`TASK-016` 已完成並收斂為 [Release 0.3.3](releases/0.3.3.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。

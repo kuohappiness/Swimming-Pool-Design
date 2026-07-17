@@ -175,10 +175,23 @@
               <div class="time-scale" aria-hidden="true"><span>07</span><span>09</span><span>12</span><span>15</span><span>18</span></div>
               <small id="timeHelp">07:00–18:00，每格一個整點；拖曳時即時重算。太陽在地平線下時，圖面停止繪製入射與反射光。</small>
             </div>
-            <label class="control" for="planRotation">
-              <span>2F 水平旋轉 <b id="planValue">+9.5°</b></span>
-              <input id="planRotation" type="range" min="-12" max="18" value="9.5" step="0.5" />
-            </label>
+            <div class="control control-rotation">
+              <label for="planRotation">2F 水平旋轉 <b id="planValue">+9.5°</b></label>
+              <input id="planRotation" type="range" min="-20" max="40" value="9.5" step="0.5" list="rotationTicks" aria-describedby="planRotationHelp" />
+              <datalist id="rotationTicks">
+                <option value="-20"></option>
+                <option value="-10"></option>
+                <option value="0"></option>
+                <option value="10"></option>
+                <option value="20"></option>
+                <option value="30"></option>
+                <option value="40"></option>
+              </datalist>
+              <div class="rotation-scale" aria-hidden="true">
+                <span>−20°</span><span>−10°</span><span>0°</span><span>+10°</span><span>+20°</span><span>+30°</span><span>+40°</span>
+              </div>
+              <small id="planRotationHelp">−20°～+40°，每格 0.5°；拖曳時平面、鏡牆朝向、剖面反射與手機即時預覽同步重算。初始 +9.5° 仍是目前已確認設計值。</small>
+            </div>
             <label class="control" for="lean">
               <span>鏡牆外傾角（相對垂直） <b id="leanValue">8.5°</b></span>
               <input id="lean" type="range" min="0" max="30" value="8.5" step="0.5" />

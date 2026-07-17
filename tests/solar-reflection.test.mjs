@@ -244,10 +244,16 @@ test('solar-study exposes continuous year, date, time, and below-horizon interac
   assert.match(html, /id="date" type="range" min="0" max="13"/);
   assert.match(html, /每月 1 日，加上 6 月 21 日夏至與 12 月 21 日冬至/);
   assert.match(html, /id="time" type="range" min="7" max="18"/);
+  assert.match(html, /id="planRotation" type="range" min="-20" max="40" value="9\.5" step="0\.5"/);
+  assert.match(html, /id="rotationTicks"[\s\S]*value="-20"[\s\S]*value="0"[\s\S]*value="40"/);
   assert.doesNotMatch(html, /class="sun-path-index"/);
   assert.match(mainSource, /const dateStops = \[/);
   assert.match(mainSource, /42 \+ 136 \* Math\.cos/);
   assert.match(mainSource, /solar\.altitude <= 0/);
+  assert.match(mainSource, /wallAzimuth = normalizeAzimuth\(poolAzimuth \+ rotation\)/);
+  assert.match(mainSource, /upperBoxPlan\.setAttribute\('transform', 'rotate\(' \+ rotation/);
+  assert.match(mainSource, /rotationControl\.setAttribute\('aria-valuetext'/);
+  assert.match(mainSource, /rotationControl\.addEventListener\('input', update\)/);
   assert.match(mainSource, /window\.setInterval\(syncCurrentYear/);
 });
 

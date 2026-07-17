@@ -252,6 +252,10 @@ svg text { font-family: inherit; }
 .range-ends { display: flex; justify-content: space-between; margin-top: 5px; color: var(--muted); font: 700 10px/1 ui-monospace, monospace; }
 .range-ends span:nth-child(2) { text-align: center; }
 .range-ends span:last-child { text-align: right; }
+.rotation-scale { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-top: 5px; color: var(--muted); font: 700 9px/1 ui-monospace, monospace; }
+.rotation-scale span { margin: 0; font: inherit; text-align: center; white-space: nowrap; }
+.rotation-scale span:first-child { text-align: left; }
+.rotation-scale span:last-child { text-align: right; }
 .year-input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .year-input-row input {
   min-height: 36px;

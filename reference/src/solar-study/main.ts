@@ -380,6 +380,8 @@ function update(): void {
   yearControl.setAttribute('aria-valuetext', studyYear + '年' + (followsCurrentYear ? '，自動跟隨今年' : '，手動比較'));
   dateControl.setAttribute('aria-valuetext', formatDate(date, true) + '，' + period.name);
   timeControl.setAttribute('aria-valuetext', time);
+  rotationControl.setAttribute('aria-valuetext', '2F 水平旋轉 ' + signed(rotation));
+  leanControl.setAttribute('aria-valuetext', '鏡牆外傾 ' + lean.toFixed(1) + '°');
   currentYearButton.disabled = followsCurrentYear;
 
   buildingPlan.setAttribute(
