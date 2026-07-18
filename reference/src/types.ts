@@ -23,6 +23,13 @@ export interface SolarReflectionGeometry {
   mirrorLeanDirection: 'toward-pool';
   azimuthTolerance: NumericMeasure;
   minimumDownwardAngle: NumericMeasure;
+  planPivot: {
+    strategy: 'l2-start-width-center';
+    status: 'working';
+    sourceIds: string[];
+    openItemId: 'OPEN-011';
+  };
+  mirrorVisualWallHeight: NumericMeasure & { openItemId: 'OPEN-011' };
   openItemId: 'OPEN-011';
 }
 
@@ -108,7 +115,8 @@ export interface ProjectModel {
       id: string;
       name: string;
       elevation: number | null;
-      status?: 'working' | 'deferred';
+      status?: 'confirmed' | 'working' | 'deferred';
+      sourceIds?: string[];
       openItemId?: string;
     }>;
     grids: { x: Array<{ id: string; position: number }>; y: Array<{ id: string; position: number }> };
@@ -120,6 +128,7 @@ export interface ProjectModel {
       poolHallLength: NumericMeasure;
       serviceCoreLength: NumericMeasure;
       l2ExtensionLength: NumericMeasure;
+      l2VolumeHeight: NumericMeasure;
     };
     pool: {
       origin: number[];
@@ -136,8 +145,6 @@ export interface ProjectModel {
       highEdge: string;
       pitch: NumericMeasure;
       lowOverhang: NumericMeasure;
-      lowElevation: NumericMeasure;
-      highElevation: NumericMeasure;
       jointEntityId: string;
       supportedByExtension: false;
       jointStrategy: 'independent-curb-movement-joint-double-flashing';
@@ -180,7 +187,6 @@ export interface ProjectModel {
       originZ: number;
       upperEndAlignment: 'l2-split-axis';
       width: number;
-      totalRise: number;
       riserCount: number;
       runs: number;
       risersPerRun: number;

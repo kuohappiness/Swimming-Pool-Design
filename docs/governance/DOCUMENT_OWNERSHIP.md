@@ -20,6 +20,7 @@
 | 核准設計及實作步驟 | `docs/specs/` |
 | 已完成／被取代規格 | `docs/archive/specs/` |
 | 已發布版本證據 | `docs/releases/<version>.md` |
+| 公開設計理念的敘事文字 | `docs/public/swimming-pool-renovation-design-concept.md` |
 
 README 只保留定位、quickstart、URL、版本與 01～07 導航。repo-local skill 只保存工作程序並引用本文件，不複製 owner 規則表。
 

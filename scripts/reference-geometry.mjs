@@ -9,6 +9,11 @@ const finiteNumber = (value, label) => {
   return value;
 };
 
+const levelElevation = (model, id) => {
+  const level = model?.referenceSystem?.levels?.find((candidate) => candidate?.id === id);
+  return finiteNumber(level?.elevation, `referenceSystem.levels.${id}.elevation`);
+};
+
 export function deriveReferenceGeometry(model) {
   const building = model?.geometry?.building;
   const stair = model?.geometry?.stair;
@@ -20,6 +25,7 @@ export function deriveReferenceGeometry(model) {
   const poolHallLength = numericValue(building.poolHallLength, 'building.poolHallLength');
   const serviceCoreLength = numericValue(building.serviceCoreLength, 'building.serviceCoreLength');
   const l2ExtensionLength = numericValue(building.l2ExtensionLength, 'building.l2ExtensionLength');
+  const l2VolumeHeight = numericValue(building.l2VolumeHeight, 'building.l2VolumeHeight');
   const entranceThresholdX = finiteNumber(
     model?.referenceSystem?.worldTransform?.localOrigin?.[0],
     'referenceSystem.worldTransform.localOrigin[0]',
@@ -32,11 +38,17 @@ export function deriveReferenceGeometry(model) {
   const treadsPerRun = finiteNumber(stair.treadsPerRun, 'stair.treadsPerRun');
   const treadDepth = finiteNumber(stair.treadDepth, 'stair.treadDepth');
   const midLandingLength = finiteNumber(stair.midLandingLength, 'stair.midLandingLength');
-  const totalRise = finiteNumber(stair.totalRise, 'stair.totalRise');
+  const l1Elevation = levelElevation(model, 'L1');
+  const l2Elevation = levelElevation(model, 'L2');
+  const totalRise = l2Elevation - l1Elevation;
   const riserCount = finiteNumber(stair.riserCount, 'stair.riserCount');
   const roofPitch = numericValue(roof.pitch, 'roof.pitch');
   const roofLowOverhang = numericValue(roof.lowOverhang, 'roof.lowOverhang');
-  const roofHighElevation = numericValue(roof.highElevation, 'roof.highElevation');
+  const roofHighElevation = l2Elevation;
+  const mirrorVisualWallHeight = numericValue(
+    model?.geometry?.solarReflection?.mirrorVisualWallHeight,
+    'solarReflection.mirrorVisualWallHeight',
+  );
 
   if (buildingLength <= 0 || buildingWidth <= 0 || poolHallLength <= 0 || serviceCoreLength <= 0) {
     throw new RangeError('Building dimensions must be positive.');
@@ -45,7 +57,8 @@ export function deriveReferenceGeometry(model) {
     throw new RangeError('building.l2ExtensionLength must be greater than 0 and smaller than the pool hall length.');
   }
   if (risersPerRun <= 0 || treadsPerRun <= 0 || treadDepth <= 0 || midLandingLength <= 0
-    || totalRise <= 0 || riserCount <= 0 || roofPitch <= 0 || roofLowOverhang <= 0) {
+    || l2VolumeHeight <= 0 || totalRise <= 0 || riserCount <= 0 || roofPitch <= 0
+    || roofLowOverhang <= 0 || mirrorVisualWallHeight <= 0) {
     throw new RangeError('Stair run inputs must be positive.');
   }
   if (!Number.isInteger(risersPerRun) || !Number.isInteger(treadsPerRun)
@@ -73,6 +86,11 @@ export function deriveReferenceGeometry(model) {
   const roofPitchRadians = roofPitch * Math.PI / 180;
   const roofFarWallElevation = roofHighElevation - roofPlanRun * Math.tan(roofPitchRadians);
   const roofLowElevation = roofHighElevation - roofTotalRun * Math.tan(roofPitchRadians);
+  const pivotStrategy = model?.geometry?.solarReflection?.planPivot?.strategy;
+  if (pivotStrategy !== 'l2-start-width-center') {
+    throw new RangeError('solarReflection.planPivot.strategy must be l2-start-width-center.');
+  }
+  const planPivot = { x: l2StartX, y: buildingWidth / 2, z: l2Elevation };
   const stairTopY = finiteNumber(stair.originY, 'stair.originY')
     + finiteNumber(stair.width, 'stair.width');
 
@@ -139,10 +157,16 @@ export function deriveReferenceGeometry(model) {
     femaleL2Bounds: { x1: l2SplitAxisX, x2: l2EndX, y1: 0, y2: buildingWidth },
     flightRun,
     stairTotalRun,
+    stairTotalRise: totalRise,
     stairStartX,
     stairEndX,
     riserHeight,
     midLandingElevation,
+    l1Elevation,
+    l2Elevation,
+    l2VolumeHeight,
+    planPivot,
+    mirrorVisualWallHeight,
     roofPlanStartX,
     roofPlanEndX,
     roofPlanRun,

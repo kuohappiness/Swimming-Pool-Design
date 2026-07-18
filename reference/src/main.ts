@@ -8,16 +8,18 @@ const model = rawModel as ProjectModel;
 const sheets = renderSheets(model);
 const entityById = new Map(model.entities.map((entity) => [entity.id, entity]));
 
-const tabs = document.querySelector<HTMLElement>('#sheet-tabs');
-const stage = document.querySelector<HTMLElement>('#sheet-stage');
-const detail = document.querySelector<HTMLElement>('#detail-panel');
-const modelVersion = document.querySelector<HTMLElement>('#model-version');
-const projectName = document.querySelector<HTMLElement>('#project-name');
-const disclaimer = document.querySelector<HTMLElement>('#disclaimer');
+const required = <T extends Element>(selector: string): T => {
+  const element = document.querySelector<T>(selector);
+  if (!element) throw new Error(`Atlas shell is missing ${selector}.`);
+  return element;
+};
 
-if (!tabs || !stage || !detail || !modelVersion || !projectName || !disclaimer) {
-  throw new Error('Atlas shell is incomplete.');
-}
+const tabs = required<HTMLElement>('#sheet-tabs');
+const stage = required<HTMLElement>('#sheet-stage');
+const detail = required<HTMLElement>('#detail-panel');
+const modelVersion = required<HTMLElement>('#model-version');
+const projectName = required<HTMLElement>('#project-name');
+const disclaimer = required<HTMLElement>('#disclaimer');
 
 modelVersion.textContent = `MODEL ${model.modelVersion}`;
 projectName.textContent = model.project.name;

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0.0",
+  "solar": {
+    "modelHash": "4b4680733da972146c3bb4c950ffa3990bbef70cb59a74f598ddb5c41d6213b4",
+    "validatedAt": "2026-07-18",
+    "sourceIds": ["SRC-SITE-003"],
+    "validation": [
+      "tests/solar-angle-analysis.test.mjs",
+      "tests/solar-reflection.test.mjs",
+      "tests/solar-energy-analysis.test.mjs"
+    ],
+    "scope": "方向、連續暖季、池面交點與 PVGIS TMY 有鏡／無鏡能量工作分析"
+  }
+}

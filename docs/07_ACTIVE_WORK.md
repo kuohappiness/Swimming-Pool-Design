@@ -47,7 +47,16 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-016 | 擴充 2F 水平旋轉互動範圍並完成 0.3.3 發布 | done | 0.3.3 | [solar contract](contracts/solar-study.md)、[Release 0.3.3](releases/0.3.3.md) | TASK-015 | 水平旋轉可於 −20°～+40° 以 0.5° 拖曳；平面量體、鏡牆法線、反射診斷、即時讀值及手機 sticky 預覽同步更新；初始與 confirmed 模型仍為 +9.5°；測試、build、手機 smoke 與 diff 檢查通過 |
 
-## 6. 未排程設計問題
+## 6. 0.4.0～0.5.0 任務
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-017 | 盤點 3D Viewer 資訊完整度並確認 Markdown／模型雙 owner 同步架構 | done | 0.4.0 | [資訊完整度分析](analysis/3d-viewer-information-readiness.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md) | TASK-016 | confirmed／working／deferred 範圍、現有硬編碼、缺少的 3D 工作幾何、分析失效規則與後續任務邊界已記錄；文件檢查及 diff 檢查通過 |
+| TASK-018 | 建立模型單一來源補強與 3D Viewer MVP | done | 0.4.0 | [completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md)、[Release 0.4.0](releases/0.4.0.md) | TASK-017 | `/3d-viewer/` 由統一模型及 Markdown 編譯內容建立，五組場景、狀態圖例、WebGL fallback、桌機／手機操作與同步測試通過 |
+| TASK-019 | 完成 Viewer 材質、環境、理念細節、固定鏡位及高解析擷取 | ready | 0.4.1 | [completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md) | TASK-018 | 向光、向雨、向人、向時間及總覽場景具重現性；工作材質與雨／光效果不冒充施工性能；畫面帶模型及內容版本 |
+| TASK-020 | 建立理念介紹 HTML，輸出 PDF／DOCX 並淘汰舊版文件 | queued | 0.5.0 | [公開理念文字](public/swimming-pool-renovation-design-concept.md)、[completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md) | TASK-019 | 理念 HTML 直接讀取 Markdown 內容與 Viewer畫面；PDF及DOCX分別由共同來源產生並通過視覺驗收；替代檔案確認可開啟後才刪除舊版 DOCX |
+
+## 7. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
@@ -67,3 +76,5 @@
 `TASK-015` 已完成並收斂為 [Release 0.3.2](releases/0.3.2.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
 `TASK-016` 已完成並收斂為 [Release 0.3.3](releases/0.3.3.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
+
+`TASK-017`～`TASK-018` 已完成並收斂為 [Release 0.4.0](releases/0.4.0.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署，後續主動工作由 `TASK-019` 接續。

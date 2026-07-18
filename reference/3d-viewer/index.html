@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#15272d">
+  <meta name="description" content="游泳池改建概念設計 3D Viewer：總覽、向光、向雨、向人與向時間五組場景。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%2315272d'/%3E%3Cpath d='M18 45V18h15c9 0 14 4 14 12 0 5-3 9-8 11l9 4H36l-8-10h5c3 0 5-2 5-5s-2-4-6-4h-5v19z' fill='%23efb77f'/%3E%3C/svg%3E">
+  <title>重新定向｜3D Viewer</title>
+</head>
+<body>
+  <main class="viewer-shell" data-viewer-shell data-viewer-ready="false">
+    <header class="topbar">
+      <a class="brand" href="../" aria-label="返回空間參照圖集">
+        <span class="brand-mark">R</span>
+        <span><strong>重新定向</strong><small>3D VIEWER · 概念設計</small></span>
+      </a>
+      <div class="trust-strip">
+        <span data-model-version>MODEL LOADING</span>
+        <span data-model-hash>—</span>
+        <span class="analysis-badge" data-analysis-status data-status="unavailable">分析狀態</span>
+      </div>
+      <div class="compass" data-compass><span>N</span><i></i></div>
+    </header>
+
+    <aside class="controls-panel" aria-label="3D Viewer 控制">
+      <section>
+        <p class="section-kicker">NARRATIVE SCENES</p>
+        <h2>觀看關係</h2>
+        <nav class="scene-nav" data-scene-nav aria-label="敘事場景"></nav>
+      </section>
+      <section>
+        <p class="section-kicker">LAYERS</p>
+        <h2>模型圖層</h2>
+        <div class="layer-list" data-layer-list></div>
+      </section>
+      <section>
+        <p class="section-kicker">CAMERA</p>
+        <div class="view-controls" data-view-controls>
+          <button type="button" data-view="perspective">透視</button>
+          <button type="button" data-view="top">俯視</button>
+          <button type="button" data-view="elevation">池側</button>
+          <button type="button" data-view="opposite">校側</button>
+        </div>
+        <button class="reset-button" type="button" data-reset-view>重設本場景視角</button>
+      </section>
+    </aside>
+
+    <section class="viewport-panel" aria-label="3D 模型視窗">
+      <div class="canvas-host" data-canvas-host>
+        <div class="loading" data-loading role="status"><span></span><p>正在建立統一模型…</p></div>
+        <section class="webgl-fallback" data-webgl-fallback hidden>
+          <div class="fallback-illustration" aria-hidden="true">
+            <i class="fallback-pool"></i><i class="fallback-core"></i><i class="fallback-roof"></i>
+          </div>
+          <p class="section-kicker">STATIC OVERVIEW</p>
+          <h1>你的瀏覽器目前無法顯示 WebGL</h1>
+          <p>仍可閱讀五組設計理念，並前往空間參照圖集查看具有尺寸與狀態的 2D／軸測圖。</p>
+          <a href="../">開啟空間參照圖集</a>
+        </section>
+        <p class="error-message" data-error hidden></p>
+        <div class="viewport-hint">拖曳旋轉 · 右鍵平移 · 滾輪縮放 · Enter 選取</div>
+      </div>
+      <footer class="legend-bar" aria-label="設計狀態圖例">
+        <span><i data-status="confirmed"></i> confirmed 已確認幾何</span>
+        <span><i data-status="working"></i> working 概念工作值</span>
+        <span><i data-status="deferred"></i> deferred 待專業精化</span>
+      </footer>
+    </section>
+
+    <aside class="information-panel">
+      <section class="selection-panel">
+        <label for="object-select">模型構件</label>
+        <select id="object-select" data-object-select><option>載入中…</option></select>
+        <div data-selection-info>
+          <p class="section-kicker">SELECT AN ELEMENT</p>
+          <h3>點選模型查看狀態</h3>
+          <p>每個構件會標示 confirmed、working 或 deferred；概念效果不等同施工性能。</p>
+        </div>
+      </section>
+      <article class="concept-content" data-concept-content aria-live="polite"></article>
+    </aside>
+  </main>
+  <noscript>此 3D Viewer 需要 JavaScript。請前往 <a href="../">空間參照圖集</a>。</noscript>
+  <script type="module" src="../src/3d-viewer/main.ts"></script>
+</body>
+</html>

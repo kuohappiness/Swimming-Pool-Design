@@ -19,10 +19,16 @@ export interface ReferenceGeometry {
   femaleL2Bounds: PlanBounds;
   flightRun: number;
   stairTotalRun: number;
+  stairTotalRise: number;
   stairStartX: number;
   stairEndX: number;
   riserHeight: number;
   midLandingElevation: number;
+  l1Elevation: number;
+  l2Elevation: number;
+  l2VolumeHeight: number;
+  planPivot: { x: number; y: number; z: number };
+  mirrorVisualWallHeight: number;
   roofPlanStartX: number;
   roofPlanEndX: number;
   roofPlanRun: number;

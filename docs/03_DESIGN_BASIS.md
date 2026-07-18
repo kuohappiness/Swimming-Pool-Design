@@ -15,6 +15,7 @@
 | `building.l2ExtensionLength` | 5.0 m | working | 由 D 軸至原服務核心邊界的可修改首版參數 | DB-003 |
 | `building.l2ProgramLength` | 16.0 m | working | 11.0 m 原核心加 5.0 m 二樓專用擴建量體 | DB-003 |
 | `building.l2SplitAxisX` | 27.0 m（E 軸） | working | L2 16.0 m 範圍的中央男女分流軸 | DB-003 |
+| `building.l2VolumeHeight` | 3.6 m | working | 現有概念剖面的 Viewer 視覺量體高度；不是施工層高定案 | DB-006 |
 | `pool.length` | 20.5 m | working | 延續 V02 池體工作幾何 | DB-002 |
 | `pool.width` | 7.5 m | working | 三水道配置 | DB-002 |
 | `pool.shallowDepth` | 1.2 m | confirmed | 使用者已確認 | DB-001 |
@@ -30,6 +31,8 @@
 | `site.longAxisBearing` | 307° | working | 修正本地 +X，使其由泳池遠端指向綠色原廁所／服務核心基地 | DB-003 |
 | `geometry.solarReflection.planRotation` | +9.5°（由上往下看順時針） | confirmed geometry | 0.3.0 代表日選角與使用者確認；連續暖季性能由 `OPEN-011` 管理 | DB-004／DEC-037 |
 | `geometry.solarReflection.mirrorLeanFromVertical` | +8.5°（由垂直向泳池側外傾） | confirmed geometry | 0.3.0 代表日比較、外觀／構造平衡與使用者確認；不得解讀為整個暖季零命中 | DB-004／DEC-037 |
+| `geometry.solarReflection.planPivot` | `[L2 起點 X, 建築寬度中心, L2 標高]`；現值 `[19.0, 6.75, 4.500] m` | working | Viewer 與既有分析的旋轉支點策略；最終結構支點由 `OPEN-011` 管理 | DB-006 |
+| `geometry.solarReflection.mirrorVisualWallHeight` | 3.6 m | working | Viewer 完整外牆視覺高度；和能量分析 3.0 m 有效鏡面假設分離，最終牆高由 `OPEN-011` 管理 | DB-006 |
 
 ## 3. 空間與建築意圖
 

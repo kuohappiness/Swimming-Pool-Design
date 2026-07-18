@@ -1,7 +1,7 @@
 {
-  "schemaVersion": "1.1.0",
-  "modelVersion": "0.3.3",
-  "revision": "2026-07-17",
+  "schemaVersion": "1.2.0",
+  "modelVersion": "0.4.0",
+  "revision": "2026-07-18",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -26,8 +26,8 @@
       "utcOffsetHours": 8
     },
     "levels": [
-      { "id": "L1", "name": "一樓", "elevation": 0 },
-      { "id": "L2", "name": "二樓", "elevation": 4.5 },
+      { "id": "L1", "name": "一樓", "elevation": 0, "status": "confirmed", "sourceIds": [] },
+      { "id": "L2", "name": "二樓", "elevation": 4.5, "status": "confirmed", "sourceIds": [] },
       { "id": "RF", "name": "斜屋頂", "elevation": null, "status": "working" }
     ],
     "grids": {
@@ -53,7 +53,8 @@
       "width": { "value": 13.5, "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
       "poolHallLength": { "value": 24, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
       "serviceCoreLength": { "value": 11, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
-      "l2ExtensionLength": { "value": 5, "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] }
+      "l2ExtensionLength": { "value": 5, "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] },
+      "l2VolumeHeight": { "value": 3.6, "status": "working", "sourceIds": ["SRC-CONCEPT-001"] }
     },
     "pool": {
       "origin": [1.75, 3],
@@ -70,8 +71,6 @@
       "highEdge": "l2-extension-edge",
       "pitch": { "value": 4.5, "status": "confirmed", "sourceIds": [] },
       "lowOverhang": { "value": 1.2, "status": "confirmed", "sourceIds": [] },
-      "lowElevation": { "value": 2.91, "status": "working", "sourceIds": [] },
-      "highElevation": { "value": 4.5, "status": "confirmed", "sourceIds": [] },
       "jointEntityId": "J-RF-L2-01",
       "supportedByExtension": false,
       "jointStrategy": "independent-curb-movement-joint-double-flashing",
@@ -114,7 +113,6 @@
       "originZ": 0,
       "upperEndAlignment": "l2-split-axis",
       "width": 1.8,
-      "totalRise": 4.5,
       "riserCount": 30,
       "runs": 2,
       "risersPerRun": 15,
@@ -155,6 +153,18 @@
       "mirrorLeanDirection": "toward-pool",
       "azimuthTolerance": { "value": 28, "status": "working", "sourceIds": [] },
       "minimumDownwardAngle": { "value": 8, "status": "working", "sourceIds": [] },
+      "planPivot": {
+        "strategy": "l2-start-width-center",
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-011"
+      },
+      "mirrorVisualWallHeight": {
+        "value": 3.6,
+        "status": "working",
+        "sourceIds": ["SRC-CONCEPT-009"],
+        "openItemId": "OPEN-011"
+      },
       "openItemId": "OPEN-011"
     }
   },

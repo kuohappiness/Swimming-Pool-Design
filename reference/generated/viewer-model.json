@@ -1,0 +1,247 @@
+{
+  "schemaVersion": "1.0.0",
+  "modelVersion": "0.4.0",
+  "revision": "2026-07-18",
+  "modelHash": "4b4680733da972146c3bb4c950ffa3990bbef70cb59a74f598ddb5c41d6213b4",
+  "project": {
+    "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
+    "shortName": "Swimming Pool Design",
+    "purpose": "概念設計與空間參照",
+    "disclaimer": "概念設計，非施工、結構、消防或法規核定圖說"
+  },
+  "referenceSystem": {
+    "unit": "m",
+    "angleUnit": "degree",
+    "localLongAxisBearingFromTrueNorth": 307,
+    "axes": {
+      "x": "east",
+      "y": "north",
+      "z": "up"
+    },
+    "coordinateAdapter": {
+      "modelX": "threeX",
+      "modelY": "threeZ",
+      "modelZ": "threeY"
+    }
+  },
+  "geometry": {
+    "building": {
+      "length": {
+        "value": 35,
+        "status": "working",
+        "sourceIds": [
+          "SRC-SITE-001",
+          "SRC-CONCEPT-005"
+        ]
+      },
+      "width": {
+        "value": 13.5,
+        "status": "working",
+        "sourceIds": [
+          "SRC-SITE-001",
+          "SRC-CONCEPT-005"
+        ]
+      },
+      "poolHallLength": {
+        "value": 24,
+        "status": "working",
+        "sourceIds": [
+          "SRC-CONCEPT-005"
+        ]
+      },
+      "serviceCoreLength": {
+        "value": 11,
+        "status": "working",
+        "sourceIds": [
+          "SRC-CONCEPT-005"
+        ]
+      }
+    },
+    "pool": {
+      "origin": [
+        1.75,
+        3
+      ],
+      "length": {
+        "value": 20.5,
+        "status": "working",
+        "sourceIds": [
+          "SRC-CONCEPT-003"
+        ]
+      },
+      "width": {
+        "value": 7.5,
+        "status": "working",
+        "sourceIds": [
+          "SRC-CONCEPT-003"
+        ]
+      },
+      "shallowDepth": {
+        "value": 1.2,
+        "status": "confirmed",
+        "sourceIds": []
+      },
+      "deepDepth": {
+        "value": 1.5,
+        "status": "confirmed",
+        "sourceIds": []
+      },
+      "laneCount": 3
+    },
+    "l2": {
+      "startX": 19,
+      "endX": 35,
+      "length": 16,
+      "width": 13.5,
+      "baseElevation": 4.5,
+      "volumeHeight": {
+        "value": 3.6,
+        "status": "working",
+        "sourceIds": [
+          "SRC-CONCEPT-001"
+        ]
+      },
+      "planRotation": {
+        "value": 9.5,
+        "status": "confirmed",
+        "sourceIds": []
+      },
+      "planPivot": {
+        "x": 19,
+        "y": 6.75,
+        "z": 4.5,
+        "status": "working",
+        "strategy": "l2-start-width-center",
+        "openItemId": "OPEN-011"
+      }
+    },
+    "roof": {
+      "startX": -1.2,
+      "endX": 19,
+      "planRun": 19,
+      "totalRun": 20.2,
+      "width": 13.5,
+      "pitch": {
+        "value": 4.5,
+        "status": "confirmed",
+        "sourceIds": []
+      },
+      "lowOverhang": {
+        "value": 1.2,
+        "status": "confirmed",
+        "sourceIds": []
+      },
+      "highElevation": 4.5,
+      "farWallElevation": 3.0046675703322494,
+      "lowElevation": 2.9102255221427074,
+      "rainCurtain": {
+        "entityId": "RC-RF-01",
+        "type": "passive-full-width-overflow-curtain",
+        "equalizationTrough": true,
+        "dryWeatherRecirculation": false,
+        "catchTrenchEntityId": "RW-TR-01",
+        "catchTrenchType": "closed-isolated-removable-grating",
+        "groundRunoffIsolated": true,
+        "extremeRainBypass": "independent-high-level-overflow"
+      },
+      "rainwaterReuse": {
+        "entityId": "RW-01",
+        "source": "roof-only",
+        "firstFlush": true,
+        "debrisScreen": true,
+        "settlingAndFiltration": true,
+        "coveredStorage": true,
+        "use": "l1-toilet-flushing",
+        "potableMakeupIsolation": "visible-air-gap-or-approved-equivalent",
+        "identifiedSeparatePipework": true,
+        "overflow": "site-stormwater-or-infiltration",
+        "capacityStatus": "deferred",
+        "openItemId": "OPEN-014"
+      }
+    },
+    "mirror": {
+      "entityId": "F-MIR-01",
+      "visualWallHeight": {
+        "value": 3.6,
+        "status": "working",
+        "sourceIds": [
+          "SRC-CONCEPT-009"
+        ],
+        "openItemId": "OPEN-011"
+      },
+      "leanFromVertical": {
+        "value": 8.5,
+        "status": "confirmed",
+        "sourceIds": []
+      },
+      "openItemId": "OPEN-011",
+      "performanceSurface": "separate-analysis-assumption"
+    },
+    "stair": {
+      "entityId": "ST-01",
+      "startX": 16.799999999999997,
+      "endX": 27,
+      "originY": 0.5,
+      "width": 1.8,
+      "totalRise": 4.5,
+      "riserCount": 30,
+      "risersPerRun": 15,
+      "treadsPerRun": 14,
+      "treadDepth": 0.3,
+      "flightRun": 4.2,
+      "midLandingLength": 1.8,
+      "midLandingElevation": 2.25,
+      "status": "confirmed",
+      "guardStatus": "deferred",
+      "guardOpenItemId": "OPEN-013"
+    }
+  },
+  "layers": [
+    {
+      "id": "original",
+      "label": "原建築",
+      "status": "working"
+    },
+    {
+      "id": "new",
+      "label": "新增介入",
+      "status": "working"
+    },
+    {
+      "id": "water",
+      "label": "泳池與水",
+      "status": "confirmed"
+    },
+    {
+      "id": "roof",
+      "label": "玻璃屋頂",
+      "status": "confirmed"
+    },
+    {
+      "id": "stair",
+      "label": "樓梯",
+      "status": "confirmed"
+    },
+    {
+      "id": "rain",
+      "label": "雨簾與回用水路",
+      "status": "deferred"
+    },
+    {
+      "id": "annotations",
+      "label": "幾何註記",
+      "status": "working"
+    }
+  ],
+  "analysis": {
+    "solar": {
+      "status": "current",
+      "recordedModelHash": "4b4680733da972146c3bb4c950ffa3990bbef70cb59a74f598ddb5c41d6213b4",
+      "currentModelHash": "4b4680733da972146c3bb4c950ffa3990bbef70cb59a74f598ddb5c41d6213b4",
+      "sourceIds": [
+        "SRC-SITE-003"
+      ],
+      "disclaimer": "幾何角度已確認；全年光熱、眩光與安全性能仍待專業驗證。"
+    }
+  }
+}

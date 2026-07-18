@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "scenes": [
+    {
+      "id": "overview",
+      "label": "總覽",
+      "camera": { "position": [34, 25, 30], "target": [0, 2.4, 0], "fov": 38 },
+      "layers": ["original", "new", "water", "roof", "stair", "annotations"],
+      "environment": "day"
+    },
+    {
+      "id": "light",
+      "label": "向光",
+      "camera": { "position": [-19, 17, 27], "target": [2, 5.2, 0], "fov": 34 },
+      "layers": ["original", "new", "water", "roof", "annotations"],
+      "environment": "winter-light"
+    },
+    {
+      "id": "rain",
+      "label": "向雨",
+      "camera": { "position": [-34, 12, 22], "target": [-8, 2.8, 0], "fov": 38 },
+      "layers": ["original", "water", "roof", "rain", "annotations"],
+      "environment": "rain"
+    },
+    {
+      "id": "people",
+      "label": "向人",
+      "camera": { "position": [-34, 13, -27], "target": [2, 2.6, -1], "fov": 39 },
+      "layers": ["original", "new", "water", "stair", "annotations"],
+      "environment": "day"
+    },
+    {
+      "id": "time",
+      "label": "向時間",
+      "camera": { "position": [37, 18, 8], "target": [2, 3.2, 0], "fov": 39 },
+      "layers": ["original", "new", "roof", "stair", "annotations"],
+      "environment": "soft"
+    }
+  ]
+}

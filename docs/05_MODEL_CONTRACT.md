@@ -8,21 +8,24 @@
 
 - [空間參照圖集契約](contracts/reference-atlas.md)
 - [太陽研究契約](contracts/solar-study.md)
+- [3D Viewer 契約](contracts/3d-viewer.md)
 
-3D Viewer 或 DXF 進入 active work 後才建立各自的正式輸出契約。
+DXF 進入 active work 後才建立正式輸出契約。
 
 ## 2. 模型結構
 
 模型至少包含：
 
 - `referenceSystem`：單位、世界軸、本地 transform、基地位置、樓層、格網與原點。
-- `geometry`：building、pool、roof、stair、combinedCubicle、solarReflection。
+- `geometry`：building、pool、roof、stair、combinedCubicle、solarReflection；其中 `l2VolumeHeight`、`planPivot` 與 `mirrorVisualWallHeight` 明確保存 Viewer 所需的工作幾何與 OPEN 關聯。
 - `program`：入口、L1 廁所、L2 男女配置與 15＋5 單元。
 - `entities`：跨輸出的穩定 ID registry。
 - `sheets`：現行參照圖及其引用 ID。
 - `sources`：來源路徑、像素或資料筆數／bytes，以及 SHA-256。
 
-`scripts/reference-geometry.mjs` 是 L2 起點、外框、中央分流軸、樓梯定位與屋頂平面跨度的唯一推導層。模型保存基礎參數，consumer 使用推導結果，不保存結果常數。
+`scripts/reference-geometry.mjs` 是 L2 起點、外框、中央分流軸、樓梯定位、屋頂跨度與所有垂直關係的唯一推導層。`referenceSystem.levels.L2.elevation` 是 L2 高度的 canonical input；`stairTotalRise`、`roofHighElevation`、`roofFarWallElevation` 與 `roofLowElevation` 都是 derived output，不得回存 `geometry.stair.totalRise` 或屋頂高低標高形成第二答案。模型保存基礎參數，consumer 使用推導結果。
+
+`geometry.building.l2VolumeHeight = 3.6 m` 是概念剖面的 `working` 視覺量體高度。`geometry.solarReflection.planPivot` 只保存 `l2-start-width-center` 推導策略及 `OPEN-011`；座標由 L2 起點、建築寬度中心及 L2 標高產生。`mirrorVisualWallHeight = 3.6 m` 是 Viewer 完整牆面的工作值，和日照能量分析的 `mirrorHeight = 3.0 m` 假設分離，兩者不得互相冒充。
 
 `geometry.solarReflection` 是日照分析與各輸出的單一角度契約：`planRotation` 為由上往下看順時針 +9.5°、`mirrorLeanFromVertical` 為向泳池側外傾 +8.5°，兩者的 confirmed 只表示建築幾何已核准。`azimuthTolerance` 28° 與 `minimumDownwardAngle` 8° 是方向代理篩檢的 working 門檻，不是有限池面、kWh、照度、眩光或熱效能的安全標準。依 `DEC-039`，性能 consumer 必須比較相同氣象、幾何與材料假設下的「有鏡－無鏡」池面入射能量，原本已有直射的區域仍須計入鏡面疊加。整個物件連結 `OPEN-011`，表示旋轉支點、鏡牆上下緣／牆高、季節控制表皮、玻璃與鏡面材料、框架遮蔭與最終性能仍未解決；依 `DEC-040`，季節採光腔、旋轉葉片、捲屏、摺板或外置百葉都不得成為模型預設答案。
 
@@ -74,7 +77,7 @@ type Measure = NumericMeasure | DeferredMeasure;
 - `ST-01` 為兩段同向、S1 雙連續箱型鋼梯梁、封閉踢面、乾式玻璃廊、梯下開放，且不由屋頂承重。模型精確保存 30 級高／兩跑各 15、兩跑各 14 踏面、0.300 m 踏深、1.800 m 平台與 10.200 m 總平面長度；geometry helper 由踏面數而非級高數推導 4.200 m 梯段。防墜以 B 全高弦幕為主、A 夾層玻璃為備，材料與集力節點維持 `deferred` 並連結 `OPEN-013`。
 - L2 外框由原核心與 `EXT-L2-01` 組成；擴建量體下方 L1 保持開放。
 - `RF-GL-01` 由泳池遠端以 4.5° 上升至 L2 擴建邊緣；室內平面跨度由 `l2ExtensionLength` 推導為 19.0 m，低端再向遠端短邊牆外延伸 1.2 m。
-- `RF-GL-01` 高端與 `level.L2` 同為 +4.500 m；遠端短邊牆處約 +3.005 m，外側滴水端約 +2.910 m。模型保存 4.5°、1.2 m 外挑及高／低標高，helper 重新推導 19.0／20.2 m 水平長度與短邊牆標高並由 validator 比對。
+- `RF-GL-01` 高端由 `level.L2` 推導為 +4.500 m；遠端短邊牆處約 +3.005 m，外側滴水端約 +2.910 m。模型只保存 4.5°、1.2 m 外挑及 canonical 樓層標高；helper 推導 19.0／20.2 m 水平長度及三個屋頂標高並由 validator 比對。
 - `J-RF-L2-01` 必須保持玻璃屋頂與擴建量體結構獨立；L2 外殼薄遮簷只形成遮蔽與視覺層次，不得成為 `RF-GL-01` 的必要支承。
 - `RC-RF-01` 是全寬被動雨簾，`RW-TR-01` 是封閉、可拆洗且與地坪逕流隔離的承接溝；模型明確要求 `dryWeatherRecirculation = false`、`groundRunoffIsolated = true` 及獨立高位極端雨量旁通。
 - `RW-01` 只使用屋頂水，固定濾網、初雨分流、沉砂／過濾、加蓋儲存、獨立標示管線、防回流補水與 L1 沖廁語意；容量仍為 `deferred` 並連結 `OPEN-014`。
@@ -93,9 +96,10 @@ type Measure = NumericMeasure | DeferredMeasure;
 4. 男女 15＋5、整合機能、壁掛櫃及無集中櫃區成立。
 5. 樓梯、屋頂、分區與結構獨立規則成立；入口路徑與樓梯 bounds 不相交也不相切，且淨空大於零。
 6. 修改 `l2ExtensionLength` 後，L2 起點、外框、分流軸、樓梯與屋頂跨度同步更新。
-7. deferred 量測具有 OPEN ID 且沒有數值；已確認屋頂標高則必須與坡度、跨度及外挑推導值一致。
+7. deferred 量測具有 OPEN ID 且沒有數值；L2 canonical elevation 變更時，樓梯總升高、屋頂標高、Viewer 標籤及理念 token 同步改變，依賴舊 hash 的分析必須標示 stale。
 8. consumer 需要的 entity 與 sheet 引用完整。
 9. `geometry.solarReflection` 精確保存 confirmed geometry +9.5°／+8.5°、方向、working 方向篩檢門檻及 `OPEN-011` 關聯；legacy `mirrorFacade`、`leanAngle` 或 display-only geometry 欄位仍不得成為第二套答案。日照 consumer 必須區分單一時刻方向代理與 PVGIS TMY 有鏡／無鏡能量結果，不得用方向命中、受光面積或未核准太陽遮罩取代 `DEC-039` 的性能判定。
 10. 雨簾維持被動、全寬、封閉隔離承接及獨立旁通；回用來源只能是屋頂水，容量 deferred 必須連結 `OPEN-014`。
+11. Viewer 工作支點、視覺量體高度與視覺鏡牆高度具有狀態及 OPEN；世界、L2 與鏡牆 transform 各只作用於正確層級。
 
 尚未符合本契約的已知模型／輸出差異，不在本文件偽裝成另一套答案；其執行狀態由 [07｜Active Work](07_ACTIVE_WORK.md) 管理。

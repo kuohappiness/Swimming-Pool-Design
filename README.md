@@ -6,9 +6,9 @@
 
 ## 目前版本
 
-- 套件版本：`0.3.3`
-- 模型版本：`0.3.3`
-- 下一個目標版本：待排定
+- 套件版本：`0.4.0`
+- 模型版本：`0.4.0`
+- 下一個目標版本：`0.4.1`
 - 當前工作與待修順序：[07｜Active Work](docs/07_ACTIVE_WORK.md)
 
 ## 本機使用
@@ -20,6 +20,10 @@ npm run dev
 
 Vite 顯示的 Network URL 可由同一 Wi-Fi 的手機開啟。提交前完整驗證：
 
+- 空間參照圖集：`/`
+- 日照互動研究：`/solar-study/`
+- 3D Viewer：`/3d-viewer/`
+
 ```powershell
 npm run build
 ```
@@ -28,6 +32,7 @@ npm run build
 
 - [空間參照圖集](https://kuohappiness.github.io/Swimming-Pool-Design/)
 - [冬夏日照互動研究](https://kuohappiness.github.io/Swimming-Pool-Design/solar-study/)
+- [3D Viewer](https://kuohappiness.github.io/Swimming-Pool-Design/3d-viewer/)
 
 每次 `main` 通過驗證並推送後，GitHub Actions 會重新建置及更新公開網站；本機尚未 push 的變更不會上線。
 

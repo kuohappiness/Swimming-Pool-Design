@@ -6,6 +6,7 @@ import { deriveReferenceGeometry } from './reference-geometry.mjs';
 const GEOMETRY_TOLERANCE = 0.002;
 const EXPECTED_LOCAL_ORIGIN = [27, 0, 0];
 const FORBIDDEN_FORMAL_GEOMETRY_FIELDS = new Set(['mirrorFacade', 'leanAngle', 'displayRoofElevation']);
+const FORBIDDEN_DERIVED_ROOF_FIELDS = new Set(['highElevation', 'lowElevation', 'farWallElevation']);
 const SOURCE_CONTRACTS = {
   'SRC-CONCEPT-009': {
     id: 'SRC-CONCEPT-009',
@@ -191,6 +192,18 @@ export function validateModel(model) {
   if (solar?.openItemId !== 'OPEN-011') {
     errors.push('solar reflection must remain linked to OPEN-011');
   }
+  if (solar?.planPivot?.strategy !== 'l2-start-width-center'
+    || solar?.planPivot?.status !== 'working'
+    || solar?.planPivot?.openItemId !== 'OPEN-011'
+    || !Array.isArray(solar?.planPivot?.sourceIds)) {
+    errors.push('solar plan pivot must remain a working L2-start/width-center strategy linked to OPEN-011');
+  }
+  if (solar?.mirrorVisualWallHeight?.value !== 3.6
+    || solar?.mirrorVisualWallHeight?.status !== 'working'
+    || solar?.mirrorVisualWallHeight?.openItemId !== 'OPEN-011'
+    || !Array.isArray(solar?.mirrorVisualWallHeight?.sourceIds)) {
+    errors.push('mirror visual wall height must remain a 3.6 m working value linked to OPEN-011');
+  }
   const { building, pool, roof, stair, combinedCubicle } = geometry;
   if (!building || !pool || !roof || !stair || !combinedCubicle) {
     errors.push('model.geometry must include building, pool, roof, stair, and combinedCubicle');
@@ -203,14 +216,14 @@ export function validateModel(model) {
     ['building.poolHallLength', building.poolHallLength],
     ['building.serviceCoreLength', building.serviceCoreLength],
     ['building.l2ExtensionLength', building.l2ExtensionLength],
+    ['building.l2VolumeHeight', building.l2VolumeHeight],
     ['pool.length', pool.length],
     ['pool.width', pool.width],
     ['pool.shallowDepth', pool.shallowDepth],
     ['pool.deepDepth', pool.deepDepth],
     ['roof.pitch', roof.pitch],
     ['roof.lowOverhang', roof.lowOverhang],
-    ['roof.lowElevation', roof.lowElevation],
-    ['roof.highElevation', roof.highElevation],
+    ['solarReflection.mirrorVisualWallHeight', solar.mirrorVisualWallHeight],
   ];
   for (const [label, measure] of numericMeasures) {
     if (!Number.isFinite(measure?.value) || measure.value <= 0 || measure.status === 'deferred') {
@@ -272,8 +285,14 @@ export function validateModel(model) {
     if (!sourceIds.includes(sourceId)) errors.push(`site location references missing source ${sourceId}`);
   }
   const rfLevel = model.referenceSystem?.levels?.find((level) => level.id === 'RF');
+  const l1Level = model.referenceSystem?.levels?.find((level) => level.id === 'L1');
   const l2Level = model.referenceSystem?.levels?.find((level) => level.id === 'L2');
-  if (l2Level?.elevation !== 4.5) errors.push('L2 level must remain +4.500 m');
+  if (l1Level?.elevation !== 0 || l1Level?.status !== 'confirmed' || !Array.isArray(l1Level?.sourceIds)) {
+    errors.push('L1 level must remain the confirmed 0.000 m canonical datum');
+  }
+  if (l2Level?.elevation !== 4.5 || l2Level?.status !== 'confirmed' || !Array.isArray(l2Level?.sourceIds)) {
+    errors.push('L2 level must remain the confirmed +4.500 m canonical elevation');
+  }
   if (rfLevel?.elevation !== null || rfLevel?.status !== 'working' || Object.hasOwn(rfLevel ?? {}, 'openItemId')) {
     errors.push('RF must remain a working sloped level without a false single elevation');
   }
@@ -284,10 +303,14 @@ export function validateModel(model) {
   if (roof.highEdge !== 'l2-extension-edge' || roof.lowEdge !== 'far-pool-end') {
     errors.push('roof must rise from the far pool end to the L2 extension edge');
   }
-  if (roof.highElevation?.value !== 4.5 || roof.highElevation?.status !== 'confirmed'
-    || roof.lowElevation?.status !== 'working'
-    || !derived
-    || !closeTo(roof.lowElevation?.value, derived.roofLowElevation)
+  for (const field of FORBIDDEN_DERIVED_ROOF_FIELDS) {
+    if (Object.hasOwn(roof, field)) {
+      errors.push(`roof must not duplicate derived ${field}; referenceSystem.levels.L2.elevation is canonical`);
+    }
+  }
+  if (!derived
+    || !closeTo(derived.roofHighElevation, l2Level?.elevation)
+    || !closeTo(derived.roofLowElevation, 2.91, 0.002)
     || !closeTo(derived.roofFarWallElevation, 3.005, 0.002)) {
     errors.push('roof elevations must derive from +4.500 m, 4.5 degrees, 19.0 m run, and 1.2 m overhang');
   }
@@ -328,7 +351,10 @@ export function validateModel(model) {
     errors.push('rainwater reuse must remain roof-only, maintainable, isolated, and linked to OPEN-014 sizing');
   }
 
-  if (stair.totalRise !== 4.5
+  if (Object.hasOwn(stair, 'totalRise')) {
+    errors.push('ST-01 must not duplicate totalRise; L2 minus L1 elevation is canonical');
+  }
+  if (derived?.stairTotalRise !== 4.5
     || stair.width !== 1.8
     || stair.riserCount !== 30
     || stair.runs !== 2

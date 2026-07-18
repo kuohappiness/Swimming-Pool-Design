@@ -88,6 +88,21 @@ test('authoritative reference model is internally consistent', () => {
   assert.deepEqual(validateModel(clone()), []);
 });
 
+test('uses L2 elevation as the only roof and stair height input', () => {
+  const model = clone();
+  const l2 = model.referenceSystem.levels.find((level) => level.id === 'L2');
+  l2.elevation = 4.8;
+  const derived = deriveReferenceGeometry(model);
+  assert.equal(derived.l2Elevation, 4.8);
+  assert.equal(derived.stairTotalRise, 4.8);
+  assert.equal(derived.roofHighElevation, 4.8);
+  assert.equal(derived.riserHeight, 0.16);
+  assert.equal(derived.midLandingElevation, 2.4);
+  assert.equal(Object.hasOwn(model.geometry.roof, 'highElevation'), false);
+  assert.equal(Object.hasOwn(model.geometry.roof, 'lowElevation'), false);
+  assert.equal(Object.hasOwn(model.geometry.stair, 'totalRise'), false);
+});
+
 test('package, lockfile, model, and README release versions stay synchronized', async () => {
   const packageJson = JSON.parse(await readFile(resolve(repoRoot, 'package.json'), 'utf8'));
   const packageLock = JSON.parse(await readFile(resolve(repoRoot, 'package-lock.json'), 'utf8'));
@@ -109,8 +124,10 @@ test('derived L2 zones stay equal and the stair ends on the split axis', () => {
 });
 
 test('ST-01 stores the approved 4.5 m geometry and conditional guard strategy', () => {
-  const stair = clone().geometry.stair;
-  assert.equal(stair.totalRise, 4.5);
+  const model = clone();
+  const stair = model.geometry.stair;
+  assert.equal(deriveReferenceGeometry(model).stairTotalRise, 4.5);
+  assert.equal(Object.hasOwn(stair, 'totalRise'), false);
   assert.equal(stair.riserCount, 30);
   assert.equal(stair.risersPerRun, 15);
   assert.equal(stair.treadsPerRun, 14);
@@ -131,9 +148,12 @@ test('ST-01 stores the approved 4.5 m geometry and conditional guard strategy', 
 });
 
 test('roof owns the approved 4.5 degree joint, passive curtain, and roof-only reuse strategy', () => {
-  const roof = clone().geometry.roof;
+  const model = clone();
+  const roof = model.geometry.roof;
   assert.equal(roof.pitch.value, 4.5);
-  assert.equal(roof.highElevation.value, 4.5);
+  assert.equal(deriveReferenceGeometry(model).roofHighElevation, 4.5);
+  assert.equal(Object.hasOwn(roof, 'highElevation'), false);
+  assert.equal(Object.hasOwn(roof, 'lowElevation'), false);
   assert.equal(roof.lowOverhang.value, 1.2);
   assert.equal(roof.supportedByExtension, false);
   assert.equal(roof.l2Visor.supportsRoof, false);
@@ -146,7 +166,7 @@ test('roof owns the approved 4.5 degree joint, passive curtain, and roof-only re
 
 test('rejects stale ST-01 geometry, unsafe guard resolution, and active roof support', () => {
   const staleRise = clone();
-  staleRise.geometry.stair.totalRise = 3.6;
+  staleRise.referenceSystem.levels.find((level) => level.id === 'L2').elevation = 3.6;
   assert.match(validateModel(staleRise).join('\n'), /ST-01 approved geometry/);
 
   const staleTreads = clone();
@@ -406,7 +426,7 @@ test('rejects a central locker area', () => {
 test('rejects roof elevations that drift from the approved 4.5 degree geometry', () => {
   const model = clone();
   model.geometry.roof.highElevation = { value: 9, status: 'working', sourceIds: [] };
-  assert.match(validateModel(model).join('\n'), /roof elevations must derive from \+4\.500 m/);
+  assert.match(validateModel(model).join('\n'), /roof must not duplicate derived highElevation/);
 });
 
 test('rejects a second orientation answer', () => {
@@ -439,8 +459,9 @@ test('registers the confirmed pool-facing mirror facade', () => {
     status: 'confirmed',
     sourceIds: ['SRC-CONCEPT-009'],
   });
-  assert.equal(model.geometry.roof.highElevation.value, 4.5);
-  assert.equal(model.geometry.roof.lowElevation.value, 2.91);
+  const derived = deriveReferenceGeometry(model);
+  assert.equal(derived.roofHighElevation, 4.5);
+  assert.ok(closeTo(derived.roofLowElevation, 2.91));
 });
 
 test('owns the confirmed solar reflection geometry in one model object', () => {
@@ -452,6 +473,18 @@ test('owns the confirmed solar reflection geometry in one model object', () => {
     mirrorLeanDirection: 'toward-pool',
     azimuthTolerance: { value: 28, status: 'working', sourceIds: [] },
     minimumDownwardAngle: { value: 8, status: 'working', sourceIds: [] },
+    planPivot: {
+      strategy: 'l2-start-width-center',
+      status: 'working',
+      sourceIds: [],
+      openItemId: 'OPEN-011',
+    },
+    mirrorVisualWallHeight: {
+      value: 3.6,
+      status: 'working',
+      sourceIds: ['SRC-CONCEPT-009'],
+      openItemId: 'OPEN-011',
+    },
     openItemId: 'OPEN-011',
   });
 });
@@ -581,8 +614,9 @@ test('rejects formal mirror and display-only geometry fields', () => {
       validateModel(model).join('\n'),
       new RegExp(`model\\.geometry(?:\\.${path.slice(0, -1).join('\\.')})? must not define ${field}`),
     );
-    assert.equal(model.geometry.roof.highElevation.value, 4.5);
-    assert.equal(model.geometry.roof.lowElevation.value, 2.91);
+    const derived = deriveReferenceGeometry(model);
+    assert.equal(derived.roofHighElevation, 4.5);
+    assert.ok(closeTo(derived.roofLowElevation, 2.91));
   }
 });
 
@@ -633,7 +667,7 @@ test('REF-401 renders the approved conceptual section language and accessible ta
     .split(' ')
     .map((point) => point.split(',').map(Number));
   assert.equal(roofPoints?.length, 4);
-  const l2FloorY = 530 - sourceModel.geometry.stair.totalRise * 27;
+  const l2FloorY = 530 - deriveReferenceGeometry(sourceModel).stairTotalRise * 27;
   assert.ok(closeTo(roofPoints[1][1], l2FloorY), 'roof high end must align with the L2 floor');
   assert.ok(roofPoints[0][0] < 105, 'roof low edge must project beyond the far wall');
   assert.ok(closeTo(
