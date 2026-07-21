@@ -1,210 +1,103 @@
-const numericValue = (measure, label) => {
-  const value = measure?.value;
-  if (!Number.isFinite(value)) throw new TypeError(`${label} must be a finite numeric measure.`);
-  return value;
-};
+import { resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
 
-const finiteNumber = (value, label) => {
+const finite = (value, label) => {
   if (!Number.isFinite(value)) throw new TypeError(`${label} must be a finite number.`);
   return value;
 };
 
-const levelElevation = (model, id) => {
-  const level = model?.referenceSystem?.levels?.find((candidate) => candidate?.id === id);
-  return finiteNumber(level?.elevation, `referenceSystem.levels.${id}.elevation`);
-};
+const size = (bounds) => ({
+  length: finite(bounds.x2, 'bounds.x2') - finite(bounds.x1, 'bounds.x1'),
+  width: finite(bounds.y2, 'bounds.y2') - finite(bounds.y1, 'bounds.y1'),
+});
 
 export function deriveReferenceGeometry(model) {
-  const building = model?.geometry?.building;
-  const stair = model?.geometry?.stair;
-  const roof = model?.geometry?.roof;
-  if (!building || !stair || !roof) throw new TypeError('Model building, stair, and roof geometry are required.');
+  const active = resolveActiveGeometry(model);
+  const site = resolveGeometryEntity(active, 'SITE-01');
+  const building = resolveGeometryEntity(active, 'BLDG-01');
+  const poolHall = resolveGeometryEntity(active, 'Z-PH-01');
+  const pool = resolveGeometryEntity(active, 'POOL-01');
+  const serviceWing = resolveGeometryEntity(active, 'CORE-01');
+  const rightSetback = resolveGeometryEntity(active, 'Z-L1-SETBACK-01');
+  const l2 = resolveGeometryEntity(active, 'L2-PLATE-01');
+  const l3 = resolveGeometryEntity(active, 'L3-PLATE-01');
+  const roof = resolveGeometryEntity(active, 'RF-GL-01');
+  const stair = resolveGeometryEntity(active, 'ST-01');
+  const siteSize = size(site.bounds);
+  const buildingSize = size(building.bounds);
+  const poolSize = size(pool.bounds);
+  const l2Size = size(l2.bounds);
+  const stairSize = size(stair.bounds);
+  const levels = active.levels;
+  const stairData = active.stair;
+  const roofData = active.roof;
+  const l3Data = active.l3;
 
-  const buildingLength = numericValue(building.length, 'building.length');
-  const buildingWidth = numericValue(building.width, 'building.width');
-  const poolHallLength = numericValue(building.poolHallLength, 'building.poolHallLength');
-  const serviceCoreLength = numericValue(building.serviceCoreLength, 'building.serviceCoreLength');
-  const l2ExtensionLength = numericValue(building.l2ExtensionLength, 'building.l2ExtensionLength');
-  const l2VolumeHeight = numericValue(building.l2VolumeHeight, 'building.l2VolumeHeight');
-  const entranceThresholdX = finiteNumber(
-    model?.referenceSystem?.worldTransform?.localOrigin?.[0],
-    'referenceSystem.worldTransform.localOrigin[0]',
-  );
-  const entranceThresholdY = finiteNumber(
-    model?.referenceSystem?.worldTransform?.localOrigin?.[1],
-    'referenceSystem.worldTransform.localOrigin[1]',
-  );
-  const risersPerRun = finiteNumber(stair.risersPerRun, 'stair.risersPerRun');
-  const treadsPerRun = finiteNumber(stair.treadsPerRun, 'stair.treadsPerRun');
-  const treadDepth = finiteNumber(stair.treadDepth, 'stair.treadDepth');
-  const midLandingLength = finiteNumber(stair.midLandingLength, 'stair.midLandingLength');
-  const l1Elevation = levelElevation(model, 'L1');
-  const l2Elevation = levelElevation(model, 'L2');
-  const totalRise = l2Elevation - l1Elevation;
-  const riserCount = finiteNumber(stair.riserCount, 'stair.riserCount');
-  const roofPitch = numericValue(roof.pitch, 'roof.pitch');
-  const roofLowOverhang = numericValue(roof.lowOverhang, 'roof.lowOverhang');
-  const roofHighElevation = l2Elevation;
-  const mirrorVisualWallHeight = numericValue(
-    model?.geometry?.solarReflection?.mirrorVisualWallHeight,
-    'solarReflection.mirrorVisualWallHeight',
-  );
-
-  if (buildingLength <= 0 || buildingWidth <= 0 || poolHallLength <= 0 || serviceCoreLength <= 0) {
-    throw new RangeError('Building dimensions must be positive.');
+  if (Math.abs(stairSize.length - stairData.totalPlanLength) > 1e-9) {
+    throw new RangeError('ST-01 bounds and totalPlanLength must match.');
   }
-  if (l2ExtensionLength <= 0 || l2ExtensionLength >= poolHallLength) {
-    throw new RangeError('building.l2ExtensionLength must be greater than 0 and smaller than the pool hall length.');
+  if (Math.abs(stairSize.width - stairData.clearWidth) > 1e-9) {
+    throw new RangeError('ST-01 bounds and clearWidth must match.');
   }
-  if (risersPerRun <= 0 || treadsPerRun <= 0 || treadDepth <= 0 || midLandingLength <= 0
-    || l2VolumeHeight <= 0 || totalRise <= 0 || riserCount <= 0 || roofPitch <= 0
-    || roofLowOverhang <= 0 || mirrorVisualWallHeight <= 0) {
-    throw new RangeError('Stair run inputs must be positive.');
-  }
-  if (!Number.isInteger(risersPerRun) || !Number.isInteger(treadsPerRun)
-    || treadsPerRun !== risersPerRun - 1) {
-    throw new RangeError('stair.treadsPerRun must equal stair.risersPerRun - 1.');
-  }
-
-  const l1ServiceStartX = poolHallLength;
-  const l1ServiceEndX = buildingLength;
-  const l1SplitAxisX = (l1ServiceStartX + l1ServiceEndX) / 2;
-  const l2StartX = poolHallLength - l2ExtensionLength;
-  const l2EndX = buildingLength;
-  const l2Length = l2EndX - l2StartX;
-  const l2SplitAxisX = (l2StartX + l2EndX) / 2;
-  const flightRun = treadsPerRun * treadDepth;
-  const stairTotalRun = flightRun * stair.runs + midLandingLength;
-  const stairStartX = l2SplitAxisX - stairTotalRun;
-  const stairEndX = l2SplitAxisX;
-  const riserHeight = totalRise / riserCount;
-  const midLandingElevation = riserHeight * risersPerRun;
-  const roofPlanRun = l2StartX;
-  const roofTotalRun = roofPlanRun + roofLowOverhang;
-  const roofPlanStartX = -roofLowOverhang;
-  const roofPlanEndX = l2StartX;
-  const roofPitchRadians = roofPitch * Math.PI / 180;
-  const roofFarWallElevation = roofHighElevation - roofPlanRun * Math.tan(roofPitchRadians);
-  const roofLowElevation = roofHighElevation - roofTotalRun * Math.tan(roofPitchRadians);
-  const pivotStrategy = model?.geometry?.solarReflection?.planPivot?.strategy;
-  if (pivotStrategy !== 'l2-start-width-center') {
-    throw new RangeError('solarReflection.planPivot.strategy must be l2-start-width-center.');
-  }
-  const planPivot = { x: l2StartX, y: buildingWidth / 2, z: l2Elevation };
-  const stairTopY = finiteNumber(stair.originY, 'stair.originY')
-    + finiteNumber(stair.width, 'stair.width');
-
-  // REF-101 expresses confirmed circulation topology without claiming the
-  // unresolved room, door, forecourt, or passage dimensions from OPEN-008.
-  // These diagrammatic bounds belong here so the renderer cannot invent a
-  // second arrangement of the same relationships.
-  const outdoorForecourtDepth = Math.min(serviceCoreLength / 2, buildingWidth * 0.42);
-  const dryPassageDepth = buildingWidth * 0.1;
-  const toiletRoomY1 = outdoorForecourtDepth;
-  const toiletRoomY2 = buildingWidth - dryPassageDepth;
-  const maleSpan = l1SplitAxisX - l1ServiceStartX;
-  const femaleSpan = l1ServiceEndX - l1SplitAxisX;
-  const poolHallOpeningY = Math.max(stairTopY + buildingWidth * 0.05, outdoorForecourtDepth * 0.68);
-  const arrivalPathWidth = finiteNumber(stair.width, 'stair.width') * 0.5;
-  const arrivalClearRunCenterX = entranceThresholdX + finiteNumber(stair.width, 'stair.width') * 0.62;
-  const arrivalBypassDepth = finiteNumber(stair.originY, 'stair.originY') * 0.7;
-  const arrivalPathEndY = outdoorForecourtDepth * 0.75;
-  const arrivalThresholdBypassBounds = {
-    x1: Math.min(entranceThresholdX, arrivalClearRunCenterX),
-    x2: Math.max(entranceThresholdX, arrivalClearRunCenterX),
-    y1: entranceThresholdY,
-    y2: entranceThresholdY + arrivalBypassDepth,
-  };
-  const arrivalClearRunBounds = {
-    x1: arrivalClearRunCenterX - arrivalPathWidth / 2,
-    x2: arrivalClearRunCenterX + arrivalPathWidth / 2,
-    y1: entranceThresholdY + arrivalBypassDepth,
-    y2: arrivalPathEndY,
-  };
-  const stairBounds = {
-    x1: stairStartX,
-    x2: stairEndX,
-    y1: finiteNumber(stair.originY, 'stair.originY'),
-    y2: stairTopY,
-  };
-  const arrivalMinimumStairClearance = Math.min(
-    stairBounds.y1 - arrivalThresholdBypassBounds.y2,
-    arrivalClearRunBounds.x1 - stairBounds.x2,
-  );
-
-  if (toiletRoomY1 >= toiletRoomY2 || poolHallOpeningY >= outdoorForecourtDepth) {
-    throw new RangeError('Diagrammatic L1 circulation bands cannot be derived without overlap.');
-  }
-
-  if (l2StartX < 0 || l2StartX >= l1ServiceStartX || l2Length <= serviceCoreLength) {
-    throw new RangeError('Derived L2 extension geometry is outside the building programme bounds.');
-  }
-  if (stairStartX < 0 || stairEndX > buildingLength) {
-    throw new RangeError('Derived stair geometry is outside the building length.');
+  if (Math.abs(poolSize.length - 25) > 1e-9 || Math.abs(poolSize.width - 8.5) > 1e-9) {
+    throw new RangeError('POOL-01 active bounds must remain 25 × 8.5 m for v0.6.0.');
   }
 
   return {
-    l1ServiceStartX,
-    l1ServiceEndX,
-    l1SplitAxisX,
-    l2StartX,
-    l2EndX,
-    l2Length,
-    l2SplitAxisX,
-    maleL1Bounds: { x1: l1ServiceStartX, x2: l1SplitAxisX, y1: toiletRoomY1, y2: toiletRoomY2 },
-    femaleL1Bounds: { x1: l1SplitAxisX, x2: l1ServiceEndX, y1: toiletRoomY1, y2: toiletRoomY2 },
-    maleL2Bounds: { x1: l2StartX, x2: l2SplitAxisX, y1: 0, y2: buildingWidth },
-    femaleL2Bounds: { x1: l2SplitAxisX, x2: l2EndX, y1: 0, y2: buildingWidth },
-    flightRun,
-    stairTotalRun,
-    stairTotalRise: totalRise,
-    stairStartX,
-    stairEndX,
-    riserHeight,
-    midLandingElevation,
-    l1Elevation,
-    l2Elevation,
-    l2VolumeHeight,
-    planPivot,
-    mirrorVisualWallHeight,
-    roofPlanStartX,
-    roofPlanEndX,
-    roofPlanRun,
-    roofTotalRun,
-    roofFarWallElevation,
-    roofLowElevation,
-    roofHighElevation,
+    activeGeometryRevisionId: active.id,
+    coordinateSystemId: active.coordinateSystemId,
+    siteBounds: site.bounds,
+    siteLength: siteSize.length,
+    siteWidth: siteSize.width,
+    buildingBounds: building.bounds,
+    buildingLength: buildingSize.length,
+    buildingWidth: buildingSize.width,
+    poolHallBounds: poolHall.bounds,
+    poolBounds: pool.bounds,
+    poolLength: poolSize.length,
+    poolWidth: poolSize.width,
+    serviceWingBounds: serviceWing.bounds,
+    rightSetbackBounds: rightSetback.bounds,
+    l1ServiceStartX: serviceWing.bounds.x1,
+    l1ServiceEndX: serviceWing.bounds.x2,
+    l1SplitAxisX: active.l1.zones.poolMaleToilet.bounds.x2,
+    l2Bounds: l2.bounds,
+    l2StartX: l2.bounds.x1,
+    l2EndX: l2.bounds.x2,
+    l2Length: l2Size.length,
+    l2SplitAxisX: active.l2.splitAxisX,
+    l3Bounds: l3.bounds,
+    l3PlanRotation: active.l3.planRotation,
+    planPivot: { x: l3Data.planPivot.x, y: l3Data.planPivot.y, z: levels.l3Elevation },
+    roofBounds: roof.bounds,
+    roofPlanStartX: roof.bounds.x1,
+    roofPlanEndX: roof.bounds.x2,
+    roofPlanRun: size(roof.bounds).length,
+    roofTotalRun: size(roof.bounds).length,
+    roofFarWallElevation: roofData.lowElevation,
+    roofLowElevation: roofData.lowElevation,
+    roofHighElevation: roofData.highElevation,
+    l1Elevation: levels.l1BaseElevation,
+    poolDeckElevation: levels.poolDeckElevation,
+    l2Elevation: levels.l2Elevation,
+    l3Elevation: levels.l3Elevation,
+    l2VolumeHeight: levels.l2FloorToFloor,
+    mirrorVisualWallHeight: l3Data.mirror.height,
+    flightRun: stairData.runLengthPerFlight,
+    stairTotalRun: stairData.totalPlanLength,
+    stairTotalRise: stairData.totalRise,
+    stairStartX: stair.bounds.x1,
+    stairEndX: stair.bounds.x2,
+    stairOriginY: stair.bounds.y1,
+    stairWidth: stairSize.width,
+    riserHeight: stairData.riserHeight,
+    midLandingElevation: stairData.lowerElevation + stairData.totalRise / 2,
+    stair: structuredClone(stairData),
+    l1Zones: structuredClone(active.l1.zones),
     diagrammaticL1: {
-      outdoorForecourtBounds: {
-        x1: l1ServiceStartX,
-        x2: l1ServiceEndX,
-        y1: 0,
-        y2: outdoorForecourtDepth,
-      },
-      dryPassageBounds: {
-        x1: l1ServiceStartX - 1,
-        x2: l1ServiceEndX,
-        y1: toiletRoomY2,
-        y2: buildingWidth,
-      },
-      poolHallOpening: { x: l1ServiceStartX, y: poolHallOpeningY },
-      arrivalPath: {
-        entityId: 'RTE-L1-ARRIVAL-01',
-        width: arrivalPathWidth,
-        thresholdBypassBounds: arrivalThresholdBypassBounds,
-        clearRunBounds: arrivalClearRunBounds,
-        stairBounds,
-        minimumStairClearance: arrivalMinimumStairClearance,
-        points: [
-          { x: entranceThresholdX, y: entranceThresholdY },
-          { x: arrivalClearRunCenterX, y: entranceThresholdY + arrivalBypassDepth / 2 },
-          { x: arrivalClearRunCenterX, y: arrivalPathEndY },
-        ],
-      },
-      maleFrontDoor: { x: l1ServiceStartX + maleSpan * 0.28, y: toiletRoomY1 },
-      maleRearDoor: { x: l1ServiceStartX + maleSpan * 0.68, y: toiletRoomY2 },
-      femaleFrontDoor: { x: l1SplitAxisX + femaleSpan * 0.32, y: toiletRoomY1 },
-      femaleRearDoor: { x: l1SplitAxisX + femaleSpan * 0.74, y: toiletRoomY2 },
+      mainEntranceBounds: active.l1.mainEntrance.bounds,
+      playgroundRampBounds: active.l1.playgroundRamp.bounds,
+      stairBounds: stair.bounds,
+      toiletGroupsInterconnect: false,
     },
   };
 }

@@ -15,6 +15,7 @@ import {
   activeSolarStudyGeometry,
   buildReflectingVolumeCorners,
 } from './solar-angle-analysis.mjs';
+import { resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
 
 export const WARM_MONTHS = new Set([5, 6, 7, 8, 9]);
 export const DEFAULT_ENERGY_ASSUMPTIONS = Object.freeze({
@@ -41,13 +42,7 @@ const rectanglePolygon = ({ x1, x2, y1, y2 }) => [
 ];
 
 const poolRectangle = (model) => {
-  const pool = model.geometry.pool;
-  return {
-    x1: finite(pool.origin[0], 'geometry.pool.origin[0]'),
-    x2: pool.origin[0] + finite(pool.length.value, 'geometry.pool.length.value'),
-    y1: finite(pool.origin[1], 'geometry.pool.origin[1]'),
-    y2: pool.origin[1] + finite(pool.width.value, 'geometry.pool.width.value'),
-  };
+  return { ...resolveGeometryEntity(resolveActiveGeometry(model), 'POOL-01').bounds };
 };
 
 const parseTimestamp = (timestamp, offsetHours) => {

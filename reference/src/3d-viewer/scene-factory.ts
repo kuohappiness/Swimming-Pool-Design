@@ -94,8 +94,8 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   scene.add(ambient, sun);
 
   const building = model.geometry.building;
-  const buildingLength = building.length.value;
-  const buildingWidth = building.width.value;
+  const buildingLength = model.geometry.site.length;
+  const buildingWidth = model.geometry.site.width;
   const centreX = buildingLength / 2;
   const centreZ = buildingWidth / 2;
   const worldRoot = new THREE.Group();
@@ -150,74 +150,89 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
 
   const site = layer('site');
   const ground = box(
-    [buildingLength + building.leftSetback.value + 12, 0.2, buildingWidth + 12],
-    [(buildingLength - building.leftSetback.value) / 2, -0.18, centreZ],
+    [buildingLength + 12, 0.2, buildingWidth + 12],
+    [buildingLength / 2, -0.18, centreZ],
     groundMaterial,
   );
   ground.receiveShadow = true;
   site.add(ground);
   const setback = box(
-    [building.leftSetback.value, 0.07, buildingWidth],
-    [-building.leftSetback.value / 2, 0.005, centreZ],
+    [building.rightSetback.value, 0.07, buildingWidth],
+    [model.geometry.l1.rightSetbackBounds.x1 + building.rightSetback.value / 2, 0.005, centreZ],
     siteMaterial,
   );
   site.add(setback);
   const boundary = new THREE.LineLoop(
     new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-building.leftSetback.value, 0.04, 0),
+      new THREE.Vector3(0, 0.04, 0),
       new THREE.Vector3(buildingLength, 0.04, 0),
       new THREE.Vector3(buildingLength, 0.04, buildingWidth),
-      new THREE.Vector3(-building.leftSetback.value, 0.04, buildingWidth),
+      new THREE.Vector3(0, 0.04, buildingWidth),
     ]),
     new THREE.LineDashedMaterial({ color: 0x72858c, dashSize: 0.55, gapSize: 0.35 }),
   );
   boundary.computeLineDistances();
   site.add(boundary);
   tag(setback, {
-    entityId: 'SITE-SETBACK-01', label: '左端 2 m 退縮', status: 'confirmed',
-    description: '原基地邊界內退 2.0 m，保留雨簾、回收溝與視覺緩衝；細部排水仍待專業驗證。',
-    openItemId: 'OPEN-014',
+    entityId: 'Z-L1-SETBACK-01', label: '右側 2 m 退縮與整坡工作帶', status: 'confirmed',
+    description: 'X39～X41 保留室外到達與 +0.10 m 整坡；精確排水、無障礙與門口淨空仍待專業驗證。',
+    openItemId: 'OPEN-016',
   }, selectables);
 
   const l1 = layer('l1');
-  const coreData = model.geometry.l1.core;
-  const fixedCore = box(
-    [coreData.length, model.geometry.l3.baseElevation, coreData.width],
-    [coreData.x + coreData.length / 2, model.geometry.l3.baseElevation / 2, coreData.y + coreData.width / 2],
-    coreMaterial,
-  );
-  layer('circulation').add(fixedCore);
-  tag(fixedCore, {
-    entityId: 'CORE-01', label: '固定結構／機電核心候選', status: 'working',
-    description: '以 X=35 m 附近幾何中心作三層固定核心代理；現況會占用 L1 廁所與戶外區分界，房間、柱網與逃生梯仍須重排。',
-    openItemId: coreData.openItemId,
-  }, selectables);
-
-  const serviceStart = building.poolHallLength.value;
-  const serviceEnd = buildingLength;
+  const serviceBounds = model.geometry.l1.serviceWingBounds;
+  const serviceStart = serviceBounds.x1;
+  const serviceEnd = serviceBounds.x2;
   const serviceFloor = box(
-    [building.serviceCoreLength.value, 0.18, buildingWidth],
+    [serviceEnd - serviceStart, 0.18, buildingWidth],
     [(serviceStart + serviceEnd) / 2, -0.09, centreZ],
     l1Material,
   );
   l1.add(serviceFloor);
-  const outdoorFloor = box(
-    [building.serviceCoreLength.value, 0.06, model.geometry.l1.outdoorDepth],
-    [(serviceStart + serviceEnd) / 2, 0.03, model.geometry.l1.outdoorDepth / 2],
-    new THREE.MeshStandardMaterial({ color: 0xc9b996, roughness: 0.95 }),
-  );
-  l1.add(outdoorFloor);
   const wallHeight = model.geometry.l2.baseElevation - 0.18;
-  l1.add(box([0.16, wallHeight, buildingWidth], [serviceEnd - 0.08, wallHeight / 2, centreZ], l1Material));
-  l1.add(box([building.serviceCoreLength.value, wallHeight, 0.16], [(serviceStart + serviceEnd) / 2, wallHeight / 2, buildingWidth - 0.08], l1Material));
-  l1.add(box([0.16, wallHeight, model.geometry.l1.outdoorDepth], [serviceStart + 0.08, wallHeight / 2, model.geometry.l1.outdoorDepth / 2], l1Material));
-  addWallSegments(l1, [[serviceStart, 34.2], [35.3, 37], [38.1, 39.5], [40.6, serviceEnd]], model.geometry.l1.outdoorDepth, wallHeight, l1Material);
-  const passageY = buildingWidth - model.geometry.l1.dryPassageDepth;
-  addWallSegments(l1, [[serviceStart, 34.4], [35.5, 37], [38.1, 39.6], [40.7, serviceEnd]], passageY, wallHeight, l1Material);
-  l1.add(box([0.14, wallHeight, passageY - model.geometry.l1.outdoorDepth], [37, wallHeight / 2, (passageY + model.geometry.l1.outdoorDepth) / 2], l1Material));
+  const zoneMaterial = new THREE.MeshStandardMaterial({ color: 0xdcc9a9, roughness: 0.88, transparent: true, opacity: 0.7 });
+  const equipmentZoneMaterial = new THREE.MeshStandardMaterial({ color: 0x9eb4b3, roughness: 0.78, transparent: true, opacity: 0.62 });
+  const zoneEntries = Object.values(model.geometry.l1.zones);
+  for (const zone of zoneEntries) {
+    const bounds = zone.bounds;
+    const zoneHeight = 0.1;
+    const zoneMesh = box(
+      [bounds.x2 - bounds.x1, zoneHeight, bounds.y2 - bounds.y1],
+      [(bounds.x1 + bounds.x2) / 2, (zone.floorElevation ?? 0) + zoneHeight / 2, (bounds.y1 + bounds.y2) / 2],
+      zone.entityId.includes('WTP') || zone.entityId.includes('CHEM') ? equipmentZoneMaterial : zoneMaterial,
+    );
+    l1.add(zoneMesh);
+    tag(zoneMesh, {
+      entityId: zone.entityId,
+      label: zone.entityId.includes('WC') ? '獨立廁所區' : zone.entityId.includes('STOR') ? '乾式儲物間' : zone.entityId.includes('CHEM') ? '獨立藥劑分間' : '水處理機房',
+      status: 'working',
+      description: `${(bounds.x2 - bounds.x1).toFixed(2)} × ${(bounds.y2 - bounds.y1).toFixed(2)} m 工作範圍；隔間、設備與實際淨空仍待專業深化。`,
+      openItemId: 'OPEN-008',
+    }, selectables);
+  }
+  l1.add(
+    box([0.16, wallHeight, buildingWidth], [serviceStart + 0.08, wallHeight / 2, centreZ], l1Material),
+    box([0.16, wallHeight, buildingWidth], [serviceEnd - 0.08, wallHeight / 2, centreZ], l1Material),
+    box([serviceEnd - serviceStart, wallHeight, 0.16], [(serviceStart + serviceEnd) / 2, wallHeight / 2, buildingWidth - 0.08], l1Material),
+    box([0.14, wallHeight, 7.5], [35.5, wallHeight / 2, 3.75], l1Material),
+    box([serviceEnd - serviceStart, wallHeight, 0.14], [(serviceStart + serviceEnd) / 2, wallHeight / 2, 3.5], l1Material),
+    box([serviceEnd - serviceStart, wallHeight, 0.14], [(serviceStart + serviceEnd) / 2, wallHeight / 2, 7.5], l1Material),
+    box([0.14, wallHeight, 6.5], [32.5, wallHeight / 2, 10.75], l1Material),
+  );
+  const integratedStructure = new THREE.Group();
+  integratedStructure.add(
+    box([0.28, model.geometry.l3.baseElevation, 6.5], [32.5, model.geometry.l3.baseElevation / 2, 10.75], coreMaterial),
+    box([0.28, model.geometry.l3.baseElevation, 7.5], [35.5, model.geometry.l3.baseElevation / 2, 3.75], coreMaterial),
+  );
+  layer('circulation').add(integratedStructure);
+  tag(integratedStructure, {
+    entityId: 'STRUCT-INTEGRATED-01', label: '整合隔間／設備牆的連續支承帶', status: 'working',
+    description: '支承候選沿 X32.5 設備牆與 X35.5 廁所分界整合，避免完成空間出現孤柱；真正柱牆尺寸、連續至基礎的荷重路徑與轉換構架仍須結構專業驗證。',
+    openItemId: 'OPEN-016',
+  }, selectables);
   tag(serviceFloor, {
-    entityId: 'L1-SERVICE-01', label: '1F 廁所／戶外服務翼', status: 'working',
-    description: '8.0 × 14.0 m 工作外框：7 m 戶外區不接泳池大廳，7 m 廁所帶含池側乾式走道；雙向開口拓撲已表達，精確房間仍待確認。',
+    entityId: 'CORE-01', label: '1F 六區服務翼', status: 'working',
+    description: 'X31～X39 由四間互不相通廁所、儲物、水處理與獨立藥劑分間組成；泳池組只由 X31 進出，操場組只由 X39 進出。',
     openItemId: 'OPEN-008',
   }, selectables);
 
@@ -239,19 +254,20 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   l1.add(deckGroup);
   tag(deckGroup, {
     entityId: 'DECK-L1-01', label: '抬高池畔完成面', status: 'confirmed',
-    description: `池畔完成面 +${deckElevation.toFixed(2)} m，幾何已保留 POOL-01 開口；與 L1 服務翼 +0.00 m 的門檻、防水、溢流與坡道仍待深化。`,
+    description: `池畔與泳池側男女廁連續為 +${deckElevation.toFixed(2)} m，幾何已保留 POOL-01 開口；防水、溢流與排水仍待深化。`,
     openItemId: 'OPEN-016',
   }, selectables);
+  const rampBounds = model.geometry.l1.playgroundRamp.bounds;
   const thresholdRamp = quad([
-    serviceStart - 0.9, deckElevation + 0.015, 11.05,
-    serviceStart - 0.9, deckElevation + 0.015, 12.25,
-    serviceStart, 0.015, 12.25,
-    serviceStart, 0.015, 11.05,
+    rampBounds.x1, 0.015, rampBounds.y1,
+    rampBounds.x1, 0.015, rampBounds.y2,
+    rampBounds.x2, model.geometry.l1.playgroundRamp.endElevation + 0.015, rampBounds.y2,
+    rampBounds.x2, model.geometry.l1.playgroundRamp.endElevation + 0.015, rampBounds.y1,
   ], deferred);
   l1.add(thresholdRamp);
   tag(thresholdRamp, {
-    entityId: 'J-L1-DECK-01', label: '池畔／服務層高差轉接', status: 'deferred',
-    description: '僅以工作坡面提示 0.30 m 高差；不得視為已核定無障礙坡道、門檻或排水細部。',
+    entityId: model.geometry.l1.playgroundRamp.entityId, label: '操場側 +0.10 m 外部整坡', status: 'working',
+    description: 'X39～X41 以 1:20 工作坡銜接操場側廁所；精確無障礙、門檻、排水與防滑仍待專業驗證。',
     openItemId: 'OPEN-016',
   }, selectables);
 
@@ -295,8 +311,8 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     poolX1, waterLevel, poolZ1,
     poolX0, waterLevel, poolZ1,
   ], waterMaterial));
-  for (let laneIndex = 1; laneIndex < pool.laneCount; laneIndex += 1) {
-    const z = poolZ0 + pool.width.value * laneIndex / pool.laneCount;
+  for (const band of pool.laneBands.slice(0, -1)) {
+    const z = band.y2;
     poolGroup.add(line([
       new THREE.Vector3(poolX0, waterLevel + 0.025, z),
       new THREE.Vector3(poolX1, waterLevel + 0.025, z),
@@ -311,8 +327,8 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   );
   layer('water').add(poolGroup);
   tag(poolGroup, {
-    entityId: 'POOL-01', label: '三水道主泳池', status: 'confirmed',
-    description: `${pool.length.value} × ${pool.width.value} m；左側低 X 端水深 ${pool.shallowDepth.value} m，向右側服務量體端降至 ${pool.deepDepth.value} m。`,
+    entityId: 'POOL-01', label: '25 m 教學／游泳混合泳池', status: 'confirmed',
+    description: `${pool.length.value} × ${pool.width.value} m；兩條 2.5 m 標準水道加 3.0 m 正常游泳／教學混合區，左側低 X 端水深 ${pool.shallowDepth.value} m，向右側服務量體端降至 ${pool.deepDepth.value} m。`,
   }, selectables);
 
   const roof = model.geometry.roof;
@@ -342,7 +358,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
 
   const l2Data = model.geometry.l2;
   const l2Group = new THREE.Group();
-  const upperCentreZ = centreZ;
+  const upperCentreZ = (l2Data.bounds.y1 + l2Data.bounds.y2) / 2;
   const slabThickness = 0.24;
   const l2Slab = box(
     [l2Data.length, slabThickness, l2Data.width],
@@ -353,15 +369,15 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const l2WallHeight = l2Data.topElevation - l2Data.baseElevation - 0.28;
   l2Group.add(
     box([0.18, l2WallHeight, l2Data.width], [l2Data.endX - 0.09, l2Data.baseElevation + l2WallHeight / 2, upperCentreZ], l2Material),
-    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2Data.baseElevation + l2WallHeight / 2, centreZ - l2Data.width / 2 + 0.07], wallGlass),
-    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2Data.baseElevation + l2WallHeight / 2, centreZ + l2Data.width / 2 - 0.07], wallGlass),
+    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2Data.baseElevation + l2WallHeight / 2, l2Data.bounds.y1 + 0.07], wallGlass),
+    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2Data.baseElevation + l2WallHeight / 2, l2Data.bounds.y2 - 0.07], wallGlass),
     box([0.14, l2WallHeight, l2Data.width], [serviceStart + 0.07, l2Data.baseElevation + l2WallHeight / 2, upperCentreZ], l2Material),
-    box([serviceEnd - serviceStart, l2WallHeight, 0.14], [(serviceStart + serviceEnd) / 2, l2Data.baseElevation + l2WallHeight / 2, centreZ], l2Material),
+    box([serviceEnd - serviceStart, l2WallHeight, 0.14], [(serviceStart + serviceEnd) / 2, l2Data.baseElevation + l2WallHeight / 2, upperCentreZ], l2Material),
   );
   layer('l2').add(l2Group);
   tag(l2Group, {
     entityId: 'EXT-L2-01', label: '2F 固定更衣／淋浴層', status: 'working',
-    description: `固定正交樓板 ${l2Data.length.toFixed(1)} × ${l2Data.width.toFixed(1)} m，標高 +${l2Data.baseElevation.toFixed(2)} m；4 m 伸入泳池挑高區。男女分區、除濕與排水豎井仍待深化。`,
+    description: `固定正交樓板 ${l2Data.length.toFixed(1)} × ${l2Data.width.toFixed(1)} m，標高 +${l2Data.baseElevation.toFixed(2)} m；2 m 伸入泳池挑高區、2 m 外挑於右側退縮上方。男女分區、除濕與排水豎井仍待深化。`,
     openItemId: 'OPEN-016',
   }, selectables);
 
@@ -411,17 +427,19 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
 
   const equipmentMaterial = new THREE.MeshStandardMaterial({ color: 0x8aa8ae, roughness: 0.62, metalness: 0.15 });
-  l3RotationGroup.add(
-    box([2.2, 1.3, 2.2], [1.9, 0.65, -2.4], equipmentMaterial),
-    box([2.8, 1.0, 1.8], [2.0, 0.5, 3.4], equipmentMaterial),
+  const fixedEquipment = new THREE.Group();
+  fixedEquipment.add(
+    box([2.2, 1.3, 2.2], [34.1, l3Data.baseElevation + 0.65, 9.0], equipmentMaterial),
+    box([2.8, 1.0, 1.8], [34.0, l3Data.baseElevation + 0.5, 11.8], equipmentMaterial),
   );
   const tank = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 1.8, 28), equipmentMaterial);
-  tank.position.set(0.7, 0.9, 0.2);
+  tank.position.set(34.0, l3Data.baseElevation + 0.9, 6.8);
   tank.castShadow = true;
-  l3RotationGroup.add(tank);
+  fixedEquipment.add(tank);
+  layer('circulation').add(fixedEquipment);
   tag(tank, {
     entityId: 'WT-01', label: '水塔／重設備核心側配置', status: 'working',
-    description: '重物配置在固定核心附近的概念位置；容量、設備荷重、振動、維修與真正結構落點尚未核定。',
+    description: '重物獨立保持在固定支承帶附近，不跟隨旋轉懸挑樓板；容量、設備荷重、振動、維修與真正結構落點尚未核定。',
     openItemId: 'OPEN-011',
   }, selectables);
 
@@ -454,8 +472,8 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
 
   const egressGroup = new THREE.Group();
-  const egressX = coreData.x + 0.32;
-  const egressZ = coreData.y + 0.4;
+  const egressX = 32.82;
+  const egressZ = 8.4;
   for (let index = 0; index < 12; index += 1) {
     const rise = (model.geometry.l3.baseElevation - model.geometry.l2.baseElevation) * (index + 1) / 24;
     egressGroup.add(box([0.18, rise, 1.05], [egressX + (index + 0.5) * 0.18, model.geometry.l2.baseElevation + rise / 2, egressZ + 0.55], dark));
@@ -517,7 +535,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const waterPath = line([
     new THREE.Vector3(roof.startX, 0.16, centreZ),
     new THREE.Vector3(-1.35, 0.16, centreZ),
-    new THREE.Vector3(coreData.x + coreData.length / 2, 0.16, coreData.y + coreData.width / 2),
+    new THREE.Vector3(35.75, 0.16, 10.75),
   ], new THREE.LineDashedMaterial({ color: PALETTE.deferred, dashSize: 0.45, gapSize: 0.3 }));
   waterPath.computeLineDistances();
   rainGroup.add(waterPath);

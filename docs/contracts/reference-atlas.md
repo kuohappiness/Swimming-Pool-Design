@@ -1,65 +1,37 @@
 # 空間參照圖集契約
 
 - 類型：output-contract
-- 狀態：active
+- 狀態：active／v0.6.0
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
+- 入口：`/`
 
 ## 必要輸出
 
-`reference/index.html` 必須由 `model/project-model.json` 與共用 geometry helper 產生：
+`reference/src/sheets.ts` 只顯示：
 
-- `REF-001` 基地與方位圖。
-- `REF-101` L1 平面參照圖。
-- `REF-201` L2 平面參照圖。
-- `REF-301` 屋頂參照圖。
-- `REF-401` A–A 縱剖面參照圖。
-- `REF-501` 3D 軸測參照圖。
-- `V23-PLAN` 0.5.0 最新 1F～3F 概念平面檢討圖。
-- `V23-SECTION` 0.5.0 最新三層縱向概念剖面檢討圖。
+- `REF-001`：`SRC-SITE-001` 原始衛星底圖、MODEL 0.6.0、ACTIVE GEO-0.6.0、SITE-XY 與北向。
+- `V060-L1`：`DRAW-L1-PLAN-v0.6.0.png`。
+- `V060-L2`：`DRAW-L2-PLAN-v0.6.0.png`。
+- `V060-L3`：`DRAW-L3-PLAN-v0.6.0.png`。
+- `V060-SECTION`：`DRAW-LONGITUDINAL-SECTION-v0.6.0.png`。
 
-每張圖顯示 modelVersion、revision、單位、北向與概念用途；entity／cubicle ID 可點選且不依賴 hover；320 px 以上手機可閱讀與操作。
+現行 HTML 不得出現 V2.1、V2.2、V2.3 或其他 v0.5.0 current tab。舊圖可留在歷史資料夾，不由 current atlas 載入。
 
-`REF-001` 的影像底圖必須直接使用 `SRC-SITE-001_google-maps-satellite.png` 最新原始衛星圖，不得繼續以舊標註圖冒充現況底圖。`V23-PLAN`／`V23-SECTION` 必須直接打包 V2.3 PNG，並保留圖面本身的版本欄與「非施工圖」聲明；V2.1／V2.2 只保留在歷史資料夾，不出現在 current tab。
+## 圖面語意
 
-## L1 表達
+- L1：25 × 8.5 m 池體、四間獨立廁所、儲物、水處理、獨立藥劑分間、右側 2 m 到達／整坡帶及 ST-01 方案 E。
+- L2：X29～X41／Y0～Y13.5 固定樓板，2 m 池廳重疊、2 m 右側外挑及 ST-01 直接接板。
+- L3：X35／Y6.75 支點、水平 +25.5°、面池牆與鏡面共面外傾 +23.0°，並標示需專業驗證。
+- 剖面：X／Z 同尺度；池畔 +0.30 m、L2 +3.30 m、L3 +6.88 m、29 m／5°固定屋頂及 ST-01 方案 E。
 
-`REF-101` 的目標狀態依 `DEC-028`：
-
-1. 操場側標示為戶外空間，不出現室內「共用前室」。
-2. 泳池大廳、男廁、女廁各有面向戶外的獨立開口。
-3. 男女廁各有戶外前門與泳池側後門，前後門錯位。
-4. 泳池大廳與兩樘後門之間有連續可辨識的乾式通道幾何。
-5. `ST-01` 不阻斷戶外開口、前後門或乾式通道。
-6. `EN-01`／`O-SITE-01` 共點門檻精確維持本地原點 `[27, 0, 0]`；`RTE-L1-ARRIVAL-01` 由該門檻出發、完整留在戶外前場 bounds 內，並在樓梯開始前偏向 `ST-01` 外側。路徑 bounds 與樓梯 bounds 之間須有大於 `0.002 m` 的淨空，且路徑在 renderer 疊放順序中不被樓梯遮住。
-7. 每個 TASK-002 entity 在 SVG 中只有一個可鍵盤聚焦的 `<g data-entity>` 互動目標；該 group 具有 `tabindex="0"`、`role="button"` 與以 entity ID 開頭的 `aria-label`，其子圖形不重複宣告 `data-entity`。
-
-`Z-L1-ENTRY-01` 保留為跨輸出的穩定 ID，但已遷移為 `outdoor-forecourt`。到達路徑、泳池入口、男女廁前門、男女廁後門與乾式通道分別使用 `RTE-L1-ARRIVAL-01`、`OP-L1-PH-01`、`DR-L1-WC-M-FRONT-01`、`DR-L1-WC-F-FRONT-01`、`DR-L1-WC-M-REAR-01`、`DR-L1-WC-F-REAR-01`、`PSG-L1-DRY-01`。`OPEN-008` 尚未關閉，因此圖面位置只表達拓撲、正淨空與錯位關係，不標示精確路徑寬、門寬、通道寬或前場深度。
-
-0.3.0 輸出維持上述 TASK-002 已完成語意；任何後續幾何精化仍不得退回室內共用前室。
-
-## REF-401 縱剖面
-
-- 屋頂以水平／垂直同尺度顯示 4.5°，高端與 L2 +4.500 m 地坪對齊；室內跨度 19.0 m，低端超出遠端短邊牆 1.2 m，並顯示短邊牆處約 +3.005 m、滴水端約 +2.910 m。
-- `J-RF-L2-01` 顯示玻璃屋頂與 L2 荷重分離，以及上方全寬薄遮簷／連續陰影縫；若另畫節點放大，必須標示為非比例概念，不得冒充施工詳圖。
-- 屋頂尺寸文字放在 `RF-GL-01` 上或其鄰近位置，不再把「玻璃屋頂 19.0」放入池體；中央搶眼的長軸 +X 箭頭移除，方位資訊改放角落／資訊區。
-- `Z-L1-ENTRY-01` 顯示為無灰色實體填色的入口戶外區，精確寬度不標尺寸。
-- `F-MIR-01` 顯示於 `EXT-L2-01` 低 X 面池端，牆頂依 `geometry.solarReflection.mirrorLeanFromVertical` 的 confirmed +8.5° 向泳池側外傾並使用鏡面視覺語彙；牆高、材料、分格與最終性能仍由 `OPEN-011` 管理。
-- `ST-01` 顯示 30 級高、28 踏面、+2.250 m 中間平台、+4.500 m 上端、S1 雙箱型梯梁、封閉踢面但梯下開放；B 全高弦幕為主、A 夾層玻璃為備，且不出現把弦幕或樓梯荷重傳給玻璃屋頂的構件。
-- `REF-301` 顯示低端 1.2 m 外挑、全寬被動雨簾、封閉隔離承接溝，以及「屋頂水→濾網／初雨→沉砂過濾→加蓋儲水→L1 沖廁」流程與極端雨量獨立旁通。
-
-上述契約已由 0.3.0 模型及 renderer 實作；施工尺度、材料與專業計算仍分別由 `OPEN-011`、`OPEN-013`、`OPEN-014` 管理。
+每張圖須保留 `v0.6.0`、`GEO-0.6.0`、`SITE-XY` 與「非施工圖」聲明。SVG 由 `npm run drawings:v060` 重現，PNG 必須由同一 SVG render 產生。
 
 ## 驗收
 
-- 六張 sheet 與必要 entity 引用存在。
-- 真北只使用模型 transform。
-- `l2ExtensionLength` 修改時，L2、樓梯及屋頂相關圖面一起更新。
-- deferred 幾何具有可辨識狀態，不顯示偽精確 fallback。
-- `REF-401` 鏡牆線的斜率由 canonical +8.5° 推導，且標籤明確區分已確認角度與 `OPEN-011` 尚待確認的牆高。
-- `REF-101` 正好輸出兩跑各 14 條踏面線；`REF-401` 正好輸出 30 個級高與 28 個踏面，`REF-501` 使用 +2.250／+4.500 m 推導標高。
-- `REF-001` 不在基地量體中央放置搶眼長軸箭頭；方位由北箭頭與資訊卡提供。
-- validator 禁止旱天循環雨簾、地坪逕流混入沖廁系統、屋頂承載 L2 或樓梯，以及 10°／+3.600 m／22 級高等舊值回歸。
-- `REF-101` 的戶外前場、三個開口、兩套廁所雙入口及乾式通道具有模型、renderer 與文字測試。
-- validator 鎖定 `[27, 0, 0]` 本地原點、門檻連接、路徑位於戶外前場內、路徑與樓梯的大於容差淨空，以及 TASK-002 entity registry contract；registry 的實際 `sourceIds` 必須是 expected sources 的唯一且雙向相等集合，順序可忽略但不得增加或重複。
-- 實際 renderer 測試逐一確認 TASK-002 entity 只有一個可聚焦、可啟用且帶有可讀標籤的 SVG group。
-- build 產生 `dist/reference/index.html`，桌面與手機 smoke 通過。
+- model sheet registry 恰為 `REF-001`、`V060-L1`、`V060-L2`、`V060-L3`、`V060-SECTION`。
+- 四張 SVG／PNG 均存在，SVG metadata 與 active model 一致。
+- Viewer 與 solar-study 最新圖面連結都指向 `#V060-L1`。
+- 320 px 以上可操作；圖片以 `preserveAspectRatio` 顯示且不裁掉圖框。
+- `npm test`、`npm run typecheck`、`npm run build` 與桌機／手機 smoke 通過。
+
+衛星底圖不是地籍或測量成果；所有圖面均為概念協調用途。

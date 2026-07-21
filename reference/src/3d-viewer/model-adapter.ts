@@ -7,10 +7,24 @@ export interface ViewerMeasure {
   openItemId?: string;
 }
 
+export interface SiteBounds { x1: number; x2: number; y1: number; y2: number }
+export interface ViewerZone {
+  entityId: string;
+  coordinateSystemId: 'SITE-XY';
+  bounds: SiteBounds;
+  floorElevation?: number;
+  entrySide?: string;
+  fixtures?: { toilets: number; urinals: number; washbasins: number };
+  status: string;
+  [key: string]: unknown;
+}
+
 export interface ViewerModel {
-  schemaVersion: '1.0.0';
+  schemaVersion: '1.1.0';
   modelVersion: string;
   revision: string;
+  activeGeometryRevisionId: string;
+  coordinateSystemId: 'SITE-XY';
   modelHash: string;
   project: { name: string; shortName: string; purpose: string; disclaimer: string };
   referenceSystem: {
@@ -18,18 +32,23 @@ export interface ViewerModel {
     angleUnit: 'degree';
     localLongAxisBearingFromTrueNorth: number;
     axes: { x: string; y: string; z: string };
-    coordinateAdapter: { modelX: string; modelY: string; modelZ: string };
+    coordinateAdapter: { siteX: string; siteY: string; siteZ: string; adapterId: 'SITE-XY-TO-THREE' };
   };
+  entityBounds: Record<string, { coordinateSystemId: 'SITE-XY'; bounds: SiteBounds }>;
   geometry: {
+    site: { bounds: SiteBounds; length: number; width: number };
     building: {
+      bounds: SiteBounds;
       length: ViewerMeasure;
       width: ViewerMeasure;
       upperFloorWidth: ViewerMeasure;
       poolHallLength: ViewerMeasure;
       serviceCoreLength: ViewerMeasure;
       leftSetback: ViewerMeasure;
+      rightSetback: ViewerMeasure;
     };
     pool: {
+      bounds: SiteBounds;
       origin: number[];
       length: ViewerMeasure;
       width: ViewerMeasure;
@@ -37,23 +56,28 @@ export interface ViewerModel {
       deepDepth: ViewerMeasure;
       deckElevation: ViewerMeasure;
       laneCount: number;
+      laneBands: Array<{ id: string; y1: number; y2: number; use: string }>;
     };
     l1: {
-      outdoorDepth: number;
-      toiletBandDepth: number;
-      dryPassageDepth: number;
-      outdoorConnectedToPoolHall: false;
-      toiletDoorTopology: string;
-      core: {
-        x: number;
-        y: number;
-        length: number;
-        width: number;
-        status: 'working';
-        openItemId: string;
+      bounds: SiteBounds;
+      serviceWingBounds: SiteBounds;
+      rightSetbackBounds: SiteBounds;
+      mainEntranceBounds: SiteBounds;
+      playgroundRamp: ViewerZone & { startElevation: number; endElevation: number; workingSlope: string };
+      zones: {
+        poolMaleToilet: ViewerZone;
+        poolFemaleToilet: ViewerZone;
+        playgroundMaleToilet: ViewerZone;
+        playgroundFemaleToilet: ViewerZone;
+        storage: ViewerZone;
+        waterTreatment: ViewerZone;
+        chemicalRoom: ViewerZone;
       };
+      doors: Array<{ entityId: string; side: string; center: number[]; clearWidth: number; status: string }>;
+      structuralStrategy: Record<string, unknown>;
     };
     l2: {
+      bounds: SiteBounds;
       startX: number;
       endX: number;
       length: number;
@@ -62,9 +86,12 @@ export interface ViewerModel {
       topElevation: number;
       volumeHeight: ViewerMeasure;
       planRotation: ViewerMeasure;
+      poolAtriumOverlap: number;
+      rightSetbackOverhang: number;
       planPivot: { x: number; y: number; z: number; status: 'working'; strategy: string; openItemId: string };
     };
     l3: {
+      bounds: SiteBounds;
       startX: number;
       endX: number;
       length: number;
@@ -81,8 +108,11 @@ export interface ViewerModel {
         wallAndMirrorCoplanar: true;
         openItemId: string;
       };
+      highLevelEquipment: string[];
+      equipmentPlacementRule: string;
     };
     roof: {
+      bounds: SiteBounds;
       startX: number;
       endX: number;
       planRun: number;
@@ -98,6 +128,8 @@ export interface ViewerModel {
     };
     stair: {
       entityId: string;
+      coordinateSystemId: 'SITE-XY';
+      bounds: SiteBounds;
       startX: number;
       endX: number;
       originY: number;
@@ -116,6 +148,7 @@ export interface ViewerModel {
       guardStatus: 'deferred';
       guardOpenItemId: string;
     };
+    integrationReview: Record<string, unknown>;
   };
   layers: Array<{ id: string; label: string; status: DesignStatus }>;
   analysis: {
@@ -156,12 +189,15 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
 } {
   const model = modelInput as ViewerModel;
   const content = contentInput as ConceptContent;
-  if (model?.schemaVersion !== '1.0.0') throw new TypeError('Viewer model schema 不受支援。');
+  if (model?.schemaVersion !== '1.1.0') throw new TypeError('Viewer model schema 不受支援。');
   if (content?.schemaVersion !== '1.0.0') throw new TypeError('理念內容 schema 不受支援。');
   if (!/^[a-f0-9]{64}$/.test(model.modelHash) || content.modelHash !== model.modelHash) {
     throw new TypeError('Viewer 模型與理念內容版本不同步。');
   }
   if (content.modelVersion !== model.modelVersion) throw new TypeError('Viewer modelVersion 不同步。');
+  if (!model.activeGeometryRevisionId || model.coordinateSystemId !== 'SITE-XY') {
+    throw new TypeError('Viewer 缺少唯一 active geometry 或 SITE-XY 座標系。');
+  }
   if (model.referenceSystem.unit !== 'm') throw new TypeError('Viewer 只接受公尺模型。');
   for (const [label, value] of [
     ['building.length', model.geometry.building.length.value],

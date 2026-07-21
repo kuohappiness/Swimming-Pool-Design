@@ -1,23 +1,15 @@
 import { createHash } from 'node:crypto';
+import { geometryEntities, resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (!value || typeof value !== 'object') return value;
-  return Object.fromEntries(
-    Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]),
-  );
+  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]));
 }
 
 export function hashData(value) {
   return createHash('sha256').update(JSON.stringify(canonicalize(value))).digest('hex');
 }
-
-const measure = (input) => ({
-  value: input.value,
-  status: input.status,
-  sourceIds: [...(input.sourceIds ?? [])],
-  ...(input.openItemId ? { openItemId: input.openItemId } : {}),
-});
 
 const finiteRecord = (value, path = 'viewerModel') => {
   if (typeof value === 'number' && !Number.isFinite(value)) {
@@ -29,153 +21,181 @@ const finiteRecord = (value, path = 'viewerModel') => {
   }
 };
 
+const size = (bounds) => ({ length: bounds.x2 - bounds.x1, width: bounds.y2 - bounds.y1 });
+const confirmed = (value, sourceIds = []) => ({ value, status: 'confirmed', sourceIds });
+const working = (value, sourceIds = [], openItemId) => ({
+  value, status: 'working', sourceIds, ...(openItemId ? { openItemId } : {}),
+});
+
 export function buildViewerModel(model, analysisRegistry = {}) {
-  const { pool, roof, solarReflection } = model.geometry;
-  const study = solarReflection?.v050Study;
-  if (!study?.activeForViewer || study.revision !== '0.5.0') {
-    throw new TypeError('Viewer requires geometry.solarReflection.v050Study as the active 0.5.0 geometry.');
-  }
-  const { site, l1, levels, floorPlate, roofInterface, stairFromRaisedPoolDeck, mirror, planPivot, optimization } = study;
+  const active = resolveActiveGeometry(model);
+  const entities = geometryEntities(active);
+  const site = resolveGeometryEntity(active, 'SITE-01');
+  const building = resolveGeometryEntity(active, 'BLDG-01');
+  const poolHall = resolveGeometryEntity(active, 'Z-PH-01');
+  const pool = resolveGeometryEntity(active, 'POOL-01');
+  const serviceWing = resolveGeometryEntity(active, 'CORE-01');
+  const l2 = resolveGeometryEntity(active, 'L2-PLATE-01');
+  const l3 = resolveGeometryEntity(active, 'L3-PLATE-01');
+  const roof = resolveGeometryEntity(active, 'RF-GL-01');
+  const stair = resolveGeometryEntity(active, 'ST-01');
   const currentModelHash = hashData(model);
   const recordedModelHash = analysisRegistry?.solar?.modelHash ?? null;
   const analysisStatus = recordedModelHash === null
     ? 'unavailable'
     : recordedModelHash === currentModelHash ? 'current' : 'stale';
+  const poolSize = size(pool.bounds);
+  const l2Size = size(l2.bounds);
+  const l3Size = size(l3.bounds);
+  const stairSize = size(stair.bounds);
+  const roofSize = size(roof.bounds);
+  const l3Data = active.l3;
+  const stairData = active.stair;
 
-  const confirmed = (value, sourceIds = []) => ({ value, status: 'confirmed', sourceIds });
-  const working = (value, sourceIds = [], openItemId) => ({
-    value, status: 'working', sourceIds, ...(openItemId ? { openItemId } : {}),
-  });
   const viewerModel = {
-    schemaVersion: '1.0.0',
+    schemaVersion: '1.1.0',
     modelVersion: model.modelVersion,
     revision: model.revision,
+    activeGeometryRevisionId: active.id,
+    coordinateSystemId: active.coordinateSystemId,
     modelHash: currentModelHash,
-    project: {
-      name: model.project.name,
-      shortName: model.project.shortName,
-      purpose: model.project.purpose,
-      disclaimer: model.project.disclaimer,
-    },
+    project: structuredClone(model.project),
     referenceSystem: {
       unit: model.referenceSystem.unit,
       angleUnit: model.referenceSystem.angleUnit,
       localLongAxisBearingFromTrueNorth: model.referenceSystem.localLongAxisBearingFromTrueNorth,
       axes: structuredClone(model.referenceSystem.axes),
-      coordinateAdapter: { modelX: 'threeX', modelY: 'threeZ', modelZ: 'threeY' },
+      coordinateAdapter: { siteX: 'threeX', siteY: 'threeZ', siteZ: 'threeY', adapterId: 'SITE-XY-TO-THREE' },
     },
+    entityBounds: Object.fromEntries([...entities].map(([id, entity]) => [id, {
+      coordinateSystemId: entity.coordinateSystemId,
+      bounds: structuredClone(entity.bounds),
+    }])),
     geometry: {
+      site: {
+        bounds: structuredClone(site.bounds),
+        length: site.bounds.x2 - site.bounds.x1,
+        width: site.bounds.y2 - site.bounds.y1,
+      },
       building: {
-        length: confirmed(site.totalLength, ['SRC-CONCEPT-010']),
-        width: working(site.l1Width, ['SRC-CONCEPT-010'], 'OPEN-016'),
-        upperFloorWidth: confirmed(site.upperFloorWidth, []),
-        poolHallLength: confirmed(site.poolHallLength, ['SRC-CONCEPT-010']),
-        serviceCoreLength: confirmed(site.serviceWingLength, ['SRC-CONCEPT-010']),
-        leftSetback: confirmed(site.leftSetback, ['SRC-CONCEPT-010']),
+        bounds: structuredClone(building.bounds),
+        length: working(building.bounds.x2 - building.bounds.x1, [], 'OPEN-016'),
+        width: working(building.bounds.y2 - building.bounds.y1, [], 'OPEN-016'),
+        upperFloorWidth: working(l2Size.width, [], 'OPEN-016'),
+        poolHallLength: working(poolHall.bounds.x2 - poolHall.bounds.x1, [], 'OPEN-016'),
+        serviceCoreLength: working(serviceWing.bounds.x2 - serviceWing.bounds.x1, [], 'OPEN-016'),
+        leftSetback: confirmed(0, []),
+        rightSetback: confirmed(active.l1.rightSetback.bounds.x2 - active.l1.rightSetback.bounds.x1, []),
       },
       pool: {
-        origin: [...l1.poolOrigin],
-        length: measure(pool.length),
-        width: measure(pool.width),
-        shallowDepth: measure(pool.shallowDepth),
-        deepDepth: measure(pool.deepDepth),
-        deckElevation: confirmed(levels.poolDeckElevation, []),
-        laneCount: pool.laneCount,
+        bounds: structuredClone(pool.bounds),
+        origin: [pool.bounds.x1, pool.bounds.y1],
+        length: confirmed(poolSize.length, []),
+        width: confirmed(poolSize.width, []),
+        shallowDepth: confirmed(active.l1.pool.shallowDepth, []),
+        deepDepth: confirmed(active.l1.pool.deepDepth, []),
+        deckElevation: confirmed(active.levels.poolDeckElevation, []),
+        laneCount: active.l1.pool.laneBands.length - 1,
+        laneBands: structuredClone(active.l1.pool.laneBands),
       },
       l1: {
-        outdoorDepth: l1.outdoorDepth,
-        toiletBandDepth: l1.toiletBandDepth,
-        dryPassageDepth: l1.dryPassageDepth,
-        outdoorConnectedToPoolHall: l1.outdoorConnectedToPoolHall,
-        toiletDoorTopology: l1.toiletDoorTopology,
-        core: structuredClone(l1.fixedCoreCandidate),
+        bounds: structuredClone(building.bounds),
+        serviceWingBounds: structuredClone(serviceWing.bounds),
+        rightSetbackBounds: structuredClone(active.l1.rightSetback.bounds),
+        mainEntranceBounds: structuredClone(active.l1.mainEntrance.bounds),
+        playgroundRamp: structuredClone(active.l1.playgroundRamp),
+        zones: structuredClone(active.l1.zones),
+        doors: structuredClone(active.l1.doors),
+        structuralStrategy: structuredClone(active.l1.structuralStrategy),
       },
       l2: {
-        startX: floorPlate.poolSideX,
-        endX: floorPlate.farSideX,
-        length: floorPlate.length,
-        width: floorPlate.width,
-        baseElevation: levels.l2Elevation,
-        topElevation: levels.l3Elevation,
-        volumeHeight: working(levels.l2FloorToFloor, [], 'OPEN-016'),
-        planRotation: confirmed(0, []),
+        bounds: structuredClone(l2.bounds),
+        startX: l2.bounds.x1,
+        endX: l2.bounds.x2,
+        length: l2Size.length,
+        width: l2Size.width,
+        baseElevation: active.levels.l2Elevation,
+        topElevation: active.levels.l3Elevation,
+        volumeHeight: working(active.levels.l2FloorToFloor, [], 'OPEN-016'),
+        planRotation: confirmed(active.l2.planRotation, []),
+        poolAtriumOverlap: active.l2.poolAtriumOverlap,
+        rightSetbackOverhang: active.l2.rightSetbackOverhang,
         planPivot: {
-          x: planPivot.x,
-          y: planPivot.y,
-          z: levels.l2Elevation,
-          status: 'working',
-          strategy: 'fixed-floor-plate-centroid',
-          openItemId: 'OPEN-016',
+          x: l3Data.planPivot.x, y: l3Data.planPivot.y, z: active.levels.l2Elevation,
+          status: 'working', strategy: 'fixed-floor-plate-centroid', openItemId: 'OPEN-016',
         },
       },
       l3: {
-        startX: floorPlate.poolSideX,
-        endX: floorPlate.farSideX,
-        length: floorPlate.length,
-        width: floorPlate.width,
-        baseElevation: levels.l3Elevation,
-        volumeHeight: working(mirror.height, [], 'OPEN-011'),
-        planRotation: measure(optimization.planRotation),
+        bounds: structuredClone(l3.bounds),
+        startX: l3.bounds.x1,
+        endX: l3.bounds.x2,
+        length: l3Size.length,
+        width: l3Size.width,
+        baseElevation: active.levels.l3Elevation,
+        volumeHeight: working(l3Data.mirror.height, [], 'OPEN-011'),
+        planRotation: working(active.solar.planRotation.value, active.solar.planRotation.sourceIds, 'OPEN-011'),
         planPivot: {
-          x: planPivot.x,
-          y: planPivot.y,
-          z: levels.l3Elevation,
-          status: planPivot.status,
-          strategy: planPivot.strategy,
-          openItemId: planPivot.openItemId,
+          x: l3Data.planPivot.x, y: l3Data.planPivot.y, z: active.levels.l3Elevation,
+          status: 'working', strategy: l3Data.planPivot.strategy, openItemId: 'OPEN-011',
         },
         mirror: {
-          entityId: 'F-MIR-01',
-          height: working(mirror.height, [], 'OPEN-011'),
-          leanFromVertical: measure(optimization.mirrorLeanFromVertical),
-          materialIntent: mirror.materialIntent,
-          wallAndMirrorCoplanar: mirror.wallAndMirrorCoplanar,
+          entityId: l3Data.mirror.entityId,
+          height: working(l3Data.mirror.height, [], 'OPEN-011'),
+          leanFromVertical: working(active.solar.mirrorLeanFromVertical.value, active.solar.mirrorLeanFromVertical.sourceIds, 'OPEN-011'),
+          materialIntent: l3Data.mirror.materialIntent,
+          wallAndMirrorCoplanar: l3Data.mirror.wallAndMirrorCoplanar,
           openItemId: 'OPEN-011',
         },
+        highLevelEquipment: structuredClone(l3Data.highLevelEquipment),
+        equipmentPlacementRule: l3Data.equipmentPlacementRule,
       },
       roof: {
-        startX: site.buildingStartX,
-        endX: floorPlate.poolSideX,
-        planRun: roofInterface.planRun,
-        totalRun: roofInterface.planRun,
-        width: site.l1Width,
-        pitch: confirmed(roofInterface.pitch, []),
-        highElevation: roofInterface.highElevation,
-        lowElevation: roofInterface.lowElevation,
-        transitionBand: confirmed(roofInterface.l3TransitionBand, []),
+        bounds: structuredClone(roof.bounds),
+        startX: roof.bounds.x1,
+        endX: roof.bounds.x2,
+        planRun: roofSize.length,
+        totalRun: roofSize.length,
+        width: roofSize.width,
+        pitch: confirmed(active.roof.pitch, []),
+        highElevation: active.roof.highElevation,
+        lowElevation: active.roof.lowElevation,
+        transitionBand: confirmed(active.roof.l3TransitionBand, []),
         interfacePlanMismatch: working(0.7, [], 'OPEN-016'),
-        rainCurtain: structuredClone(roof.rainCurtain),
-        rainwaterReuse: structuredClone(roof.rainwaterReuse),
+        rainCurtain: structuredClone(model.geometry.roof.rainCurtain),
+        rainwaterReuse: structuredClone(model.geometry.roof.rainwaterReuse),
       },
       stair: {
-        entityId: 'ST-01',
-        startX: stairFromRaisedPoolDeck.startX,
-        endX: stairFromRaisedPoolDeck.startX + stairFromRaisedPoolDeck.totalPlanLength,
-        originY: stairFromRaisedPoolDeck.originY,
-        width: stairFromRaisedPoolDeck.candidateClearWidth,
-        totalRise: stairFromRaisedPoolDeck.totalRise,
-        riserCount: stairFromRaisedPoolDeck.riserCount,
-        risersPerRun: stairFromRaisedPoolDeck.risersPerRun,
-        treadsPerRun: stairFromRaisedPoolDeck.treadsPerRun,
-        treadDepth: stairFromRaisedPoolDeck.treadDepth,
-        flightRun: stairFromRaisedPoolDeck.runLengthPerFlight,
-        midLandingLength: stairFromRaisedPoolDeck.midLandingLength,
-        midLandingElevation: stairFromRaisedPoolDeck.lowerElevation + stairFromRaisedPoolDeck.totalRise / 2,
-        lowerElevation: stairFromRaisedPoolDeck.lowerElevation,
-        upperElevation: stairFromRaisedPoolDeck.upperElevation,
+        entityId: stairData.entityId,
+        coordinateSystemId: stairData.coordinateSystemId,
+        bounds: structuredClone(stair.bounds),
+        startX: stair.bounds.x1,
+        endX: stair.bounds.x2,
+        originY: stair.bounds.y1,
+        width: stairSize.width,
+        totalRise: stairData.totalRise,
+        riserCount: stairData.riserCount,
+        risersPerRun: stairData.risersPerRun,
+        treadsPerRun: stairData.treadsPerRun,
+        treadDepth: stairData.treadDepth,
+        flightRun: stairData.runLengthPerFlight,
+        midLandingLength: stairData.midLandingLength,
+        midLandingElevation: stairData.lowerElevation + stairData.totalRise / 2,
+        lowerElevation: stairData.lowerElevation,
+        upperElevation: stairData.upperElevation,
         status: 'working',
         guardStatus: 'deferred',
-        guardOpenItemId: stairFromRaisedPoolDeck.openItemId,
+        guardOpenItemId: stairData.openItemId,
       },
+      integrationReview: structuredClone(active.integrationReview),
     },
     layers: [
       { id: 'site', label: '基地與退縮', status: 'confirmed' },
-      { id: 'l1', label: '1F 池畔與服務層', status: 'working' },
-      { id: 'water', label: '泳池與水', status: 'confirmed' },
+      { id: 'l1', label: '1F 池畔、四間廁所與機房', status: 'working' },
+      { id: 'water', label: '25 m 泳池與混合水道', status: 'confirmed' },
       { id: 'l2', label: '2F 固定更衣層', status: 'working' },
       { id: 'l3', label: '3F 旋轉服務層', status: 'working' },
       { id: 'roof', label: '玻璃屋頂', status: 'confirmed' },
-      { id: 'circulation', label: '樓梯與固定核心', status: 'working' },
+      { id: 'circulation', label: '樓梯與結構整合', status: 'working' },
       { id: 'rain', label: '雨簾與回用水路', status: 'deferred' },
       { id: 'annotations', label: '幾何註記', status: 'working' },
     ],
@@ -185,7 +205,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         recordedModelHash,
         currentModelHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: '幾何角度已確認；全年光熱、眩光與安全性能仍待專業驗證。',
+        disclaimer: '0.6.0 池體與量體已同步；全年光熱、眩光、結構與安全性能仍待專業驗證。',
       },
     },
   };

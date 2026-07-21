@@ -1,69 +1,47 @@
 # 3D Viewer 契約
 
 - 類型：output-contract
-- 狀態：active
+- 狀態：active／v0.6.0
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 入口：`/3d-viewer/`
 
 ## 資料來源與同步
 
-Viewer 只接受兩個編譯產物：
+Viewer 只接受：
 
-- `reference/generated/viewer-model.json`：由 `model/project-model.json` 與 `scripts/reference-geometry.mjs` 產生的 Viewer 幾何資料包。
-- `reference/generated/concept-content.json`：由[公開理念文字正本](../public/swimming-pool-renovation-design-concept.md)經模型 token 注入後產生的五場景內容。
+- `reference/generated/viewer-model.json`：由 active `GEO-0.6.0` 產生。
+- `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須具有相同 `modelVersion` 與 `modelHash`；不相符、token 無法解析、scene ID 不存在或幾何出現非有限值時，編譯或 runtime 必須失敗，不得顯示合理化 fallback 幾何。`contentHash` 與 `modelHash` 必須在 Viewer 上可見。
+兩者必須有相同 `modelVersion=0.6.0` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.6.0`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。hash、token、scene ID 或有限幾何不符時直接失敗，不顯示 fallback 幾何。
 
-日照分析的 `recordedModelHash` 與現行模型不符時，Viewer 標示 `stale` 並顯示需重新驗證，不得把既有分析文字當作現行性能結論。
+`model/analysis-registry.json` 的 solar hash 不符時顯示 `stale`；只有完成 v0.6.0 重算後才可顯示 `current`。
 
 ## 幾何與 transform
 
-- 模型 +X／+Y／+Z 只在一個 adapter 對應 Three.js +X／+Z／+Y。
-- 建築世界方位 307°只套在最上層 `WORLD-BEARING-ROOT` 一次。
-- 0.5.0 Viewer 的 active geometry 必須讀取 `geometry.solarReflection.v050Study`；0.4.0 的 L2 +9.5°／+8.5°只保留為歷史參照，不得進入現行 Viewer。
-- L1／L2 保持固定正交，只有 L3 在 `L3-PLAN-ROTATION` group 以 X=35 m、Y=6.75 m 工作支點順時針旋轉 +26.5°。世界方位 307°與 L3 局部旋轉必須分層，禁止重複套用。
-- L3 面池承載牆本體與外貼 `F-MIR-01` 鏡面覆層共同向池側外傾 +3.1°；兩者共面，只可保留避免 z-fighting 的極薄顯示偏移，不得表達成垂直牆前方的獨立斜板。
-- L1 地坪由 `POOL-01` 開口外圍、完成面 +0.30 m 的池畔幾何組成，不得有地板穿越池體。`POOL-01` 同時表達 20.5 × 7.5 m 水面、三水道、池緣、池壁與斜池底；左側低 X 端為 1.2 m 淺端，右側服務量體端為 1.5 m 深端。
-- L1 右側服務翼以 8.0 × 14.0 m 工作外框顯示：7 m 戶外區不與泳池大廳連接，7 m 廁所帶含池側乾式走道，男女廁均保留操場側與泳池側開口語意。L1 14.0 m 與 L2／L3 13.5 m 的收邊維持 `OPEN-016`，Viewer 不得偷偷對齊。
-- L2／L3 樓板均為 12.0 × 13.5 m；L2 +3.30 m 固定，L3 +6.88 m 旋轉。固定核心、水塔、L2–L3 逃生梯與外挑只表達工作占位，不得冒充結構或避難核定。
-- 屋頂固定為 29.0 m 水平跨度、低端 +4.000 m、高端 +6.537 m、5°。與 L3 +6.880 m 的 0.343 m 垂直轉接帶及中央剖面約 0.70 m 平面錯位必須可見並連結 `OPEN-016`。
-- `ST-01` 從池畔 +0.30 m 升至 L2 +3.30 m，工作幾何為 1.50 m 淨寬、20 級高／18 踏面、兩跑各 2.70 m、1.80 m 平台、總長 7.20 m；位置沿長邊玻璃牆，荷重不得傳給玻璃帷幕或屋頂。
-- 基地、L1、泳池、L2、L3、玻璃屋頂、樓梯、鏡牆與雨簾皆由同一 Viewer model 建立；五個場景不得另建第二套 mesh 幾何。
+- SITE X／Y／Z 只在一個 adapter 對應 Three.js X／Z／Y。
+- 307° 世界方位只套在 `WORLD-BEARING-ROOT` 一次。
+- L1／L2／屋頂固定；只有 L3 在獨立 group 以 X35／Y6.75 水平旋轉 +25.5°。
+- L3 面池承載牆與 `F-MIR-01` 共面，共同向池側外傾 +23.0°；顯示偏移只可小到避免 z-fighting。
+- L1 表達 25 × 8.5 m 池體、1.2→1.5 m 斜底、四間獨立廁所、儲物、水處理、藥劑分間與右側緩坡。
+- L2／L3 基準板為 12 × 13.5 m；L2 +3.30 m、L3 +6.88 m。
+- `ST-01` 為 X20.5～X29／Y0.5～Y2.0、1.50 m 淨寬、20 級高／18 踏面、2.70＋3.10＋2.70 m，從 +0.30 m 直接接 L2。
+- 固定屋頂為 29 m／5°／+4.00→+6.537 m。
+- 結構支承整合於 X32.5／X35.5 隔間／設備／立面帶，不使用孤立突兀核心柱；玻璃不承重。
+- 高位設備只在固定支承帶，不隨旋轉 L3 懸挑。
 
-## 場景、圖層與狀態
+23° 外傾、轉換結構、設備容量、避難與所有材料僅為概念工作值；Viewer 必須顯示專業驗證限制。
 
-`scene-manifest.json` 固定提供：
+## 場景與操作
 
-| Scene ID | 顯示重點 |
-| --- | --- |
-| `overview` | 完整建築、新舊量體與主要幾何 |
-| `light` | L3 水平旋轉、鏡牆外傾與冬季工作光線關係 |
-| `rain` | 玻璃屋頂、被動雨簾與概念回用路徑 |
-| `people` | 長向玻璃牆、樓梯與公共動線 |
-| `time` | 原建築與新增介入的辨識 |
+`scene-manifest.json` 固定提供 `overview`、`light`、`rain`、`people`、`time`。場景只改相機、visibility、environment 與理念內容，不另建第二套幾何。
 
-每個場景只改 camera、visibility、environment 及理念內容。`site`、`l1`、`water`、`l2`、`l3`、`roof`、`circulation`、`rain`、`annotations` 圖層必須能獨立切換，且 UI checkbox 必須反映實際 visibility。
+圖層固定為 `site`、`l1`、`water`、`l2`、`l3`、`roof`、`circulation`、`rain`、`annotations`。桌機與觸控支援 orbit、pan、zoom、四個固定視角、圖層切換與構件選取；canvas 與等價控制須可鍵盤操作。390 × 844 不得水平溢出。
 
-- `confirmed`：藍色狀態與正常完整資訊，只表示已確認的設計幾何。
-- `working`：橘色狀態，明示概念工作值與來源限制。
-- `deferred`：紫色狀態或概念線條，連回真正 OPEN，不填入施工尺度。
-
-材質只是一致的 Viewer palette，不代表施工材料、透反射率、結構或防水性能。
-
-## 互動、無障礙與 fallback
-
-- 桌機及觸控裝置支援 orbit、pan、zoom、重設與五個敘事鏡位。
-- 提供透視、俯視、池側及校側相反立面快捷視角。
-- canvas 可鍵盤聚焦；方向鍵平移，Enter／Space 依序選取構件；下拉選單提供等價的鍵盤構件選取。
-- 點選構件顯示 entity ID、名稱、狀態、限制及 OPEN；不得只靠 hover。
-- `prefers-reduced-motion` 下不使用場景動畫轉場。
-- 390 × 844 不得產生頁面水平溢出，五個 scene ID、圖層、相機與理念內容仍可操作。
-- WebGL 不可用或 `?forceFallback=1` 時顯示可閱讀的靜態總覽、五組理念內容與空間參照圖集連結。
+WebGL 不可用或 `?forceFallback=1` 時提供靜態總覽、五場景內容與最新 v0.6.0 圖集連結。
 
 ## 驗收
 
-- `npm run build:content`：token、scene ID、hash 與有限幾何通過。
-- `npm test`：canonical／derived 同步、分析 stale、五 scene ID、hash 及 transform 分層通過。
-- `npm run typecheck` 與 `npm run build`：Three.js／Vite production bundle 通過並產生 `dist/reference/3d-viewer/index.html`。
-- `npm run test:e2e`：1440 × 900、390 × 844 與 WebGL fallback smoke 通過；場景、圖層、構件、相機、版本及內容可觀察。
-- 手動檢查透視、俯視、池側、校側與手機畫面，確認屋頂範圍、透明排序、相機裁切、圖例與控制區可讀。
+- `npm run build:content`：hash、token、scene ID、active revision 與有限幾何通過。
+- `npm test`：SITE-XY bounds、current／stale hash、五場景與 transform 分層通過。
+- `npm run typecheck`、`npm run build`、`npm run test:e2e` 通過。
+- 桌機、手機與 fallback 截圖確認池體、四廁、樓梯、L3／鏡牆、屋頂、控制區與限制文字可讀。

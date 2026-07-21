@@ -4,7 +4,7 @@ import type { Entity, ProjectModel, SheetRender, Status } from './types';
 import { escapeHtml } from './geometry';
 import { renderSheets } from './sheets';
 
-const model = rawModel as ProjectModel;
+const model = rawModel as unknown as ProjectModel;
 const sheets = renderSheets(model);
 const entityById = new Map(model.entities.map((entity) => [entity.id, entity]));
 

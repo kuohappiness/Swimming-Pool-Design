@@ -1,8 +1,10 @@
 {
-  "schemaVersion": "1.0.0",
-  "modelVersion": "0.5.0",
-  "revision": "2026-07-21",
-  "modelHash": "75032eda42fd5bec53c6e6fceb9cd159bbf36cf55c949f720fc13972d7ac5099",
+  "schemaVersion": "1.1.0",
+  "modelVersion": "0.6.0",
+  "revision": "2026-07-22",
+  "activeGeometryRevisionId": "GEO-0.6.0",
+  "coordinateSystemId": "SITE-XY",
+  "modelHash": "cf5066fd2494ba8414682fbf00cf7af99947aab49ae4d0beab32930140a08f3e",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -19,73 +21,264 @@
       "z": "up"
     },
     "coordinateAdapter": {
-      "modelX": "threeX",
-      "modelY": "threeZ",
-      "modelZ": "threeY"
+      "siteX": "threeX",
+      "siteY": "threeZ",
+      "siteZ": "threeY",
+      "adapterId": "SITE-XY-TO-THREE"
+    }
+  },
+  "entityBounds": {
+    "SITE-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 0,
+        "x2": 41,
+        "y1": 0,
+        "y2": 14
+      }
+    },
+    "BLDG-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 0,
+        "x2": 39,
+        "y1": 0,
+        "y2": 14
+      }
+    },
+    "Z-PH-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 0,
+        "x2": 31,
+        "y1": 0,
+        "y2": 14
+      }
+    },
+    "POOL-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 3,
+        "x2": 28,
+        "y1": 4,
+        "y2": 12.5
+      }
+    },
+    "CORE-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 31,
+        "x2": 39,
+        "y1": 0,
+        "y2": 14
+      }
+    },
+    "Z-L1-SETBACK-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 39,
+        "x2": 41,
+        "y1": 0,
+        "y2": 14
+      }
+    },
+    "EN-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 0.5,
+        "x2": 2.5,
+        "y1": 0,
+        "y2": 0.2
+      }
+    },
+    "RTE-L1-PLAYGROUND-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 39,
+        "x2": 41,
+        "y1": 0,
+        "y2": 3.5
+      }
+    },
+    "Z-WC-POOL-M-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 31,
+        "x2": 35.5,
+        "y1": 0,
+        "y2": 3.5
+      }
+    },
+    "Z-WC-POOL-F-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 31,
+        "x2": 35.5,
+        "y1": 3.5,
+        "y2": 7.5
+      }
+    },
+    "Z-WC-PLAY-M-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 35.5,
+        "x2": 39,
+        "y1": 0,
+        "y2": 3.5
+      }
+    },
+    "Z-WC-PLAY-F-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 35.5,
+        "x2": 39,
+        "y1": 3.5,
+        "y2": 7.5
+      }
+    },
+    "Z-STOR-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 31,
+        "x2": 32.5,
+        "y1": 7.5,
+        "y2": 14
+      }
+    },
+    "Z-WTP-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 32.5,
+        "x2": 39,
+        "y1": 7.5,
+        "y2": 14
+      }
+    },
+    "Z-CHEM-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 37.5,
+        "x2": 39,
+        "y1": 11,
+        "y2": 14
+      }
+    },
+    "L2-PLATE-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 29,
+        "x2": 41,
+        "y1": 0,
+        "y2": 13.5
+      }
+    },
+    "L3-PLATE-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 29,
+        "x2": 41,
+        "y1": 0,
+        "y2": 13.5
+      }
+    },
+    "RF-GL-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 0,
+        "x2": 29,
+        "y1": 0,
+        "y2": 14
+      }
+    },
+    "ST-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 20.5,
+        "x2": 29,
+        "y1": 0.5,
+        "y2": 2
+      }
     }
   },
   "geometry": {
+    "site": {
+      "bounds": {
+        "x1": 0,
+        "x2": 41,
+        "y1": 0,
+        "y2": 14
+      },
+      "length": 41,
+      "width": 14
+    },
     "building": {
+      "bounds": {
+        "x1": 0,
+        "x2": 39,
+        "y1": 0,
+        "y2": 14
+      },
       "length": {
-        "value": 41,
-        "status": "confirmed",
-        "sourceIds": [
-          "SRC-CONCEPT-010"
-        ]
+        "value": 39,
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-016"
       },
       "width": {
         "value": 14,
         "status": "working",
-        "sourceIds": [
-          "SRC-CONCEPT-010"
-        ],
+        "sourceIds": [],
         "openItemId": "OPEN-016"
       },
       "upperFloorWidth": {
         "value": 13.5,
-        "status": "confirmed",
-        "sourceIds": []
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-016"
       },
       "poolHallLength": {
-        "value": 33,
-        "status": "confirmed",
-        "sourceIds": [
-          "SRC-CONCEPT-010"
-        ]
+        "value": 31,
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-016"
       },
       "serviceCoreLength": {
         "value": 8,
-        "status": "confirmed",
-        "sourceIds": [
-          "SRC-CONCEPT-010"
-        ]
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-016"
       },
       "leftSetback": {
+        "value": 0,
+        "status": "confirmed",
+        "sourceIds": []
+      },
+      "rightSetback": {
         "value": 2,
         "status": "confirmed",
-        "sourceIds": [
-          "SRC-CONCEPT-010"
-        ]
+        "sourceIds": []
       }
     },
     "pool": {
+      "bounds": {
+        "x1": 3,
+        "x2": 28,
+        "y1": 4,
+        "y2": 12.5
+      },
       "origin": [
-        6,
-        3
+        3,
+        4
       ],
       "length": {
-        "value": 20.5,
-        "status": "working",
-        "sourceIds": [
-          "SRC-CONCEPT-003"
-        ]
+        "value": 25,
+        "status": "confirmed",
+        "sourceIds": []
       },
       "width": {
-        "value": 7.5,
-        "status": "working",
-        "sourceIds": [
-          "SRC-CONCEPT-003"
-        ]
+        "value": 8.5,
+        "status": "confirmed",
+        "sourceIds": []
       },
       "shallowDepth": {
         "value": 1.2,
@@ -102,24 +295,258 @@
         "status": "confirmed",
         "sourceIds": []
       },
-      "laneCount": 3
+      "laneCount": 3,
+      "laneBands": [
+        {
+          "id": "POOL-BUFFER-01",
+          "y1": 4,
+          "y2": 4.5,
+          "use": "outer-safety-buffer"
+        },
+        {
+          "id": "POOL-LANE-01",
+          "y1": 4.5,
+          "y2": 7,
+          "use": "standard-2.5m"
+        },
+        {
+          "id": "POOL-LANE-02",
+          "y1": 7,
+          "y2": 9.5,
+          "use": "standard-2.5m"
+        },
+        {
+          "id": "POOL-MIXED-01",
+          "y1": 9.5,
+          "y2": 12.5,
+          "use": "normal-swim-and-teaching-3.0m-including-wall-buffer"
+        }
+      ]
     },
     "l1": {
-      "outdoorDepth": 7,
-      "toiletBandDepth": 7,
-      "dryPassageDepth": 1.55,
-      "outdoorConnectedToPoolHall": false,
-      "toiletDoorTopology": "playground-and-pool-side",
-      "core": {
-        "x": 33.6,
-        "y": 4,
-        "length": 2.8,
-        "width": 5.5,
-        "status": "working",
-        "openItemId": "OPEN-016"
+      "bounds": {
+        "x1": 0,
+        "x2": 39,
+        "y1": 0,
+        "y2": 14
+      },
+      "serviceWingBounds": {
+        "x1": 31,
+        "x2": 39,
+        "y1": 0,
+        "y2": 14
+      },
+      "rightSetbackBounds": {
+        "x1": 39,
+        "x2": 41,
+        "y1": 0,
+        "y2": 14
+      },
+      "mainEntranceBounds": {
+        "x1": 0.5,
+        "x2": 2.5,
+        "y1": 0,
+        "y2": 0.2
+      },
+      "playgroundRamp": {
+        "entityId": "RTE-L1-PLAYGROUND-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 39,
+          "x2": 41,
+          "y1": 0,
+          "y2": 3.5
+        },
+        "startElevation": 0,
+        "endElevation": 0.1,
+        "workingSlope": "1:20",
+        "status": "working"
+      },
+      "zones": {
+        "poolMaleToilet": {
+          "entityId": "Z-WC-POOL-M-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": {
+            "x1": 31,
+            "x2": 35.5,
+            "y1": 0,
+            "y2": 3.5
+          },
+          "floorElevation": 0.3,
+          "entrySide": "x31-only",
+          "fixtures": {
+            "toilets": 2,
+            "urinals": 2,
+            "washbasins": 2
+          },
+          "privacyScreen": true,
+          "status": "working"
+        },
+        "poolFemaleToilet": {
+          "entityId": "Z-WC-POOL-F-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": {
+            "x1": 31,
+            "x2": 35.5,
+            "y1": 3.5,
+            "y2": 7.5
+          },
+          "floorElevation": 0.3,
+          "entrySide": "x31-only",
+          "fixtures": {
+            "toilets": 3,
+            "urinals": 0,
+            "washbasins": 2
+          },
+          "privacyScreen": true,
+          "status": "working"
+        },
+        "playgroundMaleToilet": {
+          "entityId": "Z-WC-PLAY-M-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": {
+            "x1": 35.5,
+            "x2": 39,
+            "y1": 0,
+            "y2": 3.5
+          },
+          "floorElevation": 0.1,
+          "entrySide": "x39-only",
+          "fixtures": {
+            "toilets": 1,
+            "urinals": 1,
+            "washbasins": 1
+          },
+          "privacyScreen": true,
+          "status": "working"
+        },
+        "playgroundFemaleToilet": {
+          "entityId": "Z-WC-PLAY-F-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": {
+            "x1": 35.5,
+            "x2": 39,
+            "y1": 3.5,
+            "y2": 7.5
+          },
+          "floorElevation": 0.1,
+          "entrySide": "x39-only",
+          "fixtures": {
+            "toilets": 2,
+            "urinals": 0,
+            "washbasins": 1
+          },
+          "privacyScreen": true,
+          "status": "working"
+        },
+        "storage": {
+          "entityId": "Z-STOR-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": {
+            "x1": 31,
+            "x2": 32.5,
+            "y1": 7.5,
+            "y2": 14
+          },
+          "entrySides": [
+            "x31",
+            "x39-via-controlled-service-route"
+          ],
+          "status": "working"
+        },
+        "waterTreatment": {
+          "entityId": "Z-WTP-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": {
+            "x1": 32.5,
+            "x2": 39,
+            "y1": 7.5,
+            "y2": 14
+          },
+          "controlledEntrySide": "x39",
+          "status": "working-requires-professional-validation"
+        },
+        "chemicalRoom": {
+          "entityId": "Z-CHEM-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": {
+            "x1": 37.5,
+            "x2": 39,
+            "y1": 11,
+            "y2": 14
+          },
+          "separateVentilation": true,
+          "publicAccess": false,
+          "status": "working-requires-professional-validation"
+        }
+      },
+      "doors": [
+        {
+          "entityId": "DR-WC-POOL-M-01",
+          "side": "x31",
+          "center": [
+            31,
+            1.55
+          ],
+          "clearWidth": 0.9,
+          "status": "working"
+        },
+        {
+          "entityId": "DR-WC-POOL-F-01",
+          "side": "x31",
+          "center": [
+            31,
+            5.05
+          ],
+          "clearWidth": 0.9,
+          "status": "working"
+        },
+        {
+          "entityId": "DR-WC-PLAY-M-01",
+          "side": "x39",
+          "center": [
+            39,
+            1.55
+          ],
+          "clearWidth": 0.9,
+          "status": "working"
+        },
+        {
+          "entityId": "DR-WC-PLAY-F-01",
+          "side": "x39",
+          "center": [
+            39,
+            5.05
+          ],
+          "clearWidth": 0.9,
+          "status": "working"
+        }
+      ],
+      "structuralStrategy": {
+        "status": "conceptually-feasible-requires-professional-validation",
+        "loadPath": "integrated-partition-equipment-wall-and-facade-bays-to-foundation",
+        "isolatedColumnsAllowed": false,
+        "glassCarriesGravityLoad": false,
+        "partitionBoundaries": [
+          31,
+          32.5,
+          35.5,
+          39
+        ],
+        "openItemIds": [
+          "OPEN-009",
+          "OPEN-016",
+          "OPEN-018"
+        ]
       }
     },
     "l2": {
+      "bounds": {
+        "x1": 29,
+        "x2": 41,
+        "y1": 0,
+        "y2": 13.5
+      },
       "startX": 29,
       "endX": 41,
       "length": 12,
@@ -137,6 +564,8 @@
         "status": "confirmed",
         "sourceIds": []
       },
+      "poolAtriumOverlap": 2,
+      "rightSetbackOverhang": 2,
       "planPivot": {
         "x": 35,
         "y": 6.75,
@@ -147,6 +576,12 @@
       }
     },
     "l3": {
+      "bounds": {
+        "x1": 29,
+        "x2": 41,
+        "y1": 0,
+        "y2": 13.5
+      },
       "startX": 29,
       "endX": 41,
       "length": 12,
@@ -159,18 +594,19 @@
         "openItemId": "OPEN-011"
       },
       "planRotation": {
-        "value": 26.5,
+        "value": 25.5,
         "status": "working",
         "sourceIds": [
           "SRC-SITE-003"
-        ]
+        ],
+        "openItemId": "OPEN-011"
       },
       "planPivot": {
         "x": 35,
         "y": 6.75,
         "z": 6.88,
         "status": "working",
-        "strategy": "l3-floor-plate-centroid-structural-core-proxy",
+        "strategy": "floor-plate-centroid-and-fixed-core-proxy",
         "openItemId": "OPEN-011"
       },
       "mirror": {
@@ -182,18 +618,32 @@
           "openItemId": "OPEN-011"
         },
         "leanFromVertical": {
-          "value": 3.1,
+          "value": 23,
           "status": "working",
           "sourceIds": [
             "SRC-SITE-003"
-          ]
+          ],
+          "openItemId": "OPEN-011"
         },
         "materialIntent": "original-mirror",
         "wallAndMirrorCoplanar": true,
         "openItemId": "OPEN-011"
-      }
+      },
+      "highLevelEquipment": [
+        "water-storage",
+        "dehumidification-heat-recovery",
+        "heat-pump-condenser",
+        "bms-controls"
+      ],
+      "equipmentPlacementRule": "fixed-core-or-direct-support-lines-only-not-rotating-cantilever-or-mirror-wall"
     },
     "roof": {
+      "bounds": {
+        "x1": 0,
+        "x2": 29,
+        "y1": 0,
+        "y2": 14
+      },
       "startX": 0,
       "endX": 29,
       "planRun": 29,
@@ -244,9 +694,16 @@
     },
     "stair": {
       "entityId": "ST-01",
-      "startX": 19.5,
-      "endX": 26.7,
-      "originY": 11.875,
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 20.5,
+        "x2": 29,
+        "y1": 0.5,
+        "y2": 2
+      },
+      "startX": 20.5,
+      "endX": 29,
+      "originY": 0.5,
       "width": 1.5,
       "totalRise": 3,
       "riserCount": 20,
@@ -254,13 +711,43 @@
       "treadsPerRun": 9,
       "treadDepth": 0.3,
       "flightRun": 2.7,
-      "midLandingLength": 1.8,
+      "midLandingLength": 3.1,
       "midLandingElevation": 1.8,
       "lowerElevation": 0.3,
       "upperElevation": 3.3,
       "status": "working",
       "guardStatus": "deferred",
       "guardOpenItemId": "OPEN-017"
+    },
+    "integrationReview": {
+      "status": "conceptual-coordination-complete-professional-approvals-outstanding",
+      "checked": [
+        "pool-service-wing-clearance",
+        "stair-pool-clearance",
+        "stair-direct-l2-connection",
+        "four-independent-toilet-entries",
+        "nonaligned-zone-boundaries",
+        "right-setback-ramp",
+        "chemical-public-separation",
+        "high-level-equipment-support-rule",
+        "structure-space-integration"
+      ],
+      "professionalApprovals": {
+        "architect": false,
+        "structural": false,
+        "mep": false,
+        "fire": false,
+        "accessibility": false
+      },
+      "openItemIds": [
+        "OPEN-008",
+        "OPEN-009",
+        "OPEN-011",
+        "OPEN-014",
+        "OPEN-016",
+        "OPEN-017",
+        "OPEN-018"
+      ]
     }
   },
   "layers": [
@@ -271,12 +758,12 @@
     },
     {
       "id": "l1",
-      "label": "1F 池畔與服務層",
+      "label": "1F 池畔、四間廁所與機房",
       "status": "working"
     },
     {
       "id": "water",
-      "label": "泳池與水",
+      "label": "25 m 泳池與混合水道",
       "status": "confirmed"
     },
     {
@@ -296,7 +783,7 @@
     },
     {
       "id": "circulation",
-      "label": "樓梯與固定核心",
+      "label": "樓梯與結構整合",
       "status": "working"
     },
     {
@@ -313,12 +800,12 @@
   "analysis": {
     "solar": {
       "status": "current",
-      "recordedModelHash": "75032eda42fd5bec53c6e6fceb9cd159bbf36cf55c949f720fc13972d7ac5099",
-      "currentModelHash": "75032eda42fd5bec53c6e6fceb9cd159bbf36cf55c949f720fc13972d7ac5099",
+      "recordedModelHash": "cf5066fd2494ba8414682fbf00cf7af99947aab49ae4d0beab32930140a08f3e",
+      "currentModelHash": "cf5066fd2494ba8414682fbf00cf7af99947aab49ae4d0beab32930140a08f3e",
       "sourceIds": [
         "SRC-SITE-003"
       ],
-      "disclaimer": "幾何角度已確認；全年光熱、眩光與安全性能仍待專業驗證。"
+      "disclaimer": "0.6.0 池體與量體已同步；全年光熱、眩光、結構與安全性能仍待專業驗證。"
     }
   }
 }

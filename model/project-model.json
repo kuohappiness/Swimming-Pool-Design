@@ -1,7 +1,9 @@
 {
-  "schemaVersion": "1.2.0",
-  "modelVersion": "0.5.0",
-  "revision": "2026-07-21",
+  "schemaVersion": "1.3.0",
+  "modelVersion": "0.6.0",
+  "revision": "2026-07-22",
+  "activeGeometryRevisionId": "GEO-0.6.0",
+  "designTargetVersion": "0.6.0",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -19,6 +21,16 @@
       "worldOrigin": [0, 0, 0],
       "rotationFromTrueNorth": 307
     },
+    "coordinateSystems": [
+      {
+        "id": "SITE-XY",
+        "unit": "m",
+        "origin": [0, 0, 0],
+        "axes": { "x": "plan-right-long-axis", "y": "plan-up-cross-axis", "z": "up" },
+        "bounds": { "x1": 0, "x2": 41, "y1": 0, "y2": 14 },
+        "renderAdapters": { "svg": "x-right-y-down-via-named-adapter", "three": "x-to-x-y-to-z-z-to-y" }
+      }
+    ],
     "siteLocation": {
       "latitude": { "value": 24.14434, "status": "working", "sourceIds": ["SRC-SITE-001"] },
       "longitude": { "value": 120.67341, "status": "working", "sourceIds": ["SRC-SITE-001"] },
@@ -27,7 +39,8 @@
     },
     "levels": [
       { "id": "L1", "name": "一樓", "elevation": 0, "status": "confirmed", "sourceIds": [] },
-      { "id": "L2", "name": "二樓", "elevation": 4.5, "status": "confirmed", "sourceIds": [] },
+      { "id": "L2", "name": "二樓", "elevation": 3.3, "status": "working", "sourceIds": [] },
+      { "id": "L3", "name": "三樓", "elevation": 6.88, "status": "working", "sourceIds": [] },
       { "id": "RF", "name": "斜屋頂", "elevation": null, "status": "working" }
     ],
     "grids": {
@@ -47,22 +60,319 @@
       ]
     }
   },
+  "geometryRevisions": [
+    {
+      "id": "GEO-0.5.0",
+      "revision": "0.5.0",
+      "modelVersion": "0.5.0",
+      "status": "legacy",
+      "coordinateSystemId": "SITE-XY",
+      "historicalRecordPath": "geometry.solarReflection.legacyV050Study"
+    },
+    {
+      "id": "GEO-0.6.0",
+      "revision": "0.6.0",
+      "modelVersion": "0.6.0",
+      "status": "working",
+      "coordinateSystemId": "SITE-XY",
+      "site": {
+        "entityId": "SITE-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": { "x1": 0, "x2": 41, "y1": 0, "y2": 14 },
+        "rightwardBearingFromTrueNorth": 307,
+        "northArrowPlanDirection": "lower-right"
+      },
+      "levels": {
+        "l1BaseElevation": 0,
+        "playgroundToiletElevation": 0.1,
+        "poolDeckElevation": 0.3,
+        "poolToiletElevation": 0.3,
+        "l2Elevation": 3.3,
+        "l3Elevation": 6.88,
+        "poolSideFloorToFloor": 3,
+        "playgroundSideFloorToFloor": 3.2,
+        "l2FloorToFloor": 3.58
+      },
+      "l1": {
+        "building": {
+          "entityId": "BLDG-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 0, "x2": 39, "y1": 0, "y2": 14 },
+          "status": "working"
+        },
+        "poolHall": {
+          "entityId": "Z-PH-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 0, "x2": 31, "y1": 0, "y2": 14 },
+          "floorElevation": 0.3,
+          "status": "working"
+        },
+        "pool": {
+          "entityId": "POOL-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 3, "x2": 28, "y1": 4, "y2": 12.5 },
+          "shallowDepth": 1.2,
+          "deepDepth": 1.5,
+          "depthDirection": "low-x-to-high-x",
+          "waterVolume": 286.875,
+          "laneBands": [
+            { "id": "POOL-BUFFER-01", "y1": 4, "y2": 4.5, "use": "outer-safety-buffer" },
+            { "id": "POOL-LANE-01", "y1": 4.5, "y2": 7, "use": "standard-2.5m" },
+            { "id": "POOL-LANE-02", "y1": 7, "y2": 9.5, "use": "standard-2.5m" },
+            { "id": "POOL-MIXED-01", "y1": 9.5, "y2": 12.5, "use": "normal-swim-and-teaching-3.0m-including-wall-buffer" }
+          ],
+          "status": "confirmed"
+        },
+        "serviceWing": {
+          "entityId": "CORE-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 31, "x2": 39, "y1": 0, "y2": 14 },
+          "status": "working"
+        },
+        "rightSetback": {
+          "entityId": "Z-L1-SETBACK-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 39, "x2": 41, "y1": 0, "y2": 14 },
+          "status": "confirmed"
+        },
+        "mainEntrance": {
+          "entityId": "EN-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 0.5, "x2": 2.5, "y1": 0, "y2": 0.2 },
+          "clearWidthStatus": "requires-professional-validation",
+          "status": "confirmed"
+        },
+        "playgroundRamp": {
+          "entityId": "RTE-L1-PLAYGROUND-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 39, "x2": 41, "y1": 0, "y2": 3.5 },
+          "startElevation": 0,
+          "endElevation": 0.1,
+          "workingSlope": "1:20",
+          "status": "working"
+        },
+        "zones": {
+          "poolMaleToilet": {
+            "entityId": "Z-WC-POOL-M-01",
+            "coordinateSystemId": "SITE-XY",
+            "bounds": { "x1": 31, "x2": 35.5, "y1": 0, "y2": 3.5 },
+            "floorElevation": 0.3,
+            "entrySide": "x31-only",
+            "fixtures": { "toilets": 2, "urinals": 2, "washbasins": 2 },
+            "privacyScreen": true,
+            "status": "working"
+          },
+          "poolFemaleToilet": {
+            "entityId": "Z-WC-POOL-F-01",
+            "coordinateSystemId": "SITE-XY",
+            "bounds": { "x1": 31, "x2": 35.5, "y1": 3.5, "y2": 7.5 },
+            "floorElevation": 0.3,
+            "entrySide": "x31-only",
+            "fixtures": { "toilets": 3, "urinals": 0, "washbasins": 2 },
+            "privacyScreen": true,
+            "status": "working"
+          },
+          "playgroundMaleToilet": {
+            "entityId": "Z-WC-PLAY-M-01",
+            "coordinateSystemId": "SITE-XY",
+            "bounds": { "x1": 35.5, "x2": 39, "y1": 0, "y2": 3.5 },
+            "floorElevation": 0.1,
+            "entrySide": "x39-only",
+            "fixtures": { "toilets": 1, "urinals": 1, "washbasins": 1 },
+            "privacyScreen": true,
+            "status": "working"
+          },
+          "playgroundFemaleToilet": {
+            "entityId": "Z-WC-PLAY-F-01",
+            "coordinateSystemId": "SITE-XY",
+            "bounds": { "x1": 35.5, "x2": 39, "y1": 3.5, "y2": 7.5 },
+            "floorElevation": 0.1,
+            "entrySide": "x39-only",
+            "fixtures": { "toilets": 2, "urinals": 0, "washbasins": 1 },
+            "privacyScreen": true,
+            "status": "working"
+          },
+          "storage": {
+            "entityId": "Z-STOR-01",
+            "coordinateSystemId": "SITE-XY",
+            "bounds": { "x1": 31, "x2": 32.5, "y1": 7.5, "y2": 14 },
+            "entrySides": ["x31", "x39-via-controlled-service-route"],
+            "status": "working"
+          },
+          "waterTreatment": {
+            "entityId": "Z-WTP-01",
+            "coordinateSystemId": "SITE-XY",
+            "bounds": { "x1": 32.5, "x2": 39, "y1": 7.5, "y2": 14 },
+            "controlledEntrySide": "x39",
+            "status": "working-requires-professional-validation"
+          },
+          "chemicalRoom": {
+            "entityId": "Z-CHEM-01",
+            "coordinateSystemId": "SITE-XY",
+            "bounds": { "x1": 37.5, "x2": 39, "y1": 11, "y2": 14 },
+            "separateVentilation": true,
+            "publicAccess": false,
+            "status": "working-requires-professional-validation"
+          }
+        },
+        "doors": [
+          { "entityId": "DR-WC-POOL-M-01", "side": "x31", "center": [31, 1.55], "clearWidth": 0.9, "status": "working" },
+          { "entityId": "DR-WC-POOL-F-01", "side": "x31", "center": [31, 5.05], "clearWidth": 0.9, "status": "working" },
+          { "entityId": "DR-WC-PLAY-M-01", "side": "x39", "center": [39, 1.55], "clearWidth": 0.9, "status": "working" },
+          { "entityId": "DR-WC-PLAY-F-01", "side": "x39", "center": [39, 5.05], "clearWidth": 0.9, "status": "working" }
+        ],
+        "structuralStrategy": {
+          "status": "conceptually-feasible-requires-professional-validation",
+          "loadPath": "integrated-partition-equipment-wall-and-facade-bays-to-foundation",
+          "isolatedColumnsAllowed": false,
+          "glassCarriesGravityLoad": false,
+          "partitionBoundaries": [31, 32.5, 35.5, 39],
+          "openItemIds": ["OPEN-009", "OPEN-016", "OPEN-018"]
+        }
+      },
+      "l2": {
+        "floorPlate": {
+          "entityId": "L2-PLATE-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 29, "x2": 41, "y1": 0, "y2": 13.5 },
+          "baseElevation": 3.3,
+          "topElevation": 6.88,
+          "status": "working"
+        },
+        "planRotation": 0,
+        "poolAtriumOverlap": 2,
+        "rightSetbackOverhang": 2,
+        "splitAxisX": 35
+      },
+      "l3": {
+        "floorPlate": {
+          "entityId": "L3-PLATE-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 29, "x2": 41, "y1": 0, "y2": 13.5 },
+          "baseElevation": 6.88,
+          "status": "working"
+        },
+        "planRotation": 25.5,
+        "planPivot": { "x": 35, "y": 6.75, "strategy": "floor-plate-centroid-and-fixed-core-proxy", "status": "working" },
+        "mirror": {
+          "entityId": "F-MIR-01",
+          "edge": "pool-side-x29",
+          "height": 3.6,
+          "baseElevation": 6.88,
+          "leanFromVertical": 23,
+          "materialIntent": "original-mirror",
+          "wallAndMirrorCoplanar": true,
+          "status": "working"
+        },
+        "highLevelEquipment": ["water-storage", "dehumidification-heat-recovery", "heat-pump-condenser", "bms-controls"],
+        "equipmentPlacementRule": "fixed-core-or-direct-support-lines-only-not-rotating-cantilever-or-mirror-wall"
+      },
+      "roof": {
+        "entityId": "RF-GL-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": { "x1": 0, "x2": 29, "y1": 0, "y2": 14 },
+        "pitch": 5,
+        "lowElevation": 4,
+        "highElevation": 6.537,
+        "l3TransitionBand": 0.343,
+        "status": "confirmed"
+      },
+      "stair": {
+        "entityId": "ST-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": { "x1": 20.5, "x2": 29, "y1": 0.5, "y2": 2 },
+        "lowerElevation": 0.3,
+        "upperElevation": 3.3,
+        "totalRise": 3,
+        "clearWidth": 1.5,
+        "riserCount": 20,
+        "runs": 2,
+        "risersPerRun": 10,
+        "treadsPerRun": 9,
+        "riserHeight": 0.15,
+        "treadDepth": 0.3,
+        "runLengthPerFlight": 2.7,
+        "midLandingLength": 3.1,
+        "totalPlanLength": 8.5,
+        "upperConnection": "direct-to-l2-at-x29",
+        "status": "working-requires-professional-validation",
+        "openItemId": "OPEN-017"
+      },
+      "solar": {
+        "rotatingLevel": "L3",
+        "fixedLevels": ["L1", "L2"],
+        "planRotation": { "value": 25.5, "status": "working", "sourceIds": ["SRC-SITE-003"] },
+        "mirrorLeanFromVertical": { "value": 23, "status": "working", "sourceIds": ["SRC-SITE-003"] },
+        "azimuthTolerance": { "value": 28, "status": "working", "sourceIds": [] },
+        "minimumDownwardAngle": { "value": 8, "status": "working", "sourceIds": [] },
+        "analysisStatus": "working-optimized-requires-professional-validation",
+        "weatherSourceId": "SRC-SITE-003",
+        "pivotSensitivityX": [33, 35, 37, 39, 41],
+        "evaluatedAt": "2026-07-22",
+        "search": {
+          "fullCandidateCount": 3111,
+          "coarseCandidateCount": 496,
+          "coarseStrictWarmZeroCount": 104,
+          "fineCandidateCount": 81,
+          "fineStrictWarmZeroCount": 56,
+          "objective": "strict-warm-zero-then-maximize-cool-season-pool-gain"
+        },
+        "workingResult": {
+          "warmPoolAddedKWh": 0,
+          "coolPoolAddedKWh": 1036.829,
+          "coolPoolIncreasePercent": 0.962,
+          "warmRoofRedirectedKWh": 289.797,
+          "coolRoofRedirectedKWh": 4857.203,
+          "overlapArea": 138.589,
+          "overlapPercent": 85.55,
+          "outsideFixedL2ProjectionArea": 23.411
+        },
+        "supersededV050AngleOnV060Pool": {
+          "planRotation": 26.5,
+          "mirrorLeanFromVertical": 3.1,
+          "warmPoolAddedKWh": 200.722,
+          "coolPoolAddedKWh": 2116.651,
+          "status": "rejected-for-v0.6.0-warm-season-gain"
+        },
+        "pivotSensitivity": [
+          { "pivotX": 33, "warmPoolAddedKWh": 0.125, "coolPoolAddedKWh": 1199.844, "coolPoolIncreasePercent": 1.112 },
+          { "pivotX": 35, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 1036.829, "coolPoolIncreasePercent": 0.962 },
+          { "pivotX": 37, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 876.599, "coolPoolIncreasePercent": 0.815 },
+          { "pivotX": 39, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 732.206, "coolPoolIncreasePercent": 0.681 },
+          { "pivotX": 41, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 596.158, "coolPoolIncreasePercent": 0.555 }
+        ],
+        "openItemId": "OPEN-011"
+      },
+      "integrationReview": {
+        "status": "conceptual-coordination-complete-professional-approvals-outstanding",
+        "checked": [
+          "pool-service-wing-clearance",
+          "stair-pool-clearance",
+          "stair-direct-l2-connection",
+          "four-independent-toilet-entries",
+          "nonaligned-zone-boundaries",
+          "right-setback-ramp",
+          "chemical-public-separation",
+          "high-level-equipment-support-rule",
+          "structure-space-integration"
+        ],
+        "professionalApprovals": { "architect": false, "structural": false, "mep": false, "fire": false, "accessibility": false },
+        "openItemIds": ["OPEN-008", "OPEN-009", "OPEN-011", "OPEN-014", "OPEN-016", "OPEN-017", "OPEN-018"]
+      }
+    }
+  ],
   "geometry": {
     "building": {
-      "length": { "value": 35, "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
-      "width": { "value": 13.5, "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
-      "poolHallLength": { "value": 24, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
-      "serviceCoreLength": { "value": 11, "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
-      "l2ExtensionLength": { "value": 5, "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] },
-      "l2VolumeHeight": { "value": 3.6, "status": "working", "sourceIds": ["SRC-CONCEPT-001"] }
+      "l2VolumeHeight": { "value": 3.58, "status": "working", "sourceIds": [] },
+      "activeGeometryOwner": "GEO-0.6.0"
     },
     "pool": {
-      "origin": [1.75, 3],
-      "length": { "value": 20.5, "status": "working", "sourceIds": ["SRC-CONCEPT-003"] },
-      "width": { "value": 7.5, "status": "working", "sourceIds": ["SRC-CONCEPT-003"] },
       "shallowDepth": { "value": 1.2, "status": "confirmed", "sourceIds": [] },
       "deepDepth": { "value": 1.5, "status": "confirmed", "sourceIds": [] },
-      "laneCount": 3
+      "laneCount": 3,
+      "standardLaneCount": 2,
+      "mixedTeachingBandCount": 1,
+      "activeGeometryOwner": "GEO-0.6.0"
     },
     "roof": {
       "coverageZoneId": "Z-PH-01",
@@ -109,16 +419,8 @@
     "stair": {
       "id": "ST-01",
       "type": "two-run-straight-with-floating-mid-landing",
-      "originY": 0.5,
-      "originZ": 0,
-      "upperEndAlignment": "l2-split-axis",
-      "width": 1.8,
-      "riserCount": 30,
-      "runs": 2,
-      "risersPerRun": 15,
-      "treadsPerRun": 14,
-      "treadDepth": 0.3,
-      "midLandingLength": 1.8,
+      "activeGeometryOwner": "GEO-0.6.0",
+      "upperEndAlignment": "l2-pool-side-edge-x29",
       "stringers": 2,
       "stringerDescription": "S1 雙側連續封閉箱型鋼梯梁",
       "supportSystem": "S1-continuous-twin-box-stringers",
@@ -165,10 +467,9 @@
         "sourceIds": ["SRC-CONCEPT-009"],
         "openItemId": "OPEN-011"
       },
-      "v050Study": {
+      "legacyV050Study": {
         "revision": "0.5.0",
-        "status": "working",
-        "activeForViewer": true,
+        "status": "legacy",
         "rotatingLevel": "L3",
         "fixedLevels": ["L1", "L2"],
         "site": {
@@ -318,52 +619,29 @@
       "entityId": "EN-01",
       "dailyPeopleEntrance": true,
       "arrivalContext": "school-playground",
-      "outdoorForecourtZoneId": "Z-L1-ENTRY-01",
-      "forecourtEnvironment": "outdoor",
-      "arrivalPathEntityId": "RTE-L1-ARRIVAL-01",
-      "clearsStairEntityId": "ST-01",
-      "positiveStairClearanceRequired": true,
-      "outdoorOpeningEntityIds": ["OP-L1-PH-01", "DR-L1-WC-M-FRONT-01", "DR-L1-WC-F-FRONT-01"],
-      "openingsIndependent": true,
-      "geometryStatus": "deferred",
+      "boundsEntityId": "EN-01",
+      "siteCoordinateSpan": { "x1": 0.5, "x2": 2.5, "y": 0 },
+      "clearWidthStatus": "requires-professional-validation",
+      "geometryStatus": "confirmed-location",
       "openItemId": "OPEN-008"
     },
     "l1": {
-      "dryPassage": {
-        "entityId": "PSG-L1-DRY-01",
-        "side": "pool-side",
-        "connectsFromZoneId": "Z-PH-01",
-        "connectsToDoorEntityIds": ["DR-L1-WC-M-REAR-01", "DR-L1-WC-F-REAR-01"],
-        "continuous": true,
-        "geometryStatus": "deferred",
-        "openItemId": "OPEN-008"
-      },
+      "groupsInterconnect": false,
+      "sharedInternalPassage": false,
       "accessConflicts": {
         "stairEntityId": "ST-01",
-        "blocksOutdoorOpenings": false,
+        "blocksPool": false,
         "blocksToiletDoors": false,
-        "blocksDryPassage": false
+        "connectsDirectlyToL2": true
       },
-      "maleToilet": {
-        "zoneId": "Z-WC-M-01",
-        "side": "lower-x",
-        "toilets": 3,
-        "urinals": 3,
-        "frontDoor": { "entityId": "DR-L1-WC-M-FRONT-01", "connectsTo": "Z-L1-ENTRY-01", "access": "daily-open" },
-        "rearDoor": { "entityId": "DR-L1-WC-M-REAR-01", "connectsTo": "PSG-L1-DRY-01", "access": "pool-hours-only" },
-        "doorsDirectlyAligned": false,
-        "privacyScreen": true
-      },
-      "femaleToilet": {
-        "zoneId": "Z-WC-F-01",
-        "side": "higher-x",
-        "toilets": 5,
-        "urinals": 0,
-        "frontDoor": { "entityId": "DR-L1-WC-F-FRONT-01", "connectsTo": "Z-L1-ENTRY-01", "access": "daily-open" },
-        "rearDoor": { "entityId": "DR-L1-WC-F-REAR-01", "connectsTo": "PSG-L1-DRY-01", "access": "pool-hours-only" },
-        "doorsDirectlyAligned": false,
-        "privacyScreen": true
-      }
+      "toilets": [
+        { "zoneId": "Z-WC-POOL-M-01", "userGroup": "pool", "gender": "male", "entrySide": "x31-only", "floorElevation": 0.3, "toilets": 2, "urinals": 2, "washbasins": 2, "privacyScreen": true },
+        { "zoneId": "Z-WC-POOL-F-01", "userGroup": "pool", "gender": "female", "entrySide": "x31-only", "floorElevation": 0.3, "toilets": 3, "urinals": 0, "washbasins": 2, "privacyScreen": true },
+        { "zoneId": "Z-WC-PLAY-M-01", "userGroup": "playground", "gender": "male", "entrySide": "x39-only", "floorElevation": 0.1, "toilets": 1, "urinals": 1, "washbasins": 1, "privacyScreen": true },
+        { "zoneId": "Z-WC-PLAY-F-01", "userGroup": "playground", "gender": "female", "entrySide": "x39-only", "floorElevation": 0.1, "toilets": 2, "urinals": 0, "washbasins": 1, "privacyScreen": true }
+      ],
+      "serviceZones": ["Z-STOR-01", "Z-WTP-01", "Z-CHEM-01"],
+      "accessibleToiletStatus": "deferred-specialist-study"
     },
     "l2": {
       "strictGenderSeparation": true,
@@ -387,27 +665,28 @@
     }
   },
   "entities": [
-    { "id": "O-SITE-01", "name": "基地世界原點（與 EN-01 門檻共點）", "type": "datum", "level": "L1", "grid": "E/1", "status": "confirmed", "sourceIds": ["SRC-SITE-002"] },
+    { "id": "O-SITE-01", "name": "SITE-XY 工作座標基準點 X27／Y0", "type": "datum", "level": "L1", "grid": "X27/Y0", "status": "confirmed", "sourceIds": ["SRC-SITE-002"] },
     { "id": "SITE-01", "name": "中教大附小游泳池基地", "type": "site", "level": "L1", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-SITE-002"] },
     { "id": "BLDG-01", "name": "游泳池建築", "type": "building", "level": "L1-RF", "grid": "A-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001"] },
     { "id": "Z-PH-01", "name": "泳池大廳", "type": "zone", "level": "L1-RF", "grid": "A-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-004", "SRC-CONCEPT-005"] },
     { "id": "POOL-01", "name": "三水道主泳池", "type": "pool", "level": "L1", "grid": "A-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-003"] },
     { "id": "CORE-01", "name": "原廁所基地服務核心", "type": "service-core", "level": "L1-RF", "grid": "E-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
     { "id": "EXT-L2-01", "name": "二樓專用擴建量體", "type": "l2-extension", "level": "L2", "grid": "D-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] },
-    { "id": "F-MIR-01", "name": "EXT-L2-01 面池端鏡面反射牆", "type": "mirror-facade", "level": "L2", "grid": "D/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-009"] },
-    { "id": "EN-01", "name": "操場側日常人員入口", "type": "entrance", "level": "L1", "grid": "E/1", "status": "confirmed", "sourceIds": ["SRC-SITE-002", "SRC-CONCEPT-005"] },
-    { "id": "Z-L1-ENTRY-01", "name": "操場側入口戶外區", "type": "outdoor-forecourt", "level": "L1", "grid": "E-F/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008", "SRC-CONCEPT-009"] },
-    { "id": "RTE-L1-ARRIVAL-01", "name": "EN-01 至戶外前場正淨空到達路徑", "type": "arrival-route", "level": "L1", "grid": "E/1-2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
-    { "id": "OP-L1-PH-01", "name": "泳池大廳戶外入口", "type": "outdoor-opening", "level": "L1", "grid": "D-E/1-2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
-    { "id": "DR-L1-WC-M-FRONT-01", "name": "男廁戶外前門", "type": "door", "level": "L1", "grid": "E/2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
-    { "id": "DR-L1-WC-M-REAR-01", "name": "男廁泳池側管制後門", "type": "door", "level": "L1", "grid": "E/4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005", "SRC-CONCEPT-008"] },
-    { "id": "DR-L1-WC-F-FRONT-01", "name": "女廁戶外前門", "type": "door", "level": "L1", "grid": "E-F/2", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-008"] },
-    { "id": "DR-L1-WC-F-REAR-01", "name": "女廁泳池側管制後門", "type": "door", "level": "L1", "grid": "E-F/4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005", "SRC-CONCEPT-008"] },
-    { "id": "PSG-L1-DRY-01", "name": "泳池側連續乾式通道", "type": "dry-passage", "level": "L1", "grid": "D-F/4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005", "SRC-CONCEPT-008"] },
+    { "id": "F-MIR-01", "name": "L3 面池端外傾承載鏡牆", "type": "mirror-facade", "level": "L3", "grid": "SITE-XY", "status": "working", "sourceIds": ["SRC-CONCEPT-009"] },
+    { "id": "EN-01", "name": "泳池館主要入口 X0.5～X2.5／Y0", "type": "entrance", "level": "L1", "grid": "X0.5-X2.5/Y0", "status": "confirmed", "sourceIds": [] },
+    { "id": "RTE-L1-PLAYGROUND-01", "name": "操場側 +0.10 m 外部整坡工作帶", "type": "accessible-route", "level": "L1", "grid": "X39-X41/Y0-Y3.5", "status": "working", "sourceIds": [] },
     { "id": "ST-01", "name": "A2 兩段同向懸空樓梯", "type": "stair", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
     { "id": "Z-ST-01", "name": "乾式透明樓梯廊", "type": "zone", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
-    { "id": "Z-WC-M-01", "name": "一樓男廁", "type": "zone", "level": "L1", "grid": "E-F/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
-    { "id": "Z-WC-F-01", "name": "一樓女廁", "type": "zone", "level": "L1", "grid": "E-F/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
+    { "id": "Z-L1-SETBACK-01", "name": "右側 2 m 退縮保留空間", "type": "setback", "level": "L1", "grid": "X39-X41/Y0-Y14", "status": "confirmed", "sourceIds": [] },
+    { "id": "Z-WC-POOL-M-01", "name": "泳池側男廁", "type": "zone", "level": "L1", "grid": "X31-X35.5/Y0-Y3.5", "status": "working", "sourceIds": [] },
+    { "id": "Z-WC-POOL-F-01", "name": "泳池側女廁", "type": "zone", "level": "L1", "grid": "X31-X35.5/Y3.5-Y7.5", "status": "working", "sourceIds": [] },
+    { "id": "Z-WC-PLAY-M-01", "name": "操場側男廁", "type": "zone", "level": "L1", "grid": "X35.5-X39/Y0-Y3.5", "status": "working", "sourceIds": [] },
+    { "id": "Z-WC-PLAY-F-01", "name": "操場側女廁", "type": "zone", "level": "L1", "grid": "X35.5-X39/Y3.5-Y7.5", "status": "working", "sourceIds": [] },
+    { "id": "Z-STOR-01", "name": "乾式儲物間", "type": "storage", "level": "L1", "grid": "X31-X32.5/Y7.5-Y14", "status": "working", "sourceIds": [] },
+    { "id": "Z-WTP-01", "name": "鄰池水處理機房", "type": "pool-water-treatment", "level": "L1", "grid": "X32.5-X39/Y7.5-Y14", "status": "working", "sourceIds": [] },
+    { "id": "Z-CHEM-01", "name": "受管制獨立藥劑分間", "type": "chemical-room", "level": "L1", "grid": "X37.5-X39/Y11-Y14", "status": "working", "sourceIds": [] },
+    { "id": "L2-PLATE-01", "name": "固定 L2 更衣淋浴樓板", "type": "floor-plate", "level": "L2", "grid": "X29-X41/Y0-Y13.5", "status": "working", "sourceIds": [] },
+    { "id": "L3-PLATE-01", "name": "旋轉 L3 服務樓板", "type": "floor-plate", "level": "L3", "grid": "X29-X41/Y0-Y13.5", "status": "working", "sourceIds": [] },
     { "id": "Z-L2-LOBBY-01", "name": "二樓男女分流前室", "type": "zone", "level": "L2", "grid": "E/1", "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
     { "id": "Z-CS-M-01", "name": "二樓男更衣淋浴區", "type": "zone", "level": "L2", "grid": "D-E/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
     { "id": "Z-CS-F-01", "name": "二樓女更衣淋浴區", "type": "zone", "level": "L2", "grid": "E-F/1-4", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-005"] },
@@ -419,11 +698,10 @@
   ],
   "sheets": [
     { "id": "REF-001", "title": "基地與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
-    { "id": "REF-101", "title": "L1 平面參照圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "POOL-01", "CORE-01", "EN-01", "Z-L1-ENTRY-01", "RTE-L1-ARRIVAL-01", "OP-L1-PH-01", "DR-L1-WC-M-FRONT-01", "DR-L1-WC-M-REAR-01", "DR-L1-WC-F-FRONT-01", "DR-L1-WC-F-REAR-01", "PSG-L1-DRY-01", "ST-01", "Z-WC-M-01", "Z-WC-F-01"] },
-    { "id": "REF-201", "title": "L2 平面參照圖", "level": "L2", "referencedEntityIds": ["CORE-01", "EXT-L2-01", "ST-01", "Z-L2-LOBBY-01", "Z-CS-M-01", "Z-CS-F-01"] },
-    { "id": "REF-301", "title": "屋頂參照圖", "level": "RF", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "CORE-01", "EXT-L2-01", "RF-GL-01", "J-RF-L2-01", "RC-RF-01", "RW-TR-01", "RW-01"] },
-    { "id": "REF-401", "title": "A–A 縱剖面參照圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "Z-L1-ENTRY-01", "EXT-L2-01", "F-MIR-01", "ST-01", "RF-GL-01", "J-RF-L2-01", "RC-RF-01", "RW-TR-01"] },
-    { "id": "REF-501", "title": "3D 軸測參照圖", "level": "3D", "referencedEntityIds": ["BLDG-01", "Z-PH-01", "POOL-01", "CORE-01", "EXT-L2-01", "ST-01", "RF-GL-01", "J-RF-L2-01", "RC-RF-01"] }
+    { "id": "V060-L1", "title": "v0.6.0｜1F 最新平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-STOR-01", "Z-WTP-01", "Z-CHEM-01"] },
+    { "id": "V060-L2", "title": "v0.6.0｜2F 最新平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "ST-01", "Z-CS-M-01", "Z-CS-F-01"] },
+    { "id": "V060-L3", "title": "v0.6.0｜3F 最新平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "F-MIR-01"] },
+    { "id": "V060-SECTION", "title": "v0.6.0｜最新縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "L2-PLATE-01", "L3-PLATE-01", "F-MIR-01", "RF-GL-01"] }
   ],
   "sources": [
     { "id": "SRC-SITE-001", "path": "source-materials/site/SRC-SITE-001_google-maps-satellite.png", "kind": "satellite", "pixelSize": [1612, 1430], "sha256": "39D1933CAEFB91020AF10E72ADFDBD04980DA36FEDBF36ED14209F469DA4029D" },

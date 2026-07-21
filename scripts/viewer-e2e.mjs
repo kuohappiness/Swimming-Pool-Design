@@ -87,9 +87,9 @@ try {
   assert.equal(await desktop.locator('[data-scene-nav] button').count(), 5);
   assert.equal(await desktop.locator('[data-layer-list] input').count(), 9);
   assert.equal(await desktop.locator('canvas[aria-label*="3D 模型"]').count(), 1);
-  assert.match(await desktop.locator('[data-model-version]').innerText(), /^MODEL 0\.5\.0/);
+  assert.match(await desktop.locator('[data-model-version]').innerText(), /^MODEL 0\.6\.0/);
   assert.match(await desktop.locator('.trust-strip [data-model-hash]').innerText(), /^[a-f0-9]{12}/);
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'), '26.5°');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'), '25.5°');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-deck-elevation'), '+0.300 m');
   await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-perspective.png'), fullPage: true });
 
@@ -134,11 +134,11 @@ try {
   trackErrors(solarDesktop);
   await solarDesktop.goto(`${origin}/solar-study/`, { waitUntil: 'networkidle' });
   assert.match(await solarDesktop.locator('h1').innerText(), /固定 L1／L2/);
-  assert.match(await solarDesktop.locator('#model-version').innerText(), /^STUDY 0\.5\.0 · MODEL /);
-  assert.equal(await solarDesktop.locator('#confirmed-plan').innerText(), '+26.5°');
-  assert.equal(await solarDesktop.locator('#confirmed-lean').innerText(), '+3.1°');
-  assert.equal(await solarDesktop.locator('#confirmed-normal').innerText(), '153.5°');
-  assert.match(await solarDesktop.locator('.decision-summary').innerText(), /冷季新增 \+1,022\.903 kWh/);
+  assert.match(await solarDesktop.locator('#model-version').innerText(), /^STUDY 0\.6\.0 · MODEL 0\.6\.0/);
+  assert.equal(await solarDesktop.locator('#confirmed-plan').innerText(), '+25.5°');
+  assert.equal(await solarDesktop.locator('#confirmed-lean').innerText(), '+23.0°');
+  assert.equal(await solarDesktop.locator('#confirmed-normal').innerText(), '152.5°');
+  assert.match(await solarDesktop.locator('.decision-summary').innerText(), /冷季新增 \+1,036\.829 kWh/);
   assert.equal(await solarDesktop.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   await solarDesktop.locator('#planRotation').evaluate((input) => {
     input.value = '27';
@@ -159,32 +159,40 @@ try {
   const atlasDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   trackErrors(atlasDesktop);
   await atlasDesktop.goto(`${origin}/#REF-001`, { waitUntil: 'networkidle' });
-  assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 8);
-  assert.equal(await atlasDesktop.locator('#model-version').innerText(), 'MODEL 0.5.0');
-  assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /SRC-SITE-001 最新原圖/);
-  assert.match(await atlasDesktop.locator('.drawing image').getAttribute('href'), /SRC-SITE-001_google-maps-satellite/);
+  assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 5);
+  assert.equal(await atlasDesktop.locator('#model-version').innerText(), 'MODEL 0.6.0');
+  assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /基地現況來源圖/);
+  assert.match(await atlasDesktop.locator('#sheet-stage image').getAttribute('href'), /SRC-SITE-001_google-maps-satellite/);
   await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-site-latest.png'), fullPage: true });
 
-  await atlasDesktop.locator('[data-sheet="V23-PLAN"]').click();
-  assert.equal(await atlasDesktop.locator('[data-sheet="V23-PLAN"]').getAttribute('aria-current'), 'page');
-  assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /真北箭頭指向右下/);
-  assert.match(await atlasDesktop.locator('.review-drawing image').getAttribute('href'), /DRAW-L1-L3-PLANS-V2\.3/);
-  await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-v23-plan.png'), fullPage: true });
-
-  await atlasDesktop.locator('[data-sheet="V23-SECTION"]').click();
-  assert.equal(await atlasDesktop.locator('[data-sheet="V23-SECTION"]').getAttribute('aria-current'), 'page');
-  assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /池畔 \+0\.30 m/);
-  assert.match(await atlasDesktop.locator('.review-drawing image').getAttribute('href'), /DRAW-LONGITUDINAL-SECTION-V2\.3/);
-  await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-v23-section.png'), fullPage: true });
+  for (const [sheetId, imagePattern, screenshotName] of [
+    ['V060-L1', /DRAW-L1-PLAN-v0\.6\.0/, 'atlas-v060-l1.png'],
+    ['V060-L2', /DRAW-L2-PLAN-v0\.6\.0/, 'atlas-v060-l2.png'],
+    ['V060-L3', /DRAW-L3-PLAN-v0\.6\.0/, 'atlas-v060-l3.png'],
+    ['V060-SECTION', /DRAW-LONGITUDINAL-SECTION-v0\.6\.0/, 'atlas-v060-section.png'],
+  ]) {
+    await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).click();
+    assert.equal(await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).getAttribute('aria-current'), 'page');
+    const drawingImage = atlasDesktop.locator('.review-drawing image');
+    assert.match(await drawingImage.getAttribute('href'), imagePattern);
+    const loadedBytes = await drawingImage.evaluate(async (element) => {
+      const response = await fetch(element.getAttribute('href'));
+      if (!response.ok) throw new Error(`Drawing request failed: ${response.status}`);
+      return (await response.blob()).size;
+    });
+    assert.ok(loadedBytes > 10_000, `${sheetId} drawing asset must contain rendered image bytes`);
+    await atlasDesktop.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+    await atlasDesktop.screenshot({ path: resolve(outputDirectory, screenshotName), fullPage: true });
+  }
   await atlasDesktop.close();
 
   const atlasMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(atlasMobile);
-  await atlasMobile.goto(`${origin}/#V23-PLAN`, { waitUntil: 'networkidle' });
-  assert.equal(await atlasMobile.locator('#model-version').innerText(), 'MODEL 0.5.0');
+  await atlasMobile.goto(`${origin}/#V060-L1`, { waitUntil: 'networkidle' });
+  assert.equal(await atlasMobile.locator('#model-version').innerText(), 'MODEL 0.6.0');
   assert.equal(await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
-  assert.match(await atlasMobile.locator('.review-drawing image').getAttribute('href'), /DRAW-L1-L3-PLANS-V2\.3/);
-  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-v23-plan-mobile.png'), fullPage: true });
+  assert.match(await atlasMobile.locator('.review-drawing image').getAttribute('href'), /DRAW-L1-PLAN-v0\.6\.0/);
+  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-v060-l1-mobile.png'), fullPage: true });
   await atlasMobile.close();
 
   assert.equal(browserErrors.length, 0, browserErrors.join('\n'));

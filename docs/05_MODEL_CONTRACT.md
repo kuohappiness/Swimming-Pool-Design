@@ -1,107 +1,110 @@
 # 05｜模型契約
 
-## 1. 目的
+## 1. 單一來源
 
-`model/project-model.json` 是現行幾何、參照、程式需求、實體、圖面與來源的唯一機器可讀模型。renderer、validator、互動頁及未來輸出不得各自保存第二套尺寸、方位、版本或來源答案。
+`model/project-model.json` 是現行幾何、版本、程式需求、圖面與來源的唯一機器可讀模型。所有 consumer 必須先呼叫 `scripts/active-geometry.mjs` 的 `resolveActiveGeometry()`；不得直接讀取 `v050Study`／`v060Study`、依檔名或日期猜最新版，也不得在解析失敗時 fallback 到舊版。
 
-現行輸出契約分開管理：
+現行版本契約：
 
-- [空間參照圖集契約](contracts/reference-atlas.md)
-- [太陽研究契約](contracts/solar-study.md)
-- [3D Viewer 契約](contracts/3d-viewer.md)
+- `schemaVersion = 1.3.0`
+- `modelVersion = designTargetVersion = 0.6.0`
+- `activeGeometryRevisionId = GEO-0.6.0`
+- active revision 的 `id` 必須只出現一次，且 `revision`、`modelVersion` 均須等於頂層 `modelVersion`。
+- legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
-DXF 進入 active work 後才建立正式輸出契約。
+## 2. SITE-XY
 
-## 2. 模型結構
-
-模型至少包含：
-
-- `referenceSystem`：單位、世界軸、本地 transform、基地位置、樓層、格網與原點。
-- `geometry`：building、pool、roof、stair、combinedCubicle、solarReflection；其中 `l2VolumeHeight`、`planPivot` 與 `mirrorVisualWallHeight` 明確保存 Viewer 所需的工作幾何與 OPEN 關聯。
-- `program`：入口、L1 廁所、L2 男女配置與 15＋5 單元。
-- `entities`：跨輸出的穩定 ID registry。
-- `sheets`：現行參照圖及其引用 ID。
-- `sources`：來源路徑、像素或資料筆數／bytes，以及 SHA-256。
-
-`scripts/reference-geometry.mjs` 是 L2 起點、外框、中央分流軸、樓梯定位、屋頂跨度與所有垂直關係的唯一推導層。`referenceSystem.levels.L2.elevation` 是 L2 高度的 canonical input；`stairTotalRise`、`roofHighElevation`、`roofFarWallElevation` 與 `roofLowElevation` 都是 derived output，不得回存 `geometry.stair.totalRise` 或屋頂高低標高形成第二答案。模型保存基礎參數，consumer 使用推導結果。
-
-`geometry.building.l2VolumeHeight = 3.6 m` 是概念剖面的 `working` 視覺量體高度。`geometry.solarReflection.planPivot` 只保存 `l2-start-width-center` 推導策略及 `OPEN-011`；座標由 L2 起點、建築寬度中心及 L2 標高產生。`mirrorVisualWallHeight = 3.6 m` 是 Viewer 完整牆面的工作值，和日照能量分析的 `mirrorHeight = 3.0 m` 假設分離，兩者不得互相冒充。
-
-`geometry.solarReflection` 是日照分析與各輸出的單一角度契約：`planRotation` 為由上往下看順時針 +9.5°、`mirrorLeanFromVertical` 為向泳池側外傾 +8.5°，兩者的 confirmed 只表示建築幾何已核准。`azimuthTolerance` 28° 與 `minimumDownwardAngle` 8° 是方向代理篩檢的 working 門檻，不是有限池面、kWh、照度、眩光或熱效能的安全標準。依 `DEC-039`，性能 consumer 必須比較相同氣象、幾何與材料假設下的「有鏡－無鏡」池面入射能量，原本已有直射的區域仍須計入鏡面疊加。整個物件連結 `OPEN-011`，表示旋轉支點、鏡牆上下緣／牆高、季節控制表皮、玻璃與鏡面材料、框架遮蔭與最終性能仍未解決；依 `DEC-040`，季節採光腔、旋轉葉片、捲屏、摺板或外置百葉都不得成為模型預設答案。
-
-自 0.5.0 起，前段 +9.5°／+8.5°及 35 m 舊外框只保留給 0.4.0 圖集與歷史比較；現行 Viewer 與公開理念的 active geometry 是 `geometry.solarReflection.v050Study`，並以 `activeForViewer=true` 明示。該物件保存 41 × 14 m L1 工作外框、33＋8 m 分段、2 m 退縮、池畔 +0.30 m、L2 +3.30 m、L3 +6.88 m、12 × 13.5 m 樓板、L3 +26.5°／鏡牆 +3.1°、29 m／5°屋頂、樓梯與固定核心工作占位。Consumer 不得混用兩套幾何；完整 atlas 遷移仍保留為歷史相容層，Viewer 必須只讀 `v050Study`。
-
-`program.entrance` 以 `outdoorForecourtZoneId`、`arrivalPathEntityId` 與 `outdoorOpeningEntityIds` 表達戶外到達；不得再出現 `sharedVestibuleZoneId`。`referenceSystem.worldTransform.localOrigin` 必須精確維持 `[27, 0, 0]`，使 `RTE-L1-ARRIVAL-01` 從仍與 `O-SITE-01` 共點的 `EN-01` 門檻出發，在 `ST-01` 前轉至樓梯外側；validator 必須確認門檻連接、路徑 bounds 完整位於戶外前場內，並以路徑與樓梯 bounds 證明存在大於 `0.002 m` 的淨空，不得只信任 `accessConflicts` 布林值。`program.l1.dryPassage` 保存泳池大廳至兩樘後門的拓撲。`Z-L1-ENTRY-01` 為保留既有跨輸出引用而遷移的穩定 ID，其現行類型是 `outdoor-forecourt`，不再代表室內前室。
-
-## 3. 狀態與溯源
+對外幾何只准使用 `SITE-XY`：X0～X41、Y0～Y14、圖面 Y 向上。每個帶 `bounds` 的 active 物件必須宣告：
 
 ```ts
-type Status = 'confirmed' | 'working' | 'deferred' | 'legacy';
-type NumericMeasure = {
-  value: number;
-  status: Exclude<Status, 'deferred'>;
-  sourceIds: string[];
+type SiteBoundsEntity = {
+  entityId: string;
+  coordinateSystemId: 'SITE-XY';
+  bounds: { x1: number; x2: number; y1: number; y2: number };
 };
-type DeferredMeasure = {
-  value: null;
-  status: 'deferred';
-  sourceIds: string[];
-  openItemId: string;
-};
-type Measure = NumericMeasure | DeferredMeasure;
 ```
 
-有依據的值顯示明確數字；未定值必須以 `deferred` 與真正存在的 OPEN ID 表達，不得用看似合理的 fallback 代填。來源 ID 必須在 `sources` 存在，檔案像素與雜湊必須與登錄一致。
+不變條件：
 
-## 4. 座標與跨輸出不變條件
+1. `bounds` 面積必須為正，所有數值必須有限。
+2. 同一 active revision 內 `entityId` 不得重複。
+3. `referenceSystem.coordinateSystems` 必須恰有一個 `SITE-XY`。
+4. 圖面、Viewer、分析與驗證均由同一 bounds 推導，不得另存第二套 `originY`。
+5. Three.js 只在 `SITE-XY-TO-THREE` adapter 轉成 SITE X→Three X、SITE Y→Three Z、SITE Z→Three Y。
+6. 世界方位 307°只在 Viewer 最上層 root 套用一次；L3 +25.5°是獨立局部 transform。
 
-- 世界座標：`+X` 東、`+Y` 北、`+Z` 上。
-- 建築本地長軸方位由 `localLongAxisBearingFromTrueNorth` 管理。
-- `O-SITE-01` 與 `EN-01` 到達門檻中心共點，世界座標 `(0,0,0)`。
-- 圖面使用 `L1/L2/RF`、格網 `A–F/1–4` 與穩定 entity ID。
-- 任何圖形函式庫座標 adapter 只能存在一處，不改變業務資料的世界軸定義。
-- 方位 transform 只能套用一次；固定建築、2F、圖集與互動頁使用同一基準。
-- `modelVersion`、revision、單位、方位與來源不得由 consumer 另寫。
+`resolveActiveGeometry()` 在 active ID 缺失／找不到／重複、版本不符、SITE-XY 缺失、entity ID 重複、coordinate system 缺失或 bounds 非法時必須直接失敗。
 
-## 5. 空間硬性規則
+## 3. Active geometry 必要實體
 
-- `EN-01` 是由校園／操場到達 L1 戶外前場的日常到達入口，不是室內共用前室入口。
-- L1 戶外前場分別提供泳池大廳、男廁、女廁三個獨立開口。
-- `RTE-L1-ARRIVAL-01` 必須由 `[27, 0, 0]` 的 `EN-01`／`O-SITE-01` 共點門檻出發、完整位於戶外前場 bounds 內，並以大於 `0.002 m` 的淨空繞至 `ST-01` 外側；相切或次容差間距視為不合格，renderer 必須在樓梯之後繪製路徑，使其不被疊壓。
-- 男女廁各有戶外前門與泳池側時段管制後門；同一廁所前後門不得正對。
-- 泳池側乾式通道必須由泳池大廳連續通達兩樘廁所後門。
-- 三個戶外開口使用 `OP-L1-PH-01`、`DR-L1-WC-M-FRONT-01`、`DR-L1-WC-F-FRONT-01`；泳池側後門使用 `DR-L1-WC-M-REAR-01`、`DR-L1-WC-F-REAR-01`，乾式通道使用 `PSG-L1-DRY-01`。
-- validator 必須逐一鎖定 TASK-002 新增 entity 的 `type`、`level`、`status` 與完整 expected `sourceIds`。實際來源必須唯一、長度相等且與 expected 雙向集合相等（順序可忽略）；任何 entity 不得漂移成屋頂、RF、legacy、無來源記錄、額外來源或重複來源。
-- `REF-101` 中每個 TASK-002 entity 只能對應一個 `<g data-entity>` 互動目標；該 group 必須具有 `tabindex="0"`、`role="button"` 與以 entity ID 開頭的 `aria-label`，子圖形不得重複宣告 `data-entity`。
-- `OPEN-008` 關閉前，`REF-101` 的前場、通道與門位置只表達已確認拓撲，不宣稱精確尺寸；示意 bounds 統一由 geometry helper 推導。
-- `Z-CS-M-01` 與 `Z-CS-F-01` 嚴格分離，男女各 15 間正式單元及 5 間擴充位置。
-- 每間單元整合更衣、淋浴與壁掛櫃；`centralLockerArea` 必須為 `false`。
-- `ST-01` 為兩段同向、S1 雙連續箱型鋼梯梁、封閉踢面、乾式玻璃廊、梯下開放，且不由屋頂承重。模型精確保存 30 級高／兩跑各 15、兩跑各 14 踏面、0.300 m 踏深、1.800 m 平台與 10.200 m 總平面長度；geometry helper 由踏面數而非級高數推導 4.200 m 梯段。防墜以 B 全高弦幕為主、A 夾層玻璃為備，材料與集力節點維持 `deferred` 並連結 `OPEN-013`。
-- L2 外框由原核心與 `EXT-L2-01` 組成；擴建量體下方 L1 保持開放。
-- `RF-GL-01` 由泳池遠端以 4.5° 上升至 L2 擴建邊緣；室內平面跨度由 `l2ExtensionLength` 推導為 19.0 m，低端再向遠端短邊牆外延伸 1.2 m。
-- `RF-GL-01` 高端由 `level.L2` 推導為 +4.500 m；遠端短邊牆處約 +3.005 m，外側滴水端約 +2.910 m。模型只保存 4.5°、1.2 m 外挑及 canonical 樓層標高；helper 推導 19.0／20.2 m 水平長度及三個屋頂標高並由 validator 比對。
-- `J-RF-L2-01` 必須保持玻璃屋頂與擴建量體結構獨立；L2 外殼薄遮簷只形成遮蔽與視覺層次，不得成為 `RF-GL-01` 的必要支承。
-- `RC-RF-01` 是全寬被動雨簾，`RW-TR-01` 是封閉、可拆洗且與地坪逕流隔離的承接溝；模型明確要求 `dryWeatherRecirculation = false`、`groundRunoffIsolated = true` 及獨立高位極端雨量旁通。
-- `RW-01` 只使用屋頂水，固定濾網、初雨分流、沉砂／過濾、加蓋儲存、獨立標示管線、防回流補水與 L1 沖廁語意；容量仍為 `deferred` 並連結 `OPEN-014`。
-- `F-MIR-01` 是 `EXT-L2-01` 低 X 面池端鏡面反射牆；2F 由上往下看順時針 +9.5°、牆面由垂直向泳池側外傾 +8.5°，兩者由 `geometry.solarReflection` 保存為 confirmed geometry。`DEC-039` 的 PVGIS TMY 工作模型顯示裸露鏡面會同時增加暖冷季池面能量；22°／88°～135°分析用 solar mask 在 9 組工作情境維持暖季 0、冷季正收益，但依 `DEC-040` 不對應任何已核准的季節採光腔、旋轉葉片、捲屏、摺板或外置百葉。旋轉支點、牆高、季節控制構件、材料、分格、框架遮蔭與最終性能仍由 `OPEN-011` 管理。
-- `REF-401` 的屋頂必須使用水平／垂直同尺度表達 4.5°、+4.500 m 高端、1.2 m 低端外挑與衍生標高，不得再以 display-only 偏移取代設計幾何；放大的接縫節點則必須明示為非比例概念圖。
+| Entity | Canonical SITE-XY bounds |
+| --- | --- |
+| `SITE-01` | X0～X41／Y0～Y14 |
+| `BLDG-01` | X0～X39／Y0～Y14 |
+| `Z-PH-01` | X0～X31／Y0～Y14 |
+| `POOL-01` | X3～X28／Y4～Y12.5 |
+| `CORE-01` | X31～X39／Y0～Y14 |
+| `Z-L1-SETBACK-01` | X39～X41／Y0～Y14 |
+| `L2-PLATE-01` | X29～X41／Y0～Y13.5 |
+| `L3-PLATE-01` | X29～X41／Y0～Y13.5 |
+| `RF-GL-01` | X0～X29／Y0～Y14 |
+| `ST-01` | X20.5～X29／Y0.5～Y2.0 |
 
-上述規則已同步至 0.3.0 模型、validator、測試及 HTML 圖集；施工尺度與專業計算仍不得由概念 renderer 代替。
+四間廁所、儲物、水處理與藥劑分間的 bounds 以 [03｜設計基準](03_DESIGN_BASIS.md)為準。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
 
-## 6. 模型驗證門檻
+## 4. 衍生層與輸出
 
-`npm run validate:reference` 至少確認：
+- `scripts/reference-geometry.mjs`：從 active revision 衍生圖面與共用尺寸。
+- `scripts/viewer-data.mjs`：產生 `reference/generated/viewer-model.json`，包含 `modelVersion`、`activeGeometryRevisionId`、`coordinateSystemId`、`modelHash` 與 `entityBounds`。
+- `scripts/build-public-content.mjs`：只允許 `{{active:...}}` token 讀 active geometry；未解析 token 必須使 build 失敗。
+- `scripts/generate-v060-drawings.mjs`：產生三張平面與一張縱剖 SVG，之後轉為 PNG。
+- 日照角度與能量分析：由 active L3、鏡牆、屋頂與池體 bounds 推導，不得持有第二套池體或舊角度預設。
 
-1. entity、sheet、source ID 唯一且所有引用存在。
-2. 來源檔案存在，像素與 SHA-256 符合登錄。
-3. 建築長度等於泳池大廳加服務核心，池體位於泳池大廳內。
-4. 男女 15＋5、整合機能、壁掛櫃及無集中櫃區成立。
-5. 樓梯、屋頂、分區與結構獨立規則成立；入口路徑與樓梯 bounds 不相交也不相切，且淨空大於零。
-6. 修改 `l2ExtensionLength` 後，L2 起點、外框、分流軸、樓梯與屋頂跨度同步更新。
-7. deferred 量測具有 OPEN ID 且沒有數值；L2 canonical elevation 變更時，樓梯總升高、屋頂標高、Viewer 標籤及理念 token 同步改變，依賴舊 hash 的分析必須標示 stale。
-8. consumer 需要的 entity 與 sheet 引用完整。
-9. `geometry.solarReflection` 精確保存 confirmed geometry +9.5°／+8.5°、方向、working 方向篩檢門檻及 `OPEN-011` 關聯；legacy `mirrorFacade`、`leanAngle` 或 display-only geometry 欄位仍不得成為第二套答案。日照 consumer 必須區分單一時刻方向代理與 PVGIS TMY 有鏡／無鏡能量結果，不得用方向命中、受光面積或未核准太陽遮罩取代 `DEC-039` 的性能判定。
-10. 雨簾維持被動、全寬、封閉隔離承接及獨立旁通；回用來源只能是屋頂水，容量 deferred 必須連結 `OPEN-014`。
-11. Viewer 工作支點、視覺量體高度與視覺鏡牆高度具有狀態及 OPEN；世界、L2 與鏡牆 transform 各只作用於正確層級。
+每次模型改動都會改變 canonical SHA-256 `modelHash`。`model/analysis-registry.json` 的 solar hash 不符時，Viewer 必須標成 `stale`；完成重算與測試後才能更新為 current。
 
-尚未符合本契約的已知模型／輸出差異，不在本文件偽裝成另一套答案；其執行狀態由 [07｜Active Work](07_ACTIVE_WORK.md) 管理。
+## 5. 現行硬性規則
+
+- `POOL-01` 為 25.0 × 8.5 m，完整位於泳池大廳內，且不與 `ST-01` 或服務翼重疊。
+- L1 具有四間互不相通廁所；泳池組恰有兩個 X31 入口，操場組恰有兩個 X39 入口。
+- 藥劑分間 `publicAccess=false` 且 `separateVentilation=true`。
+- 結構策略 `isolatedColumnsAllowed=false`、`glassCarriesGravityLoad=false`。
+- `ST-01` 是方案 E：2.70＋3.10＋2.70 m、20 級高／18 踏面，從 +0.30 m 在 X29 直接接 L2 +3.30 m。
+- L2 固定；只有 L3 以 X35／Y6.75 水平旋轉 +25.5°。
+- 鏡面覆層與 L3 面池承載牆共面，共同外傾 +23.0°；不得畫成垂直牆前的獨立斜板。
+- 固定玻璃屋頂為 29 m／5°／+4.00→+6.537 m，不承擔 L2、L3 或樓梯荷重。
+- 高位重物只放在固定核心或直接支承線，不放在旋轉懸挑或鏡牆。
+- `integrationReview.professionalApprovals` 的建築、結構、機電、消防與無障礙在正式簽證前全部必須為 `false`。
+
+## 6. 現行 sheet 契約
+
+`model.sheets` 只保留：
+
+1. `REF-001`
+2. `V060-L1`
+3. `V060-L2`
+4. `V060-L3`
+5. `V060-SECTION`
+
+v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Viewer／solar-study 的最新圖面連結。
+
+## 7. 驗證門檻
+
+`npm run validate:reference` 至少檢查：
+
+1. active selector、版本與 SITE-XY fail-closed 規則。
+2. canonical entity bounds、空間包含與碰撞。
+3. 四間廁所、入口方向、設備與結構整合旗標。
+4. 樓層、屋頂、ST-01、L3／鏡牆角度及日照工作結果。
+5. current sheet 清單與 entity／sheet／source ID 唯一。
+6. 所有來源檔存在且 SHA-256、byteSize（若登錄）一致。
+7. 概念整合狀態不得冒充任何專業核定。
+
+`npm test` 另須以破壞性 clone 回歸 active ID 缺失、unknown、duplicate、version drift、SITE-XY 缺失、entity duplicate 與 coordinate frame 缺失；不得只做成功快照。
+
+相關輸出契約：
+
+- [空間參照圖集](contracts/reference-atlas.md)
+- [太陽研究](contracts/solar-study.md)
+- [3D Viewer](contracts/3d-viewer.md)
+
+本契約管理概念資料一致性，不取代建築、結構、機電、消防、無障礙、材料或施工專業驗證。

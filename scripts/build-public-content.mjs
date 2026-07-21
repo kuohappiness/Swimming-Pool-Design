@@ -3,9 +3,10 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deriveReferenceGeometry } from './reference-geometry.mjs';
 import { buildViewerModel, hashData } from './viewer-data.mjs';
+import { resolveActiveGeometry } from './active-geometry.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const TOKEN_PATTERN = /\{\{(model|derived):([A-Za-z0-9_.]+)\|([a-zA-Z]+)\}\}/g;
+const TOKEN_PATTERN = /\{\{(model|active|derived):([A-Za-z0-9_.]+)\|([a-zA-Z]+)\}\}/g;
 const SCENE_PATTERN = /^<!--\s*scene:([a-z0-9-]+)\s*-->$/;
 
 const escapeHtml = (value) => String(value)
@@ -36,8 +37,9 @@ function getPath(owner, path) {
 
 export function injectModelTokens(markdown, model) {
   const derived = deriveReferenceGeometry(model);
+  const active = resolveActiveGeometry(model);
   const output = markdown.replace(TOKEN_PATTERN, (_, owner, path, format) =>
-    formatToken(getPath(owner === 'model' ? model : derived, path), format));
+    formatToken(getPath(owner === 'model' ? model : owner === 'active' ? active : derived, path), format));
   const unresolved = output.match(/\{\{[^}]+\}\}/g);
   if (unresolved) throw new TypeError(`Unresolved model token: ${unresolved[0]}`);
   return output;

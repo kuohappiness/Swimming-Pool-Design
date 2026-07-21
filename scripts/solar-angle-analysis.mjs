@@ -10,6 +10,7 @@ import {
   rotatePlanPoint,
 } from './solar-reflection.mjs';
 import { deriveReferenceGeometry } from './reference-geometry.mjs';
+import { resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
 
 export const SUMMER_DATES = [[2026, 5, 21], [2026, 6, 21], [2026, 7, 21], [2026, 8, 21]];
 export const WINTER_DATES = [[2026, 11, 21], [2026, 12, 21], [2027, 1, 21], [2027, 2, 21]];
@@ -373,82 +374,35 @@ const levelElevation = (model, id) => {
 };
 
 export function activeSolarStudyGeometry(model) {
-  const solar = model?.geometry?.solarReflection;
-  const study = solar?.v050Study;
-  if (study) {
-    return {
-      revision: study.revision,
-      rotatingLevel: study.rotatingLevel,
-      planRotation: finite(study.optimization?.planRotation?.value, 'v050Study.optimization.planRotation'),
-      mirrorLeanFromVertical: finite(
-        study.optimization?.mirrorLeanFromVertical?.value,
-        'v050Study.optimization.mirrorLeanFromVertical',
-      ),
-      startX: finite(study.floorPlate?.poolSideX, 'v050Study.floorPlate.poolSideX'),
-      endX: finite(study.floorPlate?.farSideX, 'v050Study.floorPlate.farSideX'),
-      width: finite(study.floorPlate?.width, 'v050Study.floorPlate.width'),
-      baseElevation: finite(study.mirror?.baseElevation, 'v050Study.mirror.baseElevation'),
-      mirrorHeight: finite(study.mirror?.height, 'v050Study.mirror.height'),
-      pivotX: finite(study.planPivot?.x, 'v050Study.planPivot.x'),
-      pivotY: finite(study.planPivot?.y, 'v050Study.planPivot.y'),
-      pivotScenarios: study.planPivot?.sensitivityX?.map((value, index) => (
-        finite(value, `v050Study.planPivot.sensitivityX[${index}]`)
-      )) ?? [],
-      roof: {
-        x1: 0,
-        x2: finite(study.roofInterface?.planRun, 'v050Study.roofInterface.planRun'),
-        y1: 0,
-        y2: finite(study.floorPlate?.width, 'v050Study.floorPlate.width'),
-        highElevation: finite(
-          study.roofInterface?.highElevation,
-          'v050Study.roofInterface.highElevation',
-        ),
-        pitchDegrees: finite(study.roofInterface?.pitch, 'v050Study.roofInterface.pitch'),
-      },
-    };
-  }
-  const derived = deriveReferenceGeometry(model);
-  const width = finite(model?.geometry?.building?.width?.value, 'geometry.building.width.value');
+  const active = resolveActiveGeometry(model);
+  const floor = resolveGeometryEntity(active, 'L3-PLATE-01');
+  const roof = resolveGeometryEntity(active, 'RF-GL-01');
   return {
-    revision: model?.modelVersion ?? 'legacy',
-    rotatingLevel: 'L2',
-    planRotation: finite(solar?.planRotation?.value, 'solarReflection.planRotation'),
-    mirrorLeanFromVertical: finite(
-      solar?.mirrorLeanFromVertical?.value,
-      'solarReflection.mirrorLeanFromVertical',
-    ),
-    startX: derived.l2StartX,
-    endX: derived.l2EndX,
-    width,
-    baseElevation: levelElevation(model, 'L2'),
-    mirrorHeight: finite(
-      solar?.mirrorVisualWallHeight?.value,
-      'solarReflection.mirrorVisualWallHeight',
-    ),
-    pivotX: derived.l2StartX,
-    pivotY: width / 2,
-    pivotScenarios: [derived.l2StartX, 27, 35],
+    revision: active.revision,
+    rotatingLevel: active.solar.rotatingLevel,
+    planRotation: finite(active.solar.planRotation?.value, 'active.solar.planRotation'),
+    mirrorLeanFromVertical: finite(active.solar.mirrorLeanFromVertical?.value, 'active.solar.mirrorLeanFromVertical'),
+    startX: finite(floor.bounds.x1, 'L3-PLATE-01.bounds.x1'),
+    endX: finite(floor.bounds.x2, 'L3-PLATE-01.bounds.x2'),
+    width: finite(floor.bounds.y2 - floor.bounds.y1, 'L3-PLATE-01 width'),
+    baseElevation: finite(active.l3.mirror.baseElevation, 'active.l3.mirror.baseElevation'),
+    mirrorHeight: finite(active.l3.mirror.height, 'active.l3.mirror.height'),
+    pivotX: finite(active.l3.planPivot.x, 'active.l3.planPivot.x'),
+    pivotY: finite(active.l3.planPivot.y, 'active.l3.planPivot.y'),
+    pivotScenarios: active.solar.pivotSensitivityX.map((value, index) => finite(value, `active.solar.pivotSensitivityX[${index}]`)),
     roof: {
-      x1: 0,
-      x2: derived.roofPlanEndX,
-      y1: 0,
-      y2: width,
-      highElevation: derived.roofHighElevation,
-      pitchDegrees: finite(model?.geometry?.roof?.pitch?.value, 'geometry.roof.pitch.value'),
+      x1: roof.bounds.x1,
+      x2: roof.bounds.x2,
+      y1: roof.bounds.y1,
+      y2: roof.bounds.y2,
+      highElevation: finite(active.roof.highElevation, 'active.roof.highElevation'),
+      pitchDegrees: finite(active.roof.pitch, 'active.roof.pitch'),
     },
   };
 }
 
 function poolRectangle(model) {
-  const pool = model?.geometry?.pool;
-  const x1 = finite(pool?.origin?.[0], 'geometry.pool.origin[0]');
-  const y1 = finite(pool?.origin?.[1], 'geometry.pool.origin[1]');
-  return {
-    x1,
-    x2: x1 + finite(pool?.length?.value, 'geometry.pool.length.value'),
-    y1,
-    y2: y1 + finite(pool?.width?.value, 'geometry.pool.width.value'),
-  };
+  return { ...resolveGeometryEntity(resolveActiveGeometry(model), 'POOL-01').bounds };
 }
 
 export function buildReflectingVolumeCorners(model, input) {

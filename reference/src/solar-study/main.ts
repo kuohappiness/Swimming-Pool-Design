@@ -1,6 +1,7 @@
 import './styles.css';
 import rawModel from '../../../model/project-model.json';
 import type { ProjectModel } from '../types';
+import { resolveActiveGeometry } from '../../../scripts/active-geometry.mjs';
 import {
   calculateSolarPosition,
   deriveSolarPlanOrientation,
@@ -9,13 +10,21 @@ import {
   reflectSolarRay,
 } from '../../../scripts/solar-reflection.mjs';
 
-const model = rawModel as ProjectModel;
+const model = rawModel as unknown as ProjectModel;
 const location = model.referenceSystem.siteLocation;
 const planOrientation = deriveSolarPlanOrientation(model.referenceSystem);
 const poolAzimuth = planOrientation.poolFacingAzimuth;
-const study = model.geometry.solarReflection;
-const activeStudy = study.v050Study;
-const optimization = activeStudy.optimization;
+const activeStudy = resolveActiveGeometry(model) as unknown as {
+  revision: string;
+  solar: {
+    planRotation: { value: number };
+    mirrorLeanFromVertical: { value: number };
+    azimuthTolerance: { value: number };
+    minimumDownwardAngle: { value: number };
+  };
+};
+const study = activeStudy.solar;
+const optimization = study;
 const defaultPlanRotation = optimization.planRotation.value;
 const defaultWallLean = optimization.mirrorLeanFromVertical.value;
 const sampleHours = Array.from({ length: 12 }, (_, index) => index + 7);
