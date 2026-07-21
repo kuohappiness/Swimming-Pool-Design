@@ -29,6 +29,8 @@ DXF 進入 active work 後才建立正式輸出契約。
 
 `geometry.solarReflection` 是日照分析與各輸出的單一角度契約：`planRotation` 為由上往下看順時針 +9.5°、`mirrorLeanFromVertical` 為向泳池側外傾 +8.5°，兩者的 confirmed 只表示建築幾何已核准。`azimuthTolerance` 28° 與 `minimumDownwardAngle` 8° 是方向代理篩檢的 working 門檻，不是有限池面、kWh、照度、眩光或熱效能的安全標準。依 `DEC-039`，性能 consumer 必須比較相同氣象、幾何與材料假設下的「有鏡－無鏡」池面入射能量，原本已有直射的區域仍須計入鏡面疊加。整個物件連結 `OPEN-011`，表示旋轉支點、鏡牆上下緣／牆高、季節控制表皮、玻璃與鏡面材料、框架遮蔭與最終性能仍未解決；依 `DEC-040`，季節採光腔、旋轉葉片、捲屏、摺板或外置百葉都不得成為模型預設答案。
 
+自 0.5.0 起，前段 +9.5°／+8.5°及 35 m 舊外框只保留給 0.4.0 圖集與歷史比較；現行 Viewer 與公開理念的 active geometry 是 `geometry.solarReflection.v050Study`，並以 `activeForViewer=true` 明示。該物件保存 41 × 14 m L1 工作外框、33＋8 m 分段、2 m 退縮、池畔 +0.30 m、L2 +3.30 m、L3 +6.88 m、12 × 13.5 m 樓板、L3 +26.5°／鏡牆 +3.1°、29 m／5°屋頂、樓梯與固定核心工作占位。Consumer 不得混用兩套幾何；完整 atlas 遷移仍保留為歷史相容層，Viewer 必須只讀 `v050Study`。
+
 `program.entrance` 以 `outdoorForecourtZoneId`、`arrivalPathEntityId` 與 `outdoorOpeningEntityIds` 表達戶外到達；不得再出現 `sharedVestibuleZoneId`。`referenceSystem.worldTransform.localOrigin` 必須精確維持 `[27, 0, 0]`，使 `RTE-L1-ARRIVAL-01` 從仍與 `O-SITE-01` 共點的 `EN-01` 門檻出發，在 `ST-01` 前轉至樓梯外側；validator 必須確認門檻連接、路徑 bounds 完整位於戶外前場內，並以路徑與樓梯 bounds 證明存在大於 `0.002 m` 的淨空，不得只信任 `accessConflicts` 布林值。`program.l1.dryPassage` 保存泳池大廳至兩樘後門的拓撲。`Z-L1-ENTRY-01` 為保留既有跨輸出引用而遷移的穩定 ID，其現行類型是 `outdoor-forecourt`，不再代表室內前室。
 
 ## 3. 狀態與溯源

@@ -219,9 +219,11 @@ try {
     loading.hidden = true;
     shell.dataset.viewerReady = 'true';
     shell.dataset.modelHash = model.modelHash;
-    shell.dataset.l2Rotation = formatDegrees(model.geometry.l2.planRotation.value);
-    shell.dataset.mirrorLean = formatDegrees(model.geometry.mirror.leanFromVertical.value);
+    shell.dataset.l3Rotation = formatDegrees(model.geometry.l3.planRotation.value);
+    shell.dataset.mirrorLean = formatDegrees(model.geometry.l3.mirror.leanFromVertical.value);
     shell.dataset.l2Elevation = formatElevation(model.geometry.l2.baseElevation);
+    shell.dataset.l3Elevation = formatElevation(model.geometry.l3.baseElevation);
+    shell.dataset.poolDeckElevation = formatElevation(model.geometry.pool.deckElevation.value);
   }
 } catch (error) {
   console.error(error);

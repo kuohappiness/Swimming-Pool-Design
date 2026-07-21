@@ -36,6 +36,14 @@ function importRendererModule() {
         .replace(
           /const siteImage = new URL\([^\r\n]+\)\.href;/,
           "const siteImage = 'test://site-image';",
+        )
+        .replace(
+          /const v23PlanImage = new URL\([^\r\n]+\)\.href;/,
+          "const v23PlanImage = 'test://v23-plan-image';",
+        )
+        .replace(
+          /const v23SectionImage = new URL\([^\r\n]+\)\.href;/,
+          "const v23SectionImage = 'test://v23-section-image';",
         );
       const sheetsModuleUrl = sourceModuleUrl(ts.transpileModule(executableSheetsSource, {
         compilerOptions,
@@ -466,7 +474,8 @@ test('registers the confirmed pool-facing mirror facade', () => {
 
 test('owns the confirmed solar reflection geometry in one model object', () => {
   const solar = clone().geometry.solarReflection;
-  assert.deepEqual(solar, {
+  const { v050Study, ...legacySolar } = solar;
+  assert.deepEqual(legacySolar, {
     planRotation: { value: 9.5, status: 'confirmed', sourceIds: [] },
     mirrorLeanFromVertical: { value: 8.5, status: 'confirmed', sourceIds: [] },
     rotationDirection: 'clockwise-from-above',
@@ -487,6 +496,62 @@ test('owns the confirmed solar reflection geometry in one model object', () => {
     },
     openItemId: 'OPEN-011',
   });
+  assert.equal(v050Study.revision, '0.5.0');
+  assert.equal(v050Study.activeForViewer, true);
+  assert.equal(v050Study.rotatingLevel, 'L3');
+  assert.deepEqual(v050Study.fixedLevels, ['L1', 'L2']);
+  assert.deepEqual(v050Study.site, {
+    boundaryStartX: -2,
+    buildingStartX: 0,
+    totalLength: 41,
+    l1Width: 14,
+    upperFloorWidth: 13.5,
+    poolHallLength: 33,
+    serviceWingLength: 8,
+    leftSetback: 2,
+    rightwardBearingFromTrueNorth: 307,
+    northArrowPlanDirection: 'lower-right',
+  });
+  assert.deepEqual(v050Study.floorPlate, {
+    length: 12,
+    width: 13.5,
+    area: 162,
+    serviceWingLength: 8,
+    poolAtriumOverlap: 4,
+    poolSideX: 29,
+    farSideX: 41,
+  });
+  assert.equal(v050Study.roofInterface.highElevation, 6.537);
+  assert.equal(v050Study.roofInterface.l3TransitionBand, 0.343);
+  assert.equal(v050Study.levels.poolDeckElevation, 0.3);
+  assert.equal(v050Study.levels.poolDeckElevationStatus, 'confirmed');
+  assert.equal(v050Study.levels.poolDeckClearHeightAtRoofLow, 3.7);
+  assert.deepEqual(v050Study.stairFromRaisedPoolDeck, {
+    startX: 19.5,
+    originY: 11.875,
+    lowerElevation: 0.3,
+    upperElevation: 3.3,
+    totalRise: 3,
+    candidateClearWidth: 1.5,
+    riserCount: 20,
+    runs: 2,
+    risersPerRun: 10,
+    treadsPerRun: 9,
+    riserHeight: 0.15,
+    treadDepth: 0.3,
+    runLengthPerFlight: 2.7,
+    midLandingLength: 1.8,
+    totalPlanLength: 7.2,
+    status: 'working-recommendation',
+    openItemId: 'OPEN-017',
+  });
+  assert.equal(v050Study.optimization.planRotation.value, 26.5);
+  assert.equal(v050Study.optimization.mirrorLeanFromVertical.value, 3.1);
+  assert.equal(v050Study.planPivot.x, 35);
+  assert.deepEqual(v050Study.pivotAssessment.floorPlateCentroid, [35, 6.75]);
+  assert.equal(v050Study.pivotAssessment.selectedOverlapPercent, 85.25);
+  assert.equal(v050Study.optimization.workingPivotResult.warmPoolAddedKWh, 0);
+  assert.equal(v050Study.optimization.workingPivotResult.coolPoolAddedKWh, 1022.903);
 });
 
 test('rejects drift in confirmed solar reflection geometry', () => {
@@ -577,6 +642,58 @@ test('rejects SRC-CONCEPT-009 impersonating a byte-valid registered source', asy
 
   assert.deepEqual(await validateSourceFiles(model, repoRoot), []);
   assert.match(validateModel(model).join('\n'), /SRC-CONCEPT-009 source contract mismatch/);
+});
+
+test('registers SRC-CONCEPT-010 with the approved immutable identity', () => {
+  const source = clone().sources.find((item) => item.id === 'SRC-CONCEPT-010');
+  assert.deepEqual(source, {
+    id: 'SRC-CONCEPT-010',
+    path: 'source-materials/concepts/SRC-CONCEPT-010_l1-plan-v2.0.jpeg',
+    kind: 'hand-sketch',
+    pixelSize: [3840, 2110],
+    sha256: '467B4CFB573A5250FCF5D5D74D02AF4D696071B35FCA0C1D96817DFFCA99BD08',
+  });
+});
+
+test('rejects each field of a drifted SRC-CONCEPT-010 identity', () => {
+  for (const [field, value, expectedError] of [
+    ['id', 'SRC-CONCEPT-009', /id must remain SRC-CONCEPT-010/],
+    ['path', 'source-materials/concepts/SRC-CONCEPT-003_l1-plan-v1.0.jpeg', /path must remain/],
+    ['kind', 'annotated-concept', /kind must remain hand-sketch/],
+    ['pixelSize', [2210, 2931], /pixelSize must remain \[3840, 2110\]/],
+    ['sha256', 'F7666FED2DC1CDA77B0C7CE8C41FD369E40DA5A5DBCBAA5BF0449E377174F87D', /sha256 must remain/],
+  ]) {
+    const model = clone();
+    const source = model.sources.find((item) => item.id === 'SRC-CONCEPT-010');
+    source[field] = value;
+    assert.match(validateModel(model).join('\n'), expectedError);
+  }
+});
+
+test('registers SRC-CONCEPT-011 with the approved immutable identity', () => {
+  const source = clone().sources.find((item) => item.id === 'SRC-CONCEPT-011');
+  assert.deepEqual(source, {
+    id: 'SRC-CONCEPT-011',
+    path: 'source-materials/concepts/SRC-CONCEPT-011_longitudinal-section-v2.0.jpeg',
+    kind: 'hand-sketch',
+    pixelSize: [3840, 2747],
+    sha256: '3612C211F9AC06C6E9E8B40210C8282B7088DD81691D36F237C75E483329EB8B',
+  });
+});
+
+test('rejects each field of a drifted SRC-CONCEPT-011 identity', () => {
+  for (const [field, value, expectedError] of [
+    ['id', 'SRC-CONCEPT-010', /id must remain SRC-CONCEPT-011/],
+    ['path', 'source-materials/concepts/SRC-CONCEPT-010_l1-plan-v2.0.jpeg', /path must remain/],
+    ['kind', 'annotated-concept', /kind must remain hand-sketch/],
+    ['pixelSize', [3840, 2110], /pixelSize must remain \[3840, 2747\]/],
+    ['sha256', '467B4CFB573A5250FCF5D5D74D02AF4D696071B35FCA0C1D96817DFFCA99BD08', /sha256 must remain/],
+  ]) {
+    const model = clone();
+    const source = model.sources.find((item) => item.id === 'SRC-CONCEPT-011');
+    source[field] = value;
+    assert.match(validateModel(model).join('\n'), expectedError);
+  }
 });
 
 test('enforces the exact F-MIR-01 registry contract', () => {

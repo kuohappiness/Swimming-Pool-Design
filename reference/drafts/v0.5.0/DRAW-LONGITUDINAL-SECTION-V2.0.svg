@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120" role="img" aria-labelledby="title desc">
+  <title id="title">縱向概念剖面圖 V2.0 專業重繪</title>
+  <desc id="desc">依使用者手繪 V2.0 及已確認修訂整理的縱向概念剖面。圖面表達左側 1.2 公尺淺水、右側 1.5 公尺深水、兩跑樓梯、4.5 度玻璃屋頂、二樓更衣室、一樓廁所、外傾鏡牆及雨水回收。屋頂跨度與新 33 公尺主體存在待協調關係，以虛線標示。非施工圖。</desc>
+  <defs>
+    <linearGradient id="sectionWater" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#d8f3fb"/>
+      <stop offset="1" stop-color="#70c4e0"/>
+    </linearGradient>
+    <linearGradient id="mirror" x1="0" x2="1">
+      <stop offset="0" stop-color="#d9f3f7"/>
+      <stop offset=".45" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#9cced8"/>
+    </linearGradient>
+    <pattern id="earth" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="18" stroke="#c8bda8" stroke-width="2"/>
+    </pattern>
+    <pattern id="deferredHatch" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="16" stroke="#d99898" stroke-width="2"/>
+    </pattern>
+    <marker id="arrowEnd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#263746"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#278aa8"/>
+    </marker>
+    <path id="flightSteps" d="M0 72 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8 h9.6 v-4.8"/>
+    <style>
+      text { font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; fill: #203241; }
+      .title { font-size: 40px; font-weight: 800; letter-spacing: 1px; }
+      .subtitle { font-size: 18px; fill: #5d7080; }
+      .zone { font-size: 24px; font-weight: 760; }
+      .label { font-size: 18px; font-weight: 650; }
+      .small { font-size: 15px; fill: #5d7080; }
+      .tiny { font-size: 13px; fill: #677987; }
+      .confirmedText { fill: #237c64; }
+      .workingText { fill: #a66715; }
+      .deferredText { fill: #b45555; }
+      .cut { fill: #f2f0ea; stroke: #263746; stroke-width: 5; stroke-linejoin: round; }
+      .line { fill: none; stroke: #263746; stroke-width: 3; }
+      .thin { fill: none; stroke: #5d7080; stroke-width: 1.6; }
+      .glass { fill: none; stroke: #2b9fb8; stroke-width: 6; stroke-linecap: round; }
+      .roofFrame { stroke: #647985; stroke-width: 2; }
+      .working { fill: none; stroke: #c58228; stroke-width: 3; stroke-dasharray: 10 7; }
+      .deferred { fill: none; stroke: #c86666; stroke-width: 3; stroke-dasharray: 12 8; }
+      .dim { fill: none; stroke: #263746; stroke-width: 1.6; marker-start: url(#arrowEnd); marker-end: url(#arrowEnd); }
+      .ext { stroke: #82919c; stroke-width: 1.2; }
+      .dimText { font-size: 17px; font-weight: 750; text-anchor: middle; }
+      .noteBox { fill: #fffdf8; stroke: #d8cdb6; stroke-width: 1.5; rx: 12; }
+      .titleBox { fill: #f7fafb; stroke: #263746; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1120" fill="#ffffff"/>
+  <rect x="42" y="38" width="1716" height="1044" rx="18" fill="#fbfcfd" stroke="#d8e0e6" stroke-width="2"/>
+  <text x="98" y="105" class="title">縱向概念剖面圖</text>
+  <text x="100" y="141" class="subtitle">V2.0 專業重繪 · v0.5.0 工作草案 · 水平／垂直同尺度 · 單位：m · 非施工圖</text>
+
+  <!-- Datum and ground -->
+  <rect x="100" y="700" width="1600" height="92" fill="url(#earth)" opacity=".45"/>
+  <line x1="100" y1="700" x2="1700" y2="700" stroke="#263746" stroke-width="4"/>
+  <text x="111" y="690" class="label">L1 ±0.000</text>
+  <line x1="114" y1="556" x2="1570" y2="556" stroke="#7b8c97" stroke-width="1.5" stroke-dasharray="8 7"/>
+  <text x="112" y="546" class="label confirmedText">L2 +4.500</text>
+
+  <!-- Site boundary and 2 m setback -->
+  <line x1="150" y1="360" x2="150" y2="785" stroke="#8a98a2" stroke-width="3" stroke-dasharray="10 8"/>
+  <text x="136" y="524" transform="rotate(-90 136 524)" text-anchor="middle" class="small">原基地邊界工作線</text>
+  <rect x="150" y="620" width="64" height="80" fill="#eaf4ed"/>
+  <path d="M168 618v82M182 618v82" stroke="#4d9b76" stroke-width="2" stroke-dasharray="5 5"/>
+  <path d="M190 631c-12 12-12 30 0 42M201 631c-12 12-12 30 0 42" fill="none" stroke="#2b9fb8" stroke-width="2"/>
+  <text x="182" y="604" text-anchor="middle" class="small confirmedText">2.0 退縮／雨簾回收介面</text>
+
+  <!-- Main body and service wing -->
+  <line x1="214" y1="700" x2="1270" y2="700" class="cut"/>
+  <rect x="1270" y="556" width="256" height="144" fill="#f6f1e8" stroke="#263746" stroke-width="5"/>
+  <rect x="1270" y="441" width="256" height="115" fill="#eef3f7" stroke="#263746" stroke-width="5"/>
+  <line x1="1398" y1="441" x2="1398" y2="700" stroke="#526572" stroke-width="3"/>
+  <text x="1334" y="636" text-anchor="middle" class="zone">女廁</text>
+  <text x="1462" y="636" text-anchor="middle" class="zone">男廁</text>
+  <text x="1334" y="506" text-anchor="middle" class="zone">男更衣室</text>
+  <text x="1462" y="506" text-anchor="middle" class="zone">女更衣室</text>
+  <text x="1398" y="726" text-anchor="middle" class="small workingText">左右分配依手稿表達，精確分隔待 OPEN-008／016</text>
+
+  <!-- Mirror-bearing wall -->
+  <path d="M1270 556L1253 441L1264 441L1281 556Z" fill="url(#mirror)" stroke="#2b8fa4" stroke-width="3"/>
+  <line x1="1253" y1="441" x2="1270" y2="556" stroke="#566d79" stroke-width="7"/>
+  <path d="M1272 483A43 43 0 0 0 1259 487" fill="none" stroke="#a66715" stroke-width="2"/>
+  <path d="M1350 398L1260 443" fill="none" stroke="#a66715" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="1398" y="360" text-anchor="middle" class="label workingText">承載鏡牆 +8.5° 外傾</text>
+  <text x="1398" y="384" text-anchor="middle" class="small">鏡面與牆體共面，不是獨立斜板</text>
+
+  <!-- Roof geometry: current 19 m rule and unresolved extension -->
+  <path d="M624 607L1270 556" class="glass"/>
+  <line x1="662" y1="604" x2="1270" y2="556" class="roofFrame"/>
+  <line x1="814" y1="592" x2="814" y2="605" class="roofFrame"/>
+  <line x1="966" y1="580" x2="966" y2="593" class="roofFrame"/>
+  <line x1="1118" y1="568" x2="1118" y2="581" class="roofFrame"/>
+  <text x="965" y="552" text-anchor="middle" class="label" fill="#167c91">RF-GL-01 · 4.5° · 現行 19.0 跨度工作關係</text>
+  <text x="654" y="630" class="tiny" fill="#167c91">+3.005</text>
+  <text x="600" y="625" class="tiny" fill="#167c91">滴水端 +2.910</text>
+  <text x="1278" y="547" class="tiny confirmedText">高端 +4.500</text>
+  <path d="M214 639L662 604" class="deferred"/>
+  <rect x="214" y="584" width="448" height="55" fill="url(#deferredHatch)" opacity=".28"/>
+  <text x="438" y="576" text-anchor="middle" class="label deferredText">v0.5.0 屋頂跨度／低端位置待 OPEN-016</text>
+  <text x="438" y="658" text-anchor="middle" class="small deferredText">不可把 4.5° 從 L2 直接延伸到 33 m 左端：低端約 +1.90 m，凈高／構造不合理</text>
+  <line x1="214" y1="639" x2="214" y2="700" class="deferred"/>
+
+  <!-- Rainwater flow -->
+  <path d="M643 608c-7 13-17 22-28 30M615 638c-22 16-37 23-53 30" fill="none" stroke="#278aa8" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <rect x="550" y="676" width="82" height="13" rx="5" fill="#bfe3eb" stroke="#278aa8" stroke-width="2"/>
+  <text x="540" y="707" text-anchor="end" class="small" fill="#278aa8">承接溝→雨水回收→L1 沖廁</text>
+
+  <!-- Pool section -->
+  <path d="M414 710L1070 710L1070 758L414 748Z" fill="url(#sectionWater)" stroke="#167ca2" stroke-width="3"/>
+  <line x1="414" y1="710" x2="1070" y2="710" stroke="#ffffff" stroke-width="3"/>
+  <line x1="414" y1="748" x2="1070" y2="758" stroke="#0f698b" stroke-width="4"/>
+  <line x1="414" y1="700" x2="414" y2="748" stroke="#263746" stroke-width="4"/>
+  <line x1="1070" y1="700" x2="1070" y2="758" stroke="#263746" stroke-width="4"/>
+  <text x="742" y="738" text-anchor="middle" class="zone" fill="#0d6589">POOL-01 · 左淺右深</text>
+  <line x1="390" y1="710" x2="390" y2="748" class="dim"/>
+  <text x="366" y="734" text-anchor="middle" class="small confirmedText">1.2</text>
+  <line x1="1094" y1="710" x2="1094" y2="758" class="dim"/>
+  <text x="1122" y="739" text-anchor="middle" class="small confirmedText">1.5</text>
+  <text x="742" y="784" text-anchor="middle" class="small confirmedText">池底由左側 1.2 m 緩降至右側 1.5 m（DEC-045）</text>
+
+  <!-- Stair in long-side dry gallery; projected in section -->
+  <g aria-label="ST-01 兩跑同向樓梯">
+    <use href="#flightSteps" x="944" y="628" fill="none" stroke="#8e5c18" stroke-width="2.2"/>
+    <line x1="944" y1="700" x2="1078.4" y2="628" stroke="#8e5c18" stroke-width="7"/>
+    <line x1="944" y1="694" x2="1078.4" y2="622" stroke="#c28a3d" stroke-width="2"/>
+    <line x1="1078.4" y1="628" x2="1136" y2="628" stroke="#8e5c18" stroke-width="7"/>
+    <use href="#flightSteps" x="1136" y="556" fill="none" stroke="#8e5c18" stroke-width="2.2"/>
+    <line x1="1136" y1="628" x2="1270.4" y2="556" stroke="#8e5c18" stroke-width="7"/>
+    <line x1="1136" y1="622" x2="1270.4" y2="550" stroke="#c28a3d" stroke-width="2"/>
+    <line x1="1078.4" y1="628" x2="1136" y2="628" stroke="#f0c98d" stroke-width="2"/>
+    <text x="1107" y="617" text-anchor="middle" class="tiny workingText">平台 +2.250</text>
+    <text x="1107" y="814" text-anchor="middle" class="label workingText">ST-01 · 30 級高／28 踏面 · 0.150／0.300 · 約 26.6°</text>
+    <text x="1107" y="837" text-anchor="middle" class="small workingText">1.50 有效淨寬候選 · 平台 1.80 建議 · 總長 10.20</text>
+    <text x="1107" y="860" text-anchor="middle" class="tiny">樓梯在長邊玻璃牆旁乾式廊內；本剖面為投影重疊，實體不跨池口</text>
+  </g>
+
+  <!-- Headroom / junction warning -->
+  <ellipse cx="1228" cy="562" rx="76" ry="62" fill="#f6dddd" opacity=".35" stroke="#c86666" stroke-width="2" stroke-dasharray="8 6"/>
+  <path d="M1010 392L1210 506" class="deferred"/>
+  <text x="930" y="350" text-anchor="middle" class="label deferredText">樓梯頂端／屋頂／L2 接點待 OPEN-017</text>
+  <text x="930" y="374" text-anchor="middle" class="small deferredText">須逐點檢核淨高、平台、獨立結構與防水縫</text>
+
+  <!-- Dimensions -->
+  <line x1="214" y1="890" x2="214" y2="700" class="ext"/>
+  <line x1="1270" y1="890" x2="1270" y2="700" class="ext"/>
+  <line x1="1526" y1="890" x2="1526" y2="700" class="ext"/>
+  <line x1="214" y1="882" x2="1270" y2="882" class="dim"/>
+  <line x1="1270" y1="882" x2="1526" y2="882" class="dim"/>
+  <text x="742" y="872" class="dimText confirmedText">33.0 泳池主體</text>
+  <text x="1398" y="872" class="dimText confirmedText">8.0 機能翼</text>
+  <line x1="150" y1="908" x2="214" y2="908" class="dim"/>
+  <text x="182" y="932" class="dimText confirmedText">2.0</text>
+  <line x1="1570" y1="700" x2="1570" y2="556" class="dim"/>
+  <text x="1602" y="631" class="dimText confirmedText">4.500</text>
+  <text x="1602" y="652" class="tiny">L1 → L2</text>
+
+  <!-- Legend -->
+  <rect x="100" y="930" width="935" height="55" class="noteBox"/>
+  <circle cx="128" cy="957" r="7" fill="#237c64"/><text x="145" y="963" class="small">已確認目標</text>
+  <circle cx="332" cy="957" r="7" fill="#c58228"/><text x="349" y="963" class="small">工作建議</text>
+  <circle cx="516" cy="957" r="7" fill="#c86666"/><text x="533" y="963" class="small">待確認／衝突檢核</text>
+  <text x="735" y="963" class="small">本圖不替代建築師、結構、消防與機電專業設計</text>
+
+  <!-- Title block -->
+  <g transform="translate(100 1002)">
+    <rect width="1600" height="68" class="titleBox"/>
+    <line x1="980" y1="0" x2="980" y2="68" stroke="#263746" stroke-width="1.5"/>
+    <line x1="1240" y1="0" x2="1240" y2="68" stroke="#263746" stroke-width="1.5"/>
+    <line x1="1430" y1="0" x2="1430" y2="68" stroke="#263746" stroke-width="1.5"/>
+    <text x="20" y="26" class="small">國立臺中教育大學附設實驗國民小學游泳池翻修</text>
+    <text x="20" y="53" class="zone">縱向概念剖面圖 · V2.0</text>
+    <text x="1000" y="25" class="tiny">圖號</text><text x="1000" y="51" class="label">DRAW-SEC-LONG</text>
+    <text x="1260" y="25" class="tiny">圖面版本</text><text x="1260" y="51" class="label">V2.0</text>
+    <text x="1450" y="25" class="tiny">專案目標</text><text x="1450" y="51" class="label">v0.5.0 DRAFT</text>
+  </g>
+</svg>

@@ -14,8 +14,10 @@ const location = model.referenceSystem.siteLocation;
 const planOrientation = deriveSolarPlanOrientation(model.referenceSystem);
 const poolAzimuth = planOrientation.poolFacingAzimuth;
 const study = model.geometry.solarReflection;
-const defaultPlanRotation = study.planRotation.value;
-const defaultWallLean = study.mirrorLeanFromVertical.value;
+const activeStudy = study.v050Study;
+const optimization = activeStudy.optimization;
+const defaultPlanRotation = optimization.planRotation.value;
+const defaultWallLean = optimization.mirrorLeanFromVertical.value;
 const sampleHours = Array.from({ length: 12 }, (_, index) => index + 7);
 const sampleTimes = sampleHours.map((hour) => String(hour).padStart(2, '0') + ':00');
 const dateStops = [
@@ -162,7 +164,8 @@ function bindMobilePreview(control: HTMLElement, mode: MobilePreviewMode): void 
 }
 
 required<HTMLElement>('#project-name').textContent = model.project.name;
-required<HTMLElement>('#model-version').textContent = 'MODEL ' + model.modelVersion;
+required<HTMLElement>('#model-version').textContent =
+  'STUDY ' + activeStudy.revision + ' · MODEL ' + model.modelVersion;
 required<HTMLElement>('#coord-fact').textContent =
   '基地 ' + location.latitude.value.toFixed(5) + '°N · ' + location.longitude.value.toFixed(5) + '°E';
 required<HTMLElement>('#axis-fact').textContent =
@@ -380,7 +383,7 @@ function update(): void {
   yearControl.setAttribute('aria-valuetext', studyYear + '年' + (followsCurrentYear ? '，自動跟隨今年' : '，手動比較'));
   dateControl.setAttribute('aria-valuetext', formatDate(date, true) + '，' + period.name);
   timeControl.setAttribute('aria-valuetext', time);
-  rotationControl.setAttribute('aria-valuetext', '2F 水平旋轉 ' + signed(rotation));
+  rotationControl.setAttribute('aria-valuetext', '3F 水平旋轉 ' + signed(rotation));
   leanControl.setAttribute('aria-valuetext', '鏡牆外傾 ' + lean.toFixed(1) + '°');
   currentYearButton.disabled = followsCurrentYear;
 

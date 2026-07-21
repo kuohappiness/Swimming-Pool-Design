@@ -14,8 +14,12 @@
 - `REF-301` 屋頂參照圖。
 - `REF-401` A–A 縱剖面參照圖。
 - `REF-501` 3D 軸測參照圖。
+- `V23-PLAN` 0.5.0 最新 1F～3F 概念平面檢討圖。
+- `V23-SECTION` 0.5.0 最新三層縱向概念剖面檢討圖。
 
 每張圖顯示 modelVersion、revision、單位、北向與概念用途；entity／cubicle ID 可點選且不依賴 hover；320 px 以上手機可閱讀與操作。
+
+`REF-001` 的影像底圖必須直接使用 `SRC-SITE-001_google-maps-satellite.png` 最新原始衛星圖，不得繼續以舊標註圖冒充現況底圖。`V23-PLAN`／`V23-SECTION` 必須直接打包 V2.3 PNG，並保留圖面本身的版本欄與「非施工圖」聲明；V2.1／V2.2 只保留在歷史資料夾，不出現在 current tab。
 
 ## L1 表達
 

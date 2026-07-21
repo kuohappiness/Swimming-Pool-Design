@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1350" viewBox="0 0 2000 1350" role="img" aria-labelledby="title desc">
+  <title id="title">三層縱向概念剖面檢討圖 V2.2</title>
+  <desc id="desc">v0.5.0 三層縱剖面。顯示 29 公尺、5 度玻璃屋頂，低端加四公尺、高端加六點五三七公尺，L2 加三點三公尺、L3 加六點八八公尺，三樓鏡牆、固定核心、樓梯、泳池與地坪抬高衝突。中央剖面顯示旋轉三樓面池牆與固定屋頂高端約零點七公尺平面錯位。非施工圖。</desc>
+  <defs>
+    <linearGradient id="water" x1="0" x2="1"><stop offset="0" stop-color="#d8f3fb"/><stop offset="1" stop-color="#74c6df"/></linearGradient>
+    <linearGradient id="mirror" x1="0" x2="1"><stop offset="0" stop-color="#7ab4c2"/><stop offset=".45" stop-color="#ffffff"/><stop offset="1" stop-color="#9ed3dc"/></linearGradient>
+    <pattern id="earth" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="16" stroke="#c9bda8" stroke-width="2"/></pattern>
+    <pattern id="core" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="12" stroke="#ce9949" stroke-width="2"/></pattern>
+    <pattern id="conflict" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="12" stroke="#cf7777" stroke-width="2"/></pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#263746"/></marker>
+    <style>
+      text{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;fill:#203241}.title{font-size:40px;font-weight:800}.subtitle{font-size:18px;fill:#607382}.zone{font-size:21px;font-weight:760}.label{font-size:16px;font-weight:650}.small{font-size:14px;fill:#607382}.tiny{font-size:12px;fill:#6d7d88}.confirmed{fill:#237c64}.working{fill:#a66715}.deferred{fill:#b45555}.cut{fill:#f2f0ea;stroke:#263746;stroke-width:5;stroke-linejoin:round}.line{fill:none;stroke:#263746;stroke-width:3}.thin{fill:none;stroke:#607382;stroke-width:1.5}.glass{fill:none;stroke:#2b9fb8;stroke-width:6;stroke-linecap:round}.workdash{fill:none;stroke:#b97925;stroke-width:2.5;stroke-dasharray:9 6}.dash{fill:none;stroke:#c76565;stroke-width:2.5;stroke-dasharray:10 7}.level{stroke:#80909b;stroke-width:1.4;stroke-dasharray:8 7}.dim{fill:none;stroke:#263746;stroke-width:1.5;marker-start:url(#arrow);marker-end:url(#arrow)}.ext{stroke:#8998a2;stroke-width:1.2}.dimText{font-size:15px;font-weight:750;text-anchor:middle}.note{fill:#fffdf8;stroke:#d9cdb5;stroke-width:1.5}.titleBox{fill:#f6f9fa;stroke:#263746;stroke-width:2}
+    </style>
+  </defs>
+  <rect width="2000" height="1350" fill="#fff"/><rect x="34" y="30" width="1932" height="1288" rx="18" fill="#fff" stroke="#d6e0e5" stroke-width="2"/>
+  <text x="78" y="88" class="title">三層縱向概念剖面檢討圖</text>
+  <text x="80" y="122" class="subtitle">V2.2 REVIEW · v0.5.0 · A–A 取固定 Y=6.75 中央剖面 · 水平／垂直同尺度 · 單位：m · 非施工圖</text>
+
+  <!-- scale: 32 px/m; x=220+32m; y=800-32z -->
+  <rect x="90" y="800" width="1700" height="106" fill="url(#earth)" opacity=".5"/><line x1="90" y1="800" x2="1790" y2="800" stroke="#263746" stroke-width="4"/>
+  <text x="105" y="790" class="label">服務量體 L1 ±0.000</text>
+  <line x1="105" y1="694.4" x2="1625" y2="694.4" class="level"/><text x="108" y="684" class="label working">L2 +3.300</text>
+  <line x1="105" y1="579.84" x2="1665" y2="579.84" class="level"/><text x="108" y="569" class="label confirmed">L3 +6.880</text>
+
+  <!-- site setback -->
+  <line x1="156" y1="400" x2="156" y2="895" stroke="#8797a1" stroke-width="2.5" stroke-dasharray="9 7"/><rect x="156" y="760" width="64" height="40" fill="#edf5ef"/><path d="M175 754v46M188 754v46" stroke="#4f9a76" stroke-width="2" stroke-dasharray="5 5"/><path d="M196 765c-10 10-10 22 0 31M207 765c-10 10-10 22 0 31" fill="none" stroke="#2b9fb8" stroke-width="2"/>
+  <text x="182" y="744" text-anchor="middle" class="small confirmed">2.0 退縮／雨簾回收介面</text><text x="142" y="585" transform="rotate(-90 142 585)" text-anchor="middle" class="small">原基地邊界工作線</text>
+
+  <!-- confirmed raised pool deck -->
+  <line x1="220" y1="790.4" x2="1276" y2="790.4" stroke="#237c64" stroke-width="5"/><text x="235" y="779" class="label confirmed">泳池大廳／池畔 +0.300（已確認）</text>
+  <line x1="204" y1="800" x2="204" y2="790.4" class="dim"/><text x="183" y="798" transform="rotate(-90 183 798)" class="tiny confirmed">0.30</text>
+
+  <!-- pool basin, left shallow / right deep -->
+  <path d="M412 794L412 828.8L1068 838.4L1068 794Z" fill="url(#water)" stroke="#177ea3" stroke-width="4"/><line x1="412" y1="794" x2="1068" y2="794" stroke="#5bb8d3" stroke-width="3"/>
+  <text x="740" y="824" text-anchor="middle" class="zone">POOL-01 · 左淺右深</text><text x="425" y="852" class="small confirmed">1.2 m</text><text x="1056" y="860" text-anchor="end" class="small confirmed">1.5 m</text>
+
+  <!-- fixed glass roof: x0 to x29; z4 to z6.537 -->
+  <path d="M220 672L1148 590.8" class="glass"/><line x1="220" y1="679" x2="1148" y2="597.8" stroke="#607986" stroke-width="2"/>
+  <line x1="420" y1="654.5" x2="420" y2="669" class="thin"/><line x1="620" y1="637" x2="620" y2="651" class="thin"/><line x1="820" y1="619.5" x2="820" y2="633.5" class="thin"/><line x1="1020" y1="602" x2="1020" y2="616" class="thin"/>
+  <text x="684" y="610" text-anchor="middle" class="zone" fill="#167c91">RF-GL-01 · 29.0 m · 5°</text><text x="228" y="696" class="small confirmed">低端 +4.000</text><text x="1138" y="577" text-anchor="end" class="small confirmed">高端 +6.537</text>
+  <!-- confirmed raised-floor clear height consequence -->
+  <line x1="260" y1="672" x2="260" y2="790.4" class="dim"/><text x="281" y="733" transform="rotate(-90 281 733)" class="label confirmed">淨高 3.70</text>
+  <path d="M290 735H530" fill="none" stroke="#237c64" stroke-width="2.5" stroke-dasharray="9 6"/><text x="540" y="728" class="label confirmed">池畔已抬高 +0.30，左端淨高為 3.70 m</text><text x="540" y="750" class="small">屋頂低端仍維持 +4.00 m；若日後要求 4.00 m 淨高，才另議調至 +4.30 m。</text>
+
+  <!-- ST-01: x20.5 to27.7, total rise 3.0 from raised pool deck -->
+  <g aria-label="ST-01 兩跑直梯">
+    <path d="M876 790.4V785.6H885.6V780.8H895.2V776H904.8V771.2H914.4V766.4H924V761.6H933.6V756.8H943.2V752H952.8V747.2H962.4V742.4" fill="none" stroke="#a66715" stroke-width="3"/>
+    <line x1="962.4" y1="742.4" x2="1020" y2="742.4" stroke="#a66715" stroke-width="5"/>
+    <path d="M1020 742.4V737.6H1029.6V732.8H1039.2V728H1048.8V723.2H1058.4V718.4H1068V713.6H1077.6V708.8H1087.2V704H1096.8V699.2H1106.4V694.4" fill="none" stroke="#a66715" stroke-width="3"/>
+    <path d="M876 795.4L962.4 747.4H1020L1106.4 699.4" fill="none" stroke="#6f4a19" stroke-width="7"/>
+    <text x="990" y="842" text-anchor="middle" class="label working">ST-01 · 20 級高 / 18 踏面 · 0.150 / 0.300 · 平台 1.80 · 總長 7.20</text><text x="990" y="864" text-anchor="middle" class="small">由池畔 +0.30 至 L2 +3.30；1.50 m 候選有效淨寬，結構不依附屋頂</text>
+  </g>
+
+  <!-- L1 and L2 service masses -->
+  <rect x="1276" y="694.4" width="256" height="105.6" fill="#f6f1e8" stroke="#263746" stroke-width="5"/><text x="1404" y="755" text-anchor="middle" class="zone">L1 男女廁所</text><text x="1404" y="779" text-anchor="middle" class="small">8.0 m 機能翼</text>
+  <rect x="1148" y="579.84" width="384" height="114.56" fill="#eef3f7" stroke="#263746" stroke-width="5"/><line x1="1276" y1="579.84" x2="1276" y2="694.4" class="partition"/><text x="1212" y="639" text-anchor="middle" class="label">4.0 m 挑高上方</text><text x="1404" y="629" text-anchor="middle" class="zone">L2 男女更衣／淋浴</text><text x="1404" y="653" text-anchor="middle" class="small">樓高 3.58 m</text>
+
+  <!-- fixed vertical core at X35 -->
+  <rect x="1292" y="464.64" width="96" height="335.36" fill="url(#core)" fill-opacity=".48" stroke="#b97925" stroke-width="3"/><text x="1340" y="548" text-anchor="middle" class="label working">固定核心</text><text x="1340" y="570" text-anchor="middle" class="tiny">安全梯／豎井</text><text x="1340" y="592" text-anchor="middle" class="tiny">工作支點 X=35</text>
+  <path d="M1308 775h64M1308 755h64M1308 735h64M1308 715h64M1308 675h64M1308 655h64M1308 635h64M1308 615h64M1308 555h64M1308 535h64M1308 515h64M1308 495h64" stroke="#8c642b" stroke-width="2"/>
+
+  <!-- L3 rotated cross section at fixed Y=6.75: x 28.296..41.704 -->
+  <path d="M1125.5 579.84H1554.5V464.64H1119.3Z" fill="#f4eded" stroke="#9c4f4f" stroke-width="5"/>
+  <line x1="1125.5" y1="579.84" x2="1119.3" y2="464.64" stroke="url(#mirror)" stroke-width="12"/><line x1="1125.5" y1="579.84" x2="1119.3" y2="464.64" stroke="#2b8fa4" stroke-width="4"/>
+  <line x1="1388" y1="464.64" x2="1388" y2="579.84" class="partition"/>
+  <text x="1248" y="515" text-anchor="middle" class="zone">L3 機房／工務</text><text x="1248" y="539" text-anchor="middle" class="small">水塔與重物靠核心</text><text x="1464" y="515" text-anchor="middle" class="zone">器材／景觀空間</text><text x="1464" y="539" text-anchor="middle" class="small">外挑端不放重物</text>
+  <text x="1094" y="520" transform="rotate(-93.1 1094 520)" text-anchor="middle" class="label">共面鏡牆 +3.1°</text>
+
+  <!-- roof/L3 junction conflict -->
+  <rect x="1125.5" y="579.84" width="22.5" height="17" fill="url(#conflict)" fill-opacity=".65" stroke="#c76565" stroke-width="2"/>
+  <line x1="1125.5" y1="610" x2="1148" y2="610" class="dim"/><text x="1136.75" y="632" class="dimText deferred">約 0.70</text>
+  <path d="M1137 598L1000 535" class="dash"/><text x="690" y="503" class="label deferred">右端垂直轉接帶需重畫為三維接縫</text><text x="690" y="526" class="small">中央剖面：旋轉 L3 面池牆約 X=28.30；固定屋頂高端 X=29.00，水平錯位約 0.70 m。</text><text x="690" y="548" class="small">0.343 m 只代表高端 +6.537 到 L3 +6.880 的垂直標高差，不能單獨完成止水與結構轉接。</text>
+  <text x="1129" y="452" class="small deferred">L3 中央剖面起點 X≈28.30</text><text x="1148" y="565" class="tiny confirmed">屋頂高端 X=29.00</text>
+
+  <!-- levels and vertical dimensions -->
+  <line x1="1570" y1="800" x2="1600" y2="800" class="ext"/><line x1="1570" y1="694.4" x2="1600" y2="694.4" class="ext"/><line x1="1570" y1="579.84" x2="1600" y2="579.84" class="ext"/><line x1="1570" y1="464.64" x2="1600" y2="464.64" class="ext"/>
+  <line x1="1590" y1="800" x2="1590" y2="694.4" class="dim"/><text x="1612" y="748" transform="rotate(-90 1612 748)" class="dimText working">3.30</text>
+  <line x1="1590" y1="694.4" x2="1590" y2="579.84" class="dim"/><text x="1612" y="638" transform="rotate(-90 1612 638)" class="dimText working">3.58</text>
+  <line x1="1590" y1="579.84" x2="1590" y2="464.64" class="dim"/><text x="1612" y="523" transform="rotate(-90 1612 523)" class="dimText">3.60 鏡牆</text>
+  <line x1="1640" y1="590.8" x2="1640" y2="579.84" class="dim"/><text x="1662" y="587" class="tiny confirmed">0.343</text>
+
+  <!-- horizontal dimensions -->
+  <line x1="220" y1="915" x2="1148" y2="915" class="dim"/><text x="684" y="906" class="dimText confirmed">29.0 玻璃屋頂水平跨度</text>
+  <line x1="220" y1="952" x2="1276" y2="952" class="dim"/><text x="748" y="943" class="dimText confirmed">33.0 泳池主體</text>
+  <line x1="1276" y1="952" x2="1532" y2="952" class="dim"/><text x="1404" y="943" class="dimText confirmed">8.0 機能翼</text>
+  <line x1="156" y1="990" x2="220" y2="990" class="dim"/><text x="188" y="1015" class="dimText confirmed">2.0</text>
+
+  <!-- review notes -->
+  <rect x="90" y="1045" width="1700" height="142" rx="11" class="note"/>
+  <text x="116" y="1077" class="zone">進入 3D Viewer 前須先確認</text>
+  <circle cx="126" cy="1111" r="7" fill="#237c64"/><text x="143" y="1117" class="small">池畔地坪已確認 +0.30 m；屋頂低端 +4.00 m 對應 3.70 m 淨高，ST-01 自 +0.30 m 起步。</text>
+  <circle cx="126" cy="1141" r="7" fill="#c76565"/><text x="143" y="1147" class="small">L3 旋轉使鏡牆在平面上成為斜線；屋頂固定高端與鏡牆不是全寬共線，需重新設計三維轉接、排水、活動縫與維修路徑。</text>
+  <circle cx="1005" cy="1111" r="7" fill="#b97925"/><text x="1022" y="1117" class="small">X=35 只是幾何中心工作點；實際水塔、機房、牆柱與活載會移動質心與剛心。</text>
+  <circle cx="1005" cy="1141" r="7" fill="#b97925"/><text x="1022" y="1147" class="small">核心目前占位示意會反推 L1 廁所／戶外區、L2 更衣分區及連續逃生動線。</text>
+
+  <!-- title block -->
+  <g transform="translate(90 1215)"><rect width="1700" height="80" class="titleBox"/><line x1="970" y1="0" x2="970" y2="80" stroke="#263746"/><line x1="1260" y1="0" x2="1260" y2="80" stroke="#263746"/><line x1="1480" y1="0" x2="1480" y2="80" stroke="#263746"/><text x="20" y="28" class="label">國立臺中教育大學附設實驗國民小學游泳池翻修</text><text x="20" y="59" class="zone">三層縱向概念剖面檢討圖</text><text x="990" y="27" class="small">圖號</text><text x="990" y="57" class="label">DRAW-SEC-LONG</text><text x="1280" y="27" class="small">圖面版本</text><text x="1280" y="57" class="label">V2.2 REVIEW</text><text x="1500" y="27" class="small">專案目標</text><text x="1500" y="57" class="label">v0.5.0</text></g>
+</svg>

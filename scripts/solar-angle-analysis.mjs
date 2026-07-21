@@ -165,11 +165,11 @@ function evaluateWindow(model, input) {
 }
 
 export function evaluateSolarCandidate(model, options = {}) {
-  const solar = model?.geometry?.solarReflection;
+  const study = activeSolarStudyGeometry(model);
   const common = {
-    planRotation: finite(options.planRotation ?? solar?.planRotation?.value, 'planRotation'),
+    planRotation: finite(options.planRotation ?? study.planRotation, 'planRotation'),
     mirrorLeanFromVertical: finite(
-      options.mirrorLeanFromVertical ?? solar?.mirrorLeanFromVertical?.value,
+      options.mirrorLeanFromVertical ?? study.mirrorLeanFromVertical,
       'mirrorLeanFromVertical',
     ),
     bearingOffset: finite(options.bearingOffset ?? 0, 'bearingOffset'),
@@ -195,11 +195,12 @@ export function evaluateSolarCandidate(model, options = {}) {
 }
 
 export function evaluateHorizontalScan(model, options = {}) {
+  const study = activeSolarStudyGeometry(model);
   const minimumPlanRotation = finite(options.minimumPlanRotation ?? -12, 'minimumPlanRotation');
   const maximumPlanRotation = finite(options.maximumPlanRotation ?? 18, 'maximumPlanRotation');
   const increment = finite(options.increment ?? 0.1, 'increment');
   const mirrorLeanFromVertical = finite(
-    options.mirrorLeanFromVertical ?? 9.5,
+    options.mirrorLeanFromVertical ?? study.mirrorLeanFromVertical,
     'mirrorLeanFromVertical',
   );
   const stepMinutes = finite(options.stepMinutes ?? 5, 'stepMinutes');
@@ -219,10 +220,13 @@ export function evaluateHorizontalScan(model, options = {}) {
     }));
   }
 
-  const summerSafe = results.filter((result) => result.summer.hits === 0);
-  if (summerSafe.length === 0) throw new RangeError('horizontal scan found no summer-safe candidate.');
-  const maximumWinterHits = Math.max(...summerSafe.map((result) => result.winter.hits));
-  const maximumHitCandidates = summerSafe.filter((result) => result.winter.hits === maximumWinterHits);
+  const strictSummerSafe = results.filter((result) => result.summer.hits === 0);
+  const minimumSummerHits = Math.min(...results.map((result) => result.summer.hits));
+  const preferred = strictSummerSafe.length > 0
+    ? strictSummerSafe
+    : results.filter((result) => result.summer.hits === minimumSummerHits);
+  const maximumWinterHits = Math.max(...preferred.map((result) => result.winter.hits));
+  const maximumHitCandidates = preferred.filter((result) => result.winter.hits === maximumWinterHits);
   const bestDirectionCandidate = maximumHitCandidates.reduce((best, candidate) => (
     candidate.winter.directionWeight > best.winter.directionWeight ? candidate : best
   ));
@@ -236,7 +240,8 @@ export function evaluateHorizontalScan(model, options = {}) {
       stepMinutes,
     },
     candidateCount: results.length,
-    summerSafeCandidateCount: summerSafe.length,
+    summerSafeCandidateCount: strictSummerSafe.length,
+    minimumSummerHits,
     maximumWinterHits,
     maximumHitPlanRotations: maximumHitCandidates.map((result) => result.input.planRotation),
     bestDirectionWeight: {
@@ -247,12 +252,13 @@ export function evaluateHorizontalScan(model, options = {}) {
 }
 
 export function evaluateMirrorEnvelope(model, options = {}) {
+  const study = activeSolarStudyGeometry(model);
   const canonicalPlanRotation = finite(
-    model?.geometry?.solarReflection?.planRotation?.value,
-    'model.geometry.solarReflection.planRotation.value',
+    study.planRotation,
+    'activeSolarStudyGeometry.planRotation',
   );
   const nominalLean = finite(
-    options.nominalLean ?? model?.geometry?.solarReflection?.mirrorLeanFromVertical?.value,
+    options.nominalLean ?? study.mirrorLeanFromVertical,
     'nominalLean',
   );
   const results = [];
@@ -282,12 +288,13 @@ export function evaluateMirrorEnvelope(model, options = {}) {
 
 export function evaluateContinuousWarmSeason(model, options = {}) {
   const solarGeometry = model?.geometry?.solarReflection;
+  const study = activeSolarStudyGeometry(model);
   const planRotation = finite(
-    options.planRotation ?? solarGeometry?.planRotation?.value,
+    options.planRotation ?? study.planRotation,
     'planRotation',
   );
   const mirrorLeanFromVertical = finite(
-    options.mirrorLeanFromVertical ?? solarGeometry?.mirrorLeanFromVertical?.value,
+    options.mirrorLeanFromVertical ?? study.mirrorLeanFromVertical,
     'mirrorLeanFromVertical',
   );
   const bearingOffset = finite(options.bearingOffset ?? 0, 'bearingOffset');
@@ -323,12 +330,13 @@ export function evaluateContinuousWarmSeason(model, options = {}) {
 }
 
 export function evaluateContinuousWarmSeasonEnvelope(model, options = {}) {
+  const study = activeSolarStudyGeometry(model);
   const canonicalPlanRotation = finite(
-    model?.geometry?.solarReflection?.planRotation?.value,
-    'model.geometry.solarReflection.planRotation.value',
+    study.planRotation,
+    'activeSolarStudyGeometry.planRotation',
   );
   const nominalLean = finite(
-    options.nominalLean ?? model?.geometry?.solarReflection?.mirrorLeanFromVertical?.value,
+    options.nominalLean ?? study.mirrorLeanFromVertical,
     'nominalLean',
   );
   const results = [];
@@ -364,6 +372,73 @@ const levelElevation = (model, id) => {
   return finite(level?.elevation, `referenceSystem.levels.${id}.elevation`);
 };
 
+export function activeSolarStudyGeometry(model) {
+  const solar = model?.geometry?.solarReflection;
+  const study = solar?.v050Study;
+  if (study) {
+    return {
+      revision: study.revision,
+      rotatingLevel: study.rotatingLevel,
+      planRotation: finite(study.optimization?.planRotation?.value, 'v050Study.optimization.planRotation'),
+      mirrorLeanFromVertical: finite(
+        study.optimization?.mirrorLeanFromVertical?.value,
+        'v050Study.optimization.mirrorLeanFromVertical',
+      ),
+      startX: finite(study.floorPlate?.poolSideX, 'v050Study.floorPlate.poolSideX'),
+      endX: finite(study.floorPlate?.farSideX, 'v050Study.floorPlate.farSideX'),
+      width: finite(study.floorPlate?.width, 'v050Study.floorPlate.width'),
+      baseElevation: finite(study.mirror?.baseElevation, 'v050Study.mirror.baseElevation'),
+      mirrorHeight: finite(study.mirror?.height, 'v050Study.mirror.height'),
+      pivotX: finite(study.planPivot?.x, 'v050Study.planPivot.x'),
+      pivotY: finite(study.planPivot?.y, 'v050Study.planPivot.y'),
+      pivotScenarios: study.planPivot?.sensitivityX?.map((value, index) => (
+        finite(value, `v050Study.planPivot.sensitivityX[${index}]`)
+      )) ?? [],
+      roof: {
+        x1: 0,
+        x2: finite(study.roofInterface?.planRun, 'v050Study.roofInterface.planRun'),
+        y1: 0,
+        y2: finite(study.floorPlate?.width, 'v050Study.floorPlate.width'),
+        highElevation: finite(
+          study.roofInterface?.highElevation,
+          'v050Study.roofInterface.highElevation',
+        ),
+        pitchDegrees: finite(study.roofInterface?.pitch, 'v050Study.roofInterface.pitch'),
+      },
+    };
+  }
+  const derived = deriveReferenceGeometry(model);
+  const width = finite(model?.geometry?.building?.width?.value, 'geometry.building.width.value');
+  return {
+    revision: model?.modelVersion ?? 'legacy',
+    rotatingLevel: 'L2',
+    planRotation: finite(solar?.planRotation?.value, 'solarReflection.planRotation'),
+    mirrorLeanFromVertical: finite(
+      solar?.mirrorLeanFromVertical?.value,
+      'solarReflection.mirrorLeanFromVertical',
+    ),
+    startX: derived.l2StartX,
+    endX: derived.l2EndX,
+    width,
+    baseElevation: levelElevation(model, 'L2'),
+    mirrorHeight: finite(
+      solar?.mirrorVisualWallHeight?.value,
+      'solarReflection.mirrorVisualWallHeight',
+    ),
+    pivotX: derived.l2StartX,
+    pivotY: width / 2,
+    pivotScenarios: [derived.l2StartX, 27, 35],
+    roof: {
+      x1: 0,
+      x2: derived.roofPlanEndX,
+      y1: 0,
+      y2: width,
+      highElevation: derived.roofHighElevation,
+      pitchDegrees: finite(model?.geometry?.roof?.pitch?.value, 'geometry.roof.pitch.value'),
+    },
+  };
+}
+
 function poolRectangle(model) {
   const pool = model?.geometry?.pool;
   const x1 = finite(pool?.origin?.[0], 'geometry.pool.origin[0]');
@@ -376,16 +451,14 @@ function poolRectangle(model) {
   };
 }
 
-export function buildL2VolumeCorners(model, input) {
-  const derived = deriveReferenceGeometry(model);
-  const buildingWidth = finite(model?.geometry?.building?.width?.value, 'geometry.building.width.value');
-  const baseElevation = levelElevation(model, 'L2');
-  const pivot = { x: input.pivotX, y: buildingWidth / 2 };
+export function buildReflectingVolumeCorners(model, input) {
+  const study = activeSolarStudyGeometry(model);
+  const pivot = { x: input.pivotX, y: study.pivotY };
   const bottomPlan = [
-    { x: derived.l2StartX, y: 0 },
-    { x: derived.l2EndX, y: 0 },
-    { x: derived.l2EndX, y: buildingWidth },
-    { x: derived.l2StartX, y: buildingWidth },
+    { x: study.startX, y: 0 },
+    { x: study.endX, y: 0 },
+    { x: study.endX, y: study.width },
+    { x: study.startX, y: study.width },
   ].map((point) => rotatePlanPoint(point, pivot, input.planRotation));
   const rotationRadians = input.planRotation * Math.PI / 180;
   const normal = { x: -Math.cos(rotationRadians), y: -Math.sin(rotationRadians) };
@@ -396,25 +469,26 @@ export function buildL2VolumeCorners(model, input) {
       : point
   ));
   return [
-    ...bottomPlan.map((point) => ({ ...point, z: baseElevation })),
-    ...topPlan.map((point) => ({ ...point, z: baseElevation + input.mirrorHeight })),
+    ...bottomPlan.map((point) => ({ ...point, z: study.baseElevation })),
+    ...topPlan.map((point) => ({ ...point, z: study.baseElevation + input.mirrorHeight })),
   ];
 }
 
+export const buildL2VolumeCorners = buildReflectingVolumeCorners;
+
 export function evaluatePoolSurfaceScenario(model, options = {}) {
   const solarGeometry = model?.geometry?.solarReflection;
-  const derived = deriveReferenceGeometry(model);
-  const buildingWidth = finite(model?.geometry?.building?.width?.value, 'geometry.building.width.value');
+  const study = activeSolarStudyGeometry(model);
   const planRotation = finite(
-    options.planRotation ?? solarGeometry?.planRotation?.value,
+    options.planRotation ?? study.planRotation,
     'planRotation',
   );
   const mirrorLeanFromVertical = finite(
-    options.mirrorLeanFromVertical ?? solarGeometry?.mirrorLeanFromVertical?.value,
+    options.mirrorLeanFromVertical ?? study.mirrorLeanFromVertical,
     'mirrorLeanFromVertical',
   );
-  const mirrorHeight = finite(options.mirrorHeight ?? 3, 'mirrorHeight');
-  const pivotX = finite(options.pivotX ?? derived.l2StartX, 'pivotX');
+  const mirrorHeight = finite(options.mirrorHeight ?? study.mirrorHeight, 'mirrorHeight');
+  const pivotX = finite(options.pivotX ?? study.pivotX, 'pivotX');
   const bearingOffset = finite(options.bearingOffset ?? 0, 'bearingOffset');
   const interval = continuousInput(options);
   const localBearing = normalizeAzimuth(
@@ -425,11 +499,11 @@ export function evaluatePoolSurfaceScenario(model, options = {}) {
   const wallAzimuth = normalizeAzimuth(poolAzimuth + planRotation);
   const geometryInput = {
     localLongAxisBearingFromTrueNorth: localBearing,
-    baseCenter: { x: derived.l2StartX, y: buildingWidth / 2 },
-    pivot: { x: pivotX, y: buildingWidth / 2 },
-    width: buildingWidth,
+    baseCenter: { x: study.startX, y: study.width / 2 },
+    pivot: { x: pivotX, y: study.pivotY },
+    width: study.width,
     verticalHeight: mirrorHeight,
-    baseElevation: levelElevation(model, 'L2'),
+    baseElevation: study.baseElevation,
     planRotation,
     leanFromVertical: mirrorLeanFromVertical,
     poolRectangle: poolRectangle(model),
@@ -461,9 +535,9 @@ export function evaluatePoolSurfaceScenario(model, options = {}) {
 }
 
 export function evaluatePoolSurfaceSensitivity(model, options = {}) {
-  const derived = deriveReferenceGeometry(model);
-  const pivotScenarios = options.pivotScenarios ?? [derived.l2StartX, 27, 35];
-  const heightScenarios = options.heightScenarios ?? [2.5, 3, 3.6];
+  const study = activeSolarStudyGeometry(model);
+  const pivotScenarios = options.pivotScenarios ?? study.pivotScenarios;
+  const heightScenarios = options.heightScenarios ?? [study.mirrorHeight];
   const results = [];
   for (const pivotX of pivotScenarios) {
     for (const mirrorHeight of heightScenarios) {
@@ -484,7 +558,7 @@ export function evaluatePoolSurfaceSensitivity(model, options = {}) {
 }
 
 function buildCliReport(model) {
-  const solar = model.geometry.solarReflection;
+  const study = activeSolarStudyGeometry(model);
   return {
     confirmed: evaluateSolarCandidate(model),
     horizontalFineScan: evaluateHorizontalScan(model),
@@ -494,7 +568,7 @@ function buildCliReport(model) {
       stepMinutes: 5,
     })),
     mirrorComparison: MIRROR_CANDIDATES.map((mirrorLeanFromVertical) => evaluateSolarCandidate(model, {
-      planRotation: solar.planRotation.value,
+      planRotation: study.planRotation,
       mirrorLeanFromVertical,
       stepMinutes: 1,
     })),

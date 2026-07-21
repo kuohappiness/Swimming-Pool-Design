@@ -37,10 +37,11 @@ const statusLabel: Record<Status, string> = {
 
 function sheetMeta(sheet: SheetRender): string {
   const definition = model.sheets.find((item) => item.id === sheet.id);
+  const title = definition?.title ?? sheet.title ?? sheet.id;
   return `<div class="sheet-toolbar">
     <div>
       <span class="sheet-number">${sheet.id}</span>
-      <strong>${escapeHtml(definition?.title ?? '')}</strong>
+      <strong>${escapeHtml(title)}</strong>
     </div>
     <div class="toolbar-actions" aria-label="圖層控制">
       <label><input id="toggle-working" type="checkbox" checked /> 工作值</label>
@@ -51,12 +52,16 @@ function sheetMeta(sheet: SheetRender): string {
 }
 
 function renderTabs(): void {
-  tabs.innerHTML = model.sheets.map((sheet) => `<button
+  tabs.innerHTML = sheets.map((sheet) => {
+    const definition = model.sheets.find((item) => item.id === sheet.id);
+    const title = definition?.title ?? sheet.title ?? sheet.id;
+    return `<button
     type="button"
     class="sheet-tab ${sheet.id === activeSheetId ? 'active' : ''}"
     data-sheet="${sheet.id}"
     aria-current="${sheet.id === activeSheetId ? 'page' : 'false'}"
-  ><span>${sheet.id}</span>${escapeHtml(sheet.title.replace('參照圖', ''))}</button>`).join('');
+  ><span>${sheet.id}</span>${escapeHtml(title.replace('參照圖', ''))}</button>`;
+  }).join('');
 
   tabs.querySelectorAll<HTMLButtonElement>('[data-sheet]').forEach((button) => {
     button.addEventListener('click', () => setActiveSheet(button.dataset.sheet ?? sheets[0].id));

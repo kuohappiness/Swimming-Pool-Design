@@ -24,8 +24,10 @@ export interface ViewerModel {
     building: {
       length: ViewerMeasure;
       width: ViewerMeasure;
+      upperFloorWidth: ViewerMeasure;
       poolHallLength: ViewerMeasure;
       serviceCoreLength: ViewerMeasure;
+      leftSetback: ViewerMeasure;
     };
     pool: {
       origin: number[];
@@ -33,9 +35,36 @@ export interface ViewerModel {
       width: ViewerMeasure;
       shallowDepth: ViewerMeasure;
       deepDepth: ViewerMeasure;
+      deckElevation: ViewerMeasure;
       laneCount: number;
     };
+    l1: {
+      outdoorDepth: number;
+      toiletBandDepth: number;
+      dryPassageDepth: number;
+      outdoorConnectedToPoolHall: false;
+      toiletDoorTopology: string;
+      core: {
+        x: number;
+        y: number;
+        length: number;
+        width: number;
+        status: 'working';
+        openItemId: string;
+      };
+    };
     l2: {
+      startX: number;
+      endX: number;
+      length: number;
+      width: number;
+      baseElevation: number;
+      topElevation: number;
+      volumeHeight: ViewerMeasure;
+      planRotation: ViewerMeasure;
+      planPivot: { x: number; y: number; z: number; status: 'working'; strategy: string; openItemId: string };
+    };
+    l3: {
       startX: number;
       endX: number;
       length: number;
@@ -44,6 +73,14 @@ export interface ViewerModel {
       volumeHeight: ViewerMeasure;
       planRotation: ViewerMeasure;
       planPivot: { x: number; y: number; z: number; status: 'working'; strategy: string; openItemId: string };
+      mirror: {
+        entityId: string;
+        height: ViewerMeasure;
+        leanFromVertical: ViewerMeasure;
+        materialIntent: string;
+        wallAndMirrorCoplanar: true;
+        openItemId: string;
+      };
     };
     roof: {
       startX: number;
@@ -52,19 +89,12 @@ export interface ViewerModel {
       totalRun: number;
       width: number;
       pitch: ViewerMeasure;
-      lowOverhang: ViewerMeasure;
       highElevation: number;
-      farWallElevation: number;
       lowElevation: number;
+      transitionBand: ViewerMeasure;
+      interfacePlanMismatch: ViewerMeasure;
       rainCurtain: Record<string, unknown>;
       rainwaterReuse: Record<string, unknown>;
-    };
-    mirror: {
-      entityId: string;
-      visualWallHeight: ViewerMeasure;
-      leanFromVertical: ViewerMeasure;
-      openItemId: string;
-      performanceSurface: string;
     };
     stair: {
       entityId: string;
@@ -80,7 +110,9 @@ export interface ViewerModel {
       flightRun: number;
       midLandingLength: number;
       midLandingElevation: number;
-      status: 'confirmed';
+      lowerElevation: number;
+      upperElevation: number;
+      status: 'working';
       guardStatus: 'deferred';
       guardOpenItemId: string;
     };
@@ -136,8 +168,11 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     ['building.width', model.geometry.building.width.value],
     ['pool.length', model.geometry.pool.length.value],
     ['pool.width', model.geometry.pool.width.value],
+    ['pool.deckElevation', model.geometry.pool.deckElevation.value],
     ['l2.baseElevation', model.geometry.l2.baseElevation],
     ['l2.volumeHeight', model.geometry.l2.volumeHeight.value],
+    ['l3.baseElevation', model.geometry.l3.baseElevation],
+    ['l3.volumeHeight', model.geometry.l3.volumeHeight.value],
     ['roof.highElevation', model.geometry.roof.highElevation],
     ['roof.lowElevation', model.geometry.roof.lowElevation],
     ['stair.totalRise', model.geometry.stair.totalRise],

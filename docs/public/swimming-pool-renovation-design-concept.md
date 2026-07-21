@@ -9,7 +9,7 @@
 
 這次改建不是以新的外殼覆蓋舊建築，而是從原游泳池既有的結構、空間與校園記憶出發，重新思考建築與自然環境之間的關係。
 
-設計保留 1F 泳池、地基、長向玻璃牆與主要建築秩序，只透過 2F 量體的微幅旋轉、鏡牆的傾斜、玻璃屋頂的坡度，以及更輕盈通透的樓梯，讓原本靜止的建築開始回應陽光、雨水、季節與人的移動。
+設計保留 1F 泳池、地基、長向玻璃牆與主要建築秩序，固定 1F／2F，只透過 3F 服務量體的水平旋轉、共面鏡牆的傾斜、玻璃屋頂的坡度，以及更輕盈通透的樓梯，讓原本靜止的建築開始回應陽光、雨水、季節與人的移動。
 
 它不是一棟被重新包裝的游泳池，而是一棟重新找到方向的建築。這個新的方向，由四種與環境和時間的關係共同組成：
 
@@ -25,9 +25,9 @@
 
 「方向」既是建築在基地上的朝向，也是原建築走向下一個階段的設計方向。
 
-設計固定 1F 泳池與原有建築基準，只讓 2F 量體由原軸線順時針水平旋轉 **{{model:geometry.solarReflection.planRotation|degree}}**，並使面向泳池的鏡牆由垂直向池側外傾 **{{model:geometry.solarReflection.mirrorLeanFromVertical|degree}}**。
+設計固定 1F／2F 與原有建築基準，只讓 3F 量體由原軸線順時針水平旋轉 **{{model:geometry.solarReflection.v050Study.optimization.planRotation|degree}}**，並使面向泳池的承載牆本體連同鏡面覆層向池側外傾 **{{model:geometry.solarReflection.v050Study.optimization.mirrorLeanFromVertical|degree}}**。
 
-兩個角度各自扮演不同角色：2F 的水平旋轉決定鏡牆面向陽光的方向；鏡牆的外傾則控制反射光向下進入泳池的角度。冬季低角度陽光因此有機會被導入池面與室內上部空間；夏季則以 2F 量體、屋頂與建築本體的投影，形成降低西曬與高角度日光進入的遮陽骨架。
+兩個角度各自扮演不同角色：3F 的水平旋轉決定鏡牆面向陽光的方向；鏡牆的外傾則控制反射光向下進入泳池的角度。冬季低角度陽光因此有機會被導入池面與室內上部空間；夏季則以 3F 量體、屋頂與建築本體的投影，形成降低西曬與高角度日光進入的遮陽骨架。
 
 這不是在原建築外加上一部機器，而是讓建築本身成為感知季節、引導光線的環境裝置。
 
@@ -40,7 +40,7 @@
 
 晴天時，傾斜的玻璃屋頂引入天空與日光；雨天時，同一片屋頂則開始收集並呈現雨水。
 
-**{{model:geometry.roof.pitch|degree}}** 單坡玻璃屋頂由標高 **{{derived:l2Elevation|elevation}}** 的 2F 端向泳池遠端下降，低端向外延伸 **{{model:geometry.roof.lowOverhang|metre}}**。雨水順著坡度匯集，在屋簷全寬自然落下，形成一面隨雨勢改變的被動雨簾。
+**{{model:geometry.solarReflection.v050Study.roofInterface.pitch|degree}}** 單坡玻璃屋頂橫跨 **{{model:geometry.solarReflection.v050Study.roofInterface.planRun|metre}}**，從服務量體側高端 **{{model:geometry.solarReflection.v050Study.roofInterface.highElevation|elevation}}** 向泳池遠端低端 **{{model:geometry.solarReflection.v050Study.roofInterface.lowElevation|elevation}}** 下降。雨水順著坡度匯集，在低端屋簷全寬自然落下，形成一面隨雨勢改變的被動雨簾。
 
 小雨時是細密的水線，大雨時則成為連續水幕。雨簾不以旱天循環泵浦製造人工水景，而是讓真實天氣成為建築表情的一部分。
 
@@ -61,7 +61,7 @@
 
 人在樓梯上移動時，可以同時看見泳池、校園與天空；校園中的人也能透過玻璃感受到室內活動。建築因此不只有空間上的穿透，更產生視線、光線與行為上的交流。
 
-這份開放集中在公共動線與泳池大廳；進入 2F 男女更衣空間後，動線立即分流，維持應有的隱私與安全。
+這份開放集中在公共動線與泳池大廳；進入 2F 男女更衣空間後，動線立即分流，維持應有的隱私與安全。池畔完成面抬高至 **{{model:geometry.solarReflection.v050Study.levels.poolDeckElevation|elevation}}**，樓梯從這個完成面起步。
 
 > 該開放的地方保持穿透，該被保護的空間維持界線。
 
@@ -72,9 +72,9 @@
 
 這個方案沒有刻意抹去原建築，也不以全新的外殼掩蓋它的歷史。
 
-1F 泳池、地基、長邊玻璃牆與既有量體秩序仍然是建築的主體；新的設計集中在 2F 旋轉量體、面池鏡牆、玻璃屋頂與樓梯等少數關鍵位置。
+1F 泳池、地基、長邊玻璃牆與既有量體秩序仍然是建築的主體；新的設計集中在固定的 2F 更衣層、旋轉的 3F 服務層、面池鏡牆、玻璃屋頂與樓梯等少數關鍵位置。
 
-正交的 1F 代表原有建築，微幅旋轉的 2F 代表新的介入。新與舊不必互相偽裝，而是能被清楚辨認、彼此對話。鏡面也只出現在面池端牆，使它成為明確焦點，同時保留原建築的實體感。
+正交的 1F／2F 代表固定基準，水平旋轉的 3F 代表新的介入。新與舊不必互相偽裝，而是能被清楚辨認、彼此對話。鏡面也只出現在 3F 面池端牆，使它成為明確焦點，同時保留原建築的實體感。
 
 這是一種克制的改建態度：不追求改變得最多，而是把改變放在最能產生意義的位置。
 
@@ -86,15 +86,15 @@
 
 ### 雙角度分工
 
-{{model:geometry.solarReflection.planRotation|degree}} 負責平面方向，{{model:geometry.solarReflection.mirrorLeanFromVertical|degree}} 負責向下導光，讓每個造型動作都有清楚任務。
+{{model:geometry.solarReflection.v050Study.optimization.planRotation|degree}} 負責平面方向，{{model:geometry.solarReflection.v050Study.optimization.mirrorLeanFromVertical|degree}} 負責向下導光，讓每個造型動作都有清楚任務。
 
 ### 局部鏡面
 
 鏡面只設於面池端牆，不全面包覆建築；它映照天空、樹影、水光與校園活動，也保留原建築的重量感。
 
-### 屋頂與 2F 對齊
+### 屋頂與 L3 的誠實接縫
 
-玻璃屋頂高端銜接 2F 地坪，向泳池遠端自然下降，使量體、剖面與排水方向形成一致關係。
+玻璃屋頂高端停在固定服務量體界線，與 L3 樓板保留 **{{model:geometry.solarReflection.v050Study.roofInterface.l3TransitionBand|metre}}** 垂直轉接帶。旋轉後的平面錯位、活動縫、止水與排水仍保持可見，留待結構與細部設計解決。
 
 ### 真正的雨景
 
@@ -112,9 +112,9 @@
 
 公共樓梯廊與泳池大廳保持開放，2F 更衣空間則在抵達後立即分流。
 
-### 開放的 1F
+### 有界線的 1F
 
-2F 擴建量體下方維持開放，使地面動線、視線與公共空間持續連接。
+池畔與長向玻璃牆維持通透；右側 8 × 7 m 戶外區不直接接入泳池大廳，廁所則分別保留操場側與泳池側開口，讓公共開放、乾濕分流與管理界線同時被看見。
 
 ### 可以被驗證的幾何
 

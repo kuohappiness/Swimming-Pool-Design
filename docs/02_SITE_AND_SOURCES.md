@@ -12,7 +12,7 @@
 
 ## 2. 方位與比例
 
-`SRC-SITE-001` 保留 Google Maps 指南針與 20 公尺／50 英尺比例尺。本地 +X 必須由泳池遠端指向綠色原廁所／服務核心基地，因此圖集採 307° 的有向工作值；127° 是同一長軸的反方向，不再驅動模型。精確角度仍保留未來重新校準參數。
+`SRC-SITE-001` 保留 Google Maps 20 公尺比例尺；`SRC-SITE-002` 另保留指南針與 20 公尺／50 英尺比例尺。本地 +X 必須由泳池遠端指向 `SRC-SITE-002` 綠框所示的原廁所／服務核心基地，因此圖集採 307° 的有向工作值；127° 是同一長軸的反方向，不再驅動模型。精確角度仍保留未來重新校準參數。
 
 世界座標為 `+X` 東、`+Y` 北、`+Z` 上，長度公尺、角度度數。建築本地座標經單一 `worldTransform` 轉為世界座標；Viewer 不得另寫第二套北向。
 
@@ -22,20 +22,31 @@
 
 | ID | 專案路徑 | 內容與用途 | 原始像素 | SHA-256 |
 | --- | --- | --- | --- | --- |
-| SRC-SITE-001 | `source-materials/site/SRC-SITE-001_google-maps-satellite-annotated.jpeg` | 衛星截圖；黃色／綠色基地、指南針與比例尺 | 812 × 1536 | `46EB14BE28E419999F664D43920BF6717CEA2558F25700735C5078A9EB1107C2` |
+| SRC-SITE-001 | `source-materials/site/SRC-SITE-001_google-maps-satellite.png` | 衛星截圖；基地、周邊道路與校園配置、地圖比例尺 | 1612 × 1430 | `39D1933CAEFB91020AF10E72ADFDBD04980DA36FEDBF36ED14209F469DA4029D` |
 | SRC-SITE-002 | `source-materials/site/SRC-SITE-002_entrance-location-annotated.png` | 衛星圖紅箭頭；確認 `EN-01` 位於兩基地交界的校園側 | 814 × 1146 | `7827DC99D33A1EF61470D19208EF58BF57C880420C94F903CC52BB63D5F2C327` |
 | SRC-SITE-003 | `source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json` | European Commission JRC PVGIS 5.3；基地座標標準氣象年，用於 `TASK-013` 鏡牆能量差分析 | JSON；1,270,483 bytes；8760 hourly records | `1F9E251234F0C5451A77BC20A31C4E83545EC1BAE472CEB65566524E0E451633` |
-| SRC-CONCEPT-001 | `source-materials/concepts/SRC-CONCEPT-001_side-section.jpeg` | 手繪側視／剖面；泳池大廳、男女空間與廁所關係 | 864 × 1536 | `43640E5A1821AA406682A32F421934C6FA75821C07435BD2744DF5AE2BA1F9EC` |
-| SRC-CONCEPT-002 | `source-materials/concepts/SRC-CONCEPT-002_roof-plan.jpeg` | 手繪屋頂平面；玻璃屋頂及男女空間關係 | 2267 × 2982 | `59DE06D8B6A82935E772A8B6B61CD92BD7FFB1DA02AF5737B36ABD7F8588A11F` |
-| SRC-CONCEPT-003 | `source-materials/concepts/SRC-CONCEPT-003_ground-floor-plan.jpeg` | 手繪一樓平面；泳池、廁所、門與樓梯的早期想法 | 2210 × 2931 | `F7666FED2DC1CDA77B0C7CE8C41FD369E40DA5A5DBCBAA5BF0449E377174F87D` |
-| SRC-CONCEPT-004 | `source-materials/concepts/SRC-CONCEPT-004_perspective.jpeg` | 手繪室內透視；玻璃牆、泳池、挑高與服務量體 | 1064 × 1536 | `7636BA4EBB3CB4B094DA62631EBDE7B29FB410BF775AA217434E01508F507C5C` |
+| SRC-SITE-004 | `source-materials/site/SRC-SITE-004_current-pool-and-changing-rooms-annotated.png` | 現況衛星圖；紅框為泳池本體，上方綠框為廁所＋女生更衣室，下方綠框為男生更衣室 | 1612 × 1430 | `3DC23D224551E2DB9C6B267A479A3BE169589BA17B9AA3732EF917D9F9ACD9A8` |
+| SRC-CONCEPT-001 | `source-materials/concepts/SRC-CONCEPT-001_side-section.jpeg` | 手繪側視／剖面；泳池大廳、男女空間與廁所關係 | 864 × 1536 | `525F52A2A166EBD056A1FAB0E2ED04515A591E5700C312B5F9CDE25659D869BA` |
+| SRC-CONCEPT-002 | `source-materials/concepts/SRC-CONCEPT-002_roof-plan.jpeg` | 手繪屋頂平面；玻璃屋頂及男女空間關係 | 2267 × 2982 | `2344CFC87F2268F401194DA20C9AEF0315A072612CD3D2FC85846C9148465D49` |
+| SRC-CONCEPT-003 | `source-materials/concepts/SRC-CONCEPT-003_l1-plan-v1.0.jpeg` | 使用者手繪「俯視圖－1F V1.0」；泳池、廁所、門與樓梯的早期想法 | 2210 × 2931 | `B39A97283AD36B39745E2A5D4C92A6D90CAB8AE8D142D3B06F1BCEC95E1CE543` |
+| SRC-CONCEPT-004 | `source-materials/concepts/SRC-CONCEPT-004_perspective.jpeg` | 手繪室內透視；玻璃牆、泳池、挑高與服務量體 | 1064 × 1536 | `DBBB0D22F6C5BC8EE5197FF585EAA9014A13048DA158937AC5DFB6D52F8EF627` |
 | SRC-CONCEPT-005 | `source-materials/concepts/SRC-CONCEPT-005_service-core-program-annotated.png` | 彩框概念；入口、原廁所重建、L2 更衣淋浴及屋頂坡向 | 1452 × 1042 | `B08B1781004983F2BEEFA1271361B9EB5A7C585F8BB59D3947FE83847059EE94` |
 | SRC-CONCEPT-006 | `source-materials/concepts/SRC-CONCEPT-006_floating-stair-location-annotated.png` | 藍框概念；長邊玻璃外牆旁的懸空樓梯位置 | 2080 × 1466 | `157200EA2BE6C1EF1A213D4DE89589B0D18F9C184E490349F9E58919D6E16681` |
 | SRC-CONCEPT-007 | `source-materials/concepts/SRC-CONCEPT-007_floating-stair-dual-stringer-annotated.png` | 紅線概念；雙厚鋼梯梁、懸空梯段及開放梯下 | 1430 × 920 | `D62448F0A987900F2C3208EE17D3B57FC2AE2DCDCE358002A294E4B54746F592` |
 | SRC-CONCEPT-008 | `source-materials/concepts/SRC-CONCEPT-008_l1-outdoor-entries-annotated.png` | 使用者在現行 L1 圖面標註：紅框為男女廁、綠框為戶外、藍框為兩廁朝下的獨立戶外前門 | 2194 × 1120 | `BBAE9566DF0107810CFE3E499C0D32E0DB68A66B1CC846D3AD815F31FF7BDB0E` |
 | SRC-CONCEPT-009 | `source-materials/concepts/SRC-CONCEPT-009_longitudinal-section-correction-annotated.png` | 使用者在 `REF-401` 圖面以紅色斜線標示屋頂概念位置、以綠框圈出入口戶外區；隨附文字另指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜 | 2216 × 1130 | `3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034` |
+| SRC-CONCEPT-010 | `source-materials/concepts/SRC-CONCEPT-010_l1-plan-v2.0.jpeg` | 使用者手繪「俯視圖－1F V2.0」；標示 33 m 泳池主體、右側 8 m 機能翼、男女廁、戶外區、2 m 退縮、門與樓梯 | 3840 × 2110 | `467B4CFB573A5250FCF5D5D74D02AF4D696071B35FCA0C1D96817DFFCA99BD08` |
+| SRC-CONCEPT-011 | `source-materials/concepts/SRC-CONCEPT-011_longitudinal-section-v2.0.jpeg` | 使用者手繪「剖面圖 V2.0」；表達 33 m 泳池主體、右側 8 m 機能翼、L1 廁所、L2 更衣室、外傾鏡牆、玻璃屋頂、雨水回收、2 m 退縮與 1F 至 2F 樓梯 | 3840 × 2747 | `3612C211F9AC06C6E9E8B40210C8282B7088DD81691D36F237C75E483329EB8B` |
 
 `SRC-CONCEPT-009` 圖面可直接觀察到紅色斜線位於既有屋頂下方，以及綠框圈出 L1 右端灰色區域。使用者隨附文字指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜。設計上解讀為：`REF-401` 屋頂高端應靠近 L2 樓板、綠框是入口戶外區、`EXT-L2-01` 低 X 面池端牆是向泳池側外傾的鏡面牆；圖面與隨附文字都不提供正式標高、入口寬度或外傾角。
+
+`SRC-CONCEPT-010` 於 2026-07-19 由使用者提供。圖面可直接觀察到 33 m、8 m、7 m、2 m 等手寫尺寸，以及泳池、女廁、男廁、戶外區、門與長邊樓梯。使用者隨附文字進一步確認：33 m 只計泳池主體且不含右側 8 m；戶外區為 8 × 7 m 且不與泳池大廳銜接；廁所 7 m 深度包含最上方與泳池相通的乾式走道，男女廁各有一個操場側開口及一個泳池側開口；原基地邊界內退縮 2 m，用於增加視覺開闊度並保留傾斜屋頂瀑布造景與雨水回收介面。廁所是否改切為對外／對泳池兩套獨立空間不是現行答案，留由 `OPEN-008` 討論。
+
+`SRC-CONCEPT-011` 於 2026-07-20 由使用者提供。圖面可直接觀察到剖面左右端、33 m、8 m、2 m、玻璃屋頂、鏡牆、雨水回收、泳池、L1 男女廁與 L2 男女更衣室；圖上「深 1.4 公尺」不是最終設計值。使用者隨附文字進一步確認：向右上方延伸的兩條斜線代表 `ST-01` 由 1F 至 2F 的樓梯，不是鏡面反射光路；樓梯長度與角度仍需建議及確認；水深改為剖面左端（2 m 退縮／雨水回收端）1.2 m 淺水、剖面右端（8 m 機能翼／廁所端）1.5 m 深水。
+
+`SRC-SITE-001` 於 2026-07-19 依使用者提供的新 Google Maps 衛星截圖置換；新版提高至 1612 × 1430 像素並擴大基地周邊視野，不含原黃色／綠色基地框。基地框與入口箭頭的既有標註證據仍由 `SRC-SITE-002` 保存。
+
+`SRC-SITE-004` 於 2026-07-20 由使用者提供，原始檔完整保存，未裁切、縮放或重新壓縮。圖面可直接觀察到紅色框與上下兩個綠色框；框線語意依使用者隨附說明登錄為：紅框是目前泳池本體，上方綠框是廁所＋女生更衣室，下方綠框是男生更衣室。此圖已取代 `REF-001` HTML 內顯示的舊衛星空照圖；`SRC-SITE-001`／`SRC-SITE-002` 仍保留為歷史來源，不以新檔覆寫既有證據。彩框只確認現況位置與用途，不提供地籍邊界或精確尺寸。
 
 `SRC-SITE-003` 於 2026-07-16 由 PVGIS 5.3 TMY API 以 `24.14434°N, 120.67341°E` 取得；原始 metadata 記錄海拔 84 m、`PVGIS-ERA5`／ERA5、2005～2023、啟用 DEM horizon，12 個月份各選一個典型月份。觀察資料包含逐時 GHI `G(h)`、DNI `Gb(n)`、DHI `Gd(h)`、溫度、濕度、風與氣壓；本專案只解讀輻射欄位作概念能量比較。TMY 是長期典型月份的組合，不代表 2026 年實際天氣，也不是施工熱負荷保證。來源：[PVGIS 5.3 API](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en)、[PVGIS TMY 說明](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/pvgis-5-tools/pvgis-typical-meteorological-year-tmy-generator_en)。
 
@@ -53,7 +64,7 @@
 
 ## 5. 公開與署名
 
-十一張來源圖可直接存於公開 repo。Google Maps 截圖保留原有品牌、指南針及比例尺；地圖資料與影像權利歸 Google 及適用資料提供者，彩框與箭頭為使用者註記。本 repo 只把它保存為概念設計來源證據。
+十四張來源圖可直接存於公開 repo。Google Maps 截圖保留原有品牌、指南針及比例尺；地圖資料與影像權利歸 Google 及適用資料提供者，彩框與箭頭為使用者註記。本 repo 只把它保存為概念設計來源證據。
 
 ## 6. 已知限制
 

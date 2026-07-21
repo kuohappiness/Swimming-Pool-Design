@@ -53,19 +53,43 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-017 | 盤點 3D Viewer 資訊完整度並確認 Markdown／模型雙 owner 同步架構 | done | 0.4.0 | [資訊完整度分析](analysis/3d-viewer-information-readiness.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md) | TASK-016 | confirmed／working／deferred 範圍、現有硬編碼、缺少的 3D 工作幾何、分析失效規則與後續任務邊界已記錄；文件檢查及 diff 檢查通過 |
 | TASK-018 | 建立模型單一來源補強與 3D Viewer MVP | done | 0.4.0 | [completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md)、[Release 0.4.0](releases/0.4.0.md) | TASK-017 | `/3d-viewer/` 由統一模型及 Markdown 編譯內容建立，五組場景、狀態圖例、WebGL fallback、桌機／手機操作與同步測試通過 |
-| TASK-019 | 完成 Viewer 材質、環境、理念細節、固定鏡位及高解析擷取 | ready | 0.4.1 | [completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md) | TASK-018 | 向光、向雨、向人、向時間及總覽場景具重現性；工作材質與雨／光效果不冒充施工性能；畫面帶模型及內容版本 |
+| TASK-021 | 修正 `ST-01` 樓梯側位，並依剖面 V2.0 建立 0.5.0 工作幾何 | done | 0.5.0 | [DEC-046／DEC-056／DEC-060／OPEN-017](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、DEC-044、DEC-047 | Viewer 已將樓梯移到長邊玻璃牆旁的獨立乾式透明廊，池畔 +0.30 m 至 L2 +3.30 m 總升高 3.00 m，採 1.50 m 工作淨寬、20 級高／18 踏面、兩跑各 2.70 m、1.80 m 平台及 7.20 m 總長；樓梯與玻璃牆、屋頂荷重分離。法定淨寬、逐點淨高、頂端接點及材料仍由 `OPEN-017` 專業驗證，不把概念模型冒充施工定案 |
+| TASK-022 | 依 L1 V2.0 重建戶外區、廁所雙向開口與入口動線 | done | 0.5.0 | [DEC-043／DEC-044](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計基準](03_DESIGN_BASIS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、DEC-043 | 0.5.0 active Viewer／V2.3 圖面表達 8.0 × 7.0 m 戶外區且不連接泳池大廳、7.0 m 廁所帶、泳池側乾式走道及雙向開口；分拆為對外／對池兩套獨立廁所仍保留 `OPEN-008`，未擅自畫入現行方案 |
+| TASK-023 | 修正 Viewer 將垂直牆與獨立斜鏡面分離的構造錯誤 | done | 0.5.0 | [DEC-041／DEC-057／DEC-058](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計基準](03_DESIGN_BASIS.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、TASK-025 | Viewer 已把鏡牆移到旋轉 L3，承載牆本身與外貼鏡面共同向泳池側外傾 +3.1°，鏡面只保留 0.012 m 顯示偏移；日照 HTML 及模型同步 +26.5°／+3.1°／X=35 m。材料、固定、分格與眩光仍由 `OPEN-011` 驗證 |
+| TASK-024 | 補回 Viewer 缺漏的 L1 池畔地坪與 `POOL-01` 池體 | done | 0.5.0 | [DEC-045／DEC-060](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計基準](03_DESIGN_BASIS.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、DEC-044 | Viewer 已用四塊池畔板圍出真實池口，完成面為 +0.30 m，水池可辨識水面、三水道、池緣、池壁與左 1.2 m 淺端至右 1.5 m 深端的斜底；屋頂低端淨高 3.70 m。工作坡道、門檻、防水、溢流與排水仍由 `OPEN-016`／`OPEN-017` 深化 |
+| TASK-025 | 依 L3 新高度重跑日照角度、支點敏感度並同步模型、文件與 solar-study HTML | done | 0.5.0 study | [DEC-054～DEC-057](04_DECISIONS_AND_OPEN_ITEMS.md)、[日照分析](analysis/solar-analysis.md)、[solar contract](contracts/solar-study.md) | TASK-013、DEC-048～DEC-054 | `geometry.solarReflection.v050Study` 保存 12 × 13.5 m、L3 +6.88 m、29 m／5°屋頂、0.343 m 轉接帶與 X=33～41 m 支點；8,760 小時 PVGIS TMY 粗掃 3,111 組並局部細化，工作值為 +26.5°／+3.1°，X=37 m 暖季池面 0、冷季 +910.020 kWh，五支點均暖季 0；模型、analysis registry、owner 文件、HTML、28 項日照測試、typecheck、直接 Vite build 及桌機／手機 browser smoke 通過。完整 `npm run build` 仍被既有 SRC-CONCEPT-001～004 SHA 不一致阻擋 |
+| TASK-026 | 將 L3 工作支點轉為 X=35 m，記錄結構／日照折衷並製作三層 V2.1 檢討圖 | done | 0.5.0 review | [DEC-058](04_DECISIONS_AND_OPEN_ITEMS.md)、[日照分析](analysis/solar-analysis.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md) | TASK-025、OPEN-011、OPEN-016 | X=35 m 對應 L3 幾何中心，重疊 138.099 m²／85.25%、幾何偏心 0 m；同角度下暖季池面 0、冷季 +1,022.903 kWh。模型、HTML、契約、分析與測試同步；新增 1F～3F 平面及縱剖面 V2.1 SVG／PNG 檢討圖，明示旋轉 L3 與固定屋頂的平面錯位、外挑、核心及池畔地坪抬高待確認，3D Viewer 暫不修改 |
+| TASK-027 | 修正平面方位並確認池畔 +0.30 m，發布 V2.2 檢討圖 | done | 0.5.0 review | [DEC-059／DEC-060](04_DECISIONS_AND_OPEN_ITEMS.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md) | TASK-026、OPEN-016、OPEN-017 | V2.2 曾正確標示圖面向右＝服務量體端＝西北 307°並確認池畔 +0.30 m，但把北箭頭誤畫成右上；此錯誤已由 `DEC-061`／`TASK-028` 的 V2.3 取代，V2.2 只保留歷史檢討用途 |
+| TASK-028 | 發布 V2.3 圖面，完成 0.5.0 Viewer、圖集、日照 HTML 與最新來源置換 | done | 0.5.0 | [DEC-061](04_DECISIONS_AND_OPEN_ITEMS.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-019、TASK-021～TASK-027 | V2.3 北箭頭改指右下而不旋轉建築；Viewer 完成 41 × 14 m L1、三層服務量體、L3 旋轉鏡牆、固定 5°屋頂、+0.30 m 池畔、池體、樓梯、雨水路徑與未決轉接帶；空間圖集直接載入最新衛星圖及 V2.3 平／剖面，日照 HTML 與 Viewer 同步 0.5.0；模型、文件、測試、桌機／手機瀏覽驗證與 production build 全數通過 |
+| TASK-019 | 完成 Viewer 材質、環境、理念細節、固定鏡位及高解析擷取 | done | 0.5.0 | [3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-021～TASK-024 | 向光、向雨、向人、向時間及總覽五場景可重現；圖層、構件選取、四固定鏡位、工作材質、雨簾／光感、WebGL fallback、版本 hash 與桌機／手機高解析擷取均通過；效果不冒充施工性能 |
 | TASK-020 | 建立理念介紹 HTML，輸出 PDF／DOCX 並淘汰舊版文件 | queued | 0.5.0 | [公開理念文字](public/swimming-pool-renovation-design-concept.md)、[completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md) | TASK-019 | 理念 HTML 直接讀取 Markdown 內容與 Viewer畫面；PDF及DOCX分別由共同來源產生並通過視覺驗收；替代檔案確認可開啟後才刪除舊版 DOCX |
+
+錯誤記錄（2026-07-18）：本次只登錄 `TASK-021`～`TASK-024` 並釐清 `DEC-041`～`DEC-042`，不修改程式、模型或已發布的 0.4.0 Viewer。
+
+修訂記錄（2026-07-19）：新增 `SRC-CONCEPT-010` 與 `DEC-043`，並依 L1 V2.0 更新 `TASK-022`；本次只保存來源與 owner 決策，不修改 0.4.0 幾何、程式或已發布 Viewer。跨樓層幾何先由 `OPEN-016` 協調。
+
+修訂收集模式（2026-07-19）：依 `DEC-044`，`TASK-021`～`TASK-024` 與後續新增修訂先維持 `queued`。待使用者確認清單完整後，再以 0.4.0 為共同基準協調實作、驗證與發布；不得覆寫 0.4.0 歷史成果。目標版本已由 `DEC-047` 改為 0.5.0。
+
+剖面修訂記錄（2026-07-20）：新增 `SRC-CONCEPT-011`、`DEC-045`～`DEC-046` 與 `OPEN-017`。確認兩條斜線為 1F 至 2F 樓梯，重新檢核其長度／角度；水深方向改為剖面左端 1.2 m、右端 1.5 m。本次只保存來源、目標決策與建議，不修改 0.4.0 幾何、程式或已發布 Viewer。
+
+樓梯與版本修訂記錄（2026-07-20）：使用者將整批實作目標改為 0.5.0；提出樓梯 1.500 m 有效淨寬候選值，概念可行但仍需使用人數、逃生寬度與施工完成面專業驗證。最新位置仍沿長邊玻璃牆旁平行向上，但樓梯與玻璃帷幕結構獨立。平台保留 1.800 m 或改為 1.500 m、樓梯上下端方向、玻璃交界與屋頂淨高仍由 `OPEN-017` 繼續確認。本次不修改 0.4.0 模型、程式或已發布 Viewer。
+
+V2.0 專業重繪記錄（2026-07-20）：依 `SRC-CONCEPT-010`／`011` 與當前 owner 文件，新增 [1F 概念平面圖 V2.0](../reference/drafts/v0.5.0/DRAW-L1-PLAN-V2.0.svg) 與 [縱向概念剖面圖 V2.0](../reference/drafts/v0.5.0/DRAW-LONGITUDINAL-SECTION-V2.0.svg)，並在同資料夾保存 PNG 預覽與版本說明。兩圖均標示圖面版本 V2.0、專案目標 v0.5.0 working draft 及「非施工圖」；已確認數值、工作建議與待確認幾何以不同圖例區分。這是修訂討論圖，不改動 0.4.0 模型、Viewer 或發布成果，`TASK-021`～`TASK-024` 仍維持 queued。
+
+V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TASK-019`、`TASK-021`～`TASK-024` 及 `TASK-028` 已完成。V2.3 修正真北箭頭至圖面右下；0.5.0 active Viewer、最新衛星圖、平／剖面、日照研究與三個 HTML 入口已同步。早期「不修改 0.4.0」及「queued」文字只描述當時的收集階段，不是目前狀態；0.4.0 成果仍保留作歷史比較。
 
 ## 7. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
 - [OPEN-006](04_DECISIONS_AND_OPEN_ITEMS.md)：基地精確旋轉角與像素校準。
-- [OPEN-008](04_DECISIONS_AND_OPEN_ITEMS.md)：廁所、開口與乾式通道精確尺寸。
+- [OPEN-008](04_DECISIONS_AND_OPEN_ITEMS.md)：廁所內部、主入口／到達路徑對應，以及雙向廁所或分拆廁所方案。
 - [OPEN-009](04_DECISIONS_AND_OPEN_ITEMS.md)：逃生、無障礙、結構與機電。
-- [OPEN-011](04_DECISIONS_AND_OPEN_ITEMS.md)：水平 +9.5° 與鏡牆外傾 +8.5° 已確認；結構支點、牆高、材料與最終性能仍待完成。
+- [OPEN-011](04_DECISIONS_AND_OPEN_ITEMS.md)：0.5.0 工作值為 L3 水平 +26.5°、鏡牆外傾 +3.1°、X=35 m；實際質心／剛心、轉換構造、材料、眩光與最終性能仍待完成。
 - [OPEN-013](04_DECISIONS_AND_OPEN_ITEMS.md)：全高弦幕材料、集力節點、張力／撓度及專業安全驗證。
 - [OPEN-014](04_DECISIONS_AND_OPEN_ITEMS.md)：屋頂接縫、雨簾與雨水回用的施工尺度、容量與機電／建築物理驗證。
+- [OPEN-016](04_DECISIONS_AND_OPEN_ITEMS.md)：0.5.0 概念模型已完成 33＋8 m、12 × 13.5 m 樓板與固定屋頂遷移；施工級柱網、轉換構造、0.70 m 平面錯位、0.343 m 垂直接帶及池畔高差節點仍待完成。
+- [OPEN-017](04_DECISIONS_AND_OPEN_ITEMS.md)：0.5.0 已建立樓梯工作幾何；有效淨寬、逐點淨高、頂端接點、逃生與材料仍待專業定案。
 
 這些 OPEN 在取得新輸入、形成可核准設計並建立 TASK 前，不列入執行順序。
 

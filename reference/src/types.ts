@@ -30,6 +30,152 @@ export interface SolarReflectionGeometry {
     openItemId: 'OPEN-011';
   };
   mirrorVisualWallHeight: NumericMeasure & { openItemId: 'OPEN-011' };
+  v050Study: {
+    revision: '0.5.0';
+    status: 'working';
+    activeForViewer: true;
+    rotatingLevel: string;
+    fixedLevels: string[];
+    site: {
+      boundaryStartX: number;
+      buildingStartX: number;
+      totalLength: number;
+      l1Width: number;
+      upperFloorWidth: number;
+      poolHallLength: number;
+      serviceWingLength: number;
+      leftSetback: number;
+      rightwardBearingFromTrueNorth: number;
+      northArrowPlanDirection: 'lower-right';
+    };
+    l1: {
+      poolOrigin: number[];
+      outdoorDepth: number;
+      toiletBandDepth: number;
+      dryPassageDepth: number;
+      outdoorConnectedToPoolHall: false;
+      toiletDoorTopology: 'playground-and-pool-side';
+      fixedCoreCandidate: {
+        x: number;
+        y: number;
+        length: number;
+        width: number;
+        status: 'working';
+        openItemId: 'OPEN-016';
+      };
+    };
+    levels: {
+      l1Elevation: number;
+      l2Elevation: number;
+      l3Elevation: number;
+      l1FloorToFloor: number;
+      l2FloorToFloor: number;
+      l2ElevationStatus: 'working-recommendation';
+      poolDeckElevation: number;
+      poolDeckElevationStatus: 'confirmed';
+      poolDeckClearHeightAtRoofLow: number;
+    };
+    stairFromRaisedPoolDeck: {
+      startX: number;
+      originY: number;
+      lowerElevation: number;
+      upperElevation: number;
+      totalRise: number;
+      candidateClearWidth: number;
+      riserCount: number;
+      runs: number;
+      risersPerRun: number;
+      treadsPerRun: number;
+      riserHeight: number;
+      treadDepth: number;
+      runLengthPerFlight: number;
+      midLandingLength: number;
+      totalPlanLength: number;
+      status: 'working-recommendation';
+      openItemId: 'OPEN-017';
+    };
+    floorPlate: {
+      length: number;
+      width: number;
+      area: number;
+      serviceWingLength: number;
+      poolAtriumOverlap: number;
+      poolSideX: number;
+      farSideX: number;
+    };
+    roofInterface: {
+      planRun: number;
+      pitch: number;
+      lowElevation: number;
+      highElevation: number;
+      l3TransitionBand: number;
+      status: 'confirmed';
+    };
+    mirror: {
+      width: number;
+      height: number;
+      baseElevation: number;
+      topElevation: number;
+      baseCenterX: number;
+      materialIntent: 'original-mirror';
+      wallAndMirrorCoplanar: true;
+    };
+    planPivot: {
+      strategy: 'l3-floor-plate-centroid-structural-core-proxy';
+      x: number;
+      y: number;
+      status: 'working';
+      sensitivityX: number[];
+      openItemId: 'OPEN-011';
+    };
+    pivotAssessment?: {
+      status: 'working-structural-proxy-requires-professional-validation';
+      method: string;
+      floorPlateCentroid: number[];
+      selectedPivotX: number;
+      selectedOverlapArea: number;
+      selectedOverlapPercent: number;
+      selectedOutsideFixedL2ProjectionArea: number;
+      selectedGeometricEccentricity: number;
+      retainedCoolGainVsMaximumPercent: number;
+      scenarios: Array<{
+        x: number;
+        overlapArea: number;
+        overlapPercent: number;
+        outsideFixedL2ProjectionArea: number;
+        geometricEccentricity: number;
+        coolPoolAddedKWh: number;
+      }>;
+    };
+    optimization: {
+      objective: 'minimize-warm-season-pool-gain-then-maximize-cool-season-pool-gain';
+      weatherSourceId: 'SRC-SITE-003';
+      planRotation: NumericMeasure | (Omit<NumericMeasure, 'status'> & { status: 'seed' });
+      mirrorLeanFromVertical: NumericMeasure | (Omit<NumericMeasure, 'status'> & { status: 'seed' });
+      resultStatus: 'pending-recalculation' | 'working-optimized';
+      evaluatedAt?: string;
+      coarseCandidateCount?: number;
+      coarseStrictWarmZeroCountAtPivot?: number;
+      pivotSensitivityCount?: number;
+      pivotRange?: number[];
+      workingPivotX?: number;
+      workingOpticalFactors?: {
+        mirrorReflectance: number;
+        glazingSolarTransmittance: number;
+      };
+      workingPivotResult?: {
+        warmPoolAddedKWh: number;
+        coolPoolAddedKWh: number;
+        coolPoolIncreasePercent: number;
+        warmRoofRedirectedKWh: number;
+        coolRoofRedirectedKWh: number;
+      };
+      pivotSensitivityResult?: {
+        warmPoolAddedKWhRange: number[];
+        coolPoolAddedKWhRange: number[];
+      };
+    };
+  };
   openItemId: 'OPEN-011';
 }
 
@@ -257,6 +403,7 @@ export interface ProjectModel {
 
 export interface SheetRender {
   id: string;
+  title?: string;
   markup: string;
   note: string;
 }

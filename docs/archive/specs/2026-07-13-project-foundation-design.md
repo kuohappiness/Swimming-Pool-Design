@@ -83,7 +83,7 @@ source-materials/
 └─ concepts/
    ├─ SRC-CONCEPT-001_side-section.jpeg
    ├─ SRC-CONCEPT-002_roof-plan.jpeg
-   ├─ SRC-CONCEPT-003_ground-floor-plan.jpeg
+   ├─ SRC-CONCEPT-003_l1-plan-v1.0.jpeg
    └─ SRC-CONCEPT-004_perspective.jpeg
 ```
 

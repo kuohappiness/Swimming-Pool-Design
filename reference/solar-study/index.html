@@ -5,24 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f0e6" />
     <link rel="icon" href="data:," />
-    <title>中教大實小｜2F 旋轉鏡牆冬夏日照研究</title>
+    <title>中教大實小｜L3 旋轉鏡牆冬夏日照研究</title>
   </head>
   <body>
     <a class="skip-link" href="#study-stage">跳到互動研究</a>
     <header class="site-header">
       <div>
         <p class="eyebrow">SWIMMING POOL DESIGN · SOLAR REFLECTION STUDY</p>
-        <h1>固定 1F，讓 2F 旋轉成為<br />季節性的光線導引器</h1>
+        <h1>固定 L1／L2，讓 L3 鏡牆成為<br />季節性的光線導引器</h1>
         <p id="project-name" class="project-name"></p>
       </div>
       <div class="header-actions">
         <a class="atlas-link" href="../">返回空間參照圖集</a>
+        <a class="atlas-link" href="../#V23-PLAN">最新 V2.3 圖面</a>
+        <a class="atlas-link" href="../3d-viewer/">3D Viewer</a>
         <span id="model-version" class="model-chip"></span>
       </div>
     </header>
 
     <main id="study-stage" class="wrap">
-      <p class="lead">左側平面只處理 <strong>2F 水平旋轉</strong>，右側剖面只處理 <strong>鏡牆外傾</strong>；兩個角度共同決定反射光是否進入泳池。1F 泳池、地基與長邊玻璃牆全程固定。</p>
+      <p class="lead">左側平面只處理 <strong>L3 水平旋轉</strong>，右側剖面只處理 <strong>L3 面池承載牆與鏡面共同外傾</strong>；兩個角度共同決定反射光是否進入泳池。L1、L2、泳池、地基與長邊玻璃牆全程固定。</p>
 
       <div class="facts" aria-label="基地與方向資料">
         <span id="coord-fact" class="pill"></span>
@@ -33,26 +35,26 @@
 
       <section class="decision-summary" aria-labelledby="decision-title">
         <div class="decision-summary-copy">
-          <p class="eyebrow">CONFIRMED GEOMETRY · PVGIS TMY ENERGY SCREEN</p>
-          <h2 id="decision-title">已確認角度，性能需季節遮罩</h2>
-          <p>真正指標是有鏡與無鏡的池面太陽能量差。現行鏡面若全年裸露，暖季增加 786.673 kWh、冷季增加 3,445.526 kWh；加入工作太陽遮罩（高度 ≤22°、方位 88°～135°）後，暖季為 0、冷季保留 +597.502 kWh。遮罩仍屬 OPEN-011 工作建議；下方控制器只顯示單一時刻方向。</p>
+          <p class="eyebrow">V0.5.0 WORKING OPTIMUM · PVGIS TMY ENERGY SCREEN</p>
+          <h2 id="decision-title">L3 新高度讓固定鏡面得到暖季零增量候選</h2>
+          <p>以 L3 +6.88 m、鏡高 3.60 m、12 × 13.5 m 樓板與 X=35 m 工作支點重新計算，裸露固定鏡面的工作最佳化角度為水平 <strong>+26.5°</strong>、外傾 <strong>+3.1°</strong>。在等效鏡面反射率 0.75、玻璃太陽透射率 0.60 下，暖季池面新增為 0，冷季新增 +1,022.903 kWh（+1.300%）；X=33～41 m 五個支點情境均維持暖季 0，冷季為 +673.310～+1,151.973 kWh。X=35 同時是 L3 幾何中心，樓板投影重疊率 85.25%；這是概念階段工作值，不是施工性能保證。</p>
         </div>
         <dl>
-          <div><dt>2F 水平旋轉</dt><dd><strong id="confirmed-plan">+9.5°</strong></dd></div>
-          <div><dt>鏡牆外傾</dt><dd><strong id="confirmed-lean">+8.5°</strong></dd></div>
-          <div><dt>鏡牆法線</dt><dd><strong id="confirmed-normal">136.5°</strong></dd></div>
-          <div><dt>工作遮罩冷季收益</dt><dd><strong>+597.5 kWh</strong></dd></div>
+          <div><dt>L3 水平旋轉</dt><dd><strong id="confirmed-plan">+26.5°</strong></dd></div>
+          <div><dt>鏡牆外傾</dt><dd><strong id="confirmed-lean">+3.1°</strong></dd></div>
+          <div><dt>鏡牆法線</dt><dd><strong id="confirmed-normal">153.5°</strong></dd></div>
+          <div><dt>工作支點冷季收益</dt><dd><strong>+1,022.9 kWh</strong></dd></div>
         </dl>
         <a href="https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/analysis/solar-analysis.md">日照分析完整方法</a>
       </section>
 
       <section class="stage" aria-label="平面與剖面互動研究">
         <article class="panel">
-          <h2>平面：2F 旋轉改變鏡牆朝向</h2>
-          <p class="sub">綠色 1F 永遠不動；紅色 2F 整體旋轉。藍色短邊是面向泳池的鏡牆。中央圓點只表達旋轉角度，不代表最後的結構支點。</p>
+          <h2>平面：L3 旋轉改變鏡牆朝向</h2>
+          <p class="sub">綠色 L1／L2 永遠不動；紅色 L3 整體旋轉。藍色短邊是面向泳池的鏡牆。中央圓點採 X=35 m、Y=6.75 m 的 L3 幾何中心工作位置；它降低幾何偏心但不等於已求得實際質心或剛心，最終仍須依載重、柱網與轉換構造驗證。</p>
           <svg id="plan" viewBox="0 0 560 470" role="img" aria-labelledby="plan-title plan-desc">
-            <title id="plan-title">基地平面、太陽方位與二樓水平旋轉示意</title>
-            <desc id="plan-desc">固定的一樓泳池量體上方，有一個可水平旋轉的二樓更衣量體。羅盤顯示目前日期 7 點至 18 點的太陽路徑，光線長度依高度角縮放。</desc>
+            <title id="plan-title">基地平面、太陽方位與三樓水平旋轉示意</title>
+            <desc id="plan-desc">固定的一、二樓服務量體上方，有一個水平旋轉的三樓服務量體與面池鏡牆。羅盤顯示目前日期 7 點至 18 點的太陽路徑，光線長度依高度角縮放。</desc>
             <circle cx="280" cy="235" r="190" class="compass-disc" />
             <circle cx="280" cy="235" r="108" class="compass-inner" />
             <line x1="280" y1="30" x2="280" y2="440" class="compass-axis" />
@@ -67,14 +69,14 @@
               <rect x="-110" y="-43" width="220" height="86" rx="8" class="fixed-footprint" />
               <rect x="-99" y="-24" width="129" height="48" rx="10" class="pool-plan" />
               <rect x="41" y="-43" width="69" height="86" rx="6" class="core-plan" />
-              <text x="-35" y="5" text-anchor="middle" class="building-label">固定 1F 泳池</text>
-              <text x="75" y="5" text-anchor="middle" class="small-building-label">CORE-01</text>
+              <text x="-35" y="5" text-anchor="middle" class="building-label">固定 L1 泳池</text>
+              <text x="75" y="5" text-anchor="middle" class="small-building-label">固定 L1／L2</text>
 
-              <g id="upperBoxPlan" transform="rotate(9.5 60 0)">
+              <g id="upperBoxPlan" transform="rotate(26.5 60 0)">
                 <rect x="9" y="-39" width="101" height="78" rx="8" class="upper-plan" />
                 <line x1="9" y1="-39" x2="9" y2="39" class="mirror-edge" />
-                <text x="60" y="-5" text-anchor="middle" class="building-label">旋轉 2F</text>
-                <text x="60" y="14" text-anchor="middle" class="small-building-label">男女更衣量體</text>
+                <text x="60" y="-5" text-anchor="middle" class="building-label">旋轉 L3</text>
+                <text x="60" y="14" text-anchor="middle" class="small-building-label">12 × 13.5 m 服務量體</text>
               </g>
               <circle cx="60" cy="0" r="6" class="study-pivot" />
               <text x="60" y="60" text-anchor="middle" class="pivot-label">角度示意中心</text>
@@ -85,8 +87,8 @@
             <g id="selectedSun"></g>
           </svg>
           <div class="legend" aria-label="平面圖例">
-            <span><i class="swatch fixed"></i>固定 1F</span>
-            <span><i class="swatch upper"></i>旋轉 2F</span>
+            <span><i class="swatch fixed"></i>固定 L1／L2</span>
+            <span><i class="swatch upper"></i>旋轉 L3</span>
             <span><i class="swatch wall"></i>鏡牆法線</span>
             <span><i class="swatch current-path"></i>所選日期 07–18 時路徑</span>
             <span><i class="swatch selected-time"></i>目前整點</span>
@@ -97,14 +99,14 @@
           <h2>剖面：外傾角改變反射下射角</h2>
           <p class="sub">此剖面沿鏡牆法線切取，因此水平旋轉本身在右圖不會看起來旋轉；它的作用會反映在最下方的 3D 方位判讀。</p>
           <svg id="section" viewBox="0 0 720 430" role="img" aria-labelledby="section-title section-desc">
-            <title id="section-title">二樓鏡牆反射日光的建築剖面示意</title>
-            <desc id="section-desc">日光射向二樓外傾鏡牆，再反射到一樓泳池水面或避開泳池。</desc>
+            <title id="section-title">三樓鏡牆反射日光的建築剖面示意</title>
+            <desc id="section-desc">日光射向三樓外傾承載牆上的共面鏡面，再反射到一樓泳池水面或避開泳池。</desc>
             <rect x="0" y="0" width="720" height="430" class="section-bg" />
             <rect x="42" y="332" width="448" height="30" rx="6" class="water-section" />
-            <text x="58" y="353" class="building-label">固定 1F 泳池水面</text>
+            <text x="58" y="353" class="building-label">固定 L1 泳池水面</text>
             <line x1="28" y1="363" x2="690" y2="363" class="ground-line" />
             <polygon id="upperSection" points="495,363 690,363 690,105 456.4,105" class="upper-section" />
-            <text x="592" y="292" text-anchor="middle" class="building-label">旋轉 2F 更衣量體</text>
+            <text x="592" y="292" text-anchor="middle" class="building-label">旋轉 L3 服務量體</text>
             <line id="wall" x1="495" y1="363" x2="456.4" y2="105" class="mirror-wall" />
             <line id="incoming" x1="175" y1="70" x2="470" y2="230" class="incoming-ray" marker-end="url(#arrow-sun)" />
             <line id="reflected" x1="470" y1="230" x2="310" y2="332" class="reflected-ray" marker-end="url(#arrow-reflected)" />
@@ -176,8 +178,8 @@
               <small id="timeHelp">07:00–18:00，每格一個整點；拖曳時即時重算。太陽在地平線下時，圖面停止繪製入射與反射光。</small>
             </div>
             <div class="control control-rotation">
-              <label for="planRotation">2F 水平旋轉 <b id="planValue">+9.5°</b></label>
-              <input id="planRotation" type="range" min="-20" max="40" value="9.5" step="0.5" list="rotationTicks" aria-describedby="planRotationHelp" />
+              <label for="planRotation">L3 水平旋轉 <b id="planValue">+26.5°</b></label>
+              <input id="planRotation" type="range" min="-20" max="40" value="26.5" step="0.1" list="rotationTicks" aria-describedby="planRotationHelp" />
               <datalist id="rotationTicks">
                 <option value="-20"></option>
                 <option value="-10"></option>
@@ -190,11 +192,11 @@
               <div class="rotation-scale" aria-hidden="true">
                 <span>−20°</span><span>−10°</span><span>0°</span><span>+10°</span><span>+20°</span><span>+30°</span><span>+40°</span>
               </div>
-              <small id="planRotationHelp">−20°～+40°，每格 0.5°；拖曳時平面、鏡牆朝向、剖面反射與手機即時預覽同步重算。初始 +9.5° 仍是目前已確認設計值。</small>
+              <small id="planRotationHelp">−20°～+40°，每格 0.1°；拖曳時平面、鏡牆朝向、剖面反射與手機即時預覽同步重算。初始 +26.5° 是 v0.5.0 工作最佳值，尚待專業驗證。</small>
             </div>
             <label class="control" for="lean">
-              <span>鏡牆外傾角（相對垂直） <b id="leanValue">8.5°</b></span>
-              <input id="lean" type="range" min="0" max="30" value="8.5" step="0.5" />
+              <span>鏡牆外傾角（相對垂直） <b id="leanValue">3.1°</b></span>
+              <input id="lean" type="range" min="0" max="30" value="3.1" step="0.1" />
             </label>
           </div>
 
@@ -228,13 +230,13 @@
       <section class="panel principles">
         <h2>這個設計語言的重點</h2>
         <div class="principle-grid">
-          <div><b>1F 是不可變的基準</b><span>泳池、地基與長邊玻璃牆不參與角度調整，避免誤以為基地可以轉向。</span></div>
-          <div><b>平面旋轉與剖面外傾分工</b><span>2F 水平旋轉負責朝哪裡反射；鏡牆外傾負責向下多少。兩者需同時通過才算命中泳池。</span></div>
+          <div><b>L1／L2 是不可變的基準</b><span>泳池、地基、長邊玻璃牆與下兩層服務量體不參與角度調整，只有 L3 旋轉。</span></div>
+          <div><b>平面旋轉與剖面外傾分工</b><span>L3 水平旋轉負責朝哪裡反射；承載牆與鏡面共同外傾負責向下多少。兩者需同時通過才算命中泳池。</span></div>
           <div><b>能量差才是性能指標</b><span>反射落在本來已有直射的池面仍會增加能量；必須比較同一 TMY 下有鏡與無鏡的 kWh。</span></div>
-          <div><b>角度不是季節開關</b><span>3,111 組固定角度沒有嚴格暖季零／冷季正收益解；鏡面角度負責導向，建築遮罩負責選季。</span></div>
-          <div><b>上部採光是第二效益</b><span>工作遮罩冷季把 2,124.036 kWh 導向屋頂／上部接收面；實際 lux 仍需材料 BSDF 與年度日光模擬。</span></div>
+          <div><b>新高度改變季節選擇</b><span>L3 鏡牆底升至 +6.88 m 後，固定角度搜尋出現暖季池面零增量、冷季正收益候選；不再假設需要可動遮罩。</span></div>
+          <div><b>上部接收是另一條能量路徑</b><span>工作支點下，暖季約 1,332.850 kWh、冷季約 9,055.633 kWh 落到屋頂／上部接收面；實際 lux、熱效應與去向仍需 BSDF 及年度模擬。</span></div>
         </div>
-        <div class="note"><strong>OPEN-011：</strong>正式支點、鏡牆上下緣／牆高、季節採光腔與百葉／側翼、玻璃與鏡面材料、屋頂擴散比例、框架遮蔭、眩光、專業 3D 光線追蹤與熱分析仍待驗證。工作 kWh 不是施工節能保證。</div>
+        <div class="note"><strong>OPEN-011：</strong>正式支點與結構核心、L3 旋轉後的外挑／退縮、鏡牆分格與固定、材料實測光學值、框架遮蔭、屋頂接收後的透反射、眩光、專業 3D 光線追蹤及熱分析仍待驗證。工作 kWh 不是施工節能保證。</div>
       </section>
     </main>
 

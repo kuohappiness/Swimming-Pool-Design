@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0.0",
-  "modelVersion": "0.4.0",
-  "revision": "2026-07-18",
-  "modelHash": "4b4680733da972146c3bb4c950ffa3990bbef70cb59a74f598ddb5c41d6213b4",
+  "modelVersion": "0.5.0",
+  "revision": "2026-07-21",
+  "modelHash": "75032eda42fd5bec53c6e6fceb9cd159bbf36cf55c949f720fc13972d7ac5099",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -27,39 +27,50 @@
   "geometry": {
     "building": {
       "length": {
-        "value": 35,
-        "status": "working",
+        "value": 41,
+        "status": "confirmed",
         "sourceIds": [
-          "SRC-SITE-001",
-          "SRC-CONCEPT-005"
+          "SRC-CONCEPT-010"
         ]
       },
       "width": {
-        "value": 13.5,
+        "value": 14,
         "status": "working",
         "sourceIds": [
-          "SRC-SITE-001",
-          "SRC-CONCEPT-005"
-        ]
+          "SRC-CONCEPT-010"
+        ],
+        "openItemId": "OPEN-016"
+      },
+      "upperFloorWidth": {
+        "value": 13.5,
+        "status": "confirmed",
+        "sourceIds": []
       },
       "poolHallLength": {
-        "value": 24,
-        "status": "working",
+        "value": 33,
+        "status": "confirmed",
         "sourceIds": [
-          "SRC-CONCEPT-005"
+          "SRC-CONCEPT-010"
         ]
       },
       "serviceCoreLength": {
-        "value": 11,
-        "status": "working",
+        "value": 8,
+        "status": "confirmed",
         "sourceIds": [
-          "SRC-CONCEPT-005"
+          "SRC-CONCEPT-010"
+        ]
+      },
+      "leftSetback": {
+        "value": 2,
+        "status": "confirmed",
+        "sourceIds": [
+          "SRC-CONCEPT-010"
         ]
       }
     },
     "pool": {
       "origin": [
-        1.75,
+        6,
         3
       ],
       "length": {
@@ -86,54 +97,126 @@
         "status": "confirmed",
         "sourceIds": []
       },
+      "deckElevation": {
+        "value": 0.3,
+        "status": "confirmed",
+        "sourceIds": []
+      },
       "laneCount": 3
     },
-    "l2": {
-      "startX": 19,
-      "endX": 35,
-      "length": 16,
-      "width": 13.5,
-      "baseElevation": 4.5,
-      "volumeHeight": {
-        "value": 3.6,
+    "l1": {
+      "outdoorDepth": 7,
+      "toiletBandDepth": 7,
+      "dryPassageDepth": 1.55,
+      "outdoorConnectedToPoolHall": false,
+      "toiletDoorTopology": "playground-and-pool-side",
+      "core": {
+        "x": 33.6,
+        "y": 4,
+        "length": 2.8,
+        "width": 5.5,
         "status": "working",
-        "sourceIds": [
-          "SRC-CONCEPT-001"
-        ]
+        "openItemId": "OPEN-016"
+      }
+    },
+    "l2": {
+      "startX": 29,
+      "endX": 41,
+      "length": 12,
+      "width": 13.5,
+      "baseElevation": 3.3,
+      "topElevation": 6.88,
+      "volumeHeight": {
+        "value": 3.58,
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-016"
       },
       "planRotation": {
-        "value": 9.5,
+        "value": 0,
         "status": "confirmed",
         "sourceIds": []
       },
       "planPivot": {
-        "x": 19,
+        "x": 35,
         "y": 6.75,
-        "z": 4.5,
+        "z": 3.3,
         "status": "working",
-        "strategy": "l2-start-width-center",
+        "strategy": "fixed-floor-plate-centroid",
+        "openItemId": "OPEN-016"
+      }
+    },
+    "l3": {
+      "startX": 29,
+      "endX": 41,
+      "length": 12,
+      "width": 13.5,
+      "baseElevation": 6.88,
+      "volumeHeight": {
+        "value": 3.6,
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-011"
+      },
+      "planRotation": {
+        "value": 26.5,
+        "status": "working",
+        "sourceIds": [
+          "SRC-SITE-003"
+        ]
+      },
+      "planPivot": {
+        "x": 35,
+        "y": 6.75,
+        "z": 6.88,
+        "status": "working",
+        "strategy": "l3-floor-plate-centroid-structural-core-proxy",
+        "openItemId": "OPEN-011"
+      },
+      "mirror": {
+        "entityId": "F-MIR-01",
+        "height": {
+          "value": 3.6,
+          "status": "working",
+          "sourceIds": [],
+          "openItemId": "OPEN-011"
+        },
+        "leanFromVertical": {
+          "value": 3.1,
+          "status": "working",
+          "sourceIds": [
+            "SRC-SITE-003"
+          ]
+        },
+        "materialIntent": "original-mirror",
+        "wallAndMirrorCoplanar": true,
         "openItemId": "OPEN-011"
       }
     },
     "roof": {
-      "startX": -1.2,
-      "endX": 19,
-      "planRun": 19,
-      "totalRun": 20.2,
-      "width": 13.5,
+      "startX": 0,
+      "endX": 29,
+      "planRun": 29,
+      "totalRun": 29,
+      "width": 14,
       "pitch": {
-        "value": 4.5,
+        "value": 5,
         "status": "confirmed",
         "sourceIds": []
       },
-      "lowOverhang": {
-        "value": 1.2,
+      "highElevation": 6.537,
+      "lowElevation": 4,
+      "transitionBand": {
+        "value": 0.343,
         "status": "confirmed",
         "sourceIds": []
       },
-      "highElevation": 4.5,
-      "farWallElevation": 3.0046675703322494,
-      "lowElevation": 2.9102255221427074,
+      "interfacePlanMismatch": {
+        "value": 0.7,
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-016"
+      },
       "rainCurtain": {
         "entityId": "RC-RF-01",
         "type": "passive-full-width-overflow-curtain",
@@ -159,52 +242,36 @@
         "openItemId": "OPEN-014"
       }
     },
-    "mirror": {
-      "entityId": "F-MIR-01",
-      "visualWallHeight": {
-        "value": 3.6,
-        "status": "working",
-        "sourceIds": [
-          "SRC-CONCEPT-009"
-        ],
-        "openItemId": "OPEN-011"
-      },
-      "leanFromVertical": {
-        "value": 8.5,
-        "status": "confirmed",
-        "sourceIds": []
-      },
-      "openItemId": "OPEN-011",
-      "performanceSurface": "separate-analysis-assumption"
-    },
     "stair": {
       "entityId": "ST-01",
-      "startX": 16.799999999999997,
-      "endX": 27,
-      "originY": 0.5,
-      "width": 1.8,
-      "totalRise": 4.5,
-      "riserCount": 30,
-      "risersPerRun": 15,
-      "treadsPerRun": 14,
+      "startX": 19.5,
+      "endX": 26.7,
+      "originY": 11.875,
+      "width": 1.5,
+      "totalRise": 3,
+      "riserCount": 20,
+      "risersPerRun": 10,
+      "treadsPerRun": 9,
       "treadDepth": 0.3,
-      "flightRun": 4.2,
+      "flightRun": 2.7,
       "midLandingLength": 1.8,
-      "midLandingElevation": 2.25,
-      "status": "confirmed",
+      "midLandingElevation": 1.8,
+      "lowerElevation": 0.3,
+      "upperElevation": 3.3,
+      "status": "working",
       "guardStatus": "deferred",
-      "guardOpenItemId": "OPEN-013"
+      "guardOpenItemId": "OPEN-017"
     }
   },
   "layers": [
     {
-      "id": "original",
-      "label": "原建築",
-      "status": "working"
+      "id": "site",
+      "label": "基地與退縮",
+      "status": "confirmed"
     },
     {
-      "id": "new",
-      "label": "新增介入",
+      "id": "l1",
+      "label": "1F 池畔與服務層",
       "status": "working"
     },
     {
@@ -213,14 +280,24 @@
       "status": "confirmed"
     },
     {
+      "id": "l2",
+      "label": "2F 固定更衣層",
+      "status": "working"
+    },
+    {
+      "id": "l3",
+      "label": "3F 旋轉服務層",
+      "status": "working"
+    },
+    {
       "id": "roof",
       "label": "玻璃屋頂",
       "status": "confirmed"
     },
     {
-      "id": "stair",
-      "label": "樓梯",
-      "status": "confirmed"
+      "id": "circulation",
+      "label": "樓梯與固定核心",
+      "status": "working"
     },
     {
       "id": "rain",
@@ -236,8 +313,8 @@
   "analysis": {
     "solar": {
       "status": "current",
-      "recordedModelHash": "4b4680733da972146c3bb4c950ffa3990bbef70cb59a74f598ddb5c41d6213b4",
-      "currentModelHash": "4b4680733da972146c3bb4c950ffa3990bbef70cb59a74f598ddb5c41d6213b4",
+      "recordedModelHash": "75032eda42fd5bec53c6e6fceb9cd159bbf36cf55c949f720fc13972d7ac5099",
+      "currentModelHash": "75032eda42fd5bec53c6e6fceb9cd159bbf36cf55c949f720fc13972d7ac5099",
       "sourceIds": [
         "SRC-SITE-003"
       ],

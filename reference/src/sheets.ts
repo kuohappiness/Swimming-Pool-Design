@@ -5,7 +5,9 @@ import {
   planX, planY, points, px, sheetSvg,
 } from './geometry';
 
-const siteImage = new URL('../../source-materials/site/SRC-SITE-002_entrance-location-annotated.png', import.meta.url).href;
+const siteImage = new URL('../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
+const v23PlanImage = new URL('../drafts/v0.5.0/DRAW-L1-L3-PLANS-V2.3.png', import.meta.url).href;
+const v23SectionImage = new URL('../drafts/v0.5.0/DRAW-LONGITUDINAL-SECTION-V2.3.png', import.meta.url).href;
 const metreLabel = (value: number) => value.toFixed(1);
 const elevationLabel = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
 const angleLabel = (value: number) => `${value.toFixed(1)}°`;
@@ -15,8 +17,8 @@ function renderSite(model: ProjectModel): SheetRender {
   const content = `
     <rect class="sheet-bg" x="0" y="0" width="1200" height="740"/>
     <g filter="url(#soft-shadow)">
-      <rect class="image-frame" x="64" y="38" width="486" height="574" rx="10"/>
-      <image href="${siteImage}" x="72" y="46" width="470" height="558" preserveAspectRatio="xMidYMid slice"/>
+      <rect class="image-frame" x="42" y="70" width="530" height="500" rx="10"/>
+      <image href="${siteImage}" x="50" y="78" width="514" height="484" preserveAspectRatio="xMidYMid meet"/>
     </g>
     <g class="site-diagram">
       <text x="610" y="74" class="sheet-kicker">基地定位與模型座標</text>
@@ -40,7 +42,19 @@ function renderSite(model: ProjectModel): SheetRender {
   return {
     id: 'REF-001',
     markup: sheetSvg(model, 'REF-001', '基地與方位圖', content),
-    note: `本地 +X 採 ${bearing}° 單一 transform；CORE-01 對準原廁所基地，EN-01 對應衛星圖紅箭頭。`,
+    note: `現況衛星空照圖已置換為 SRC-SITE-001 最新原圖；右側模型定位維持本地 +X ${bearing}° 單一 transform。衛星截圖只作概念定位，不是測量成果。`,
+  };
+}
+
+function renderReviewDrawing(id: string, title: string, imageHref: string, note: string): SheetRender {
+  return {
+    id,
+    title,
+    markup: `<svg class="drawing review-drawing" viewBox="0 0 2000 1500" role="img" aria-labelledby="${id}-title">
+      <title id="${id}-title">${title}</title>
+      <image href="${imageHref}" x="0" y="0" width="2000" height="1500" preserveAspectRatio="xMidYMid meet"/>
+    </svg>`,
+    note,
   };
 }
 
@@ -495,5 +509,24 @@ function renderIsometric(model: ProjectModel): SheetRender {
 }
 
 export function renderSheets(model: ProjectModel): SheetRender[] {
-  return [renderSite(model), renderL1(model), renderL2(model), renderRoof(model), renderSection(model), renderIsometric(model)];
+  return [
+    renderSite(model),
+    renderReviewDrawing(
+      'V23-PLAN',
+      'V2.3｜1F～3F 概念平面檢討圖',
+      v23PlanImage,
+      '0.5.0 最新平面檢討圖。圖面向右為服務量體端／西北 307°，真北箭頭指向右下；池畔 +0.30 m 已確認。非施工圖。',
+    ),
+    renderReviewDrawing(
+      'V23-SECTION',
+      'V2.3｜三層縱向概念剖面檢討圖',
+      v23SectionImage,
+      '0.5.0 最新剖面檢討圖。顯示池畔 +0.30 m、左淺 1.2 m／右深 1.5 m、L2 +3.30 m、L3 +6.88 m、5°屋頂及未解決轉接帶。非施工圖。',
+    ),
+    renderL1(model),
+    renderL2(model),
+    renderRoof(model),
+    renderSection(model),
+    renderIsometric(model),
+  ];
 }

@@ -11,24 +11,18 @@ import {
   reflectionDirectionInLocalCoordinates,
   solarDirectionInLocalCoordinates,
 } from './solar-reflection.mjs';
-import { buildL2VolumeCorners } from './solar-angle-analysis.mjs';
-import { deriveReferenceGeometry } from './reference-geometry.mjs';
+import {
+  activeSolarStudyGeometry,
+  buildReflectingVolumeCorners,
+} from './solar-angle-analysis.mjs';
 
 export const WARM_MONTHS = new Set([5, 6, 7, 8, 9]);
 export const DEFAULT_ENERGY_ASSUMPTIONS = Object.freeze({
   mirrorReflectance: 0.75,
   glazingSolarTransmittance: 0.60,
-  mirrorHeight: 3.0,
-  pivotX: 19.0,
   daylightStartHour: 7,
   daylightEndHour: 17,
 });
-export const RECOMMENDED_SOLAR_MASK = Object.freeze({
-  maximumActiveSolarAltitude: 22,
-  minimumActiveSolarAzimuth: 88,
-  maximumActiveSolarAzimuth: 135,
-});
-
 const EPSILON = 1e-9;
 
 const finite = (value, label) => {
@@ -54,11 +48,6 @@ const poolRectangle = (model) => {
     y1: finite(pool.origin[1], 'geometry.pool.origin[1]'),
     y2: pool.origin[1] + finite(pool.width.value, 'geometry.pool.width.value'),
   };
-};
-
-const levelElevation = (model, id) => {
-  const level = model.referenceSystem.levels.find((candidate) => candidate.id === id);
-  return finite(level?.elevation, `referenceSystem.levels.${id}.elevation`);
 };
 
 const parseTimestamp = (timestamp, offsetHours) => {
@@ -195,16 +184,15 @@ function receiverUnitPolygon(projectedCorners, receiverRectangle) {
 }
 
 export function mirrorReceiverFractions(model, input, reflection) {
-  const derived = deriveReferenceGeometry(model);
-  const buildingWidth = model.geometry.building.width.value;
+  const study = activeSolarStudyGeometry(model);
   const poolBounds = poolRectangle(model);
   const common = {
     localLongAxisBearingFromTrueNorth: model.referenceSystem.localLongAxisBearingFromTrueNorth,
-    baseCenter: { x: derived.l2StartX, y: buildingWidth / 2 },
-    pivot: { x: input.pivotX, y: buildingWidth / 2 },
-    width: buildingWidth,
+    baseCenter: { x: study.startX, y: study.width / 2 },
+    pivot: { x: input.pivotX, y: study.pivotY },
+    width: study.width,
     verticalHeight: input.mirrorHeight,
-    baseElevation: levelElevation(model, 'L2'),
+    baseElevation: study.baseElevation,
     planRotation: input.planRotation,
     leanFromVertical: input.mirrorLeanFromVertical,
     poolRectangle: poolBounds,
@@ -220,14 +208,7 @@ export function mirrorReceiverFractions(model, input, reflection) {
     reflection,
     model.referenceSystem.localLongAxisBearingFromTrueNorth,
   );
-  const roof = {
-    x1: 0,
-    x2: derived.roofPlanEndX,
-    y1: 0,
-    y2: buildingWidth,
-    highElevation: derived.roofHighElevation,
-    pitchDegrees: model.geometry.roof.pitch.value,
-  };
+  const roof = study.roof;
   const roofProjection = projectToRoofPlane(poolProjection.sourceCorners, direction, roof);
   if (!roofProjection) return { rawPoolFraction, roofFraction: 0, poolFraction: rawPoolFraction };
   const roofReceiverUnit = receiverUnitPolygon(roofProjection.footprint, roof);
@@ -280,11 +261,11 @@ function finalizeSeason(raw) {
 }
 
 export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
-  const solarGeometry = model.geometry.solarReflection;
+  const study = activeSolarStudyGeometry(model);
   const input = {
-    planRotation: finite(options.planRotation ?? solarGeometry.planRotation.value, 'planRotation'),
+    planRotation: finite(options.planRotation ?? study.planRotation, 'planRotation'),
     mirrorLeanFromVertical: finite(
-      options.mirrorLeanFromVertical ?? solarGeometry.mirrorLeanFromVertical.value,
+      options.mirrorLeanFromVertical ?? study.mirrorLeanFromVertical,
       'mirrorLeanFromVertical',
     ),
     mirrorReflectance: finite(
@@ -296,8 +277,8 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
         ?? DEFAULT_ENERGY_ASSUMPTIONS.glazingSolarTransmittance,
       'glazingSolarTransmittance',
     ),
-    mirrorHeight: finite(options.mirrorHeight ?? DEFAULT_ENERGY_ASSUMPTIONS.mirrorHeight, 'mirrorHeight'),
-    pivotX: finite(options.pivotX ?? DEFAULT_ENERGY_ASSUMPTIONS.pivotX, 'pivotX'),
+    mirrorHeight: finite(options.mirrorHeight ?? study.mirrorHeight, 'mirrorHeight'),
+    pivotX: finite(options.pivotX ?? study.pivotX, 'pivotX'),
     daylightStartHour: finite(
       options.daylightStartHour ?? DEFAULT_ENERGY_ASSUMPTIONS.daylightStartHour,
       'daylightStartHour',
@@ -321,13 +302,12 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
     || input.glazingSolarTransmittance < 0 || input.glazingSolarTransmittance > 1) {
     throw new RangeError('Optical factors must be within 0..1.');
   }
-  const buildingWidth = model.geometry.building.width.value;
-  const mirrorSurfaceArea = buildingWidth * input.mirrorHeight
+  const mirrorSurfaceArea = study.width * input.mirrorHeight
     / Math.cos(input.mirrorLeanFromVertical * Math.PI / 180);
   const poolBounds = poolRectangle(model);
   const poolPlan = rectanglePolygon(poolBounds);
   const poolArea = polygonArea(poolPlan);
-  const l2Volume = input.includeBaseline ? buildL2VolumeCorners(model, input) : null;
+  const reflectingVolume = input.includeBaseline ? buildReflectingVolumeCorners(model, input) : null;
   const results = { warm: emptySeason(), cool: emptySeason() };
   const wallNormalAzimuth = (
     deriveSolarPlanOrientation(model.referenceSystem).poolFacingAzimuth + input.planRotation
@@ -342,7 +322,7 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
         sample.solar,
         model.referenceSystem.localLongAxisBearingFromTrueNorth,
       );
-      const shadow = projectShadowFootprint(l2Volume, sunDirection);
+      const shadow = projectShadowFootprint(reflectingVolume, sunDirection);
       const shadowArea = shadow.length >= 3
         ? clamp(polygonArea(intersectConvexPolygons(poolPlan, shadow)), 0, poolArea)
         : 0;
@@ -405,8 +385,9 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
 }
 
 export function evaluateEnergySensitivity(model, weatherSamples, options = {}) {
-  const pivotScenarios = options.pivotScenarios ?? [19, 27, 35];
-  const heightScenarios = options.heightScenarios ?? [2.5, 3, 3.6];
+  const study = activeSolarStudyGeometry(model);
+  const pivotScenarios = options.pivotScenarios ?? study.pivotScenarios;
+  const heightScenarios = options.heightScenarios ?? [study.mirrorHeight];
   const results = [];
   for (const pivotX of pivotScenarios) {
     for (const mirrorHeight of heightScenarios) {
@@ -486,12 +467,6 @@ async function buildReport() {
     bestNearZero: denseScan.bestNearZero,
     lowestWarmToCoolRatio: ratioRanked[0] ?? null,
   };
-  const solarMask = evaluateMirrorEnergy(model, weather, RECOMMENDED_SOLAR_MASK);
-  const solarMaskSensitivity = evaluateEnergySensitivity(
-    model,
-    weather,
-    RECOMMENDED_SOLAR_MASK,
-  );
   const opticalSensitivity = [
     [0.60, 0.40],
     [0.60, 0.60],
@@ -501,13 +476,13 @@ async function buildReport() {
   ].map(([mirrorReflectance, glazingSolarTransmittance]) => evaluateMirrorEnergy(
     model,
     weather,
-    { ...RECOMMENDED_SOLAR_MASK, mirrorReflectance, glazingSolarTransmittance },
+    { mirrorReflectance, glazingSolarTransmittance },
   ));
   const annualHorizontalIrradiation = weather.reduce((sum, sample) => sum + sample.ghi, 0) / 1000;
   const ceilingDiffuseScenarios = [0.10, 0.20, 0.30].map((diffuseFraction) => ({
     diffuseFraction,
-    warmPotentialKWh: round(solarMask.warm.roofRedirectedKWh * diffuseFraction),
-    coolPotentialKWh: round(solarMask.cool.roofRedirectedKWh * diffuseFraction),
+    warmPotentialKWh: round(current.warm.roofRedirectedKWh * diffuseFraction),
+    coolPotentialKWh: round(current.cool.roofRedirectedKWh * diffuseFraction),
   }));
   return {
     source: {
@@ -521,9 +496,6 @@ async function buildReport() {
     current,
     sensitivity,
     angleScan,
-    recommendedSolarMask: RECOMMENDED_SOLAR_MASK,
-    solarMask,
-    solarMaskSensitivity,
     opticalSensitivity,
     ceilingDiffuseScenarios,
   };

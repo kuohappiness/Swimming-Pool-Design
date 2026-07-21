@@ -15,6 +15,20 @@ const SOURCE_CONTRACTS = {
     pixelSize: [2216, 1130],
     sha256: '3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034',
   },
+  'SRC-CONCEPT-010': {
+    id: 'SRC-CONCEPT-010',
+    path: 'source-materials/concepts/SRC-CONCEPT-010_l1-plan-v2.0.jpeg',
+    kind: 'hand-sketch',
+    pixelSize: [3840, 2110],
+    sha256: '467B4CFB573A5250FCF5D5D74D02AF4D696071B35FCA0C1D96817DFFCA99BD08',
+  },
+  'SRC-CONCEPT-011': {
+    id: 'SRC-CONCEPT-011',
+    path: 'source-materials/concepts/SRC-CONCEPT-011_longitudinal-section-v2.0.jpeg',
+    kind: 'hand-sketch',
+    pixelSize: [3840, 2747],
+    sha256: '3612C211F9AC06C6E9E8B40210C8282B7088DD81691D36F237C75E483329EB8B',
+  },
 };
 const ENTITY_REGISTRY_CONTRACTS = {
   'Z-L1-ENTRY-01': { type: 'outdoor-forecourt', level: 'L1', status: 'confirmed', sourceIds: ['SRC-CONCEPT-008', 'SRC-CONCEPT-009'] },

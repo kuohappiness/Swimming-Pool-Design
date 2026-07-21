@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
   "solar": {
-    "modelHash": "4b4680733da972146c3bb4c950ffa3990bbef70cb59a74f598ddb5c41d6213b4",
-    "validatedAt": "2026-07-18",
+    "modelHash": "75032eda42fd5bec53c6e6fceb9cd159bbf36cf55c949f720fc13972d7ac5099",
+    "validatedAt": "2026-07-21",
     "sourceIds": ["SRC-SITE-003"],
     "validation": [
       "tests/solar-angle-analysis.test.mjs",
       "tests/solar-reflection.test.mjs",
       "tests/solar-energy-analysis.test.mjs"
     ],
-    "scope": "方向、連續暖季、池面交點與 PVGIS TMY 有鏡／無鏡能量工作分析"
+    "scope": "v0.5.0 L3 +26.5°／+3.1°方向、X=35 m 幾何中心工作支點、X=33～41 m 結構／日照敏感度、有限池面交點與 PVGIS TMY 有鏡／無鏡能量工作分析"
   }
 }
