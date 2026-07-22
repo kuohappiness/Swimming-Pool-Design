@@ -105,6 +105,18 @@ try {
     controls.keyPanSpeed = 18;
 
     const graph = createViewerScene(model);
+    shell.dataset.coordinateAdapter = model.referenceSystem.coordinateAdapter.adapterId;
+    shell.dataset.siteYToThree = model.referenceSystem.coordinateAdapter.siteY;
+    shell.dataset.siteRootScaleZ = String(graph.siteRoot.scale.z);
+    shell.dataset.stairSiteBounds = JSON.stringify(model.geometry.stair.bounds);
+    shell.dataset.stairSide = model.geometry.stair.bounds.y2 <= model.geometry.pool.bounds.y1 ? 'Y0' : 'INVALID';
+    shell.dataset.stairDesign = model.geometry.stair.designIntent;
+    shell.dataset.stairStringers = String(model.geometry.stair.stringerCount);
+    shell.dataset.toiletEntranceCount = String(model.geometry.l1.toiletEntrances.length);
+    shell.dataset.toiletEntranceWidth = `${model.geometry.l1.toiletEntrances[0]?.clearWidth.toFixed(2)} m`;
+    shell.dataset.toiletEntranceDoorLeaves = String(model.geometry.l1.toiletEntrances.filter(({ doorLeaf }) => doorLeaf).length);
+    shell.dataset.wcCubicleDoorLeaves = String(Object.values(model.geometry.l1.zones).flatMap((zone) => zone.layout?.toiletCubicles ?? []).filter(({ doorLeaf }) => doorLeaf).length);
+    shell.dataset.serviceMaterial = model.geometry.l1.serviceWingStyle.materialIntent;
     const layerInputs = new Map<string, HTMLInputElement>();
     for (const modelLayer of model.layers) {
       const label = document.createElement('label');

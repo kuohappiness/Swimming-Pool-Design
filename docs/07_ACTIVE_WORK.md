@@ -168,7 +168,17 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 - 強制驗證：斷言 ST-01＝X20.5～X29／Y0.5～Y2.0、泳池／服務區／L2 邊界的 SITE-XY bounds，並逐一比對單一模型、產生資料、SVG 與 Viewer。任何 frame 缺失、同 ID 多套 bounds 或跨輸出不一致都使 build／test 失敗。
 - 執行結果：`TASK-034` 的 resolver、adapter 與破壞性回歸測試已先完成，之後才實作 `TASK-031`～`TASK-033`；此閘門現已通過。
 
-## 8. 未排程設計問題
+## 8. 0.6.1 任務
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-036 | 修正 3D Viewer 將 ST-01 視覺鏡射到 Y14 側的回歸，封死相同資料來源問題 | done | 0.6.1 | [DEC-078](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-034 | Viewer 仍由頂層 `activeGeometryRevisionId` 解析 `ST-01=X20.5～X29／Y0.5～Y2.0`；Three adapter 改為右手座標 X／−Z／Y；stair payload 不再輸出 `originY` 等重複座標。unit、schema、scene source 與 browser smoke 分別鎖定 active bounds、adapter ID、site root `scale.z=-1` 及 Y0 side，任何回退到 +Z、legacy originY 或 Y14 側都會失敗。 |
+| TASK-037 | 實作四間廁所入口方向、洗手台／隔間格局、無門板開口與服務區清水模風格 | done | 0.6.1 | [DEC-079／DEC-080](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-008 | TASK-036 | canonical data、平面圖與 Viewer 統一：男廁入口在低 Y 且洗手台貼 Y0，女廁入口為 Y6～7 且洗手台貼 Y7.5；四個主入口 1.00 m 無門板、內部 WC 隔間有門板、入口有錯位隱私屏風；L1～L3 不透明服務量體採自然灰清水模，玻璃屋頂與鏡牆維持原材質。隔間淨空、無障礙與材料施工細節保留專業驗證。 |
+| TASK-038 | 完成 0.6.1 北箭頭、Viewer 細節、向量圖／HTML 同步與發布 | done | 0.6.1 | [DEC-081／DEC-082](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-036、TASK-037 | 四張 current SVG／PNG 的真北均指右下並標示 v0.6.1／GEO-0.6.1；Viewer 可辨識泳池玻璃入口、四個廁所無門板洞口、洗手台、WC 隔間門、池體與懸空雙梯梁 ST-01；圖集與 Viewer HTML 只連到 V061 current sheets；模型、文件、測試、build、browser／視覺 smoke 全數通過後建立 `release: v0.6.1` commit 並 push main。 |
+
+0.6.1 樓梯回歸根因（2026-07-22）：0.6.0 完成了「資料選 active」但沒有完成「渲染座標保持同一手性」。`SITE X→Three X／SITE Y→Three +Z／SITE Z→Three Y` 交換 Y、Z 後的行列式為負，俯視時必然鏡射 Y 軸；測試當時只確認 JSON 中 ST-01 的 X 值與部分尺寸，沒有驗證 Three scene 的 Y 方向。加上 Viewer payload 仍複製 `originY`，因此文件聲稱單一 bounds，consumer 卻仍保有第二套語意。本輪將資料選取、adapter 手性、scene root 與實際 Y0 關係拆成四層回歸門檻，後續不得只用「JSON 值正確」替代渲染驗證。
+
+## 9. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

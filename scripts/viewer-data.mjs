@@ -1,5 +1,10 @@
 import { createHash } from 'node:crypto';
-import { geometryEntities, resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
+import {
+  geometryEntities,
+  resolveActiveGeometry,
+  resolveGeometryEntity,
+  THREE_SITE_ADAPTER_ID,
+} from './active-geometry.mjs';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -47,13 +52,12 @@ export function buildViewerModel(model, analysisRegistry = {}) {
   const poolSize = size(pool.bounds);
   const l2Size = size(l2.bounds);
   const l3Size = size(l3.bounds);
-  const stairSize = size(stair.bounds);
   const roofSize = size(roof.bounds);
   const l3Data = active.l3;
   const stairData = active.stair;
 
   const viewerModel = {
-    schemaVersion: '1.1.0',
+    schemaVersion: '1.2.0',
     modelVersion: model.modelVersion,
     revision: model.revision,
     activeGeometryRevisionId: active.id,
@@ -65,7 +69,9 @@ export function buildViewerModel(model, analysisRegistry = {}) {
       angleUnit: model.referenceSystem.angleUnit,
       localLongAxisBearingFromTrueNorth: model.referenceSystem.localLongAxisBearingFromTrueNorth,
       axes: structuredClone(model.referenceSystem.axes),
-      coordinateAdapter: { siteX: 'threeX', siteY: 'threeZ', siteZ: 'threeY', adapterId: 'SITE-XY-TO-THREE' },
+      coordinateAdapter: {
+        siteX: 'threeX', siteY: 'negativeThreeZ', siteZ: 'threeY', adapterId: THREE_SITE_ADAPTER_ID,
+      },
     },
     entityBounds: Object.fromEntries([...entities].map(([id, entity]) => [id, {
       coordinateSystemId: entity.coordinateSystemId,
@@ -101,11 +107,12 @@ export function buildViewerModel(model, analysisRegistry = {}) {
       l1: {
         bounds: structuredClone(building.bounds),
         serviceWingBounds: structuredClone(serviceWing.bounds),
+        serviceWingStyle: structuredClone(active.l1.serviceWing.architecturalStyle),
         rightSetbackBounds: structuredClone(active.l1.rightSetback.bounds),
         mainEntranceBounds: structuredClone(active.l1.mainEntrance.bounds),
         playgroundRamp: structuredClone(active.l1.playgroundRamp),
         zones: structuredClone(active.l1.zones),
-        doors: structuredClone(active.l1.doors),
+        toiletEntrances: structuredClone(active.l1.toiletEntrances),
         structuralStrategy: structuredClone(active.l1.structuralStrategy),
       },
       l2: {
@@ -168,10 +175,6 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         entityId: stairData.entityId,
         coordinateSystemId: stairData.coordinateSystemId,
         bounds: structuredClone(stair.bounds),
-        startX: stair.bounds.x1,
-        endX: stair.bounds.x2,
-        originY: stair.bounds.y1,
-        width: stairSize.width,
         totalRise: stairData.totalRise,
         riserCount: stairData.riserCount,
         risersPerRun: stairData.risersPerRun,
@@ -182,6 +185,12 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         midLandingElevation: stairData.lowerElevation + stairData.totalRise / 2,
         lowerElevation: stairData.lowerElevation,
         upperElevation: stairData.upperElevation,
+        designIntent: stairData.designIntent,
+        treadConstruction: stairData.treadConstruction,
+        stringerStrategy: stairData.stringerStrategy,
+        stringerCount: stairData.stringerCount,
+        midLandingSupport: stairData.midLandingSupport,
+        underStairEnclosure: stairData.underStairEnclosure,
         status: 'working',
         guardStatus: 'deferred',
         guardOpenItemId: stairData.openItemId,
@@ -205,7 +214,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         recordedModelHash,
         currentModelHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: '0.6.0 池體與量體已同步；全年光熱、眩光、結構與安全性能仍待專業驗證。',
+        disclaimer: '0.6.1 池體與量體已同步；全年光熱、眩光、結構與安全性能仍待專業驗證。',
       },
     },
   };

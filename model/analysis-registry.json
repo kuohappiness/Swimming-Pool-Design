@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "solar": {
-    "modelHash": "cf5066fd2494ba8414682fbf00cf7af99947aab49ae4d0beab32930140a08f3e",
+    "modelHash": "a0de87c2f0c9c2a705193f73651d8fe92fa3983baf5bb695b065af2f7b5d3517",
     "validatedAt": "2026-07-22",
     "sourceIds": ["SRC-SITE-003"],
     "validation": [

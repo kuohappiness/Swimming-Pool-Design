@@ -15,12 +15,20 @@ export interface ViewerZone {
   floorElevation?: number;
   entrySide?: string;
   fixtures?: { toilets: number; urinals: number; washbasins: number };
+  layout?: {
+    entranceRangeY: [number, number];
+    washbasinWall: string;
+    washbasins: Array<{ center: [number, number]; facing: string }>;
+    toiletCubicles: Array<{ planBounds: SiteBounds; doorSide: string; doorLeaf: true }>;
+    urinals: Array<{ center: [number, number]; facing: string }>;
+    privacyScreen: { planBounds: SiteBounds; height: number };
+  };
   status: string;
   [key: string]: unknown;
 }
 
 export interface ViewerModel {
-  schemaVersion: '1.1.0';
+  schemaVersion: '1.2.0';
   modelVersion: string;
   revision: string;
   activeGeometryRevisionId: string;
@@ -32,7 +40,12 @@ export interface ViewerModel {
     angleUnit: 'degree';
     localLongAxisBearingFromTrueNorth: number;
     axes: { x: string; y: string; z: string };
-    coordinateAdapter: { siteX: string; siteY: string; siteZ: string; adapterId: 'SITE-XY-TO-THREE' };
+    coordinateAdapter: {
+      siteX: 'threeX';
+      siteY: 'negativeThreeZ';
+      siteZ: 'threeY';
+      adapterId: 'SITE-XYZ-TO-THREE-RH';
+    };
   };
   entityBounds: Record<string, { coordinateSystemId: 'SITE-XY'; bounds: SiteBounds }>;
   geometry: {
@@ -61,6 +74,15 @@ export interface ViewerModel {
     l1: {
       bounds: SiteBounds;
       serviceWingBounds: SiteBounds;
+      serviceWingStyle: {
+        materialIntent: 'fair-faced-exposed-concrete';
+        appearance: string;
+        scope: string;
+        excludedMaterials: string[];
+        formworkExpression: string;
+        status: 'confirmed';
+        detailStatus: string;
+      };
       rightSetbackBounds: SiteBounds;
       mainEntranceBounds: SiteBounds;
       playgroundRamp: ViewerZone & { startElevation: number; endElevation: number; workingSlope: string };
@@ -73,7 +95,18 @@ export interface ViewerModel {
         waterTreatment: ViewerZone;
         chemicalRoom: ViewerZone;
       };
-      doors: Array<{ entityId: string; side: string; center: number[]; clearWidth: number; status: string }>;
+      toiletEntrances: Array<{
+        entityId: string;
+        side: 'x31' | 'x39';
+        center: [number, number];
+        clearWidth: number;
+        displayClearHeight: number;
+        openingType: 'doorless-opening';
+        doorLeaf: false;
+        facadePosition: 'left' | 'right';
+        viewedFrom: 'pool-hall-looking-positive-x' | 'playground-looking-negative-x';
+        status: 'confirmed';
+      }>;
       structuralStrategy: Record<string, unknown>;
     };
     l2: {
@@ -130,10 +163,6 @@ export interface ViewerModel {
       entityId: string;
       coordinateSystemId: 'SITE-XY';
       bounds: SiteBounds;
-      startX: number;
-      endX: number;
-      originY: number;
-      width: number;
       totalRise: number;
       riserCount: number;
       risersPerRun: number;
@@ -144,6 +173,12 @@ export interface ViewerModel {
       midLandingElevation: number;
       lowerElevation: number;
       upperElevation: number;
+      designIntent: 'suspended-floating-stair';
+      treadConstruction: string;
+      stringerStrategy: string;
+      stringerCount: 2;
+      midLandingSupport: string;
+      underStairEnclosure: false;
       status: 'working';
       guardStatus: 'deferred';
       guardOpenItemId: string;
@@ -183,13 +218,16 @@ const finite = (value: unknown, label: string): number => {
   return value;
 };
 
+const sameBounds = (first: SiteBounds, second: SiteBounds) =>
+  first.x1 === second.x1 && first.x2 === second.x2 && first.y1 === second.y1 && first.y2 === second.y2;
+
 export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
   model: ViewerModel;
   content: ConceptContent;
 } {
   const model = modelInput as ViewerModel;
   const content = contentInput as ConceptContent;
-  if (model?.schemaVersion !== '1.1.0') throw new TypeError('Viewer model schema 不受支援。');
+  if (model?.schemaVersion !== '1.2.0') throw new TypeError('Viewer model schema 不受支援。');
   if (content?.schemaVersion !== '1.0.0') throw new TypeError('理念內容 schema 不受支援。');
   if (!/^[a-f0-9]{64}$/.test(model.modelHash) || content.modelHash !== model.modelHash) {
     throw new TypeError('Viewer 模型與理念內容版本不同步。');
@@ -197,6 +235,36 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
   if (content.modelVersion !== model.modelVersion) throw new TypeError('Viewer modelVersion 不同步。');
   if (!model.activeGeometryRevisionId || model.coordinateSystemId !== 'SITE-XY') {
     throw new TypeError('Viewer 缺少唯一 active geometry 或 SITE-XY 座標系。');
+  }
+  const adapter = model.referenceSystem.coordinateAdapter;
+  if (adapter?.adapterId !== 'SITE-XYZ-TO-THREE-RH'
+    || adapter.siteX !== 'threeX'
+    || adapter.siteY !== 'negativeThreeZ'
+    || adapter.siteZ !== 'threeY') {
+    throw new TypeError('Viewer 必須使用右手座標 SITE-XYZ-TO-THREE-RH adapter。');
+  }
+  const stairBounds = model.geometry.stair.bounds;
+  const canonicalStairBounds = model.entityBounds[model.geometry.stair.entityId]?.bounds;
+  if (!canonicalStairBounds || !sameBounds(stairBounds, canonicalStairBounds)) {
+    throw new TypeError('ST-01 必須直接使用 active entityBounds 的 canonical bounds。');
+  }
+  if (stairBounds.y2 > model.geometry.pool.bounds.y1) {
+    throw new TypeError('ST-01 必須保持在泳池 Y0 側，不得移到 Y14 側。');
+  }
+  if (model.geometry.stair.designIntent !== 'suspended-floating-stair'
+    || model.geometry.stair.stringerCount !== 2
+    || model.geometry.stair.underStairEnclosure !== false) {
+    throw new TypeError('ST-01 必須維持懸空雙梯梁且梯下開放。');
+  }
+  const toiletEntrances = model.geometry.l1.toiletEntrances;
+  if (toiletEntrances.length !== 4
+    || toiletEntrances.some((entrance) => entrance.clearWidth !== 1
+      || entrance.openingType !== 'doorless-opening'
+      || entrance.doorLeaf !== false)) {
+    throw new TypeError('四間廁所必須各有 1.00 m 無門板主入口。');
+  }
+  if (model.geometry.l1.serviceWingStyle.materialIntent !== 'fair-faced-exposed-concrete') {
+    throw new TypeError('服務量體必須使用清水模材質意圖。');
   }
   if (model.referenceSystem.unit !== 'm') throw new TypeError('Viewer 只接受公尺模型。');
   for (const [label, value] of [

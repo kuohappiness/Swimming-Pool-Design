@@ -1,4 +1,5 @@
 export const SITE_COORDINATE_SYSTEM_ID = 'SITE-XY';
+export const THREE_SITE_ADAPTER_ID = 'SITE-XYZ-TO-THREE-RH';
 
 const finite = (value, label) => {
   if (!Number.isFinite(value)) throw new TypeError(`${label} must be a finite number.`);
@@ -89,7 +90,9 @@ export function sitePointToThree(point) {
     throw new TypeError('SITE-XY point must be [x, y, z].');
   }
   const [x, y, z] = point.map((value, index) => finite(value, `point[${index}]`));
-  return [x, z, y];
+  // Three.js uses Y-up. Negating SITE Y preserves a right-handed frame:
+  // SITE +X -> Three +X, SITE +Y -> Three -Z, SITE +Z -> Three +Y.
+  return [x, z, -y];
 }
 
 export function boundsEqual(first, second, tolerance = 1e-9) {

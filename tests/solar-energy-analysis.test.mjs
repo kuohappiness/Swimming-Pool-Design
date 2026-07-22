@@ -17,7 +17,7 @@ test('loads one coordinate-matched PVGIS typical meteorological year', () => {
   assert.equal(Number((weather.reduce((sum, sample) => sum + sample.ghi, 0) / 1000).toFixed(3)), 1584.747);
 });
 
-test('v0.6.0 working optimum keeps X35 warm-season pool gain at zero', () => {
+test('v0.6.1 working optimum keeps X35 warm-season pool gain at zero', () => {
   const result = evaluateMirrorEnergy(model, weather);
   assert.equal(result.input.planRotation, 25.5);
   assert.equal(result.input.mirrorLeanFromVertical, 23);
@@ -34,7 +34,7 @@ test('v0.6.0 working optimum keeps X35 warm-season pool gain at zero', () => {
   assert.equal(result.selectivity.strictWarmZero, true);
 });
 
-test('superseded v0.5.0 angles are rejected on the v0.6.0 pool', () => {
+test('superseded v0.5.0 angles are rejected on the v0.6.1 pool', () => {
   const result = evaluateMirrorEnergy(model, weather, {
     planRotation: 26.5,
     mirrorLeanFromVertical: 3.1,
@@ -44,7 +44,7 @@ test('superseded v0.5.0 angles are rejected on the v0.6.0 pool', () => {
   assert.equal(result.selectivity.strictWarmZero, false);
 });
 
-test('pivot sensitivity matches the registered v0.6.0 energy results', () => {
+test('pivot sensitivity matches the registered v0.6.1 energy results', () => {
   const sensitivity = evaluateEnergySensitivity(model, weather);
   const compact = sensitivity.results.map((result) => ({
     pivotX: result.input.pivotX,

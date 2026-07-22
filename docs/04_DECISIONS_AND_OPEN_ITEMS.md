@@ -83,6 +83,11 @@
 | DEC-075 | 0.6.0 active model 同步採 25 × 8.5 m 池體、四間獨立廁所、儲物／水處理／藥劑分間、ST-01 方案 E、固定 L2／屋頂與旋轉 L3 | 結構支承整合進 X32.5／X35.5 隔間／設備／立面帶，不設突兀孤柱，玻璃不承重；高位設備只落在固定支承線。概念整合完成但建築、結構、機電、消防與無障礙均未專業核定 | working geometry implemented; professional approvals outstanding |
 | DEC-076 | v0.6.0 日照工作值改為 L3 水平 +25.5°、鏡牆外傾 +23.0°、X=35 m | 以新池體重算後，X35 暖季池面新增 0、冷季 +1,036.829 kWh（+0.962%）；舊 +26.5°／+3.1°會產生暖季 +200.722 kWh，故淘汰。23° 外傾幅度大，只屬概念光學工作值，必須由結構、構造、固定、維修與眩光專業驗證 | working optimized; supersedes DEC-057/DEC-058 angles; requires professional validation |
 | DEC-077 | 現行 HTML 圖集只保留 v0.6.0 的 L1、L2、L3 與縱剖圖，Viewer 與 solar-study 最新圖面連結統一指向 `#V060-L1` | v0.5.0 舊圖保留在歷史資料夾，但不再出現在 current tab；四張圖均由 active geometry 重現並標示 model、active revision、SITE-XY 與非施工圖 | confirmed release output |
+| DEC-078 | 0.6.1 修正 Viewer 的 SITE-XY／Three.js 左右手座標錯配：唯一允許的 adapter 為 SITE X→Three X、SITE Y→Three −Z、SITE Z→Three Y | 0.6.0 雖已從 active bounds 取得 `ST-01=Y0.5～Y2.0`，但 `SITE Y→Three +Z` 會把俯視方向鏡射，使 Y0 側在 Viewer 中看成 Y14 側；同時殘留的 `originY` 是第二套可漂移座標。0.6.1 移除 stair 的 `startX/originY/width` 輸出，renderer 只由 canonical bounds 推導，並驗證 adapter、scene root 的 −Z、ST-01／entityBounds 一致及 Y0 側關係 | confirmed regression fix; 0.6.1 work in progress |
+| DEC-079 | 四間 L1 廁所主入口均採 1.00 m 無門板開口；泳池側由泳池面向 +X 時男右女左，操場側由操場面向 −X 時男左女右；男廁入口靠低 Y 並將洗手台貼 Y0，女廁入口為 Y6～7 並將洗手台貼 Y7.5 | 入口左右以實際到達者面向立面判斷，避免平面與 Viewer 再因觀察方向產生相反解讀。無門板只適用四個主要入口；內部 WC 隔間保留門板，入口另設錯位隱私屏風。隔間淨空、無障礙及正式設備尺寸仍須專業驗證 | confirmed concept layout; requires professional validation |
+| DEC-080 | L1～L3 所有不透明服務量體採自然灰清水模語彙；玻璃屋頂與 L3 鏡牆維持各自原材質 | 統一服務區建築表情，同時不混淆玻璃採光構件與反射鏡面。模板分割、螺桿孔、防水、耐候與施工縫仍屬後續材料深化 | confirmed architectural style; details require professional validation |
+| DEC-081 | 0.6.1 所有平面圖真北箭頭指向圖面右下；圖面向右仍為本地 +X／服務量體端／西北 307° | 模型與衛星判讀早已固定 `northArrowPlanDirection=lower-right`，但 0.6.0 SVG 產生器誤用 `rotate(53)`，在 SVG 向下 Y 軸中畫成右上。產生器改用右下象限並加輸出驗證，不旋轉建築幾何或改變日照世界 transform | confirmed output correction; reinforces DEC-061 |
+| DEC-082 | `ST-01` 以懸空式薄踏步、封閉踢面、雙連續深色鋼箱梯梁與開放梯下表達；不得再以逐階落地實心箱體模擬 | 保留方案 E 的 2.70＋3.10＋2.70 m、20 級高／18 踏面與 X29 直接接 L2，只修正 3D 構造表達使其符合既有懸空樓梯設計意圖。梯梁尺寸、平台扭轉、振動、節點、防墜與結構計算仍由 `OPEN-017` 專業驗證 | confirmed design intent; structural sizes remain working |
 
 ## 2. 尚待精化
 

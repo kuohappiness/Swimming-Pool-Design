@@ -1,10 +1,10 @@
 {
-  "schemaVersion": "1.1.0",
-  "modelVersion": "0.6.0",
+  "schemaVersion": "1.2.0",
+  "modelVersion": "0.6.1",
   "revision": "2026-07-22",
-  "activeGeometryRevisionId": "GEO-0.6.0",
+  "activeGeometryRevisionId": "GEO-0.6.1",
   "coordinateSystemId": "SITE-XY",
-  "modelHash": "cf5066fd2494ba8414682fbf00cf7af99947aab49ae4d0beab32930140a08f3e",
+  "modelHash": "a0de87c2f0c9c2a705193f73651d8fe92fa3983baf5bb695b065af2f7b5d3517",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -22,9 +22,9 @@
     },
     "coordinateAdapter": {
       "siteX": "threeX",
-      "siteY": "threeZ",
+      "siteY": "negativeThreeZ",
       "siteZ": "threeY",
-      "adapterId": "SITE-XY-TO-THREE"
+      "adapterId": "SITE-XYZ-TO-THREE-RH"
     }
   },
   "entityBounds": {
@@ -336,6 +336,18 @@
         "y1": 0,
         "y2": 14
       },
+      "serviceWingStyle": {
+        "materialIntent": "fair-faced-exposed-concrete",
+        "appearance": "natural-grey-concrete",
+        "scope": "all-opaque-l1-l2-l3-service-volumes",
+        "excludedMaterials": [
+          "glass-roof",
+          "l3-mirror-finish"
+        ],
+        "formworkExpression": "subtle-regular-panel-grid",
+        "status": "confirmed",
+        "detailStatus": "working-requires-professional-validation"
+      },
       "rightSetbackBounds": {
         "x1": 39,
         "x2": 41,
@@ -379,6 +391,76 @@
             "urinals": 2,
             "washbasins": 2
           },
+          "layout": {
+            "entranceRangeY": [
+              0.5,
+              1.5
+            ],
+            "washbasinWall": "y0",
+            "washbasins": [
+              {
+                "center": [
+                  32,
+                  0.18
+                ],
+                "facing": "positive-y"
+              },
+              {
+                "center": [
+                  33.2,
+                  0.18
+                ],
+                "facing": "positive-y"
+              }
+            ],
+            "toiletCubicles": [
+              {
+                "planBounds": {
+                  "x1": 34.1,
+                  "x2": 35.5,
+                  "y1": 0.15,
+                  "y2": 1.25
+                },
+                "doorSide": "x34.1",
+                "doorLeaf": true
+              },
+              {
+                "planBounds": {
+                  "x1": 34.1,
+                  "x2": 35.5,
+                  "y1": 1.4,
+                  "y2": 2.5
+                },
+                "doorSide": "x34.1",
+                "doorLeaf": true
+              }
+            ],
+            "urinals": [
+              {
+                "center": [
+                  32.2,
+                  3.32
+                ],
+                "facing": "negative-y"
+              },
+              {
+                "center": [
+                  33.2,
+                  3.32
+                ],
+                "facing": "negative-y"
+              }
+            ],
+            "privacyScreen": {
+              "planBounds": {
+                "x1": 31.7,
+                "x2": 31.85,
+                "y1": 0.25,
+                "y2": 1.8
+              },
+              "height": 2.1
+            }
+          },
           "privacyScreen": true,
           "status": "working"
         },
@@ -397,6 +479,71 @@
             "toilets": 3,
             "urinals": 0,
             "washbasins": 2
+          },
+          "layout": {
+            "entranceRangeY": [
+              6,
+              7
+            ],
+            "washbasinWall": "y7.5",
+            "washbasins": [
+              {
+                "center": [
+                  32,
+                  7.32
+                ],
+                "facing": "negative-y"
+              },
+              {
+                "center": [
+                  33.2,
+                  7.32
+                ],
+                "facing": "negative-y"
+              }
+            ],
+            "toiletCubicles": [
+              {
+                "planBounds": {
+                  "x1": 34.1,
+                  "x2": 35.5,
+                  "y1": 3.7,
+                  "y2": 4.75
+                },
+                "doorSide": "x34.1",
+                "doorLeaf": true
+              },
+              {
+                "planBounds": {
+                  "x1": 34.1,
+                  "x2": 35.5,
+                  "y1": 4.9,
+                  "y2": 5.95
+                },
+                "doorSide": "x34.1",
+                "doorLeaf": true
+              },
+              {
+                "planBounds": {
+                  "x1": 34.1,
+                  "x2": 35.5,
+                  "y1": 6.1,
+                  "y2": 7.15
+                },
+                "doorSide": "x34.1",
+                "doorLeaf": true
+              }
+            ],
+            "urinals": [],
+            "privacyScreen": {
+              "planBounds": {
+                "x1": 31.7,
+                "x2": 31.85,
+                "y1": 5.7,
+                "y2": 7.25
+              },
+              "height": 2.1
+            }
           },
           "privacyScreen": true,
           "status": "working"
@@ -417,6 +564,52 @@
             "urinals": 1,
             "washbasins": 1
           },
+          "layout": {
+            "entranceRangeY": [
+              0.5,
+              1.5
+            ],
+            "washbasinWall": "y0",
+            "washbasins": [
+              {
+                "center": [
+                  37.7,
+                  0.18
+                ],
+                "facing": "positive-y"
+              }
+            ],
+            "toiletCubicles": [
+              {
+                "planBounds": {
+                  "x1": 35.5,
+                  "x2": 36.9,
+                  "y1": 0.15,
+                  "y2": 1.45
+                },
+                "doorSide": "x36.9",
+                "doorLeaf": true
+              }
+            ],
+            "urinals": [
+              {
+                "center": [
+                  37.3,
+                  3.32
+                ],
+                "facing": "negative-y"
+              }
+            ],
+            "privacyScreen": {
+              "planBounds": {
+                "x1": 38.15,
+                "x2": 38.3,
+                "y1": 0.25,
+                "y2": 1.8
+              },
+              "height": 2.1
+            }
+          },
           "privacyScreen": true,
           "status": "working"
         },
@@ -435,6 +628,54 @@
             "toilets": 2,
             "urinals": 0,
             "washbasins": 1
+          },
+          "layout": {
+            "entranceRangeY": [
+              6,
+              7
+            ],
+            "washbasinWall": "y7.5",
+            "washbasins": [
+              {
+                "center": [
+                  37.7,
+                  7.32
+                ],
+                "facing": "negative-y"
+              }
+            ],
+            "toiletCubicles": [
+              {
+                "planBounds": {
+                  "x1": 35.5,
+                  "x2": 36.9,
+                  "y1": 3.75,
+                  "y2": 5.05
+                },
+                "doorSide": "x36.9",
+                "doorLeaf": true
+              },
+              {
+                "planBounds": {
+                  "x1": 35.5,
+                  "x2": 36.9,
+                  "y1": 5.2,
+                  "y2": 6.5
+                },
+                "doorSide": "x36.9",
+                "doorLeaf": true
+              }
+            ],
+            "urinals": [],
+            "privacyScreen": {
+              "planBounds": {
+                "x1": 38.15,
+                "x2": 38.3,
+                "y1": 5.7,
+                "y2": 7.25
+              },
+              "height": 2.1
+            }
           },
           "privacyScreen": true,
           "status": "working"
@@ -480,46 +721,66 @@
           "status": "working-requires-professional-validation"
         }
       },
-      "doors": [
+      "toiletEntrances": [
         {
-          "entityId": "DR-WC-POOL-M-01",
+          "entityId": "OP-WC-POOL-M-01",
           "side": "x31",
           "center": [
             31,
-            1.55
+            1
           ],
-          "clearWidth": 0.9,
-          "status": "working"
+          "clearWidth": 1,
+          "displayClearHeight": 2.1,
+          "openingType": "doorless-opening",
+          "doorLeaf": false,
+          "facadePosition": "right",
+          "viewedFrom": "pool-hall-looking-positive-x",
+          "status": "confirmed"
         },
         {
-          "entityId": "DR-WC-POOL-F-01",
+          "entityId": "OP-WC-POOL-F-01",
           "side": "x31",
           "center": [
             31,
-            5.05
+            6.5
           ],
-          "clearWidth": 0.9,
-          "status": "working"
+          "clearWidth": 1,
+          "displayClearHeight": 2.1,
+          "openingType": "doorless-opening",
+          "doorLeaf": false,
+          "facadePosition": "left",
+          "viewedFrom": "pool-hall-looking-positive-x",
+          "status": "confirmed"
         },
         {
-          "entityId": "DR-WC-PLAY-M-01",
+          "entityId": "OP-WC-PLAY-M-01",
           "side": "x39",
           "center": [
             39,
-            1.55
+            1
           ],
-          "clearWidth": 0.9,
-          "status": "working"
+          "clearWidth": 1,
+          "displayClearHeight": 2.1,
+          "openingType": "doorless-opening",
+          "doorLeaf": false,
+          "facadePosition": "left",
+          "viewedFrom": "playground-looking-negative-x",
+          "status": "confirmed"
         },
         {
-          "entityId": "DR-WC-PLAY-F-01",
+          "entityId": "OP-WC-PLAY-F-01",
           "side": "x39",
           "center": [
             39,
-            5.05
+            6.5
           ],
-          "clearWidth": 0.9,
-          "status": "working"
+          "clearWidth": 1,
+          "displayClearHeight": 2.1,
+          "openingType": "doorless-opening",
+          "doorLeaf": false,
+          "facadePosition": "right",
+          "viewedFrom": "playground-looking-negative-x",
+          "status": "confirmed"
         }
       ],
       "structuralStrategy": {
@@ -701,10 +962,6 @@
         "y1": 0.5,
         "y2": 2
       },
-      "startX": 20.5,
-      "endX": 29,
-      "originY": 0.5,
-      "width": 1.5,
       "totalRise": 3,
       "riserCount": 20,
       "risersPerRun": 10,
@@ -715,6 +972,12 @@
       "midLandingElevation": 1.8,
       "lowerElevation": 0.3,
       "upperElevation": 3.3,
+      "designIntent": "suspended-floating-stair",
+      "treadConstruction": "thin-closed-riser-steel-treads",
+      "stringerStrategy": "two-continuous-dark-steel-box-stringers",
+      "stringerCount": 2,
+      "midLandingSupport": "suspended-between-continuous-stringers",
+      "underStairEnclosure": false,
       "status": "working",
       "guardStatus": "deferred",
       "guardOpenItemId": "OPEN-017"
@@ -800,12 +1063,12 @@
   "analysis": {
     "solar": {
       "status": "current",
-      "recordedModelHash": "cf5066fd2494ba8414682fbf00cf7af99947aab49ae4d0beab32930140a08f3e",
-      "currentModelHash": "cf5066fd2494ba8414682fbf00cf7af99947aab49ae4d0beab32930140a08f3e",
+      "recordedModelHash": "a0de87c2f0c9c2a705193f73651d8fe92fa3983baf5bb695b065af2f7b5d3517",
+      "currentModelHash": "a0de87c2f0c9c2a705193f73651d8fe92fa3983baf5bb695b065af2f7b5d3517",
       "sourceIds": [
         "SRC-SITE-003"
       ],
-      "disclaimer": "0.6.0 池體與量體已同步；全年光熱、眩光、結構與安全性能仍待專業驗證。"
+      "disclaimer": "0.6.1 池體與量體已同步；全年光熱、眩光、結構與安全性能仍待專業驗證。"
     }
   }
 }

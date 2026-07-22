@@ -13,6 +13,7 @@ export interface SelectableInfo {
 export interface ViewerSceneGraph {
   scene: THREE.Scene;
   worldRoot: THREE.Group;
+  siteRoot: THREE.Group;
   layerGroups: Map<string, THREE.Group>;
   selectables: SelectableInfo[];
   lights: { sun: THREE.DirectionalLight; ambient: THREE.HemisphereLight };
@@ -20,9 +21,9 @@ export interface ViewerSceneGraph {
 
 const PALETTE = {
   existing: 0xb9b2a6,
-  l1: 0xd9d1c2,
-  l2: 0xd88761,
-  l3: 0xb36159,
+  l1: 0xb9b6b0,
+  l2: 0xaaa7a1,
+  l3: 0x9d9a94,
   water: 0x3c9eb8,
   roof: 0x9bd4d9,
   stair: 0x303b42,
@@ -77,6 +78,51 @@ function addWallSegments(
   }
 }
 
+function addFacadeWallWithOpenings(
+  group: THREE.Group,
+  x: number,
+  yStart: number,
+  yEnd: number,
+  height: number,
+  thickness: number,
+  openings: ViewerModel['geometry']['l1']['toiletEntrances'],
+  material: THREE.Material,
+) {
+  const sorted = [...openings].sort((a, b) => a.center[1] - b.center[1]);
+  let cursor = yStart;
+  for (const opening of sorted) {
+    const openingStart = opening.center[1] - opening.clearWidth / 2;
+    const openingEnd = opening.center[1] + opening.clearWidth / 2;
+    if (openingStart > cursor) {
+      group.add(box([thickness, height, openingStart - cursor], [x, height / 2, (cursor + openingStart) / 2], material));
+    }
+    if (height > opening.displayClearHeight) {
+      const headerHeight = height - opening.displayClearHeight;
+      group.add(box([thickness, headerHeight, opening.clearWidth], [x, opening.displayClearHeight + headerHeight / 2, opening.center[1]], material));
+    }
+    cursor = openingEnd;
+  }
+  if (cursor < yEnd) group.add(box([thickness, height, yEnd - cursor], [x, height / 2, (cursor + yEnd) / 2], material));
+}
+
+function beamBetween(
+  start: THREE.Vector3,
+  end: THREE.Vector3,
+  depth: number,
+  width: number,
+  material: THREE.Material,
+) {
+  const delta = end.clone().sub(start);
+  const length = Math.hypot(delta.x, delta.y);
+  const beam = box([length, depth, width], [
+    (start.x + end.x) / 2,
+    (start.y + end.y) / 2,
+    (start.z + end.z) / 2,
+  ], material);
+  beam.rotation.z = Math.atan2(delta.y, delta.x);
+  return beam;
+}
+
 export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xe9eef0);
@@ -103,15 +149,20 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   worldRoot.rotation.y = THREE.MathUtils.degToRad(-model.referenceSystem.localLongAxisBearingFromTrueNorth);
   scene.add(worldRoot);
 
-  const localRoot = new THREE.Group();
-  localRoot.position.set(-centreX, 0, -centreZ);
-  worldRoot.add(localRoot);
+  const siteRoot = new THREE.Group();
+  siteRoot.name = model.referenceSystem.coordinateAdapter.adapterId;
+  // SITE is Z-up while Three.js is Y-up. Negating Three Z preserves
+  // handedness and keeps SITE Y0/Y14 on their canonical plan sides.
+  siteRoot.position.set(-centreX, 0, centreZ);
+  siteRoot.scale.set(1, 1, -1);
+  siteRoot.userData.coordinateAdapter = structuredClone(model.referenceSystem.coordinateAdapter);
+  worldRoot.add(siteRoot);
   const layerGroups = new Map<string, THREE.Group>();
   for (const modelLayer of model.layers) {
     const group = new THREE.Group();
     group.name = `layer:${modelLayer.id}`;
     group.userData.layerId = modelLayer.id;
-    localRoot.add(group);
+    siteRoot.add(group);
     layerGroups.set(modelLayer.id, group);
   }
   const layer = (id: string) => {
@@ -123,9 +174,12 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
 
   const groundMaterial = new THREE.MeshStandardMaterial({ color: PALETTE.ground, roughness: 1 });
   const siteMaterial = new THREE.MeshStandardMaterial({ color: PALETTE.planting, roughness: 1 });
-  const l1Material = new THREE.MeshStandardMaterial({ color: PALETTE.l1, roughness: 0.82 });
-  const l2Material = new THREE.MeshStandardMaterial({ color: PALETTE.l2, roughness: 0.7 });
-  const l3Material = new THREE.MeshStandardMaterial({ color: PALETTE.l3, roughness: 0.66 });
+  if (model.geometry.l1.serviceWingStyle.materialIntent !== 'fair-faced-exposed-concrete') {
+    throw new TypeError('CORE-01 必須使用 active model 的清水模材質意圖。');
+  }
+  const l1Material = new THREE.MeshStandardMaterial({ color: PALETTE.l1, roughness: 0.94, metalness: 0 });
+  const l2Material = new THREE.MeshStandardMaterial({ color: PALETTE.l2, roughness: 0.92, metalness: 0 });
+  const l3Material = new THREE.MeshStandardMaterial({ color: PALETTE.l3, roughness: 0.9, metalness: 0 });
   const coreMaterial = new THREE.MeshStandardMaterial({
     color: 0xb87938, roughness: 0.58, transparent: true, opacity: 0.36, depthWrite: false,
   });
@@ -210,15 +264,86 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
       openItemId: 'OPEN-008',
     }, selectables);
   }
+  const poolSideEntrances = model.geometry.l1.toiletEntrances.filter(({ side }) => side === 'x31');
+  const playgroundSideEntrances = model.geometry.l1.toiletEntrances.filter(({ side }) => side === 'x39');
+  addFacadeWallWithOpenings(l1, serviceStart + 0.08, 0, 7.5, wallHeight, 0.16, poolSideEntrances, l1Material);
+  addFacadeWallWithOpenings(l1, serviceEnd - 0.08, 0, 7.5, wallHeight, 0.16, playgroundSideEntrances, l1Material);
   l1.add(
-    box([0.16, wallHeight, buildingWidth], [serviceStart + 0.08, wallHeight / 2, centreZ], l1Material),
-    box([0.16, wallHeight, buildingWidth], [serviceEnd - 0.08, wallHeight / 2, centreZ], l1Material),
+    box([0.16, wallHeight, 6.5], [serviceStart + 0.08, wallHeight / 2, 10.75], l1Material),
+    box([0.16, wallHeight, 6.5], [serviceEnd - 0.08, wallHeight / 2, 10.75], l1Material),
     box([serviceEnd - serviceStart, wallHeight, 0.16], [(serviceStart + serviceEnd) / 2, wallHeight / 2, buildingWidth - 0.08], l1Material),
     box([0.14, wallHeight, 7.5], [35.5, wallHeight / 2, 3.75], l1Material),
     box([serviceEnd - serviceStart, wallHeight, 0.14], [(serviceStart + serviceEnd) / 2, wallHeight / 2, 3.5], l1Material),
     box([serviceEnd - serviceStart, wallHeight, 0.14], [(serviceStart + serviceEnd) / 2, wallHeight / 2, 7.5], l1Material),
     box([0.14, wallHeight, 6.5], [32.5, wallHeight / 2, 10.75], l1Material),
   );
+  const openingMarkerMaterial = new THREE.MeshStandardMaterial({ color: 0x3f4c51, roughness: 0.72 });
+  for (const entrance of model.geometry.l1.toiletEntrances) {
+    const openingGroup = new THREE.Group();
+    const x = entrance.side === 'x31' ? serviceStart - 0.015 : serviceEnd + 0.015;
+    openingGroup.add(box([0.24, 0.035, entrance.clearWidth], [x, 0.018, entrance.center[1]], openingMarkerMaterial));
+    l1.add(openingGroup);
+    tag(openingGroup, {
+      entityId: entrance.entityId,
+      label: '廁所 1.00 m 無門板入口',
+      status: 'confirmed',
+      description: `${entrance.side.toUpperCase()} 立面 ${entrance.facadePosition === 'left' ? '左側' : '右側'}入口；1.00 m 淨寬，無門板，內側以錯位屏風阻斷公共區直視。`,
+      openItemId: 'OPEN-008',
+    }, selectables);
+  }
+
+  const sanitaryMaterial = new THREE.MeshStandardMaterial({ color: 0xf4f6f4, roughness: 0.42 });
+  const cubicleMaterial = new THREE.MeshStandardMaterial({ color: 0xc8d1ce, roughness: 0.78 });
+  const cubicleDoorMaterial = new THREE.MeshStandardMaterial({ color: 0x65736f, roughness: 0.68 });
+  const toiletDetails = new THREE.Group();
+  for (const zone of Object.values(model.geometry.l1.zones).filter((candidate) => candidate.layout)) {
+    const layout = zone.layout!;
+    const floorElevation = zone.floorElevation ?? 0;
+    for (const basin of layout.washbasins) {
+      toiletDetails.add(box([0.72, 0.12, 0.42], [basin.center[0], floorElevation + 0.78, basin.center[1]], sanitaryMaterial));
+      const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.68, 18), sanitaryMaterial);
+      pedestal.position.set(basin.center[0], floorElevation + 0.38, basin.center[1]);
+      toiletDetails.add(pedestal);
+    }
+    for (const urinal of layout.urinals) {
+      toiletDetails.add(box([0.34, 0.58, 0.2], [urinal.center[0], floorElevation + 0.64, urinal.center[1]], sanitaryMaterial));
+    }
+    for (const cubicle of layout.toiletCubicles) {
+      const bounds = cubicle.planBounds;
+      const cubicleHeight = 2.05;
+      const frontX = Number(cubicle.doorSide.slice(1));
+      toiletDetails.add(
+        box([bounds.x2 - bounds.x1, cubicleHeight, 0.06], [(bounds.x1 + bounds.x2) / 2, floorElevation + cubicleHeight / 2, bounds.y1], cubicleMaterial),
+        box([bounds.x2 - bounds.x1, cubicleHeight, 0.06], [(bounds.x1 + bounds.x2) / 2, floorElevation + cubicleHeight / 2, bounds.y2], cubicleMaterial),
+      );
+      const doorWidth = Math.min(0.72, bounds.y2 - bounds.y1 - 0.24);
+      const doorCenterY = bounds.y1 + 0.12 + doorWidth / 2;
+      const remainderStart = doorCenterY + doorWidth / 2;
+      if (remainderStart < bounds.y2) {
+        toiletDetails.add(box([0.06, cubicleHeight, bounds.y2 - remainderStart], [frontX, floorElevation + cubicleHeight / 2, (remainderStart + bounds.y2) / 2], cubicleMaterial));
+      }
+      toiletDetails.add(box([0.045, 1.82, doorWidth], [frontX, floorElevation + 0.94, doorCenterY], cubicleDoorMaterial));
+      const toilet = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.27, 0.42, 20), sanitaryMaterial);
+      toilet.position.set((bounds.x1 + bounds.x2) / 2, floorElevation + 0.22, (bounds.y1 + bounds.y2) / 2);
+      toiletDetails.add(toilet);
+    }
+    const screen = layout.privacyScreen.planBounds;
+    toiletDetails.add(box([
+      screen.x2 - screen.x1,
+      layout.privacyScreen.height,
+      screen.y2 - screen.y1,
+    ], [
+      (screen.x1 + screen.x2) / 2,
+      floorElevation + layout.privacyScreen.height / 2,
+      (screen.y1 + screen.y2) / 2,
+    ], l1Material));
+  }
+  l1.add(toiletDetails);
+  tag(toiletDetails, {
+    entityId: 'WC-L1-DETAIL-01', label: '四間廁所內裝與隱私格局', status: 'working',
+    description: '入口先到洗手台；男廁洗手台貼 Y0、女廁洗手台貼 Y7.5。四個主入口無門板，WC 個別隔間保留門板並設錯位隱私屏風。',
+    openItemId: 'OPEN-008',
+  }, selectables);
   const integratedStructure = new THREE.Group();
   integratedStructure.add(
     box([0.28, model.geometry.l3.baseElevation, 6.5], [32.5, model.geometry.l3.baseElevation / 2, 10.75], coreMaterial),
@@ -317,6 +442,23 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
       new THREE.Vector3(poolX0, waterLevel + 0.025, z),
       new THREE.Vector3(poolX1, waterLevel + 0.025, z),
     ], new THREE.LineBasicMaterial({ color: 0xf7f5df })));
+    for (let x = poolX0 + 0.35, index = 0; x < poolX1; x += 0.5, index += 1) {
+      const floatMaterial = new THREE.MeshStandardMaterial({ color: index % 6 < 3 ? 0xf4f1de : 0xc75d4b, roughness: 0.54 });
+      const laneFloat = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), floatMaterial);
+      laneFloat.position.set(x, waterLevel + 0.045, z);
+      poolGroup.add(laneFloat);
+    }
+  }
+  const railMaterial = new THREE.MeshStandardMaterial({ color: 0xaeb8ba, roughness: 0.32, metalness: 0.72 });
+  for (const z of [poolZ0 + 0.8, poolZ1 - 0.8]) {
+    for (const x of [poolX0 + 0.28, poolX0 + 0.7]) {
+      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.2, 14), railMaterial);
+      rail.position.set(x, deckElevation + 0.55, z);
+      poolGroup.add(rail);
+    }
+    for (let step = 0; step < 3; step += 1) {
+      poolGroup.add(box([0.42, 0.04, 0.08], [poolX0 + 0.49, waterLevel - 0.2 - step * 0.25, z], railMaterial));
+    }
   }
   const coping = 0.22;
   poolGroup.add(
@@ -334,15 +476,39 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const roof = model.geometry.roof;
   const roofHeightAt = (x: number) => roof.lowElevation
     + (roof.highElevation - roof.lowElevation) * ((x - roof.startX) / roof.planRun);
-  for (const z of [0.03, buildingWidth - 0.03]) {
-    const longWall = quad([
-      roof.startX, deckElevation, z,
-      roof.startX, roof.lowElevation, z,
-      roof.endX, roof.highElevation, z,
-      roof.endX, deckElevation, z,
-    ], wallGlass);
-    l1.add(longWall);
-  }
+  const glassWallSegment = (x1: number, x2: number, z: number, bottom: number) => quad([
+    x1, bottom, z,
+    x1, roofHeightAt(x1), z,
+    x2, roofHeightAt(x2), z,
+    x2, bottom, z,
+  ], wallGlass);
+  const mainEntranceBounds = model.geometry.l1.mainEntranceBounds;
+  l1.add(
+    glassWallSegment(roof.startX, mainEntranceBounds.x1, 0.03, deckElevation),
+    glassWallSegment(mainEntranceBounds.x2, roof.endX, 0.03, deckElevation),
+    glassWallSegment(mainEntranceBounds.x1, mainEntranceBounds.x2, 0.03, 2.55),
+    glassWallSegment(roof.startX, roof.endX, buildingWidth - 0.03, deckElevation),
+  );
+  const entranceGroup = new THREE.Group();
+  const entranceWidth = mainEntranceBounds.x2 - mainEntranceBounds.x1;
+  const entranceCentreX = (mainEntranceBounds.x1 + mainEntranceBounds.x2) / 2;
+  const entranceHeight = 2.42;
+  const entranceGlass = wallGlass.clone();
+  entranceGlass.opacity = 0.34;
+  entranceGroup.add(
+    box([entranceWidth / 2 - 0.04, entranceHeight, 0.045], [entranceCentreX - entranceWidth / 4, deckElevation + entranceHeight / 2, 0.025], entranceGlass),
+    box([entranceWidth / 2 - 0.04, entranceHeight, 0.045], [entranceCentreX + entranceWidth / 4, deckElevation + entranceHeight / 2, 0.025], entranceGlass),
+    box([0.055, entranceHeight + 0.06, 0.075], [mainEntranceBounds.x1, deckElevation + entranceHeight / 2, 0.025], dark),
+    box([0.055, entranceHeight + 0.06, 0.075], [entranceCentreX, deckElevation + entranceHeight / 2, 0.025], dark),
+    box([0.055, entranceHeight + 0.06, 0.075], [mainEntranceBounds.x2, deckElevation + entranceHeight / 2, 0.025], dark),
+    box([entranceWidth + 0.1, 0.065, 0.075], [entranceCentreX, deckElevation + entranceHeight, 0.025], dark),
+  );
+  l1.add(entranceGroup);
+  tag(entranceGroup, {
+    entityId: 'EN-01', label: '泳池大廳玻璃主入口', status: 'confirmed',
+    description: `位於 SITE-XY X${mainEntranceBounds.x1.toFixed(1)}～X${mainEntranceBounds.x2.toFixed(1)}／Y0；Viewer 明確切開長邊玻璃牆並表達雙扇玻璃入口，實際淨寬與門框仍須專業驗證。`,
+    openItemId: 'OPEN-008',
+  }, selectables);
   l1.add(quad([
     roof.startX, deckElevation, 0,
     roof.startX, roof.lowElevation, 0,
@@ -385,7 +551,9 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const l3RotationGroup = new THREE.Group();
   l3RotationGroup.name = 'L3-PLAN-ROTATION';
   l3RotationGroup.position.set(l3Data.planPivot.x, l3Data.baseElevation, l3Data.planPivot.y);
-  l3RotationGroup.rotation.y = THREE.MathUtils.degToRad(-l3Data.planRotation.value);
+  // siteRoot applies the SITE-to-Three reflection, so the child keeps the
+  // SITE clockwise angle used by the canonical plan drawing.
+  l3RotationGroup.rotation.y = THREE.MathUtils.degToRad(l3Data.planRotation.value);
   const l3Slab = box([l3Data.length, slabThickness, l3Data.width], [0, -slabThickness / 2, 0], l3Material);
   l3RotationGroup.add(l3Slab);
   const l3Height = l3Data.volumeHeight.value;
@@ -444,30 +612,50 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
 
   const stair = model.geometry.stair;
+  const stairStartX = stair.bounds.x1;
+  const stairOriginY = stair.bounds.y1;
+  const stairWidth = stair.bounds.y2 - stair.bounds.y1;
   const stairGroup = new THREE.Group();
   const addFlight = (baseX: number, baseElevation: number) => {
     const riserHeight = stair.totalRise / stair.riserCount;
     for (let index = 0; index < stair.treadsPerRun; index += 1) {
-      const stepHeight = riserHeight * (index + 1);
-      stairGroup.add(box(
-        [stair.treadDepth, stepHeight, stair.width],
-        [baseX + (index + 0.5) * stair.treadDepth, baseElevation + stepHeight / 2, stair.originY + stair.width / 2],
-        dark,
-      ));
+      const treadElevation = baseElevation + riserHeight * (index + 1);
+      const treadX = baseX + (index + 0.5) * stair.treadDepth;
+      stairGroup.add(
+        box([stair.treadDepth, 0.055, stairWidth], [treadX, treadElevation - 0.028, stairOriginY + stairWidth / 2], dark),
+        box([0.04, riserHeight, stairWidth], [baseX + index * stair.treadDepth, treadElevation - riserHeight / 2, stairOriginY + stairWidth / 2], dark),
+      );
     }
   };
-  addFlight(stair.startX, stair.lowerElevation);
-  const secondStart = stair.startX + stair.flightRun + stair.midLandingLength;
+  addFlight(stairStartX, stair.lowerElevation);
+  const secondStart = stairStartX + stair.flightRun + stair.midLandingLength;
   addFlight(secondStart, stair.midLandingElevation);
   stairGroup.add(box(
-    [stair.midLandingLength, 0.16, stair.width],
-    [stair.startX + stair.flightRun + stair.midLandingLength / 2, stair.midLandingElevation - 0.08, stair.originY + stair.width / 2],
+    [stair.midLandingLength, 0.16, stairWidth],
+    [stairStartX + stair.flightRun + stair.midLandingLength / 2, stair.midLandingElevation - 0.08, stairOriginY + stairWidth / 2],
     dark,
   ));
+  const stringerInset = 0.18;
+  const stringerZs = [stairOriginY + stringerInset, stairOriginY + stairWidth - stringerInset];
+  for (const z of stringerZs) {
+    stairGroup.add(
+      beamBetween(
+        new THREE.Vector3(stairStartX + 0.1, stair.lowerElevation - 0.1, z),
+        new THREE.Vector3(stairStartX + stair.flightRun - 0.1, stair.midLandingElevation - 0.1, z),
+        0.2, 0.12, dark,
+      ),
+      box([stair.midLandingLength, 0.2, 0.12], [stairStartX + stair.flightRun + stair.midLandingLength / 2, stair.midLandingElevation - 0.18, z], dark),
+      beamBetween(
+        new THREE.Vector3(secondStart + 0.1, stair.midLandingElevation - 0.1, z),
+        new THREE.Vector3(stair.bounds.x2 - 0.1, stair.upperElevation - 0.1, z),
+        0.2, 0.12, dark,
+      ),
+    );
+  }
   layer('circulation').add(stairGroup);
   tag(stairGroup, {
-    entityId: stair.entityId, label: 'ST-01 長邊雙跑樓梯', status: 'working',
-    description: `${stair.width.toFixed(2)} m 候選有效淨寬、${stair.riserCount} 級高／${stair.treadsPerRun * 2} 踏面，從池畔 +${stair.lowerElevation.toFixed(2)} m 升至 L2 +${stair.upperElevation.toFixed(2)} m；平台與防墜仍待確認。`,
+    entityId: stair.entityId, label: 'ST-01 懸空式雙梯梁樓梯', status: 'working',
+    description: `${stairWidth.toFixed(2)} m 候選有效淨寬、${stair.riserCount} 級高／${stair.treadsPerRun * 2} 踏面；薄踏步與封閉踢面由兩道連續深色鋼箱梯梁及懸空平台承托，梯下完全開放。SITE-XY 位於 X${stair.bounds.x1}～X${stair.bounds.x2}／Y${stair.bounds.y1}～Y${stair.bounds.y2}（Y0 側），從 +${stair.lowerElevation.toFixed(2)} m 升至 L2 +${stair.upperElevation.toFixed(2)} m；梯梁尺寸、節點、振動與防墜仍須專業驗證。`,
     openItemId: stair.guardOpenItemId,
   }, selectables);
 
@@ -571,5 +759,5 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   trueNorth.name = 'TRUE-NORTH';
   scene.add(trueNorth);
 
-  return { scene, worldRoot, layerGroups, selectables, lights: { sun, ambient } };
+  return { scene, worldRoot, siteRoot, layerGroups, selectables, lights: { sun, ambient } };
 }

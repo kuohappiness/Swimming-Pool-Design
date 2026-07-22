@@ -7,8 +7,8 @@
 現行版本契約：
 
 - `schemaVersion = 1.3.0`
-- `modelVersion = designTargetVersion = 0.6.0`
-- `activeGeometryRevisionId = GEO-0.6.0`
+- `modelVersion = designTargetVersion = 0.6.1`
+- `activeGeometryRevisionId = GEO-0.6.1`
 - active revision 的 `id` 必須只出現一次，且 `revision`、`modelVersion` 均須等於頂層 `modelVersion`。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
@@ -30,8 +30,10 @@ type SiteBoundsEntity = {
 2. 同一 active revision 內 `entityId` 不得重複。
 3. `referenceSystem.coordinateSystems` 必須恰有一個 `SITE-XY`。
 4. 圖面、Viewer、分析與驗證均由同一 bounds 推導，不得另存第二套 `originY`。
-5. Three.js 只在 `SITE-XY-TO-THREE` adapter 轉成 SITE X→Three X、SITE Y→Three Z、SITE Z→Three Y。
+5. Three.js 只在右手座標 `SITE-XYZ-TO-THREE-RH` adapter 轉成 SITE X→Three X、SITE Y→Three −Z、SITE Z→Three Y；不得使用會鏡射 Y0／Y14 的 `SITE Y→Three +Z`。
 6. 世界方位 307°只在 Viewer 最上層 root 套用一次；L3 +25.5°是獨立局部 transform。
+
+Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`、`width` 等可由 bounds 重建的欄位不得再輸出。Viewer adapter 必須逐次驗證 stair bounds 等於 `entityBounds.ST-01.bounds`，且 `ST-01.y2 <= POOL-01.y1`，否則 fail closed。
 
 `resolveActiveGeometry()` 在 active ID 缺失／找不到／重複、版本不符、SITE-XY 缺失、entity ID 重複、coordinate system 缺失或 bounds 非法時必須直接失敗。
 
@@ -65,7 +67,8 @@ type SiteBoundsEntity = {
 ## 5. 現行硬性規則
 
 - `POOL-01` 為 25.0 × 8.5 m，完整位於泳池大廳內，且不與 `ST-01` 或服務翼重疊。
-- L1 具有四間互不相通廁所；泳池組恰有兩個 X31 入口，操場組恰有兩個 X39 入口。
+- L1 具有四間互不相通廁所；泳池組恰有兩個 X31 入口，操場組恰有兩個 X39 入口。四個入口皆為 1.00 m 無門板開口，男廁入口／洗手台靠低 Y，女廁入口／洗手台靠高 Y；所有 WC 個別隔間保留門板。
+- 服務區 L1～L3 所有不透明量體採清水模材質意圖；玻璃屋頂與 L3 鏡牆不得被清水模材質覆蓋。
 - 藥劑分間 `publicAccess=false` 且 `separateVentilation=true`。
 - 結構策略 `isolatedColumnsAllowed=false`、`glassCarriesGravityLoad=false`。
 - `ST-01` 是方案 E：2.70＋3.10＋2.70 m、20 級高／18 踏面，從 +0.30 m 在 X29 直接接 L2 +3.30 m。
@@ -80,10 +83,10 @@ type SiteBoundsEntity = {
 `model.sheets` 只保留：
 
 1. `REF-001`
-2. `V060-L1`
-3. `V060-L2`
-4. `V060-L3`
-5. `V060-SECTION`
+2. `V061-L1`
+3. `V061-L2`
+4. `V061-L3`
+5. `V061-SECTION`
 
 v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Viewer／solar-study 的最新圖面連結。
 
