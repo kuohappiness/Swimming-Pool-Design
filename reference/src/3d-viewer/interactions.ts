@@ -6,17 +6,15 @@ interface SelectionOptions {
   canvas: HTMLCanvasElement;
   camera: THREE.PerspectiveCamera;
   controls: OrbitControls;
-  scene: THREE.Scene;
   selectables: SelectableInfo[];
   objectSelect: HTMLSelectElement;
   onSelect: (selection: SelectableInfo) => void;
 }
 
 export function setupSelection(options: SelectionOptions) {
-  const { canvas, camera, controls, scene, selectables, objectSelect, onSelect } = options;
+  const { canvas, camera, controls, selectables, objectSelect, onSelect } = options;
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  let outline: THREE.BoxHelper | null = null;
   let currentIndex = -1;
 
   objectSelect.replaceChildren(new Option('選擇模型構件…', ''));
@@ -26,11 +24,6 @@ export function setupSelection(options: SelectionOptions) {
 
   const select = (selection: SelectableInfo, index = selectables.indexOf(selection)) => {
     currentIndex = index;
-    if (outline) scene.remove(outline);
-    outline = new THREE.BoxHelper(selection.object, 0xffd16b);
-    outline.material.depthTest = false;
-    outline.renderOrder = 20;
-    scene.add(outline);
     objectSelect.value = String(index);
     onSelect(selection);
   };
@@ -72,6 +65,5 @@ export function setupSelection(options: SelectionOptions) {
     canvas.removeEventListener('pointerup', selectFromPointer);
     canvas.removeEventListener('keydown', selectFromKeyboard);
     objectSelect.removeEventListener('change', selectFromList);
-    if (outline) scene.remove(outline);
   };
 }

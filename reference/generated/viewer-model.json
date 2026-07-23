@@ -1,15 +1,26 @@
 {
   "schemaVersion": "1.3.0",
-  "modelVersion": "0.6.5",
+  "modelVersion": "0.6.6",
   "revision": "2026-07-24",
-  "activeGeometryRevisionId": "GEO-0.6.5",
+  "activeGeometryRevisionId": "GEO-0.6.6",
   "coordinateSystemId": "SITE-XY",
-  "modelHash": "8b51bb4da2aa30b755341851a9307cb2c941cabe7b28ec33258a47efdaf03acb",
+  "modelHash": "ded80f25500cb81bb9d4d60cc757d4b8b0ad980af9c39a5e9fc42c6a870ced6a",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
     "purpose": "概念設計與空間參照",
     "disclaimer": "概念設計，非施工、結構、消防或法規核定圖說"
+  },
+  "viewerPresentation": {
+    "selectionOutline": "none",
+    "selectionChannels": [
+      "canvas",
+      "keyboard",
+      "dropdown",
+      "information-panel"
+    ],
+    "glassFacadeMaterialSystem": "shared-safety-glass-facade",
+    "status": "confirmed"
   },
   "referenceSystem": {
     "unit": "m",
@@ -1179,6 +1190,7 @@
           "y2": 0.14
         },
         "materialIntent": "full-width-safety-glass",
+        "viewerMaterialSystem": "shared-safety-glass-facade",
         "opaqueSegments": false,
         "status": "confirmed"
       },
@@ -2141,6 +2153,8 @@
         "l2-review-a-changing-shower-layout",
         "floating-st02-and-removable-under-stair-planting",
         "full-width-l2-y0-glass",
+        "shared-glass-facade-material-system",
+        "selection-outline-removed",
         "segmented-l1-y0-glass-and-service-concrete-facade",
         "west-setback-glass-eave-and-rainwater-recovery",
         "rear-service-glass-canopy-to-y14.5",
@@ -2232,7 +2246,7 @@
       "sourceIds": [
         "SRC-SITE-003"
       ],
-      "disclaimer": "0.6.5 概念模型已同步；鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。"
+      "disclaimer": "0.6.6 概念模型已同步；本版只修正 Viewer 選取與玻璃顯示，鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。"
     }
   }
 }

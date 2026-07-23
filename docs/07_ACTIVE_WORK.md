@@ -228,7 +228,17 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-050` 已完成並收斂為 [Release 0.6.5](releases/0.6.5.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 13. 未排程設計問題
+## 13. 0.6.6 任務
+
+0.6.6 依 2026-07-24 使用者檢視公開 Viewer 後核准兩項視覺修正：取消干擾性的黃色選取外接框，並讓 L2 Y0 全寬玻璃與其他安全玻璃外牆採相同顯示方式。幾何與日照分析輸入均不變，不重新執行日照最佳化。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-051 | 修正 Viewer 選取框與 L2 Y0 玻璃視覺，完成 0.6.6 同步發布 | done | 0.6.6 | [DEC-114／DEC-115](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-050 | 已移除 Three.js `BoxHelper` 選取外接框，仍可用畫布、鍵盤、下拉選單選取並由右側面板讀取資訊；L2 Y0 X29～X41 與其他安全玻璃外牆共用同一淡藍透明材質、高光、邊框及豎梃，Y2.5 清水模牆保持後方獨立。池側／校側固定視角改由 SITE-XY Y0／Y14 轉換，桌機截圖確認後牆存在時前景玻璃仍可辨識。模型、V066 圖面、Viewer／solar-study／圖集 HTML、文件與測試已同步；solar inputHash 維持 current、未跑最佳化，完整 build、E2E、視覺檢查與 `git diff --check` 通過。 |
+
+`TASK-051` 已完成並收斂為 [Release 0.6.6](releases/0.6.6.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
+
+## 14. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

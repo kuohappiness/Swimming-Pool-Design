@@ -1,14 +1,14 @@
 {
   "name": "swimming-pool-design",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "private": true,
   "type": "module",
   "scripts": {
     "predev": "npm run build:content",
     "dev": "vite --host 0.0.0.0",
     "build:content": "node scripts/build-public-content.mjs",
-    "drawings:v065": "node scripts/generate-current-drawings.mjs && node scripts/render-draft-svgs.mjs reference/drafts/v0.6.5/DRAW-L1-PLAN-v0.6.5.svg reference/drafts/v0.6.5/DRAW-L2-PLAN-v0.6.5.svg reference/drafts/v0.6.5/DRAW-L3-PLAN-v0.6.5.svg reference/drafts/v0.6.5/DRAW-LONGITUDINAL-SECTION-v0.6.5.svg",
-    "analyze:solar:v065": "node scripts/solar-optimize-current.mjs",
+    "drawings:v066": "node scripts/generate-current-drawings.mjs && node scripts/render-draft-svgs.mjs reference/drafts/v0.6.6/DRAW-L1-PLAN-v0.6.6.svg reference/drafts/v0.6.6/DRAW-L2-PLAN-v0.6.6.svg reference/drafts/v0.6.6/DRAW-L3-PLAN-v0.6.6.svg reference/drafts/v0.6.6/DRAW-LONGITUDINAL-SECTION-v0.6.6.svg",
+    "analyze:solar:v066": "node scripts/solar-optimize-current.mjs",
     "check:docs": "node scripts/check-docs.mjs",
     "validate:reference": "node scripts/validate-reference-model.mjs",
     "pretest": "npm run build:content",

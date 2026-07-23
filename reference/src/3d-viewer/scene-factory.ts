@@ -221,10 +221,17 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     metalness: 0, transmission: 0.3, side: THREE.DoubleSide, depthWrite: false,
   });
   const wallGlass = glass.clone();
-  wallGlass.color.set(0x8fd7e5);
-  wallGlass.opacity = 0.34;
-  wallGlass.roughness = 0.1;
-  wallGlass.transmission = 0.16;
+  wallGlass.name = 'SHARED-SAFETY-GLASS-FACADE-MATERIAL';
+  wallGlass.color.set(0x83ddea);
+  wallGlass.opacity = 0.56;
+  wallGlass.roughness = 0.06;
+  wallGlass.transmission = 0;
+  wallGlass.clearcoat = 1;
+  wallGlass.clearcoatRoughness = 0.06;
+  wallGlass.ior = 1.45;
+  wallGlass.reflectivity = 0.9;
+  wallGlass.emissive.set(0x2d94a6);
+  wallGlass.emissiveIntensity = 0.22;
   const waterMaterial = new THREE.MeshPhysicalMaterial({
     color: PALETTE.water, transparent: true, opacity: 0.68, roughness: 0.16,
     metalness: 0.03, transmission: 0.18, side: THREE.DoubleSide, depthWrite: false,
@@ -663,15 +670,11 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   ], l2Data.baseElevation + 0.016, stairZoneMaterial);
   l2Group.add(corridorSurface, stairZoneSurface);
   const l2Y0Facade = new THREE.Group();
-  const l2FacadeGlass = wallGlass.clone();
-  l2FacadeGlass.color.set(0x79cfe2);
-  l2FacadeGlass.opacity = 0.46;
-  l2FacadeGlass.roughness = 0.08;
-  l2FacadeGlass.transmission = 0.1;
+  l2Y0Facade.userData.viewerMaterialSystem = l2Data.y0ExteriorFacade.viewerMaterialSystem;
   l2Y0Facade.add(box(
     [l2Data.length, l2WallHeight, l2Data.y0ExteriorFacade.bounds.y2 - l2Data.y0ExteriorFacade.bounds.y1],
     [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.y0ExteriorFacade.bounds.y2 / 2],
-    l2FacadeGlass,
+    wallGlass,
   ));
   for (let x = l2Data.startX; x <= l2Data.endX + 0.01; x += 2) {
     l2Y0Facade.add(box([0.065, l2WallHeight, 0.08], [

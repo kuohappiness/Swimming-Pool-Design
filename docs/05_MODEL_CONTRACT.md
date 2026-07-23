@@ -7,8 +7,8 @@
 現行版本契約：
 
 - `schemaVersion = 1.3.0`
-- `modelVersion = designTargetVersion = 0.6.5`
-- `activeGeometryRevisionId = GEO-0.6.5`
+- `modelVersion = designTargetVersion = 0.6.6`
+- `activeGeometryRevisionId = GEO-0.6.6`
 - active revision 的 `id` 必須只出現一次，且 `revision`、`modelVersion` 均須等於頂層 `modelVersion`。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
@@ -89,6 +89,8 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 - `POOL-01` 為 25.0 × 8.5 m，完整位於泳池大廳內，且不與 `ST-01` 或服務翼重疊。
 - L1 具有四間互不相通廁所；泳池組恰有兩個 X31 入口，操場組恰有兩個 X39 入口。四個入口皆為 1.00 m 無門板開口且不設遮擋版，男廁入口／洗手台靠低 Y，女廁入口／洗手台靠高 Y；8 座 WC 隔間貼 Y3.5 並保留門板，泳池男廁其中一座小便斗位於 X31 且不阻擋入口。操場男廁為 1 WC＋2 小便斗＋2 洗手槽，操場女廁為 2 WC＋2 洗手槽；0.6.3 新增器具緊鄰原有同類器具且不搬移原器具。
 - L1 西端外牆退至 X0.5，`EN-01` 平移到 X1～X3；L1 Y0 的 X0.5～X31 為泳池端安全玻璃，只有 X31～X39 服務本體採自然灰清水模。L2 Y0 外牆 X29～X41 全寬採安全玻璃，不混入不透明牆段。
+- Viewer 的 L2 Y0 外牆必須和其他安全玻璃外牆共用同一材質／高光／框線系統，不得以只存在於資料層的 `materialIntent` 代替視覺驗收；後方 Y2.5 清水模牆仍保持獨立。
+- Viewer 構件選取只更新下拉選單與右側資訊面板，3D 畫布不得建立、保留或穿透顯示任何 `BoxHelper` 外接選取框。
 - X0～X0.5 為傾斜玻璃突出屋簷並由 `RW-WEST-01` 接入雨水回收；X31～X39／Y13.5～Y14.5 為服務中心後側透明玻璃屋簷。SITE-XY 仍為 Y0～Y14，Y14～Y14.5 只標示突出建築邊線。
 - 服務區 L1～L3 所有不透明量體採清水模材質意圖；玻璃屋頂與 L3 鏡牆不得被清水模材質覆蓋。
 - 藥劑分間 `publicAccess=false` 且 `separateVentilation=true`。
@@ -111,10 +113,10 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 `model.sheets` 只保留：
 
 1. `REF-001`
-2. `V065-L1`
-3. `V065-L2`
-4. `V065-L3`
-5. `V065-SECTION`
+2. `V066-L1`
+3. `V066-L2`
+4. `V066-L3`
+5. `V066-SECTION`
 
 v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Viewer／solar-study 的最新圖面連結。
 

@@ -100,6 +100,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
     coordinateSystemId: active.coordinateSystemId,
     modelHash: currentModelHash,
     project: structuredClone(model.project),
+    viewerPresentation: structuredClone(active.viewerPresentation),
     referenceSystem: {
       unit: model.referenceSystem.unit,
       angleUnit: model.referenceSystem.angleUnit,
@@ -280,7 +281,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         recordedAnalysisInputHash,
         currentAnalysisInputHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: '0.6.5 概念模型已同步；鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。',
+        disclaimer: '0.6.6 概念模型已同步；本版只修正 Viewer 選取與玻璃顯示，鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。',
       },
     },
   };

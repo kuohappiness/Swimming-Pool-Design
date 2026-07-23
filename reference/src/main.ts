@@ -38,7 +38,7 @@ const statusLabel: Record<Status, string> = {
 function sheetMeta(sheet: SheetRender): string {
   const definition = model.sheets.find((item) => item.id === sheet.id);
   const title = definition?.title ?? sheet.title ?? sheet.id;
-  const pvToggle = sheet.id === 'V065-L3'
+  const pvToggle = sheet.id === 'V066-L3'
     ? '<label><input id="toggle-pv" type="checkbox" checked /> 太陽能板</label>'
     : '';
   return `<div class="sheet-toolbar">

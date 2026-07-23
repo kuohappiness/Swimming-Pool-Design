@@ -120,6 +120,8 @@ try {
     shell.dataset.toiletEntranceDoorLeaves = String(model.geometry.l1.toiletEntrances.filter(({ doorLeaf }) => doorLeaf).length);
     shell.dataset.wcCubicleDoorLeaves = String(Object.values(model.geometry.l1.zones).flatMap((zone) => zone.layout?.toiletCubicles ?? []).filter(({ doorLeaf }) => doorLeaf).length);
     shell.dataset.serviceMaterial = model.geometry.l1.serviceWingStyle.materialIntent;
+    shell.dataset.selectionOutline = model.viewerPresentation.selectionOutline;
+    shell.dataset.glassFacadeMaterialSystem = model.viewerPresentation.glassFacadeMaterialSystem;
     shell.dataset.playgroundMaleWashbasins = String(model.geometry.l1.zones.playgroundMaleToilet.fixtures?.washbasins ?? 0);
     shell.dataset.playgroundMaleUrinals = String(model.geometry.l1.zones.playgroundMaleToilet.fixtures?.urinals ?? 0);
     shell.dataset.playgroundFemaleWashbasins = String(model.geometry.l1.zones.playgroundFemaleToilet.fixtures?.washbasins ?? 0);
@@ -160,7 +162,7 @@ try {
         ${selection.openItemId ? `<a href="../../docs/04_DECISIONS_AND_OPEN_ITEMS.md#${selection.openItemId.toLowerCase()}">${selection.openItemId} · 尚待確認</a>` : ''}`;
     };
     setupSelection({
-      canvas: renderer.domElement, camera, controls, scene: graph.scene,
+      canvas: renderer.domElement, camera, controls,
       selectables: graph.selectables, objectSelect, onSelect: renderSelection,
     });
 
@@ -256,15 +258,23 @@ try {
         setPoolCutaway(false);
         camera.fov = 38;
         camera.updateProjectionMatrix();
-        const views = {
-          perspective: { position: [34, 25, 30], target: [0, 2.4, 0] },
-          top: { position: [0, 58, 0.01], target: [0, 0, 0] },
-          elevation: { position: [0, 9, 52], target: [0, 3.2, 0] },
-          opposite: { position: [0, 9, -52], target: [0, 3.2, 0] },
-        }[mode];
-        camera.position.set(...views.position as [number, number, number]);
-        controls.target.set(...views.target as [number, number, number]);
-        controls.update();
+        if (mode === 'elevation' || mode === 'opposite') {
+          graph.siteRoot.updateWorldMatrix(true, false);
+          const centreX = model.geometry.site.length / 2;
+          const centreY = model.geometry.site.width / 2;
+          const outsideY = mode === 'elevation' ? -38 : model.geometry.site.width + 38;
+          camera.position.copy(graph.siteRoot.localToWorld(new THREE.Vector3(centreX, 9, outsideY)));
+          controls.target.copy(graph.siteRoot.localToWorld(new THREE.Vector3(centreX, 3.2, centreY)));
+          controls.update();
+        } else {
+          const views = {
+            perspective: { position: [34, 25, 30], target: [0, 2.4, 0] },
+            top: { position: [0, 58, 0.01], target: [0, 0, 0] },
+          }[mode];
+          camera.position.set(...views.position as [number, number, number]);
+          controls.target.set(...views.target as [number, number, number]);
+          controls.update();
+        }
       }
       required<HTMLElement>('[data-view-controls]').querySelectorAll<HTMLButtonElement>('button[data-view]').forEach((button) => {
         const active = button.dataset.view === mode;
