@@ -11,7 +11,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = async (path) => JSON.parse(await readFile(resolve(repoRoot, path), 'utf8'));
 const model = await readJson('model/project-model.json');
 
-test('v0.6.1 authoritative model and source bytes pass the current contract', async () => {
+test('v0.6.2 authoritative model and source bytes pass the current contract', async () => {
   assert.deepEqual(validateModel(model), []);
   assert.deepEqual(await validateSourceFiles(model, repoRoot), []);
 });
@@ -20,17 +20,17 @@ test('package, lockfile, model, and README release versions stay synchronized', 
   const packageJson = await readJson('package.json');
   const lockfile = await readJson('package-lock.json');
   const readme = await readFile(resolve(repoRoot, 'README.md'), 'utf8');
-  assert.equal(packageJson.version, '0.6.1');
+  assert.equal(packageJson.version, '0.6.2');
   assert.equal(lockfile.version, packageJson.version);
   assert.equal(lockfile.packages[''].version, packageJson.version);
   assert.equal(model.modelVersion, packageJson.version);
-  assert.match(readme, /套件版本：`0\.6\.1`/);
-  assert.match(readme, /模型版本：`0\.6\.1`/);
+  assert.match(readme, /套件版本：`0\.6\.2`/);
+  assert.match(readme, /模型版本：`0\.6\.2`/);
 });
 
 test('active revision is the only geometry source and uses SITE-XY', () => {
   const active = resolveActiveGeometry(model);
-  assert.equal(active.id, 'GEO-0.6.1');
+  assert.equal(active.id, 'GEO-0.6.2');
   assert.equal(active.modelVersion, model.modelVersion);
   assert.equal(active.coordinateSystemId, 'SITE-XY');
   assert.deepEqual(resolveGeometryEntity(active, 'ST-01').bounds, { x1: 20.5, x2: 29, y1: 0.5, y2: 2 });
@@ -51,7 +51,7 @@ test('active resolver fails closed when the selector is missing, unknown, duplic
   assert.throws(() => resolveActiveGeometry(duplicate), /must resolve exactly once; found 2/);
 
   const drifted = structuredClone(model);
-  drifted.geometryRevisions.find(({ id }) => id === drifted.activeGeometryRevisionId).modelVersion = '0.6.2';
+  drifted.geometryRevisions.find(({ id }) => id === drifted.activeGeometryRevisionId).modelVersion = '0.6.1';
   assert.throws(() => resolveActiveGeometry(drifted), /revision and modelVersion must match/);
 });
 
@@ -71,9 +71,9 @@ test('active resolver rejects missing frames, duplicate entity IDs, and unframed
   assert.throws(() => resolveActiveGeometry(missingFrame), /must declare coordinateSystemId SITE-XY/);
 });
 
-test('derived geometry exposes the confirmed v0.6.1 pool, floors, roof, and stair', () => {
+test('derived geometry exposes the confirmed v0.6.2 pool, floors, roof, and stair', () => {
   const geometry = deriveReferenceGeometry(model);
-  assert.equal(geometry.activeGeometryRevisionId, 'GEO-0.6.1');
+  assert.equal(geometry.activeGeometryRevisionId, 'GEO-0.6.2');
   assert.equal(geometry.siteLength, 41);
   assert.equal(geometry.siteWidth, 14);
   assert.equal(geometry.poolLength, 25);
@@ -100,6 +100,9 @@ test('L1 keeps four independent toilets, equipment rooms, and separated entrance
   assert.equal(zones.poolFemaleToilet.layout.washbasinWall, 'y7.5');
   assert.equal(zones.playgroundFemaleToilet.layout.washbasinWall, 'y7.5');
   assert.ok(Object.values(zones).filter(({ layout }) => layout).every(({ layout }) => layout.toiletCubicles.every(({ doorLeaf }) => doorLeaf)));
+  assert.ok(Object.values(zones).filter(({ layout }) => layout).every(({ layout, privacyScreen }) => privacyScreen === false && layout.privacyScreen === undefined));
+  assert.ok(Object.values(zones).filter(({ layout }) => layout).every(({ layout }) => layout.toiletCubicles.every(({ wallContact }) => wallContact === 'y3.5')));
+  assert.ok(zones.poolMaleToilet.layout.urinals.some(({ center, wallContact }) => center[0] === 31.18 && wallContact === 'x31'));
   assert.equal(active.l1.toiletEntrances.length, 4);
   assert.ok(active.l1.toiletEntrances.every(({ clearWidth, doorLeaf, openingType }) => clearWidth === 1 && doorLeaf === false && openingType === 'doorless-opening'));
   assert.equal(active.l1.serviceWing.architecturalStyle.materialIntent, 'fair-faced-exposed-concrete');
@@ -107,6 +110,32 @@ test('L1 keeps four independent toilets, equipment rooms, and separated entrance
   assert.equal(zones.chemicalRoom.separateVentilation, true);
   assert.equal(active.l1.structuralStrategy.isolatedColumnsAllowed, false);
   assert.equal(active.l1.structuralStrategy.glassCarriesGravityLoad, false);
+});
+
+test('L2 provides 30 one-metre showers and scheme-one ST-02 without a diagonal run', () => {
+  const l2 = resolveActiveGeometry(model).l2;
+  for (const zone of Object.values(l2.zones)) {
+    assert.equal(zone.showerCount, 15);
+    assert.equal(zone.showerCubicles.length, 15);
+    assert.ok(zone.showerCubicles.every(({ planBounds }) => planBounds.x2 - planBounds.x1 === 1 && planBounds.y2 - planBounds.y1 === 1));
+  }
+  assert.deepEqual(l2.stairToL3.bounds, { x1: 32.5, x2: 41, y1: 0.5, y2: 2 });
+  assert.equal(l2.stairToL3.axis, '+x');
+  assert.equal(l2.stairToL3.riserCount, 22);
+  assert.deepEqual(l2.stairToL3.yBandLocked, [0.5, 2]);
+});
+
+test('L3 adds a covered orthogonal arrival and a staff-only controlled terrace', () => {
+  const l3 = resolveActiveGeometry(model).l3;
+  assert.equal(l3.planRotation, 25.5);
+  assert.deepEqual(l3.planPivot, { x: 35, y: 6.75, strategy: 'floor-plate-centroid-and-fixed-core-proxy', status: 'working' });
+  assert.equal(l3.orthogonalExtension.grossArea, 6.935);
+  assert.equal(l3.arrivalWing.covered, true);
+  assert.equal(l3.arrivalWing.connectsStairToIndoorL3, true);
+  assert.equal(l3.landscapeTerrace.access, 'teachers-and-maintenance-only');
+  assert.equal(l3.landscapeTerrace.studentsAllowed, false);
+  assert.equal(l3.landscapeTerrace.visitorsAllowed, false);
+  assert.equal(l3.landscapeTerrace.primaryEgress, false);
 });
 
 test('ST-01 scheme E connects the +0.30 m deck directly to L2', () => {
@@ -123,27 +152,34 @@ test('ST-01 scheme E connects the +0.30 m deck directly to L2', () => {
   assert.equal(stair.underStairEnclosure, false);
 });
 
-test('current sheet registry and atlas source contain only latest v0.6.1 drawings', async () => {
-  assert.deepEqual(model.sheets.map(({ id }) => id), ['REF-001', 'V061-L1', 'V061-L2', 'V061-L3', 'V061-SECTION']);
+test('current sheet registry and atlas source contain only latest v0.6.2 drawings', async () => {
+  assert.deepEqual(model.sheets.map(({ id }) => id), ['REF-001', 'V062-L1', 'V062-L2', 'V062-L3', 'V062-SECTION']);
   const sheetsSource = await readFile(resolve(repoRoot, 'reference/src/sheets.ts'), 'utf8');
-  for (const id of ['V061-L1', 'V061-L2', 'V061-L3', 'V061-SECTION']) assert.match(sheetsSource, new RegExp(id));
+  for (const id of ['V062-L1', 'V062-L2', 'V062-L3', 'V062-SECTION']) assert.match(sheetsSource, new RegExp(id));
   assert.doesNotMatch(sheetsSource, /V23-|v0\.5\.0\/DRAW/);
 });
 
 test('all four reproducible drawings carry active revision and SITE-XY metadata', async () => {
   const names = ['DRAW-L1-PLAN', 'DRAW-L2-PLAN', 'DRAW-L3-PLAN', 'DRAW-LONGITUDINAL-SECTION'];
   for (const name of names) {
-    const base = resolve(repoRoot, 'reference/drafts/v0.6.1', `${name}-v0.6.1`);
+    const base = resolve(repoRoot, 'reference/drafts/v0.6.2', `${name}-v0.6.2`);
     const svg = await readFile(`${base}.svg`, 'utf8');
     await access(`${base}.png`);
-    assert.match(svg, /data-model-version="0\.6\.1"/);
-    assert.match(svg, /data-active-geometry="GEO-0\.6\.1"/);
+    assert.match(svg, /data-model-version="0\.6\.2"/);
+    assert.match(svg, /data-active-geometry="GEO-0\.6\.2"/);
     assert.match(svg, /data-coordinate-system="SITE-XY"/);
     assert.match(svg, /非施工圖/);
     if (name !== 'DRAW-LONGITUDINAL-SECTION') {
       assert.match(svg, /data-north-plan-direction="lower-right"/);
       assert.match(svg, /data-north-rotation="127"/);
     }
+    if (name === 'DRAW-L1-PLAN') assert.doesNotMatch(svg, /data-privacy-screen="true"/);
+    if (name === 'DRAW-L2-PLAN') {
+      assert.match(svg, /data-grid-visible="true"/);
+      assert.equal((svg.match(/data-shower-cubicle=/g) ?? []).length, 30);
+      assert.match(svg, /data-entity="ST-02"/);
+    }
+    if (name === 'DRAW-L3-PLAN') assert.match(svg, /教師／維修專用景觀區/);
   }
 });
 

@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
   "solar": {
-    "modelHash": "a0de87c2f0c9c2a705193f73651d8fe92fa3983baf5bb695b065af2f7b5d3517",
-    "validatedAt": "2026-07-22",
+    "modelHash": "7b56d25d3b199da321107cc48158d327c5bc6b9ed182403c29e521f2af7d3e1c",
+    "validatedAt": "2026-07-23",
     "sourceIds": ["SRC-SITE-003"],
     "validation": [
       "tests/solar-angle-analysis.test.mjs",
       "tests/solar-reflection.test.mjs",
       "tests/solar-energy-analysis.test.mjs"
     ],
-    "scope": "v0.6.0 25 × 8.5 m 池體、L3 +25.5°／鏡牆外傾 +23.0°、X=35 m 工作支點、X=33～41 m 敏感度、有限池面交點與 PVGIS TMY 有鏡／無鏡能量分析；23° 外傾須經結構、構造、眩光與維修專業驗證"
+    "scope": "v0.6.2 25 × 8.5 m 池體、L3 旋轉主體 +25.5°／鏡牆外傾 +23.0°、X=35 m 工作支點、X=33～41 m 敏感度、有限池面交點與 PVGIS TMY 有鏡／無鏡能量分析；新增正交到達翼／景觀擴板不改變鏡牆輸入角度，完整重算仍維持暖季 0、冷季 +1,036.829 kWh；23° 外傾與新增樓板均須經結構、構造、眩光與維修專業驗證"
   }
 }

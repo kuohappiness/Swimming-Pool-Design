@@ -20,7 +20,7 @@
         <span data-model-hash>—</span>
         <span class="analysis-badge" data-analysis-status data-status="unavailable">分析狀態</span>
       </div>
-      <div class="compass" data-compass><span>N</span><i></i></div>
+      <div class="compass" data-compass data-north-direction="lower-right"><span>N</span><i aria-hidden="true">↘</i></div>
     </header>
 
     <aside class="controls-panel" aria-label="3D Viewer 控制">
@@ -28,7 +28,7 @@
         <p class="section-kicker">NARRATIVE SCENES</p>
         <h2>觀看關係</h2>
         <nav class="viewer-links" aria-label="相關成果">
-          <a href="../#V061-L1">v0.6.1 平面／剖面</a>
+          <a href="../#V062-L1">v0.6.2 平面／剖面</a>
           <a href="../solar-study/">日照研究</a>
         </nav>
         <nav class="scene-nav" data-scene-nav aria-label="敘事場景"></nav>
@@ -52,6 +52,9 @@
 
     <section class="viewport-panel" aria-label="3D 模型視窗">
       <div class="canvas-host" data-canvas-host>
+        <div class="orientation-cue" data-orientation-cue data-north-direction="lower-right" role="img" aria-label="真北指向畫面右下角">
+          <span>真北 N</span><strong aria-hidden="true">↘</strong>
+        </div>
         <div class="loading" data-loading role="status"><span></span><p>正在建立統一模型…</p></div>
         <section class="webgl-fallback" data-webgl-fallback hidden>
           <div class="fallback-illustration" aria-hidden="true">

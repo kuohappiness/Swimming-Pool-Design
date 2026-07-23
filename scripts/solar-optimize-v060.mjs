@@ -16,13 +16,13 @@ const coarse = scanMirrorEnergyAngles(model, weather, {
   planRotations: range(-20, 40, 2),
   leanAngles: range(10, 40, 2),
 });
-if (!coarse.bestStrictWarmZero) throw new Error('No coarse strict-warm-zero v0.6.0 candidate was found.');
+if (!coarse.bestStrictWarmZero) throw new Error('No coarse strict-warm-zero current-model candidate was found.');
 const seed = coarse.bestStrictWarmZero.input;
 const fine = scanMirrorEnergyAngles(model, weather, {
   planRotations: range(Math.max(-20, seed.planRotation - 2), Math.min(40, seed.planRotation + 2), 0.5),
   leanAngles: range(Math.max(-10, seed.mirrorLeanFromVertical - 2), Math.min(40, seed.mirrorLeanFromVertical + 2), 0.5),
 });
-if (!fine.bestStrictWarmZero) throw new Error('No fine strict-warm-zero v0.6.0 candidate was found.');
+if (!fine.bestStrictWarmZero) throw new Error('No fine strict-warm-zero current-model candidate was found.');
 const best = fine.bestStrictWarmZero.input;
 const current = evaluateMirrorEnergy(model, weather, {
   planRotation: best.planRotation,

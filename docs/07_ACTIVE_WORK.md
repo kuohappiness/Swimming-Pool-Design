@@ -178,7 +178,19 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 0.6.1 樓梯回歸根因（2026-07-22）：0.6.0 完成了「資料選 active」但沒有完成「渲染座標保持同一手性」。`SITE X→Three X／SITE Y→Three +Z／SITE Z→Three Y` 交換 Y、Z 後的行列式為負，俯視時必然鏡射 Y 軸；測試當時只確認 JSON 中 ST-01 的 X 值與部分尺寸，沒有驗證 Three scene 的 Y 方向。加上 Viewer payload 仍複製 `originY`，因此文件聲稱單一 bounds，consumer 卻仍保有第二套語意。本輪將資料選取、adapter 手性、scene root 與實際 Y0 關係拆成四層回歸門檻，後續不得只用「JSON 值正確」替代渲染驗證。
 
-## 9. 未排程設計問題
+## 9. 0.6.2 任務
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-039 | 移除四間廁所入口遮擋板，將 8 座 WC 集中到 Y3.5 牆並調整泳池男廁 1 座小便斗 | done | 0.6.2 | [DEC-083～DEC-087](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-008／OPEN-009 | TASK-037 | canonical model、L1 平面與 3D Viewer 已一致移除四片入口隱私屏風，入口可直視洗手台；泳池女廁 3 WC、泳池男廁 2 WC、操場女廁 2 WC、操場男廁 1 WC 均沿 Y3.5 牆排列；泳池男廁其中 1 座小便斗位於 X31 且不遮擋入口。驗證器與 SVG 測試鎖定無遮擋版、器具數、Y3.5 接牆與 X31 小便斗。 |
+| TASK-040 | 強化 3D Viewer 方位標示，加入指向右下角的真北箭頭 | done | 0.6.2 | [DEC-088](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-036 | Viewer header 與 canvas 均以固定畫面 `N ↘` 提示真北指向右下角，桌面與行動 CSS 均保留可見；模型 SITE-XY、+X＝307°、Three adapter、鏡頭控制與圖面真北不變，DOM／browser smoke 鎖定方向屬性。 |
+| TASK-041 | 同步 0.6.2 模型、圖面、Viewer、文件與版本並完成發布驗證 | done | 0.6.2 | [DEC-083～DEC-093](04_DECISIONS_AND_OPEN_ITEMS.md)、[發布流程](06_WORKFLOW_AND_RELEASES.md) | TASK-039、TASK-040、TASK-042、TASK-043 | package、lockfile、modelVersion、`GEO-0.6.2`、V062 sheets／SVG／PNG／HTML、文件與測試均已同步；solar registry 依現行模型重算，完整 build、桌面／行動 Viewer smoke、視覺檢查及 `git diff --check` 通過後發布。 |
+| TASK-042 | 修正 2F 平面圖的 SITE-XY 0.5 m 格線被底色遮蔽 | done | 0.6.2 | [DEC-065](04_DECISIONS_AND_OPEN_ITEMS.md) | TASK-038 | 2F current SVG／PNG 在完整 1F 參照範圍內顯示 0.5 m 次格線、2.5 m 主格線及 X／Y 數值標籤；格線群組置於參照／分區填色上方、器具與文字下方，並以 `data-grid-visible` 結構測試及視覺檢查鎖定。 |
+| TASK-043 | 實作 2F 男女各 15 間 1 × 1 m 淋浴、方案一 ST-02，以及 3F 正交擴板／到達翼／受控景觀區 | done | 0.6.2 | [DEC-089～DEC-093](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-019／OPEN-020 | TASK-042 | `GEO-0.6.2` 明列男女各 15 間淨 1.00 × 1.00 m 淋浴；ST-02 由 X32.5 起步、固定 Y0.5～2 並朝 +X；3F 主矩形仍為 +25.5°／X35-Y6.75，另增 6.935 m² 正交三角擴板、2.964 m² 有頂室內到達翼與淨 3.971 m² 教師／維修專用景觀區。圖面、Viewer、模型／型別／browser 測試均同步，專業安全細節續由 OPEN-019／020 管理。 |
+
+本批修正於 2026-07-23 依使用者指示先完整記錄，尚未修改模型、圖面、Viewer 或版本號。Y3.5 集中管線牆與 X31 小便斗為概念上可行的配置，實作仍不得省略隔間淨寬、入口淨空、檢修管道及無障礙檢核。
+
+## 10. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

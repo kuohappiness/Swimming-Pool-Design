@@ -44,6 +44,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
   const l3 = resolveGeometryEntity(active, 'L3-PLATE-01');
   const roof = resolveGeometryEntity(active, 'RF-GL-01');
   const stair = resolveGeometryEntity(active, 'ST-01');
+  const stairToL3 = resolveGeometryEntity(active, 'ST-02');
   const currentModelHash = hashData(model);
   const recordedModelHash = analysisRegistry?.solar?.modelHash ?? null;
   const analysisStatus = recordedModelHash === null
@@ -127,6 +128,14 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         planRotation: confirmed(active.l2.planRotation, []),
         poolAtriumOverlap: active.l2.poolAtriumOverlap,
         rightSetbackOverhang: active.l2.rightSetbackOverhang,
+        gridDisplay: structuredClone(active.l2.gridDisplay),
+        zones: structuredClone(active.l2.zones),
+        stairToL3: {
+          ...structuredClone(active.l2.stairToL3),
+          flightRun: active.l2.stairToL3.runLengthPerFlight,
+          midLandingElevation: active.l2.stairToL3.lowerElevation + active.l2.stairToL3.totalRise / 2,
+          bounds: structuredClone(stairToL3.bounds),
+        },
         planPivot: {
           x: l3Data.planPivot.x, y: l3Data.planPivot.y, z: active.levels.l2Elevation,
           status: 'working', strategy: 'fixed-floor-plate-centroid', openItemId: 'OPEN-016',
@@ -155,6 +164,9 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         },
         highLevelEquipment: structuredClone(l3Data.highLevelEquipment),
         equipmentPlacementRule: l3Data.equipmentPlacementRule,
+        orthogonalExtension: structuredClone(l3Data.orthogonalExtension),
+        arrivalWing: structuredClone(l3Data.arrivalWing),
+        landscapeTerrace: structuredClone(l3Data.landscapeTerrace),
       },
       roof: {
         bounds: structuredClone(roof.bounds),
@@ -214,7 +226,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         recordedModelHash,
         currentModelHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: '0.6.1 池體與量體已同步；全年光熱、眩光、結構與安全性能仍待專業驗證。',
+        disclaimer: '0.6.2 概念模型已同步；鏡牆角度未變，新增樓板、樓梯與景觀區仍須結構、消防、排水及法規專業驗證。',
       },
     },
   };

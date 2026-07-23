@@ -19,9 +19,9 @@ export interface ViewerZone {
     entranceRangeY: [number, number];
     washbasinWall: string;
     washbasins: Array<{ center: [number, number]; facing: string }>;
-    toiletCubicles: Array<{ planBounds: SiteBounds; doorSide: string; doorLeaf: true }>;
-    urinals: Array<{ center: [number, number]; facing: string }>;
-    privacyScreen: { planBounds: SiteBounds; height: number };
+    toiletCubicles: Array<{ planBounds: SiteBounds; doorSide: string; doorLeaf: true; wallContact?: string }>;
+    urinals: Array<{ center: [number, number]; facing: string; wallContact?: string }>;
+    privacyScreen?: { planBounds: SiteBounds; height: number };
   };
   status: string;
   [key: string]: unknown;
@@ -121,6 +121,21 @@ export interface ViewerModel {
       planRotation: ViewerMeasure;
       poolAtriumOverlap: number;
       rightSetbackOverhang: number;
+      gridDisplay: { minorSpacing: number; majorSpacing: number; axisLabels: boolean; status: string };
+      zones: Record<'maleChangingShower' | 'femaleChangingShower', ViewerZone & {
+        showerCount: number;
+        showerClearSize: [number, number];
+        showerCubicles: Array<{ id: string; planBounds: SiteBounds }>;
+      }>;
+      stairToL3: {
+        entityId: 'ST-02'; coordinateSystemId: 'SITE-XY'; bounds: SiteBounds;
+        lowerElevation: number; upperElevation: number; totalRise: number; clearWidth: number;
+        axis: '+x'; lowerStartX: number; riserCount: number; runs: 2; risersPerRun: number;
+        treadsPerRun: number; riserHeight: number; treadDepth: number; runLengthPerFlight: number;
+        flightRun: number; midLandingLength: number; upperLandingLength: number;
+        midLandingElevation: number; totalPlanLength: number; yBandLocked: [number, number];
+        upperConnection: string; status: string; openItemId: string;
+      };
       planPivot: { x: number; y: number; z: number; status: 'working'; strategy: string; openItemId: string };
     };
     l3: {
@@ -143,6 +158,13 @@ export interface ViewerModel {
       };
       highLevelEquipment: string[];
       equipmentPlacementRule: string;
+      orthogonalExtension: ViewerZone & { polygon: Array<[number, number]>; grossArea: number; totalL3Area: number; rotation: 0 };
+      arrivalWing: ViewerZone & { polygon: Array<[number, number]>; area: number; covered: true; connectsStairToIndoorL3: true };
+      landscapeTerrace: ViewerZone & {
+        outerPolygon: Array<[number, number]>; excludedArrivalWingPolygon: Array<[number, number]>;
+        netLandscapeArea: number; access: 'teachers-and-maintenance-only'; studentsAllowed: false;
+        visitorsAllowed: false; publicGathering: false; primaryEgress: false; accessControl: string[];
+      };
     };
     roof: {
       bounds: SiteBounds;
@@ -266,6 +288,39 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
   if (model.geometry.l1.serviceWingStyle.materialIntent !== 'fair-faced-exposed-concrete') {
     throw new TypeError('服務量體必須使用清水模材質意圖。');
   }
+  const toiletZones = [
+    model.geometry.l1.zones.poolMaleToilet,
+    model.geometry.l1.zones.poolFemaleToilet,
+    model.geometry.l1.zones.playgroundMaleToilet,
+    model.geometry.l1.zones.playgroundFemaleToilet,
+  ];
+  if (toiletZones.some((zone) => zone.privacyScreen !== false || zone.layout?.privacyScreen !== undefined)) {
+    throw new TypeError('0.6.2 四間廁所入口不得設置遮擋版。');
+  }
+  if (toiletZones.some((zone) => zone.layout?.toiletCubicles.some((cubicle) => cubicle.wallContact !== 'y3.5'))) {
+    throw new TypeError('0.6.2 廁所 WC 隔間必須貼齊 Y3.5 牆面。');
+  }
+  const showers = Object.values(model.geometry.l2.zones);
+  if (showers.length !== 2 || showers.some((zone) => zone.showerCount !== 15
+    || zone.showerCubicles.length !== 15
+    || zone.showerCubicles.some(({ planBounds }) => planBounds.x2 - planBounds.x1 !== 1 || planBounds.y2 - planBounds.y1 !== 1))) {
+    throw new TypeError('2F 男女各須配置 15 間 1.00 × 1.00 m 淋浴間。');
+  }
+  const stairToL3 = model.geometry.l2.stairToL3;
+  const canonicalStairToL3 = model.entityBounds[stairToL3.entityId]?.bounds;
+  if (!canonicalStairToL3 || !sameBounds(stairToL3.bounds, canonicalStairToL3)
+    || stairToL3.lowerStartX !== 32.5 || stairToL3.axis !== '+x'
+    || stairToL3.bounds.y1 !== 0.5 || stairToL3.bounds.y2 !== 2) {
+    throw new TypeError('ST-02 必須由 X32.5 起步並固定於 Y0.5～2 朝 +X 上行。');
+  }
+  const terrace = model.geometry.l3.landscapeTerrace;
+  if (model.geometry.l3.arrivalWing.covered !== true
+    || model.geometry.l3.arrivalWing.connectsStairToIndoorL3 !== true
+    || terrace.access !== 'teachers-and-maintenance-only'
+    || terrace.studentsAllowed !== false || terrace.visitorsAllowed !== false
+    || terrace.primaryEgress !== false) {
+    throw new TypeError('3F 到達翼須為有頂室內動線；景觀區只限教師與維修人員且不得作主要逃生。');
+  }
   if (model.referenceSystem.unit !== 'm') throw new TypeError('Viewer 只接受公尺模型。');
   for (const [label, value] of [
     ['building.length', model.geometry.building.length.value],
@@ -280,6 +335,8 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     ['roof.highElevation', model.geometry.roof.highElevation],
     ['roof.lowElevation', model.geometry.roof.lowElevation],
     ['stair.totalRise', model.geometry.stair.totalRise],
+    ['stairToL3.totalRise', model.geometry.l2.stairToL3.totalRise],
+    ['landscapeTerrace.netLandscapeArea', model.geometry.l3.landscapeTerrace.netLandscapeArea],
   ] as const) finite(value, label);
   const ids = content.scenes.map((scene) => scene.id);
   if (new Set(ids).size !== ids.length) throw new TypeError('理念場景 ID 不可重複。');

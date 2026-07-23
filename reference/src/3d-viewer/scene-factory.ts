@@ -52,6 +52,20 @@ function quad(vertices: number[], material: THREE.Material) {
   return mesh;
 }
 
+function horizontalPolygon(points: Array<[number, number]>, elevation: number, material: THREE.Material) {
+  const vertices = points.flatMap(([x, z]) => [x, elevation, z]);
+  const indices: number[] = [];
+  for (let index = 1; index < points.length - 1; index += 1) indices.push(0, index, index + 1);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
 function line(points: THREE.Vector3[], material: THREE.Material) {
   return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material);
 }
@@ -287,7 +301,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
       entityId: entrance.entityId,
       label: '廁所 1.00 m 無門板入口',
       status: 'confirmed',
-      description: `${entrance.side.toUpperCase()} 立面 ${entrance.facadePosition === 'left' ? '左側' : '右側'}入口；1.00 m 淨寬，無門板，內側以錯位屏風阻斷公共區直視。`,
+      description: `${entrance.side.toUpperCase()} 立面 ${entrance.facadePosition === 'left' ? '左側' : '右側'}入口；1.00 m 淨寬、無門板，依 0.6.2 決策不設入口遮擋版，可直接面向洗手台。`,
       openItemId: 'OPEN-008',
     }, selectables);
   }
@@ -311,37 +325,42 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     for (const cubicle of layout.toiletCubicles) {
       const bounds = cubicle.planBounds;
       const cubicleHeight = 2.05;
-      const frontX = Number(cubicle.doorSide.slice(1));
       toiletDetails.add(
         box([bounds.x2 - bounds.x1, cubicleHeight, 0.06], [(bounds.x1 + bounds.x2) / 2, floorElevation + cubicleHeight / 2, bounds.y1], cubicleMaterial),
         box([bounds.x2 - bounds.x1, cubicleHeight, 0.06], [(bounds.x1 + bounds.x2) / 2, floorElevation + cubicleHeight / 2, bounds.y2], cubicleMaterial),
+        box([0.06, cubicleHeight, bounds.y2 - bounds.y1], [bounds.x1, floorElevation + cubicleHeight / 2, (bounds.y1 + bounds.y2) / 2], cubicleMaterial),
+        box([0.06, cubicleHeight, bounds.y2 - bounds.y1], [bounds.x2, floorElevation + cubicleHeight / 2, (bounds.y1 + bounds.y2) / 2], cubicleMaterial),
       );
-      const doorWidth = Math.min(0.72, bounds.y2 - bounds.y1 - 0.24);
-      const doorCenterY = bounds.y1 + 0.12 + doorWidth / 2;
-      const remainderStart = doorCenterY + doorWidth / 2;
-      if (remainderStart < bounds.y2) {
-        toiletDetails.add(box([0.06, cubicleHeight, bounds.y2 - remainderStart], [frontX, floorElevation + cubicleHeight / 2, (remainderStart + bounds.y2) / 2], cubicleMaterial));
+      const doorAxis = cubicle.doorSide[0];
+      const doorCoordinate = Number(cubicle.doorSide.slice(1));
+      if (doorAxis === 'x') {
+        const doorWidth = Math.min(0.72, bounds.y2 - bounds.y1 - 0.24);
+        toiletDetails.add(box([0.045, 1.82, doorWidth], [doorCoordinate, floorElevation + 0.94, (bounds.y1 + bounds.y2) / 2], cubicleDoorMaterial));
+      } else {
+        const doorWidth = Math.min(0.72, bounds.x2 - bounds.x1 - 0.24);
+        toiletDetails.add(box([doorWidth, 1.82, 0.045], [(bounds.x1 + bounds.x2) / 2, floorElevation + 0.94, doorCoordinate], cubicleDoorMaterial));
       }
-      toiletDetails.add(box([0.045, 1.82, doorWidth], [frontX, floorElevation + 0.94, doorCenterY], cubicleDoorMaterial));
       const toilet = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.27, 0.42, 20), sanitaryMaterial);
       toilet.position.set((bounds.x1 + bounds.x2) / 2, floorElevation + 0.22, (bounds.y1 + bounds.y2) / 2);
       toiletDetails.add(toilet);
     }
-    const screen = layout.privacyScreen.planBounds;
-    toiletDetails.add(box([
-      screen.x2 - screen.x1,
-      layout.privacyScreen.height,
-      screen.y2 - screen.y1,
-    ], [
-      (screen.x1 + screen.x2) / 2,
-      floorElevation + layout.privacyScreen.height / 2,
-      (screen.y1 + screen.y2) / 2,
-    ], l1Material));
+    if (layout.privacyScreen) {
+      const screen = layout.privacyScreen.planBounds;
+      toiletDetails.add(box([
+        screen.x2 - screen.x1,
+        layout.privacyScreen.height,
+        screen.y2 - screen.y1,
+      ], [
+        (screen.x1 + screen.x2) / 2,
+        floorElevation + layout.privacyScreen.height / 2,
+        (screen.y1 + screen.y2) / 2,
+      ], l1Material));
+    }
   }
   l1.add(toiletDetails);
   tag(toiletDetails, {
     entityId: 'WC-L1-DETAIL-01', label: '四間廁所內裝與隱私格局', status: 'working',
-    description: '入口先到洗手台；男廁洗手台貼 Y0、女廁洗手台貼 Y7.5。四個主入口無門板，WC 個別隔間保留門板並設錯位隱私屏風。',
+    description: '四個主入口均無門板且不設遮擋版，可直接面向洗手台；WC 個別隔間仍保留門板，並全部貼齊 Y3.5 牆面。泳池男廁其中一座小便斗移至 X31 且避開入口。',
     openItemId: 'OPEN-008',
   }, selectables);
   const integratedStructure = new THREE.Group();
@@ -540,10 +559,31 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     box([0.14, l2WallHeight, l2Data.width], [serviceStart + 0.07, l2Data.baseElevation + l2WallHeight / 2, upperCentreZ], l2Material),
     box([serviceEnd - serviceStart, l2WallHeight, 0.14], [(serviceStart + serviceEnd) / 2, l2Data.baseElevation + l2WallHeight / 2, upperCentreZ], l2Material),
   );
+  const showerMaterial = new THREE.MeshStandardMaterial({ color: 0xd9e4e1, roughness: 0.78 });
+  for (const [key, zone] of Object.entries(l2Data.zones)) {
+    const showerGroup = new THREE.Group();
+    const partitionHeight = 2.1;
+    for (const cubicle of zone.showerCubicles) {
+      const bounds = cubicle.planBounds;
+      showerGroup.add(
+        box([bounds.x2 - bounds.x1, partitionHeight, 0.04], [(bounds.x1 + bounds.x2) / 2, l2Data.baseElevation + partitionHeight / 2, bounds.y1], showerMaterial),
+        box([0.04, partitionHeight, bounds.y2 - bounds.y1], [bounds.x1, l2Data.baseElevation + partitionHeight / 2, (bounds.y1 + bounds.y2) / 2], showerMaterial),
+        box([0.04, partitionHeight, bounds.y2 - bounds.y1], [bounds.x2, l2Data.baseElevation + partitionHeight / 2, (bounds.y1 + bounds.y2) / 2], showerMaterial),
+      );
+    }
+    l2Group.add(showerGroup);
+    tag(showerGroup, {
+      entityId: zone.entityId,
+      label: `${key === 'maleChangingShower' ? '男' : '女'}更衣淋浴區（15 間）`,
+      status: 'working',
+      description: `配置 ${zone.showerCount} 間淨尺寸 1.00 × 1.00 m 淋浴間；男女合計 30 間，走道、更衣、無障礙、排水與機電細部仍待專業深化。`,
+      openItemId: 'OPEN-019',
+    }, selectables);
+  }
   layer('l2').add(l2Group);
   tag(l2Group, {
     entityId: 'EXT-L2-01', label: '2F 固定更衣／淋浴層', status: 'working',
-    description: `固定正交樓板 ${l2Data.length.toFixed(1)} × ${l2Data.width.toFixed(1)} m，標高 +${l2Data.baseElevation.toFixed(2)} m；2 m 伸入泳池挑高區、2 m 外挑於右側退縮上方。男女分區、除濕與排水豎井仍待深化。`,
+    description: `固定正交樓板 ${l2Data.length.toFixed(1)} × ${l2Data.width.toFixed(1)} m，標高 +${l2Data.baseElevation.toFixed(2)} m；已配置男女各 15 間 1.00 × 1.00 m 淋浴間，並保留 ST-02 的 Y0.5～2 正交梯帶。更衣、無障礙、除濕與排水豎井仍待深化。`,
     openItemId: 'OPEN-016',
   }, selectables);
 
@@ -571,6 +611,46 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     entityId: 'EXT-L3-01', label: '3F 旋轉服務／景觀層', status: 'working',
     description: `同面積 ${l3Data.length.toFixed(1)} × ${l3Data.width.toFixed(1)} m 樓板，繞 X=${l3Data.planPivot.x.toFixed(1)}／Y=${l3Data.planPivot.y.toFixed(2)} 順時針旋轉 ${l3Data.planRotation.value.toFixed(1)}°；外挑與轉換構架仍待結構驗證。`,
     openItemId: l3Data.planPivot.openItemId,
+  }, selectables);
+
+  const extensionMaterial = new THREE.MeshStandardMaterial({ color: 0xb8b4aa, roughness: 0.82, side: THREE.DoubleSide });
+  const arrivalMaterial = new THREE.MeshStandardMaterial({ color: 0xd7ddd9, roughness: 0.7, side: THREE.DoubleSide });
+  const terraceMaterial = new THREE.MeshStandardMaterial({ color: 0x99b48c, roughness: 0.92, side: THREE.DoubleSide });
+  const extension = l3Data.orthogonalExtension;
+  const arrival = l3Data.arrivalWing;
+  const terrace = l3Data.landscapeTerrace;
+  const extensionGroup = new THREE.Group();
+  const extensionSlab = horizontalPolygon(extension.polygon, l3Data.baseElevation - 0.03, extensionMaterial);
+  const terraceSurface = horizontalPolygon(terrace.outerPolygon, l3Data.baseElevation + 0.015, terraceMaterial);
+  const arrivalFloor = horizontalPolygon(arrival.polygon, l3Data.baseElevation + 0.035, arrivalMaterial);
+  const arrivalRoof = horizontalPolygon(arrival.polygon, l3Data.baseElevation + 2.85, arrivalMaterial);
+  extensionGroup.add(extensionSlab, terraceSurface, arrivalFloor, arrivalRoof);
+  extensionGroup.add(
+    box([0.08, 1.15, terrace.bounds.y2 - terrace.bounds.y1], [40.96, l3Data.baseElevation + 0.575, (terrace.bounds.y1 + terrace.bounds.y2) / 2], dark),
+    box([terrace.bounds.x2 - terrace.bounds.x1, 1.15, 0.08], [(terrace.bounds.x1 + terrace.bounds.x2) / 2, l3Data.baseElevation + 0.575, 0.04], dark),
+    box([0.9, 2.1, 0.06], [40.25, l3Data.baseElevation + 1.05, 2.04], dark),
+  );
+  const planterMaterial = new THREE.MeshStandardMaterial({ color: PALETTE.planting, roughness: 0.95 });
+  extensionGroup.add(
+    box([0.55, 0.42, 0.75], [40.45, l3Data.baseElevation + 0.21, 3.0], planterMaterial),
+    box([0.45, 0.36, 0.65], [40.5, l3Data.baseElevation + 0.18, 4.25], planterMaterial),
+    box([0.4, 0.32, 0.35], [40.4, l3Data.baseElevation + 0.16, 0.22], planterMaterial),
+  );
+  layer('l3').add(extensionGroup);
+  tag(extensionSlab, {
+    entityId: extension.entityId, label: '3F 固定正交三角擴板', status: 'working',
+    description: `在不改變旋轉主體 ${l3Data.planRotation.value.toFixed(1)}° 與支點的前提下新增 ${extension.grossArea.toFixed(3)} m²；L3 概念總面積為 ${extension.totalL3Area.toFixed(3)} m²，全部位於 L2 投影內。`,
+    openItemId: 'OPEN-019',
+  }, selectables);
+  tag(arrivalFloor, {
+    entityId: arrival.entityId, label: '3F 有頂室內到達翼', status: 'working',
+    description: `ST-02 上端銜接面積約 ${arrival.area.toFixed(3)} m² 的固定正交有頂室內動線，再進入旋轉 L3；戶外景觀區不是唯一室內通路。`,
+    openItemId: 'OPEN-019',
+  }, selectables);
+  tag(terraceSurface, {
+    entityId: terrace.entityId, label: '教師／維修專用景觀區', status: 'working',
+    description: `扣除到達翼後淨景觀面積約 ${terrace.netLandscapeArea.toFixed(3)} m²；只限教師與維修人員，設鎖門與告示，不開放學生、訪客或公眾聚集，也不得作主要逃生路徑。`,
+    openItemId: 'OPEN-020',
   }, selectables);
 
   const mirrorHeight = l3Data.mirror.height.value;
@@ -659,18 +739,31 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     openItemId: stair.guardOpenItemId,
   }, selectables);
 
-  const egressGroup = new THREE.Group();
-  const egressX = 32.82;
-  const egressZ = 8.4;
-  for (let index = 0; index < 12; index += 1) {
-    const rise = (model.geometry.l3.baseElevation - model.geometry.l2.baseElevation) * (index + 1) / 24;
-    egressGroup.add(box([0.18, rise, 1.05], [egressX + (index + 0.5) * 0.18, model.geometry.l2.baseElevation + rise / 2, egressZ + 0.55], dark));
-  }
-  layer('circulation').add(egressGroup);
-  tag(egressGroup, {
-    entityId: 'ST-02', label: 'L2–L3 節省空間逃生梯工作區', status: 'deferred',
-    description: '只顯示固定核心內的樓梯預留方向；不得視為已完成避難寬度、級高級深、平台、防火區劃或法規檢核。',
-    openItemId: 'OPEN-016',
+  const stair2 = model.geometry.l2.stairToL3;
+  const stair2Group = new THREE.Group();
+  const stair2Width = stair2.bounds.y2 - stair2.bounds.y1;
+  const addStair2Flight = (baseX: number, baseElevation: number) => {
+    for (let index = 0; index < stair2.treadsPerRun; index += 1) {
+      const treadElevation = baseElevation + stair2.riserHeight * (index + 1);
+      stair2Group.add(box(
+        [stair2.treadDepth, 0.06, stair2Width],
+        [baseX + (index + 0.5) * stair2.treadDepth, treadElevation - 0.03, stair2.bounds.y1 + stair2Width / 2],
+        dark,
+      ));
+    }
+  };
+  addStair2Flight(stair2.bounds.x1, stair2.lowerElevation);
+  const stair2SecondStart = stair2.bounds.x1 + stair2.flightRun + stair2.midLandingLength;
+  addStair2Flight(stair2SecondStart, stair2.midLandingElevation);
+  stair2Group.add(
+    box([stair2.midLandingLength, 0.16, stair2Width], [stair2.bounds.x1 + stair2.flightRun + stair2.midLandingLength / 2, stair2.midLandingElevation - 0.08, stair2.bounds.y1 + stair2Width / 2], dark),
+    box([stair2.upperLandingLength, 0.16, stair2Width], [stair2.bounds.x2 - stair2.upperLandingLength / 2, stair2.upperElevation - 0.08, stair2.bounds.y1 + stair2Width / 2], dark),
+  );
+  layer('circulation').add(stair2Group);
+  tag(stair2Group, {
+    entityId: stair2.entityId, label: 'ST-02 方案一正交樓梯', status: 'working',
+    description: `2F 起步端 X${stair2.lowerStartX.toFixed(1)}，固定於 Y${stair2.bounds.y1.toFixed(1)}～${stair2.bounds.y2.toFixed(1)}，全程朝 +X 上行至 3F；${stair2.riserCount} 級高、兩跑、1.50 m 中平台與 1.50 m 上平台。結構、扶手、防火與避難仍待專業核定。`,
+    openItemId: stair2.openItemId,
   }, selectables);
 
   const roofMesh = quad([

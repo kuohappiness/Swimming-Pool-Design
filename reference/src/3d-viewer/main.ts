@@ -54,8 +54,8 @@ try {
   analysisBadge.textContent = model.analysis.solar.status === 'current' ? '分析與模型同步' : '分析需重新驗證';
   analysisBadge.dataset.status = model.analysis.solar.status;
   analysisBadge.title = model.analysis.solar.disclaimer;
-  compass.style.setProperty('--bearing', `${model.referenceSystem.localLongAxisBearingFromTrueNorth}deg`);
-  compass.setAttribute('aria-label', `真北；建築本地長軸方位 ${model.referenceSystem.localLongAxisBearingFromTrueNorth} 度`);
+  compass.setAttribute('data-north-direction', 'lower-right');
+  compass.setAttribute('aria-label', `真北指向畫面右下角；建築本地長軸方位 ${model.referenceSystem.localLongAxisBearingFromTrueNorth} 度`);
 
   if (!supportsWebGL()) {
     const renderFallbackContent = (sceneId: string) => {

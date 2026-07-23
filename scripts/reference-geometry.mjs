@@ -39,7 +39,7 @@ export function deriveReferenceGeometry(model) {
     throw new RangeError('ST-01 bounds and clearWidth must match.');
   }
   if (Math.abs(poolSize.length - 25) > 1e-9 || Math.abs(poolSize.width - 8.5) > 1e-9) {
-    throw new RangeError('POOL-01 active bounds must remain 25 × 8.5 m for v0.6.1.');
+    throw new RangeError('POOL-01 active bounds must remain 25 × 8.5 m for the current model.');
   }
 
   return {

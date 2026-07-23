@@ -34,9 +34,9 @@ export function validateModel(model) {
   }
 
   check(errors, model.schemaVersion === '1.3.0', 'schemaVersion must be 1.3.0.');
-  check(errors, model.modelVersion === '0.6.1', 'modelVersion must be 0.6.1.');
+  check(errors, model.modelVersion === '0.6.2', 'modelVersion must be 0.6.2.');
   check(errors, model.designTargetVersion === model.modelVersion, 'designTargetVersion must equal modelVersion.');
-  check(errors, active.id === 'GEO-0.6.1', 'GEO-0.6.1 must be the active geometry revision.');
+  check(errors, active.id === 'GEO-0.6.2', 'GEO-0.6.2 must be the active geometry revision.');
   check(errors, active.coordinateSystemId === 'SITE-XY', 'Active geometry must use SITE-XY.');
 
   const coordinateSystem = model.referenceSystem?.coordinateSystems?.find(({ id }) => id === 'SITE-XY');
@@ -59,6 +59,12 @@ export function validateModel(model) {
     'L3-PLATE-01': { x1: 29, x2: 41, y1: 0, y2: 13.5 },
     'RF-GL-01': { x1: 0, x2: 29, y1: 0, y2: 14 },
     'ST-01': { x1: 20.5, x2: 29, y1: 0.5, y2: 2 },
+    'ST-02': { x1: 32.5, x2: 41, y1: 0.5, y2: 2 },
+    'Z-CS-M-01': { x1: 29, x2: 35, y1: 2.5, y2: 13.5 },
+    'Z-CS-F-01': { x1: 35, x2: 41, y1: 2.5, y2: 13.5 },
+    'L3-EXT-01': { x1: 38.428, x2: 41, y1: 0, y2: 5.392 },
+    'Z-L3-ARRIVAL-01': { x1: 38.666, x2: 41, y1: 0.5, y2: 2 },
+    'Z-L3-TERRACE-01': { x1: 38.428, x2: 41, y1: 0, y2: 5.392 },
     'Z-WC-POOL-M-01': { x1: 31, x2: 35.5, y1: 0, y2: 3.5 },
     'Z-WC-POOL-F-01': { x1: 31, x2: 35.5, y1: 3.5, y2: 7.5 },
     'Z-WC-PLAY-M-01': { x1: 35.5, x2: 39, y1: 0, y2: 3.5 },
@@ -75,7 +81,7 @@ export function validateModel(model) {
       errors.push(error instanceof Error ? error.message : String(error));
       continue;
     }
-    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.1 SITE-XY contract.`);
+    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.2 SITE-XY contract.`);
   }
 
   const pool = resolveGeometryEntity(active, 'POOL-01');
@@ -111,6 +117,13 @@ export function validateModel(model) {
   check(errors, active.l1.zones.poolMaleToilet?.layout?.washbasinWall === 'y0' && active.l1.zones.playgroundMaleToilet?.layout?.washbasinWall === 'y0', 'Both male toilet washbasins must line the Y0 wall after entry.');
   check(errors, active.l1.zones.poolFemaleToilet?.layout?.washbasinWall === 'y7.5' && active.l1.zones.playgroundFemaleToilet?.layout?.washbasinWall === 'y7.5', 'Both female toilet washbasins must line the Y7.5 wall after entry.');
   check(errors, toilets.every((zone) => zone.layout?.toiletCubicles?.every(({ doorLeaf }) => doorLeaf === true)), 'Every internal WC cubicle must retain a door leaf.');
+  check(errors, toilets.every((zone) => zone.privacyScreen === false && zone.layout?.privacyScreen === undefined), 'All toilet entrance privacy screens must be removed in v0.6.2.');
+  check(errors, toilets.every((zone) => zone.layout?.toiletCubicles?.every(({ wallContact }) => wallContact === 'y3.5')), 'Every WC cubicle must contact the Y3.5 wall.');
+  check(errors, active.l1.zones.poolFemaleToilet.layout.toiletCubicles.length === 3, 'Pool female toilet must have three WCs on Y3.5.');
+  check(errors, active.l1.zones.poolMaleToilet.layout.toiletCubicles.length === 2, 'Pool male toilet must have two WCs on Y3.5.');
+  check(errors, active.l1.zones.playgroundFemaleToilet.layout.toiletCubicles.length === 2, 'Playground female toilet must have two WCs on Y3.5.');
+  check(errors, active.l1.zones.playgroundMaleToilet.layout.toiletCubicles.length === 1, 'Playground male toilet must have one WC on Y3.5.');
+  check(errors, active.l1.zones.poolMaleToilet.layout.urinals.some(({ center, wallContact }) => closeTo(center[0], 31.18) && wallContact === 'x31'), 'One pool male urinal must move to the X31 wall.');
   check(errors, active.l1.serviceWing?.architecturalStyle?.scope === 'all-opaque-l1-l2-l3-service-volumes', 'All opaque service volumes must use the confirmed fair-faced concrete style.');
   check(errors, active.l1.zones.chemicalRoom?.publicAccess === false, 'The chemical room must remain independent from public circulation.');
   check(errors, active.l1.structuralStrategy?.glassCarriesGravityLoad === false, 'Glass must not be a gravity-support element.');
@@ -125,10 +138,20 @@ export function validateModel(model) {
   check(errors, active.stair.designIntent === 'suspended-floating-stair' && active.stair.stringerCount === 2 && active.stair.underStairEnclosure === false, 'ST-01 must remain a suspended floating stair on two continuous stringers with an open underside.');
 
   check(errors, closeTo(active.l2.poolAtriumOverlap, 2) && closeTo(active.l2.rightSetbackOverhang, 2), 'L2 must preserve the two 2 m overhang relationships.');
+  check(errors, active.l2.gridDisplay?.minorSpacing === 0.5 && active.l2.gridDisplay?.majorSpacing === 2.5 && active.l2.gridDisplay?.axisLabels === true, 'L2 must expose the 0.5 m / 2.5 m SITE-XY grid with axis labels.');
+  const showerZones = Object.values(active.l2.zones ?? {});
+  check(errors, showerZones.length === 2 && showerZones.every(({ showerCount, showerCubicles }) => showerCount === 15 && showerCubicles?.length === 15), 'L2 must provide 15 male and 15 female showers.');
+  check(errors, showerZones.every(({ showerCubicles }) => showerCubicles.every(({ planBounds }) => closeTo(planBounds.x2 - planBounds.x1, 1) && closeTo(planBounds.y2 - planBounds.y1, 1))), 'Every L2 shower cubicle must have 1.00 × 1.00 m clear plan dimensions.');
+  check(errors, showerZones.every(({ showerCubicles }) => showerCubicles.every(({ planBounds }) => !positiveOverlap(planBounds, active.l2.stairToL3.bounds))), 'L2 shower cubicles must not overlap ST-02.');
+  check(errors, active.l2.stairToL3.lowerStartX === 32.5 && active.l2.stairToL3.axis === '+x' && JSON.stringify(active.l2.stairToL3.yBandLocked) === JSON.stringify([0.5, 2]), 'ST-02 must start at X32.5 and remain horizontal in Y0.5–2 while ascending +X.');
+  check(errors, active.l2.stairToL3.riserCount === 22 && active.l2.stairToL3.treadsPerRun === 10 && closeTo(active.l2.stairToL3.upperElevation, 6.88), 'ST-02 must use the 22-riser two-flight concept and reach L3 +6.88 m.');
   check(errors, closeTo(active.l3.planRotation, 25.5), 'L3 plan rotation must be +25.5°.');
   check(errors, closeTo(active.l3.mirror.leanFromVertical, 23), 'L3 mirror wall lean must be +23.0°.');
   check(errors, active.l3.mirror.wallAndMirrorCoplanar === true, 'The mirror and loadbearing wall must remain coplanar.');
   check(errors, closeTo(active.l3.planPivot.x, 35) && closeTo(active.l3.planPivot.y, 6.75), 'L3 plan pivot must remain X35/Y6.75.');
+  check(errors, closeTo(active.l3.orthogonalExtension.grossArea, 6.935) && active.l3.orthogonalExtension.rotation === 0 && active.l3.orthogonalExtension.withinL2Projection === true, 'L3 must add the fixed orthogonal 6.935 m² extension within the L2 projection.');
+  check(errors, closeTo(active.l3.arrivalWing.area, 2.964) && active.l3.arrivalWing.covered === true && active.l3.arrivalWing.connectsStairToIndoorL3 === true && active.l3.arrivalWing.soleRouteViaTerrace === false, 'ST-02 must arrive through a covered indoor L3 wing, not solely through the terrace.');
+  check(errors, closeTo(active.l3.landscapeTerrace.netLandscapeArea, 3.971) && active.l3.landscapeTerrace.access === 'teachers-and-maintenance-only' && active.l3.landscapeTerrace.studentsAllowed === false && active.l3.landscapeTerrace.visitorsAllowed === false && active.l3.landscapeTerrace.primaryEgress === false, 'L3 landscape terrace must be controlled for teachers and maintenance staff only and must not be primary egress.');
   check(errors, closeTo(active.roof.pitch, 5) && closeTo(active.roof.lowElevation, 4) && closeTo(active.roof.highElevation, 6.537), 'The fixed glass roof must remain 29 m at 5° from +4.00 to +6.537 m.');
 
   check(errors, closeTo(active.solar.planRotation.value, active.l3.planRotation), 'Solar and L3 plan rotations must share one value.');
@@ -148,7 +171,7 @@ export function validateModel(model) {
     for (const id of duplicates(records.map(({ id }) => id))) errors.push(`${label} ID is duplicated: ${id}`);
   }
   const sheetIds = (model.sheets ?? []).map(({ id }) => id);
-  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V061-L1', 'V061-L2', 'V061-L3', 'V061-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.1 sheets.');
+  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V062-L1', 'V062-L2', 'V062-L3', 'V062-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.2 sheets.');
 
   const boundedEntities = geometryEntities(active);
   check(errors, boundedEntities.size >= Object.keys(requiredBounds).length, 'Active geometry entity index is incomplete.');

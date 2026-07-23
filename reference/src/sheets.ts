@@ -1,10 +1,10 @@
 import type { ProjectModel, SheetRender } from './types';
 
 const siteImage = new URL('../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
-const l1Image = new URL('../drafts/v0.6.1/DRAW-L1-PLAN-v0.6.1.png', import.meta.url).href;
-const l2Image = new URL('../drafts/v0.6.1/DRAW-L2-PLAN-v0.6.1.png', import.meta.url).href;
-const l3Image = new URL('../drafts/v0.6.1/DRAW-L3-PLAN-v0.6.1.png', import.meta.url).href;
-const sectionImage = new URL('../drafts/v0.6.1/DRAW-LONGITUDINAL-SECTION-v0.6.1.png', import.meta.url).href;
+const l1Image = new URL('../drafts/v0.6.2/DRAW-L1-PLAN-v0.6.2.png', import.meta.url).href;
+const l2Image = new URL('../drafts/v0.6.2/DRAW-L2-PLAN-v0.6.2.png', import.meta.url).href;
+const l3Image = new URL('../drafts/v0.6.2/DRAW-L3-PLAN-v0.6.2.png', import.meta.url).href;
+const sectionImage = new URL('../drafts/v0.6.2/DRAW-LONGITUDINAL-SECTION-v0.6.2.png', import.meta.url).href;
 
 function reviewDrawing(id: string, title: string, imageUrl: string, note: string, model: ProjectModel): SheetRender {
   return {
@@ -46,9 +46,9 @@ function siteDrawing(model: ProjectModel): SheetRender {
 export function renderSheets(model: ProjectModel): SheetRender[] {
   return [
     siteDrawing(model),
-    reviewDrawing('V061-L1', 'v0.6.1｜1F 最新平面圖', l1Image, '25 × 8.5 m 泳池、四間廁所入口／洗手台／隔間格局、泳池入口與懸空 ST-01。非施工圖。', model),
-    reviewDrawing('V061-L2', 'v0.6.1｜2F 最新平面圖', l2Image, '固定 12 × 13.5 m 更衣淋浴樓板、ST-01 直接接板、清水模服務量體與 SITE-XY 參照。非施工圖。', model),
-    reviewDrawing('V061-L3', 'v0.6.1｜3F 最新平面圖', l3Image, '旋轉 L3、固定支承／設備原則、清水模不透明量體、外挑與鏡牆工作幾何。非施工圖。', model),
-    reviewDrawing('V061-SECTION', 'v0.6.1｜最新縱向剖面圖', sectionImage, '池畔 +0.30 m、L2 +3.30 m、L3 +6.88 m、5°屋頂、懸空雙梯梁 ST-01 與服務翼標高。非施工圖。', model),
+    reviewDrawing('V062-L1', 'v0.6.2｜1F 最新平面圖', l1Image, '四間廁所取消入口遮擋版、WC 貼 Y3.5，泳池男廁一座小便斗移至 X31。非施工圖。', model),
+    reviewDrawing('V062-L2', 'v0.6.2｜2F 最新平面圖', l2Image, '可見 SITE-XY 格線、男女各 15 間 1 × 1 m 淋浴間，以及由 X32.5 朝 +X 的方案一 ST-02。非施工圖。', model),
+    reviewDrawing('V062-L3', 'v0.6.2｜3F 最新平面圖', l3Image, '旋轉主體不變，新增固定正交三角擴板、有頂到達翼與教師／維修專用受控景觀區。非施工圖。', model),
+    reviewDrawing('V062-SECTION', 'v0.6.2｜最新縱向剖面圖', sectionImage, '池畔、L2、L3、5°屋頂、ST-01 與方案一 ST-02 的概念標高關係。非施工圖。', model),
   ];
 }

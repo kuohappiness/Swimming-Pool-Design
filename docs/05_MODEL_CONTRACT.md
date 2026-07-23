@@ -7,8 +7,8 @@
 現行版本契約：
 
 - `schemaVersion = 1.3.0`
-- `modelVersion = designTargetVersion = 0.6.1`
-- `activeGeometryRevisionId = GEO-0.6.1`
+- `modelVersion = designTargetVersion = 0.6.2`
+- `activeGeometryRevisionId = GEO-0.6.2`
 - active revision 的 `id` 必須只出現一次，且 `revision`、`modelVersion` 均須等於頂層 `modelVersion`。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
@@ -51,6 +51,12 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 | `L3-PLATE-01` | X29～X41／Y0～Y13.5 |
 | `RF-GL-01` | X0～X29／Y0～Y14 |
 | `ST-01` | X20.5～X29／Y0.5～Y2.0 |
+| `ST-02` | X32.5～X41／Y0.5～Y2.0 |
+| `Z-CS-M-01` | X29～X35／Y2.5～Y13.5 |
+| `Z-CS-F-01` | X35～X41／Y2.5～Y13.5 |
+| `L3-EXT-01` | X38.428～X41／Y0～Y5.392 |
+| `Z-L3-ARRIVAL-01` | X38.666～X41／Y0.5～Y2.0 |
+| `Z-L3-TERRACE-01` | X38.428～X41／Y0～Y5.392 |
 
 四間廁所、儲物、水處理與藥劑分間的 bounds 以 [03｜設計基準](03_DESIGN_BASIS.md)為準。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
 
@@ -67,12 +73,14 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 ## 5. 現行硬性規則
 
 - `POOL-01` 為 25.0 × 8.5 m，完整位於泳池大廳內，且不與 `ST-01` 或服務翼重疊。
-- L1 具有四間互不相通廁所；泳池組恰有兩個 X31 入口，操場組恰有兩個 X39 入口。四個入口皆為 1.00 m 無門板開口，男廁入口／洗手台靠低 Y，女廁入口／洗手台靠高 Y；所有 WC 個別隔間保留門板。
+- L1 具有四間互不相通廁所；泳池組恰有兩個 X31 入口，操場組恰有兩個 X39 入口。四個入口皆為 1.00 m 無門板開口且不設遮擋版，男廁入口／洗手台靠低 Y，女廁入口／洗手台靠高 Y；8 座 WC 隔間貼 Y3.5 並保留門板，泳池男廁其中一座小便斗位於 X31 且不阻擋入口。
 - 服務區 L1～L3 所有不透明量體採清水模材質意圖；玻璃屋頂與 L3 鏡牆不得被清水模材質覆蓋。
 - 藥劑分間 `publicAccess=false` 且 `separateVentilation=true`。
 - 結構策略 `isolatedColumnsAllowed=false`、`glassCarriesGravityLoad=false`。
 - `ST-01` 是方案 E：2.70＋3.10＋2.70 m、20 級高／18 踏面，從 +0.30 m 在 X29 直接接 L2 +3.30 m。
+- L2 男女各有 15 間淨 1.00 × 1.00 m 淋浴間；`ST-02` 由 X32.5 起步，固定於 Y0.5～Y2.0 並朝 +X 上升，不得與淋浴間重疊或改成斜向。
 - L2 固定；只有 L3 以 X35／Y6.75 水平旋轉 +25.5°。
+- L3 主旋轉矩形的角度與支點不變；另有固定正交三角擴板、有頂室內到達翼及教師／維修人員專用景觀區。景觀區不得開放學生、訪客、公眾聚集或作主要逃生。
 - 鏡面覆層與 L3 面池承載牆共面，共同外傾 +23.0°；不得畫成垂直牆前的獨立斜板。
 - 固定玻璃屋頂為 29 m／5°／+4.00→+6.537 m，不承擔 L2、L3 或樓梯荷重。
 - 高位重物只放在固定核心或直接支承線，不放在旋轉懸挑或鏡牆。
@@ -83,10 +91,10 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 `model.sheets` 只保留：
 
 1. `REF-001`
-2. `V061-L1`
-3. `V061-L2`
-4. `V061-L3`
-5. `V061-SECTION`
+2. `V062-L1`
+3. `V062-L2`
+4. `V062-L3`
+5. `V062-SECTION`
 
 v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Viewer／solar-study 的最新圖面連結。
 
@@ -96,8 +104,8 @@ v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Vie
 
 1. active selector、版本與 SITE-XY fail-closed 規則。
 2. canonical entity bounds、空間包含與碰撞。
-3. 四間廁所、入口方向、設備與結構整合旗標。
-4. 樓層、屋頂、ST-01、L3／鏡牆角度及日照工作結果。
+3. 四間廁所、無入口遮擋版、Y3.5 WC 排列、X31 小便斗、設備與結構整合旗標。
+4. 樓層、屋頂、ST-01、30 間淋浴、ST-02、L3 到達翼／受控景觀區、鏡牆角度及日照工作結果。
 5. current sheet 清單與 entity／sheet／source ID 唯一。
 6. 所有來源檔存在且 SHA-256、byteSize（若登錄）一致。
 7. 概念整合狀態不得冒充任何專業核定。

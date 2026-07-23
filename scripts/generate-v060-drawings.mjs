@@ -16,7 +16,7 @@ const n = (value) => Number(value.toFixed(3));
 const boundsData = (entity) => `${entity.bounds.x1},${entity.bounds.x2},${entity.bounds.y1},${entity.bounds.y2}`;
 
 const style = `<style>
-  text{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;fill:#263746}.title{font-size:31px;font-weight:800}.subtitle{font-size:15px;fill:#536b75}.label{font-size:14px;font-weight:700}.small{font-size:12px}.tiny{font-size:10px}.grid{stroke:#cbd7da;stroke-width:.55}.gridMajor{stroke:#9fb2b8;stroke-width:.9}.outline{fill:none;stroke:#263746;stroke-width:2}.reference{fill:#eef2f2;stroke:#97a8ad;stroke-width:1.2;stroke-dasharray:7 5}.pool{fill:#bfe4ef;stroke:#227698;stroke-width:2}.lane{stroke:#f8fbfc;stroke-width:2;stroke-dasharray:8 5}.working{fill:#f1dfbe;stroke:#a96f28;stroke-width:1.6}.confirmed{fill:#d8ece4;stroke:#237c64;stroke-width:1.6}.service{fill:#dbe5e6;stroke:#5b7278;stroke-width:1.6}.chemical{fill:#ead9e8;stroke:#8e5a88;stroke-width:1.6}.deferred{fill:#e4dbed;stroke:#7c5c98;stroke-width:1.5;stroke-dasharray:6 4}.stair{fill:#d7dde0;stroke:#263746;stroke-width:1.6}.structure{fill:#c3793c;fill-opacity:.18;stroke:#a95c25;stroke-width:2.2;stroke-dasharray:8 4}.dim{stroke:#536b75;stroke-width:1;fill:none}.titleBox{fill:#f6f8f8;stroke:#263746;stroke-width:1.2}.note{fill:#f7f8f8;stroke:#a8b6ba;stroke-width:1}.mirror{stroke:#4f8792;stroke-width:7}.roof{fill:#d8eef2;fill-opacity:.7;stroke:#4f95a8;stroke-width:2}.level{stroke:#8b9ba0;stroke-width:1;stroke-dasharray:7 5}.water{fill:#8fd2e6;fill-opacity:.75;stroke:#227698;stroke-width:2}.wall{fill:#c9d3d4;stroke:#536b75;stroke-width:1.5}
+  text{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;fill:#263746}.title{font-size:31px;font-weight:800}.subtitle{font-size:15px;fill:#536b75}.label{font-size:14px;font-weight:700}.small{font-size:12px}.tiny{font-size:10px}.grid{stroke:#cbd7da;stroke-width:.55}.gridMajor{stroke:#9fb2b8;stroke-width:.9}.outline{fill:none;stroke:#263746;stroke-width:2}.reference{fill:#eef2f2;stroke:#97a8ad;stroke-width:1.2;stroke-dasharray:7 5}.pool{fill:#bfe4ef;stroke:#227698;stroke-width:2}.lane{stroke:#f8fbfc;stroke-width:2;stroke-dasharray:8 5}.working{fill:#f1dfbe;stroke:#a96f28;stroke-width:1.6}.confirmed{fill:#d8ece4;stroke:#237c64;stroke-width:1.6}.service{fill:#dbe5e6;stroke:#5b7278;stroke-width:1.6}.chemical{fill:#ead9e8;stroke:#8e5a88;stroke-width:1.6}.deferred{fill:#e4dbed;stroke:#7c5c98;stroke-width:1.5;stroke-dasharray:6 4}.stair{fill:#d7dde0;stroke:#263746;stroke-width:1.6}.structure{fill:#c3793c;fill-opacity:.18;stroke:#a95c25;stroke-width:2.2;stroke-dasharray:8 4}.dim{stroke:#536b75;stroke-width:1;fill:none}.titleBox{fill:#f6f8f8;stroke:#263746;stroke-width:1.2}.note{fill:#f7f8f8;stroke:#a8b6ba;stroke-width:1}.mirror{stroke:#4f8792;stroke-width:7}.roof{fill:#d8eef2;fill-opacity:.7;stroke:#4f95a8;stroke-width:2}.level{stroke:#8b9ba0;stroke-width:1;stroke-dasharray:7 5}.water{fill:#8fd2e6;fill-opacity:.75;stroke:#227698;stroke-width:2}.wall{fill:#c9d3d4;stroke:#536b75;stroke-width:1.5}.terrace{fill:#cfe1c5;stroke:#52774b;stroke-width:1.7}.arrival{fill:#d7e8df;stroke:#286b5c;stroke-width:2}
 </style>`;
 
 function shell(title, subtitle, body, drawingId) {
@@ -40,7 +40,7 @@ function grid() {
     lines.push(`<line x1="${planX(0)}" y1="${planY(y)}" x2="${planX(41)}" y2="${planY(y)}" class="${major ? 'gridMajor' : 'grid'}"/>`);
     if (major || y === 14) lines.push(`<text x="${planX(0) - 12}" y="${planY(y) + 4}" text-anchor="end" class="tiny">Y${n(y)}</text>`);
   }
-  return `<g aria-label="SITE-XY 0.5 m grid">${lines.join('')}</g>`;
+  return `<g aria-label="SITE-XY 0.5 m grid" data-grid-visible="true" data-minor-spacing="0.5" data-major-spacing="2.5">${lines.join('')}</g>`;
 }
 
 function rect(entity, className, label = '') {
@@ -74,10 +74,12 @@ function fixtureMarks(zone) {
   const marks = [];
   for (const cubicle of zone.layout.toiletCubicles) {
     const b = cubicle.planBounds;
-    const doorY1 = b.y1 + 0.16;
-    const doorY2 = Math.min(b.y2 - 0.16, doorY1 + 0.7);
-    const frontX = Number(cubicle.doorSide.slice(1));
-    marks.push(`<g data-wc-door-leaf="true"><rect x="${planX(b.x1)}" y="${planY(b.y2)}" width="${(b.x2 - b.x1) * scale}" height="${(b.y2 - b.y1) * scale}" fill="none" stroke="#536b75" stroke-width="1.2"/><line x1="${planX(frontX)}" y1="${planY(doorY1)}" x2="${planX(frontX + (frontX < (b.x1 + b.x2) / 2 ? 0.62 : -0.62))}" y2="${planY(doorY2)}" stroke="#263746" stroke-width="1.4"/><rect x="${planX((b.x1 + b.x2) / 2) - 7}" y="${planY((b.y1 + b.y2) / 2) - 5}" width="14" height="10" rx="3" fill="#fff" stroke="#536b75"/></g>`);
+    const doorAxis = cubicle.doorSide[0];
+    const doorCoordinate = Number(cubicle.doorSide.slice(1));
+    const doorLine = doorAxis === 'x'
+      ? `<line x1="${planX(doorCoordinate)}" y1="${planY((b.y1 + b.y2) / 2 - 0.35)}" x2="${planX(doorCoordinate + (doorCoordinate < (b.x1 + b.x2) / 2 ? 0.62 : -0.62))}" y2="${planY((b.y1 + b.y2) / 2 + 0.35)}" stroke="#263746" stroke-width="1.4"/>`
+      : `<line x1="${planX((b.x1 + b.x2) / 2 - 0.35)}" y1="${planY(doorCoordinate)}" x2="${planX((b.x1 + b.x2) / 2 + 0.35)}" y2="${planY(doorCoordinate + (doorCoordinate < (b.y1 + b.y2) / 2 ? 0.62 : -0.62))}" stroke="#263746" stroke-width="1.4"/>`;
+    marks.push(`<g data-wc-door-leaf="true" data-wall-contact="${cubicle.wallContact ?? ''}"><rect x="${planX(b.x1)}" y="${planY(b.y2)}" width="${(b.x2 - b.x1) * scale}" height="${(b.y2 - b.y1) * scale}" fill="none" stroke="#536b75" stroke-width="1.2"/>${doorLine}<rect x="${planX((b.x1 + b.x2) / 2) - 7}" y="${planY((b.y1 + b.y2) / 2) - 5}" width="14" height="10" rx="3" fill="#fff" stroke="#536b75"/></g>`);
   }
   for (const basin of zone.layout.washbasins) {
     const [x, y] = basin.center;
@@ -87,8 +89,10 @@ function fixtureMarks(zone) {
     const [x, y] = urinal.center;
     marks.push(`<ellipse data-fixture="urinal" cx="${planX(x)}" cy="${planY(y)}" rx="6" ry="9" fill="#fff" stroke="#536b75"/>`);
   }
-  const screen = zone.layout.privacyScreen.planBounds;
-  marks.push(`<rect data-privacy-screen="true" x="${planX(screen.x1)}" y="${planY(screen.y2)}" width="${(screen.x2 - screen.x1) * scale}" height="${(screen.y2 - screen.y1) * scale}" fill="#66777d"/>`);
+  if (zone.layout.privacyScreen) {
+    const screen = zone.layout.privacyScreen.planBounds;
+    marks.push(`<rect data-privacy-screen="true" x="${planX(screen.x1)}" y="${planY(screen.y2)}" width="${(screen.x2 - screen.x1) * scale}" height="${(screen.y2 - screen.y1) * scale}" fill="#66777d"/>`);
+  }
   return `<g aria-label="${zone.entityId} detailed fixtures">${marks.join('')}</g>`;
 }
 
@@ -120,19 +124,41 @@ function l1Plan() {
     ${rect(active.l1.rightSetback, 'reference', '2 m 退縮／整坡')}${rect(active.l1.mainEntrance, 'confirmed', '主入口')}${rect(active.l1.playgroundRamp, 'deferred')}
     <g class="structure"><rect x="${planX(32.5) - 5}" y="${planY(14)}" width="10" height="${6.5 * scale}"/><rect x="${planX(35.5) - 5}" y="${planY(7.5)}" width="10" height="${7.5 * scale}"/></g>
     <text x="${planX(35)}" y="${planY(13.2)}" text-anchor="middle" class="tiny">結構候選整合於設備牆／隔間；非結構定案</text>
-    <rect x="60" y="845" width="1370" height="82" rx="9" class="note"/><text x="82" y="875" class="small">四間廁所主入口均為 1.00 m 無門板開口；男廁洗手台貼 Y0、女廁洗手台貼 Y7.5；WC 隔間保留門板並以入口屏風阻斷直視。</text><text x="82" y="902" class="small">ST-01＝X20.5～X29／Y0.5～Y2.0；懸空薄踏步＋雙連續鋼箱梯梁、梯下開放；20 級高／18 踏面，直接接 L2。</text>`, 'DRAW-L1-PLAN');
+    <rect x="60" y="845" width="1370" height="82" rx="9" class="note"/><text x="82" y="875" class="small">四間廁所主入口均為 1.00 m 無門板開口且不設遮擋版，可直接面向洗手台；全部 WC 隔間貼齊 Y3.5 牆並保留隔間門。</text><text x="82" y="902" class="small">泳池男廁其中一座小便斗移至 X31 且避開入口；ST-01 維持 X20.5～X29／Y0.5～Y2.0、雙連續鋼箱梯梁與梯下開放。</text>`, 'DRAW-L1-PLAN');
+}
+
+function showerMarks(zone) {
+  return `<g data-entity="${zone.entityId}" data-shower-count="${zone.showerCount}" data-clear-size="1x1">${zone.showerCubicles.map((cubicle) => {
+    const b = cubicle.planBounds;
+    return `<g data-shower-cubicle="${cubicle.id}" data-clear-width="${n(b.x2 - b.x1)}" data-clear-depth="${n(b.y2 - b.y1)}"><rect x="${planX(b.x1)}" y="${planY(b.y2)}" width="${(b.x2 - b.x1) * scale}" height="${(b.y2 - b.y1) * scale}" fill="#f8fbfa" fill-opacity=".8" stroke="#4f7474" stroke-width="1.1"/><text x="${planX((b.x1 + b.x2) / 2)}" y="${planY((b.y1 + b.y2) / 2) + 3}" text-anchor="middle" class="tiny">${cubicle.id.replace('CS-', '')}</text></g>`;
+  }).join('')}</g>`;
+}
+
+function stairToL3Plan() {
+  const stair = active.l2.stairToL3;
+  const b = stair.bounds;
+  const firstEnd = b.x1 + stair.runLengthPerFlight;
+  const secondStart = firstEnd + stair.midLandingLength;
+  const secondEnd = secondStart + stair.runLengthPerFlight;
+  const treads = [];
+  for (let index = 1; index <= stair.treadsPerRun; index += 1) {
+    for (const x of [b.x1 + index * stair.treadDepth, secondStart + index * stair.treadDepth]) {
+      treads.push(`<line x1="${planX(x)}" y1="${planY(b.y2)}" x2="${planX(x)}" y2="${planY(b.y1)}" stroke="#263746" stroke-width=".85"/>`);
+    }
+  }
+  return `<g data-entity="ST-02" data-axis="+x" data-lower-start-x="32.5" data-y-band="0.5,2">${rect(stair, 'stair')}${treads.join('')}<rect x="${planX(firstEnd)}" y="${planY(b.y2)}" width="${stair.midLandingLength * scale}" height="${(b.y2 - b.y1) * scale}" fill="#bfc9cd"/><rect x="${planX(secondEnd)}" y="${planY(b.y2)}" width="${stair.upperLandingLength * scale}" height="${(b.y2 - b.y1) * scale}" fill="#d7e7df"/><line x1="${planX(33)}" y1="${planY(1.25)}" x2="${planX(40.2)}" y2="${planY(1.25)}" stroke="#9a4e2d" stroke-width="3"/><path d="M${planX(40.2)} ${planY(1.25)}l-14 -7v14z" fill="#9a4e2d"/><text x="${planX(36.75)}" y="${planY(2.2)}" text-anchor="middle" class="tiny">ST-02 方案一：X32.5 起步 → +X／22R／20T</text></g>`;
 }
 
 function l2Plan() {
   const plate = active.l2.floorPlate;
-  const male = { entityId: 'Z-CS-M-01', coordinateSystemId: 'SITE-XY', bounds: { x1: 29, x2: 35, y1: 0, y2: 13.5 } };
-  const female = { entityId: 'Z-CS-F-01', coordinateSystemId: 'SITE-XY', bounds: { x1: 35, x2: 41, y1: 0, y2: 13.5 } };
-  return shell('2F 概念平面圖', `PROJECT / MODEL ${versionSlug} · 固定正交樓板 +3.30 m · SITE-XY`, `${grid()}${northArrow()}${rect(active.site, 'reference', '1F 基地參照')}${rect(plate, 'outline')}${rect(male, 'working', '男更衣／淋浴 15＋5')}${rect(female, 'confirmed', '女更衣／淋浴 15＋5')}
-    <rect x="${planX(29)}" y="${planY(2)}" width="${2 * scale}" height="${2 * scale}" class="deferred"/><text x="${planX(30)}" y="${planY(1) + 4}" text-anchor="middle" class="tiny">ST-01 到達</text>
-    <rect x="${planX(29)}" y="${planY(13.5)}" width="${2 * scale}" height="${13.5 * scale}" fill="#bfe4ef" fill-opacity=".25"/><text x="${planX(30)}" y="${planY(7)}" text-anchor="middle" class="tiny" transform="rotate(-90 ${planX(30)} ${planY(7)})">伸入泳池挑高 2 m</text>
-    <rect x="${planX(39)}" y="${planY(13.5)}" width="${2 * scale}" height="${13.5 * scale}" fill="#e4dbed" fill-opacity=".42"/><text x="${planX(40)}" y="${planY(7)}" text-anchor="middle" class="tiny" transform="rotate(-90 ${planX(40)} ${planY(7)})">右退縮上方外挑 2 m</text>
+  const male = active.l2.zones.maleChangingShower;
+  const female = active.l2.zones.femaleChangingShower;
+  return shell('2F 概念平面圖', `PROJECT / MODEL ${versionSlug} · 固定正交樓板 +3.30 m · SITE-XY · 0.5 m 可見格線`, `${northArrow()}${rect(active.site, 'reference', '1F 基地參照')}${rect(plate, 'outline')}${rect(male, 'working', '男更衣／淋浴 15')}${rect(female, 'confirmed', '女更衣／淋浴 15')}
+    <rect x="${planX(29)}" y="${planY(2)}" width="${2 * scale}" height="${2 * scale}" class="deferred"/><rect x="${planX(29)}" y="${planY(13.5)}" width="${2 * scale}" height="${13.5 * scale}" fill="#bfe4ef" fill-opacity=".2"/><rect x="${planX(39)}" y="${planY(13.5)}" width="${2 * scale}" height="${13.5 * scale}" fill="#e4dbed" fill-opacity=".3"/>
+    ${grid()}${showerMarks(male)}${showerMarks(female)}${stairToL3Plan()}
+    <text x="${planX(30)}" y="${planY(1) + 4}" text-anchor="middle" class="tiny">ST-01 到達</text><text x="${planX(30)}" y="${planY(11.2)}" text-anchor="middle" class="tiny" transform="rotate(-90 ${planX(30)} ${planY(11.2)})">伸入泳池挑高 2 m</text><text x="${planX(40)}" y="${planY(10.2)}" text-anchor="middle" class="tiny" transform="rotate(-90 ${planX(40)} ${planY(10.2)})">右退縮上方外挑 2 m</text>
     <line x1="${planX(32.5)}" y1="${planY(13.5)}" x2="${planX(32.5)}" y2="${planY(7.5)}" class="structure"/><line x1="${planX(35.5)}" y1="${planY(7.5)}" x2="${planX(35.5)}" y2="${planY(0)}" class="structure"/>
-    <rect x="60" y="845" width="1170" height="82" rx="9" class="note"/><text x="82" y="877" class="small">L2 標高 +3.30 m；12 × 13.5 m 固定樓板。ST-01 在 X29 直接接板，不設短橋。</text><text x="82" y="904" class="small">橙色線為與 L1 隔間／設備牆協同的支承候選；柱牆尺寸、梁深與逃生仍需專業驗證。</text>`, 'DRAW-L2-PLAN');
+    <rect x="60" y="845" width="1320" height="82" rx="9" class="note"/><text x="82" y="877" class="small">男女各 15 間、合計 30 間淨尺寸 1.00 × 1.00 m 淋浴間；SITE-XY 0.5 m 小格／2.5 m 大格與 XY 座標已置於空間填色上方。</text><text x="82" y="904" class="small">ST-02 由 2F X32.5 起步，固定於 Y0.5～2.0 朝 +X 上行；柱牆、走道、更衣、無障礙、排水與避難仍須專業深化。</text>`, 'DRAW-L2-PLAN');
 }
 
 function rotatePoint(x, y, angle, pivot) {
@@ -147,12 +173,19 @@ function l3Plan() {
   const pivot = active.l3.planPivot;
   const corners = [[b.x1,b.y1],[b.x2,b.y1],[b.x2,b.y2],[b.x1,b.y2]].map(([x,y]) => rotatePoint(x,y,active.l3.planRotation,pivot));
   const points = corners.map((p) => `${planX(p.x)},${planY(p.y)}`).join(' ');
+  const extension = active.l3.orthogonalExtension;
+  const arrival = active.l3.arrivalWing;
+  const terrace = active.l3.landscapeTerrace;
+  const extensionPoints = extension.polygon.map(([x, y]) => `${planX(x)},${planY(y)}`).join(' ');
+  const arrivalPoints = arrival.polygon.map(([x, y]) => `${planX(x)},${planY(y)}`).join(' ');
   return shell('3F 概念平面圖', `PROJECT / MODEL ${versionSlug} · L3 +6.88 m · +${active.l3.planRotation.toFixed(1)}°／+${active.l3.mirror.leanFromVertical.toFixed(1)}° 工作值 · SITE-XY`, `${grid()}${northArrow()}${rect(active.site, 'reference', '1F 基地參照')}${rect(active.l2.floorPlate, 'reference', '固定 L2 投影')}
+    <polygon points="${extensionPoints}" class="terrace" data-entity="L3-EXT-01" data-gross-area="${extension.grossArea}"/><text x="${planX(40.35)}" y="${planY(3.25)}" text-anchor="middle" class="tiny">教師／維修專用景觀區</text><text x="${planX(40.35)}" y="${planY(2.85)}" text-anchor="middle" class="tiny">淨 ${terrace.netLandscapeArea.toFixed(3)} m²／上鎖管制</text>
     <g data-entity="L3-PLATE-01" data-coordinate-system="SITE-XY" data-bounds="${boundsData(active.l3.floorPlate)}"><polygon points="${points}" class="working"/><text x="${planX(pivot.x)}" y="${planY(pivot.y)}" text-anchor="middle" class="label">旋轉 L3 +${active.l3.planRotation.toFixed(1)}°</text></g>
+    <polygon points="${arrivalPoints}" class="arrival" data-entity="Z-L3-ARRIVAL-01" data-covered="true"/><text x="${planX(40.05)}" y="${planY(1.25)+4}" text-anchor="middle" class="tiny">有頂室內到達翼 ${arrival.area.toFixed(3)} m²</text><line x1="${planX(39.65)}" y1="${planY(1.25)}" x2="${planX(40.75)}" y2="${planY(1.25)}" stroke="#9a4e2d" stroke-width="2.5"/><path d="M${planX(40.75)} ${planY(1.25)}l-10 -5v10z" fill="#9a4e2d"/>
     <line x1="${planX(corners[0].x)}" y1="${planY(corners[0].y)}" x2="${planX(corners[3].x)}" y2="${planY(corners[3].y)}" class="mirror"/><circle cx="${planX(pivot.x)}" cy="${planY(pivot.y)}" r="7" fill="#a95c25"/><text x="${planX(pivot.x)+10}" y="${planY(pivot.y)-12}" class="tiny">支點 X35／Y6.75</text>
     <g class="structure"><rect x="${planX(32.5)-5}" y="${planY(12)}" width="10" height="${4 * scale}"/><rect x="${planX(35.5)-5}" y="${planY(7.5)}" width="10" height="${7.5 * scale}"/></g>
     <g><rect x="${planX(33)}" y="${planY(10)}" width="${2.2*scale}" height="${1.6*scale}" class="service"/><circle cx="${planX(34)}" cy="${planY(6.8)}" r="22" class="service"/><text x="${planX(34.1)}" y="${planY(11)}" text-anchor="middle" class="tiny">除濕／熱回收</text><text x="${planX(34)}" y="${planY(6.8)+4}" text-anchor="middle" class="tiny">水塔</text></g>
-    <rect x="60" y="845" width="1320" height="82" rx="9" class="note"/><text x="82" y="875" class="small">高位設備固定在直落支承帶，不跟隨旋轉懸挑端；鏡牆本體與外貼鏡面共同外傾 ${active.l3.mirror.leanFromVertical.toFixed(1)}°。</text><text x="82" y="902" class="small">23° 大幅外傾為日照工作最佳值，整體牆體、扭轉、風震、排水與設備荷重必須由結構／機電專業驗證。</text>`, 'DRAW-L3-PLAN');
+    <rect x="60" y="845" width="1390" height="82" rx="9" class="note"/><text x="82" y="875" class="small">保留旋轉主體 +${active.l3.planRotation.toFixed(1)}° 與支點不變，新增固定正交三角擴板 ${extension.grossArea.toFixed(3)} m²；ST-02 經有頂室內到達翼銜接，戶外區不是唯一通路。</text><text x="82" y="902" class="small">剩餘景觀區淨約 ${terrace.netLandscapeArea.toFixed(3)} m²，只限教師與維修人員並設鎖門／告示；不開放學生、訪客、公眾聚集或作主要逃生。</text>`, 'DRAW-L3-PLAN');
 }
 
 function sectionDrawing() {
@@ -160,6 +193,7 @@ function sectionDrawing() {
   const sz = (z) => 760 - z * 36;
   const pool = active.l1.pool;
   const stair = active.stair;
+  const stair2 = active.l2.stairToL3;
   const flight = (x0, z0, reverse = false) => Array.from({ length: stair.treadsPerRun }, (_, i) => {
     const x = reverse ? x0 + (stair.treadsPerRun - i) * stair.treadDepth : x0 + (i + 1) * stair.treadDepth;
     const z = z0 + (i + 1) * stair.riserHeight;
@@ -174,6 +208,7 @@ function sectionDrawing() {
     <g data-entity="RF-GL-01" data-coordinate-system="SITE-XY" data-bounds="${boundsData(roof)}"><path d="M${sx(0)} ${sz(roof.lowElevation)}L${sx(29)} ${sz(roof.highElevation)}L${sx(29)} ${sz(roof.highElevation+0.12)}L${sx(0)} ${sz(roof.lowElevation+0.12)}Z" class="roof"/><text x="${sx(13)}" y="${sz(5.35)}" class="label" transform="rotate(-5 ${sx(13)} ${sz(5.35)})">29.0 m 玻璃屋頂 · 5°</text></g>
     <g><rect x="${sx(29)}" y="${sz(3.3)}" width="${12*36}" height="9" class="wall"/><rect x="${sx(l3Min)}" y="${sz(6.88)}" width="${(l3Max-l3Min)*36}" height="9" class="working"/><line x1="${sx(29)}" y1="${sz(6.88)}" x2="${sx(mirrorTopX)}" y2="${sz(10.48)}" class="mirror"/><text x="${sx(34.5)}" y="${sz(3.55)}" class="small">L2 固定更衣層 +3.30</text><text x="${sx(34)}" y="${sz(7.16)}" class="small">L3 旋轉服務層 +6.88</text><text x="${sx(27.5)}" y="${sz(9)}" class="tiny">鏡牆外傾 ${active.l3.mirror.leanFromVertical.toFixed(1)}°</text></g>
     <g data-entity="ST-01" data-coordinate-system="SITE-XY" data-bounds="${boundsData(stair)}" data-design-intent="suspended-floating-stair"><line x1="${sx(stair.bounds.x1+0.15)}" y1="${sz(stair.lowerElevation+0.02)}" x2="${sx(stair.bounds.x1+stair.runLengthPerFlight-0.15)}" y2="${sz(1.65)}" stroke="#263746" stroke-width="8"/><line x1="${sx(stair.bounds.x1+stair.runLengthPerFlight)}" y1="${sz(1.72)}" x2="${sx(stair.bounds.x1+stair.runLengthPerFlight+stair.midLandingLength)}" y2="${sz(1.72)}" stroke="#263746" stroke-width="8"/><line x1="${sx(stair.bounds.x1+stair.runLengthPerFlight+stair.midLandingLength+0.15)}" y1="${sz(1.72)}" x2="${sx(stair.bounds.x2-0.15)}" y2="${sz(3.15)}" stroke="#263746" stroke-width="8"/><polyline points="${sx(stair.bounds.x1)},${sz(stair.lowerElevation)} ${flight(stair.bounds.x1, stair.lowerElevation)} ${sx(stair.bounds.x1+stair.runLengthPerFlight+stair.midLandingLength)},${sz(1.8)} ${flight(stair.bounds.x1+stair.runLengthPerFlight+stair.midLandingLength,1.8)}" fill="none" stroke="#58676d" stroke-width="3"/><text x="${sx(24.75)}" y="${sz(2.15)}" text-anchor="middle" class="tiny">懸空薄踏步＋雙連續鋼箱梯梁 · 2.70＋3.10＋2.70 m · 20R／18T</text></g>
+    <g data-entity="ST-02" data-axis="+x" data-y-band="0.5,2"><line x1="${sx(32.5)}" y1="${sz(3.3)}" x2="${sx(35.25)}" y2="${sz(5.09)}" stroke="#46555b" stroke-width="7"/><line x1="${sx(35.25)}" y1="${sz(5.09)}" x2="${sx(36.75)}" y2="${sz(5.09)}" stroke="#46555b" stroke-width="7"/><line x1="${sx(36.75)}" y1="${sz(5.09)}" x2="${sx(39.5)}" y2="${sz(6.88)}" stroke="#46555b" stroke-width="7"/><line x1="${sx(39.5)}" y1="${sz(6.88)}" x2="${sx(41)}" y2="${sz(6.88)}" stroke="#286b5c" stroke-width="9"/><text x="${sx(36.75)}" y="${sz(5.55)}" text-anchor="middle" class="tiny">ST-02：X32.5 → +X／Y0.5～2／22R</text></g>
     <g><rect x="${sx(31)}" y="${sz(3.3)}" width="${4.5*36}" height="${3*36}" class="confirmed"/><rect x="${sx(35.5)}" y="${sz(3.3)}" width="${3.5*36}" height="${3.2*36}" class="working"/><text x="${sx(33.25)}" y="${sz(1.65)}" text-anchor="middle" class="tiny">泳池側廁所 +0.30</text><text x="${sx(37.25)}" y="${sz(1.55)}" text-anchor="middle" class="tiny">操場側廁所 +0.10</text><rect x="${sx(39)}" y="${sz(0.1)}" width="${2*36}" height="4" class="deferred"/></g>
     <rect x="60" y="842" width="1320" height="84" rx="9" class="note"/><text x="82" y="873" class="small">剖面採 X／Z 同尺度。ST-01 從池畔 +0.30 m 直接到 L2 +3.30 m；3.10 m 平台的扭轉、振動、淨高與群聚荷重仍待專業驗證。</text><text x="82" y="902" class="small">L3 外挑、屋頂轉接帶、廁所結構／機電淨高、水處理與設備支承均為概念協調結果，非施工核定。</text>`;
   return shell('縱向概念剖面圖', `PROJECT / MODEL ${versionSlug} · X／Z 同尺度 · 池畔 +0.30 · L2 +3.30 · L3 +6.88`, body, 'DRAW-LONGITUDINAL-SECTION');

@@ -105,19 +105,39 @@ button:focus-visible, a:focus-visible, select:focus-visible, canvas:focus-visibl
   height: 42px;
   flex: 0 0 auto;
   border: 1px solid rgba(255,255,255,.2);
-  border-radius: 50%;
+  border-radius: 10px;
   font-size: 9px;
 }
 .compass i {
   position: absolute;
-  width: 2px;
-  height: 14px;
-  bottom: 5px;
-  background: #d97955;
-  transform: rotate(var(--bearing)) translateY(-7px);
-  transform-origin: 50% -2px;
+  right: 5px;
+  bottom: 2px;
+  color: #ef9872;
+  font-size: 25px;
+  font-style: normal;
+  line-height: 1;
 }
-.compass span { position: absolute; top: 4px; }
+.compass span { position: absolute; top: 4px; left: 7px; font-weight: 800; }
+
+.orientation-cue {
+  position: absolute;
+  z-index: 8;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  grid-template-columns: auto 38px;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px 6px 11px;
+  border: 1px solid rgba(255,255,255,.44);
+  border-radius: 10px;
+  background: rgba(21,39,45,.78);
+  color: #fff;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,.16);
+}
+.orientation-cue span { font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+.orientation-cue strong { color: #ff9b72; font-size: 36px; line-height: .8; text-align: center; }
 
 .controls-panel, .information-panel {
   min-height: 0;
@@ -336,6 +356,8 @@ noscript { display: block; padding: 20px; }
   .trust-strip { margin-left: 0; }
   .trust-strip > span:not(:first-child) { display: none; }
   .compass { width: 38px; height: 38px; }
+  .orientation-cue { top: 11px; right: 11px; grid-template-columns: auto 32px; padding: 6px 7px 5px 9px; }
+  .orientation-cue strong { font-size: 31px; }
   .controls-panel, .information-panel { overflow: visible; }
   .controls-panel { padding: 18px 14px; border: 0; border-top: 1px solid var(--line); }
   .controls-panel section + section { margin-top: 18px; padding-top: 16px; }
