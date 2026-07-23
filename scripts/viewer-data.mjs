@@ -58,7 +58,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
   const stairData = active.stair;
 
   const viewerModel = {
-    schemaVersion: '1.2.0',
+    schemaVersion: '1.3.0',
     modelVersion: model.modelVersion,
     revision: model.revision,
     activeGeometryRevisionId: active.id,
@@ -129,6 +129,10 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         poolAtriumOverlap: active.l2.poolAtriumOverlap,
         rightSetbackOverhang: active.l2.rightSetbackOverhang,
         gridDisplay: structuredClone(active.l2.gridDisplay),
+        circulationZone: structuredClone(active.l2.circulationZone),
+        stairZone: structuredClone(active.l2.stairZone),
+        changingRoomEntries: structuredClone(active.l2.changingRoomEntries),
+        corridorFeatures: structuredClone(active.l2.corridorFeatures),
         zones: structuredClone(active.l2.zones),
         stairToL3: {
           ...structuredClone(active.l2.stairToL3),
@@ -167,6 +171,9 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         orthogonalExtension: structuredClone(l3Data.orthogonalExtension),
         arrivalWing: structuredClone(l3Data.arrivalWing),
         landscapeTerrace: structuredClone(l3Data.landscapeTerrace),
+        programStrategy: structuredClone(l3Data.programStrategy),
+        pvRoofReserve: structuredClone(l3Data.pvRoofReserve),
+        energyStorageStrategy: structuredClone(l3Data.energyStorageStrategy),
       },
       roof: {
         bounds: structuredClone(roof.bounds),
@@ -218,6 +225,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
       { id: 'roof', label: '玻璃屋頂', status: 'confirmed' },
       { id: 'circulation', label: '樓梯與結構整合', status: 'working' },
       { id: 'rain', label: '雨簾與回用水路', status: 'deferred' },
+      { id: 'energy', label: '屋頂光電與儲能策略', status: 'working' },
       { id: 'annotations', label: '幾何註記', status: 'working' },
     ],
     analysis: {
@@ -226,7 +234,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         recordedModelHash,
         currentModelHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: '0.6.2 概念模型已同步；鏡牆角度未變，新增樓板、樓梯與景觀區仍須結構、消防、排水及法規專業驗證。',
+        disclaimer: '0.6.3 概念模型已同步；鏡牆角度未變，屋頂光電僅為預留範圍，遮蔭／眩光、結構與儲能消防仍須專業驗證。',
       },
     },
   };

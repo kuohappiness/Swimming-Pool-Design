@@ -12,7 +12,7 @@ export interface ReferenceGeometry {
   l2StartX: number;
   l2EndX: number;
   l2Length: number;
-  l2SplitAxisX: number;
+  l2SplitAxisY: number;
   maleL1Bounds: PlanBounds;
   femaleL1Bounds: PlanBounds;
   maleL2Bounds: PlanBounds;

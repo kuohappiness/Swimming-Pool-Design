@@ -1,10 +1,10 @@
 import type { ProjectModel, SheetRender } from './types';
 
 const siteImage = new URL('../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
-const l1Image = new URL('../drafts/v0.6.2/DRAW-L1-PLAN-v0.6.2.png', import.meta.url).href;
-const l2Image = new URL('../drafts/v0.6.2/DRAW-L2-PLAN-v0.6.2.png', import.meta.url).href;
-const l3Image = new URL('../drafts/v0.6.2/DRAW-L3-PLAN-v0.6.2.png', import.meta.url).href;
-const sectionImage = new URL('../drafts/v0.6.2/DRAW-LONGITUDINAL-SECTION-v0.6.2.png', import.meta.url).href;
+const l1Image = new URL('../drafts/v0.6.3/DRAW-L1-PLAN-v0.6.3.png', import.meta.url).href;
+const l2Image = new URL('../drafts/v0.6.3/DRAW-L2-PLAN-v0.6.3.png', import.meta.url).href;
+const l3Image = new URL('../drafts/v0.6.3/DRAW-L3-PLAN-v0.6.3.png', import.meta.url).href;
+const sectionImage = new URL('../drafts/v0.6.3/DRAW-LONGITUDINAL-SECTION-v0.6.3.png', import.meta.url).href;
 
 function reviewDrawing(id: string, title: string, imageUrl: string, note: string, model: ProjectModel): SheetRender {
   return {
@@ -46,9 +46,9 @@ function siteDrawing(model: ProjectModel): SheetRender {
 export function renderSheets(model: ProjectModel): SheetRender[] {
   return [
     siteDrawing(model),
-    reviewDrawing('V062-L1', 'v0.6.2｜1F 最新平面圖', l1Image, '四間廁所取消入口遮擋版、WC 貼 Y3.5，泳池男廁一座小便斗移至 X31。非施工圖。', model),
-    reviewDrawing('V062-L2', 'v0.6.2｜2F 最新平面圖', l2Image, '可見 SITE-XY 格線、男女各 15 間 1 × 1 m 淋浴間，以及由 X32.5 朝 +X 的方案一 ST-02。非施工圖。', model),
-    reviewDrawing('V062-L3', 'v0.6.2｜3F 最新平面圖', l3Image, '旋轉主體不變，新增固定正交三角擴板、有頂到達翼與教師／維修專用受控景觀區。非施工圖。', model),
-    reviewDrawing('V062-SECTION', 'v0.6.2｜最新縱向剖面圖', sectionImage, '池畔、L2、L3、5°屋頂、ST-01 與方案一 ST-02 的概念標高關係。非施工圖。', model),
+    reviewDrawing('V063-L1', 'v0.6.3｜1F 最新平面圖', l1Image, '操場男女廁各增一座洗手槽，操場男廁另增一座小便斗；原有器具保留。非施工圖。', model),
+    reviewDrawing('V063-L2', 'v0.6.3｜2F 最新平面圖', l2Image, 'Review A：L 形面池走道、男女各 15 間含隔間 1.2 × 1.2 m 淋浴模組、各 1 WC＋2 洗手槽，以及懸空 ST-02／梯下植栽。非施工圖。', model),
+    reviewDrawing('V063-L3', 'v0.6.3｜3F 最新平面圖', l3Image, '維持低使用密度設備／維修用途與未來彈性，屋頂新增太陽能概念預留；儲能優先落地戶外。非施工圖。', model),
+    reviewDrawing('V063-SECTION', 'v0.6.3｜最新縱向剖面圖', sectionImage, '池畔、L2、L3、ST-01／ST-02 懸空樓梯、梯下植栽及 3F 太陽能預留的概念標高關係。非施工圖。', model),
   ];
 }

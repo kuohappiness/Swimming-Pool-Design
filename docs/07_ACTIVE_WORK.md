@@ -190,7 +190,25 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 本批修正於 2026-07-23 依使用者指示先完整記錄，尚未修改模型、圖面、Viewer 或版本號。Y3.5 集中管線牆與 X31 小便斗為概念上可行的配置，實作仍不得省略隔間淨寬、入口淨空、檢修管道及無障礙檢核。
 
-## 10. 未排程設計問題
+## 10. 0.6.3 任務
+
+0.6.3 已於 2026-07-23 完成修訂收集並由使用者明確啟動整批實作。`TASK-044`～`TASK-047` 依核准設計同步至單一模型、current 圖面、Viewer、HTML 與驗證；發布整合另由 `TASK-048` 管理。
+
+設計審閱記錄（2026-07-23）：使用者先核准獨立的 2F 更新版平面檢討圖 Review A，包含每側新增 1 WC＋2 洗手槽；其後再明確啟動整批實作。Review A 保留為歷史審閱證據，current 輸出則由 `GEO-0.6.3` 重現。
+
+3F 功能邊界（2026-07-23）：`DEC-097` 已記錄本期不設教師觀察／泳課分析與環境教育空間、只保留未來彈性，乾式維修備品間仍在考慮，既有受控景觀露台維持。`DEC-098` 另確認屋頂光電概念預留、地面層獨立戶外儲能優先，3F 只保留電力／EMS 介面及專用戶外防火儲能空間備案；這些內容納入 `TASK-047` 實作，精確容量與專業核准仍保持 deferred。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-044 | 增加操場男女廁洗手槽與操場男廁小便斗 | done | 0.6.3 | [DEC-094](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-008／OPEN-009 | TASK-039 | canonical model、L1 平面與 3D Viewer 統一把操場男廁更新為 1 WC＋2 小便斗＋2 洗手槽、操場女廁更新為 2 WC＋2 洗手槽；新增器具緊鄰各自既有同類器具並沿用相同牆面，不搬移既有器具或改變邊界、入口、標高及其他廁所器具數量。模型 validator、圖面結構測試與 Viewer smoke 鎖定總數及相鄰關係。 |
+| TASK-045 | 重排 2F 獨立樓梯區、面池走道與上下分區更衣／淋浴配置 | done | 0.6.3 | [DEC-095](04_DECISIONS_AND_OPEN_ITEMS.md)、[已核准 2F Review A](../reference/drafts/v0.6.3/README.md)、OPEN-009／OPEN-019 | TASK-043 | 已完成並核准的 Review A 作為實作基準：樓梯區 X32.5～41／Y0～2.5、Y2.5 分隔牆、Y0 大面玻璃、X29～32 面池走道與觀景窗、站立長桌／飲水機／植栽、女上男下、X32 各一個靠上方的 1.00 m 無門片入口、男女各 15 間含隔間 1.20 × 1.20 m 淋浴，以及每側 1 WC＋2 洗手槽。同步 canonical model、current L2 圖面、Viewer、模型驗證與版本號。 |
+| TASK-046 | 將 `ST-02` 設計為懸空樓梯並在梯下加入造景植栽 | done | 0.6.3 | [DEC-096](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-009／OPEN-019 | TASK-045 | canonical model、2F／剖面圖與 Viewer 統一表達 ST-02 的懸空梯語彙與開放梯下；梯下只放低矮、耐陰、低落葉、可移除的輕量盆栽，且不侵入必要通行、逐點淨高、支承與維修範圍。驗證器與視覺 smoke 鎖定無封閉梯下量體、植栽範圍及專業驗證標示；不虛構結構尺寸、防火性能或排水核定。 |
+| TASK-047 | 預留 3F 上方屋頂光電並建立儲能系統分期策略 | done | 0.6.3 | [DEC-098](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-011／OPEN-014／OPEN-018～OPEN-022 | TASK-043 | canonical model、設計基準、3F 平面與 Viewer 統一標示由固定核心／直接支承線承載的「屋頂光電概念預留區」，並明示避開旋轉懸挑端、外傾鏡牆、三角景觀露台及既有玻璃池廳屋頂；文件同步列出預埋固定、電纜、逆變器／EMS、排水與維修介面。0.6.3 不建立一般 3F 室內電池物件，只記錄地面層獨立戶外儲能優先與 3F 專用戶外防火技術空間備案；光電／儲能容量、品牌、發電量、備援時數、地面精確位置及專業核准保持 deferred。模型驗證與圖面／Viewer smoke 鎖定預留區、排除區、分期狀態及專業驗證標示。 |
+| TASK-048 | 同步 0.6.3 模型、圖面、Viewer、HTML、文件與版本並完成發布 | done | 0.6.3 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[0.6.3 release](releases/0.6.3.md) | TASK-044～TASK-047 | package、lockfile、modelVersion、`GEO-0.6.3`、V063 sheets／SVG／PNG／HTML、文件與 solar registry 同步；完整 build、桌面／行動 Viewer smoke、圖面視覺檢查及 `git diff --check` 通過，建立 `release: v0.6.3` commit 並 push main。 |
+
+`TASK-044`～`TASK-048` 已完成並收斂為 [Release 0.6.3](releases/0.6.3.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
+
+## 11. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
@@ -202,6 +220,11 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 - [OPEN-014](04_DECISIONS_AND_OPEN_ITEMS.md)：屋頂接縫、雨簾與雨水回用的施工尺度、容量與機電／建築物理驗證。
 - [OPEN-016](04_DECISIONS_AND_OPEN_ITEMS.md)：0.6.0 概念模型已完成 SITE-XY、12 × 13.5 m 樓板、固定屋頂與四廁高差遷移；施工級柱網、轉換構造、0.343 m 轉接帶與防排水節點仍待完成。
 - [OPEN-017](04_DECISIONS_AND_OPEN_ITEMS.md)：0.6.0 已建立 ST-01 方案 E；有效淨寬、3.10 m 平台結構、逐點淨高、防墜、逃生與材料仍待專業定案。
+- [OPEN-018](04_DECISIONS_AND_OPEN_ITEMS.md)：L1 池水設備與 3F 高位機電的實際選型、荷重、振動、通風、排水與搬運路徑。
+- [OPEN-019](04_DECISIONS_AND_OPEN_ITEMS.md)：ST-02、固定正交 L3 到達翼及旋轉樓板交接的結構、防水、避難與設備搬運。
+- [OPEN-020](04_DECISIONS_AND_OPEN_ITEMS.md)：受控三角景觀露台的活載、欄杆、門禁、防排水、植栽固定與維修安全。
+- [OPEN-021](04_DECISIONS_AND_OPEN_ITEMS.md)：3F 乾式維修備品間是否納入本期，仍待使用者與消防／維修品項確認。
+- [OPEN-022](04_DECISIONS_AND_OPEN_ITEMS.md)：屋頂光電與地面戶外儲能的精確範圍、容量及專業核定；方向已由 `DEC-098` 確認，概念預留由 `TASK-047` 排程。
 
 這些 OPEN 在取得新輸入、形成可核准設計並建立 TASK 前，不列入執行順序。
 

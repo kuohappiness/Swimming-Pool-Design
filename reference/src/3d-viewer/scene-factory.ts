@@ -552,14 +552,109 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   );
   l2Group.add(l2Slab);
   const l2WallHeight = l2Data.topElevation - l2Data.baseElevation - 0.28;
-  l2Group.add(
-    box([0.18, l2WallHeight, l2Data.width], [l2Data.endX - 0.09, l2Data.baseElevation + l2WallHeight / 2, upperCentreZ], l2Material),
-    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2Data.baseElevation + l2WallHeight / 2, l2Data.bounds.y1 + 0.07], wallGlass),
-    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2Data.baseElevation + l2WallHeight / 2, l2Data.bounds.y2 - 0.07], wallGlass),
-    box([0.14, l2WallHeight, l2Data.width], [serviceStart + 0.07, l2Data.baseElevation + l2WallHeight / 2, upperCentreZ], l2Material),
-    box([serviceEnd - serviceStart, l2WallHeight, 0.14], [(serviceStart + serviceEnd) / 2, l2Data.baseElevation + l2WallHeight / 2, upperCentreZ], l2Material),
+  const l2WallCentreY = l2Data.baseElevation + l2WallHeight / 2;
+  const corridorMaterial = new THREE.MeshStandardMaterial({
+    color: 0xc7d8d2, roughness: 0.82, transparent: true, opacity: 0.74, side: THREE.DoubleSide,
+  });
+  const stairZoneMaterial = new THREE.MeshStandardMaterial({
+    color: 0xd0ccc2, roughness: 0.86, transparent: true, opacity: 0.78, side: THREE.DoubleSide,
+  });
+  const corridorSurface = horizontalPolygon(
+    l2Data.circulationZone.polygon,
+    l2Data.baseElevation + 0.012,
+    corridorMaterial,
   );
+  const stairZoneSurface = horizontalPolygon([
+    [l2Data.stairZone.bounds.x1, l2Data.stairZone.bounds.y1],
+    [l2Data.stairZone.bounds.x2, l2Data.stairZone.bounds.y1],
+    [l2Data.stairZone.bounds.x2, l2Data.stairZone.bounds.y2],
+    [l2Data.stairZone.bounds.x1, l2Data.stairZone.bounds.y2],
+  ], l2Data.baseElevation + 0.016, stairZoneMaterial);
+  l2Group.add(corridorSurface, stairZoneSurface);
+  l2Group.add(
+    box([0.18, l2WallHeight, l2Data.width], [l2Data.endX - 0.09, l2WallCentreY, upperCentreZ], l2Material),
+    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.bounds.y1 + 0.07], wallGlass),
+    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.bounds.y2 - 0.07], l2Material),
+    box([l2Data.stairZone.bounds.x2 - l2Data.stairZone.bounds.x1, l2WallHeight, 0.14], [
+      (l2Data.stairZone.bounds.x1 + l2Data.stairZone.bounds.x2) / 2,
+      l2WallCentreY,
+      l2Data.stairZone.bounds.y2,
+    ], l2Material),
+    box([l2Data.zones.maleChangingShower.bounds.x2 - l2Data.zones.maleChangingShower.bounds.x1, l2WallHeight, 0.14], [
+      (l2Data.zones.maleChangingShower.bounds.x1 + l2Data.zones.maleChangingShower.bounds.x2) / 2,
+      l2WallCentreY,
+      l2Data.splitAxisY,
+    ], l2Material),
+  );
+
+  const observation = l2Data.corridorFeatures.poolObservationWindow;
+  const observationBottom = l2Data.baseElevation + 0.82;
+  const observationHeight = 1.42;
+  l2Group.add(
+    box([0.14, l2WallHeight, observation.spanY[0] - l2Data.bounds.y1], [
+      l2Data.startX + 0.07, l2WallCentreY, (l2Data.bounds.y1 + observation.spanY[0]) / 2,
+    ], l2Material),
+    box([0.14, observationBottom - l2Data.baseElevation, observation.spanY[1] - observation.spanY[0]], [
+      l2Data.startX + 0.07,
+      l2Data.baseElevation + (observationBottom - l2Data.baseElevation) / 2,
+      (observation.spanY[0] + observation.spanY[1]) / 2,
+    ], l2Material),
+    box([0.14, observationHeight, observation.spanY[1] - observation.spanY[0]], [
+      l2Data.startX + 0.07,
+      observationBottom + observationHeight / 2,
+      (observation.spanY[0] + observation.spanY[1]) / 2,
+    ], wallGlass),
+    box([0.14, l2Data.topElevation - observationBottom - observationHeight, observation.spanY[1] - observation.spanY[0]], [
+      l2Data.startX + 0.07,
+      observationBottom + observationHeight + (l2Data.topElevation - observationBottom - observationHeight) / 2,
+      (observation.spanY[0] + observation.spanY[1]) / 2,
+    ], l2Material),
+    box([0.14, l2WallHeight, l2Data.bounds.y2 - observation.spanY[1]], [
+      l2Data.startX + 0.07, l2WallCentreY, (observation.spanY[1] + l2Data.bounds.y2) / 2,
+    ], l2Material),
+  );
+
+  const roomWallX = l2Data.zones.maleChangingShower.bounds.x1;
+  const sortedEntries = [...l2Data.changingRoomEntries].sort((a, b) => a.rangeY[0] - b.rangeY[0]);
+  let roomWallCursor = l2Data.stairZone.bounds.y2;
+  for (const entry of sortedEntries) {
+    if (entry.rangeY[0] > roomWallCursor) {
+      l2Group.add(box([0.14, l2WallHeight, entry.rangeY[0] - roomWallCursor], [
+        roomWallX, l2WallCentreY, (roomWallCursor + entry.rangeY[0]) / 2,
+      ], l2Material));
+    }
+    const headerHeight = Math.max(0, l2WallHeight - 2.2);
+    if (headerHeight > 0) {
+      l2Group.add(box([0.14, headerHeight, entry.clearWidth], [
+        roomWallX, l2Data.baseElevation + 2.2 + headerHeight / 2, (entry.rangeY[0] + entry.rangeY[1]) / 2,
+      ], l2Material));
+    }
+    roomWallCursor = entry.rangeY[1];
+  }
+  if (roomWallCursor < l2Data.bounds.y2) {
+    l2Group.add(box([0.14, l2WallHeight, l2Data.bounds.y2 - roomWallCursor], [
+      roomWallX, l2WallCentreY, (roomWallCursor + l2Data.bounds.y2) / 2,
+    ], l2Material));
+  }
+
+  tag(corridorSurface, {
+    entityId: l2Data.circulationZone.entityId,
+    label: 'L 形面池觀景走道',
+    status: 'working',
+    description: `面積 ${l2Data.circulationZone.area.toFixed(2)} m²，沿 X29 觀景窗串聯男女更衣入口；僅供站立觀景與通行，不設座椅。`,
+    openItemId: 'OPEN-019',
+  }, selectables);
+  tag(stairZoneSurface, {
+    entityId: l2Data.stairZone.entityId,
+    label: 'ST-02 獨立樓梯區',
+    status: 'working',
+    description: 'X32.5～41／Y0～2.5；Y0 為大面安全玻璃，Y2.5 為清水模分隔牆。',
+    openItemId: 'OPEN-019',
+  }, selectables);
+
   const showerMaterial = new THREE.MeshStandardMaterial({ color: 0xd9e4e1, roughness: 0.78 });
+  const fixtureMaterial = new THREE.MeshStandardMaterial({ color: 0xf4f0e8, roughness: 0.5 });
+  const lockerMaterial = new THREE.MeshStandardMaterial({ color: 0x6d827f, roughness: 0.76 });
   for (const [key, zone] of Object.entries(l2Data.zones)) {
     const showerGroup = new THREE.Group();
     const partitionHeight = 2.1;
@@ -571,19 +666,73 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
         box([0.04, partitionHeight, bounds.y2 - bounds.y1], [bounds.x2, l2Data.baseElevation + partitionHeight / 2, (bounds.y1 + bounds.y2) / 2], showerMaterial),
       );
     }
+    for (const cubicle of zone.supportFixtures.toiletCubicles) {
+      const bounds = cubicle.planBounds;
+      showerGroup.add(
+        box([bounds.x2 - bounds.x1, partitionHeight, 0.04], [(bounds.x1 + bounds.x2) / 2, l2Data.baseElevation + partitionHeight / 2, bounds.y1], showerMaterial),
+        box([0.04, partitionHeight, bounds.y2 - bounds.y1], [bounds.x1, l2Data.baseElevation + partitionHeight / 2, (bounds.y1 + bounds.y2) / 2], showerMaterial),
+        box([0.04, partitionHeight, bounds.y2 - bounds.y1], [bounds.x2, l2Data.baseElevation + partitionHeight / 2, (bounds.y1 + bounds.y2) / 2], showerMaterial),
+        box([0.42, 0.42, 0.58], [(bounds.x1 + bounds.x2) / 2, l2Data.baseElevation + 0.21, bounds.y1 + 0.38], fixtureMaterial),
+      );
+    }
+    for (const basin of zone.supportFixtures.washbasins) {
+      showerGroup.add(box([0.52, 0.16, 0.42], [
+        basin.center[0] + 0.25, l2Data.baseElevation + 0.82, basin.center[1],
+      ], fixtureMaterial));
+    }
+    for (const bank of zone.lockerBanks) {
+      const extent = bank.planExtent;
+      showerGroup.add(box([
+        extent.x2 - extent.x1, 1.9, extent.y2 - extent.y1,
+      ], [
+        (extent.x1 + extent.x2) / 2,
+        l2Data.baseElevation + 0.95,
+        (extent.y1 + extent.y2) / 2,
+      ], lockerMaterial));
+    }
     l2Group.add(showerGroup);
     tag(showerGroup, {
       entityId: zone.entityId,
       label: `${key === 'maleChangingShower' ? '男' : '女'}更衣淋浴區（15 間）`,
       status: 'working',
-      description: `配置 ${zone.showerCount} 間淨尺寸 1.00 × 1.00 m 淋浴間；男女合計 30 間，走道、更衣、無障礙、排水與機電細部仍待專業深化。`,
+      description: `配置 ${zone.showerCount} 間含隔間 1.20 × 1.20 m 淋浴模組、1 間一般 WC、2 座洗手槽與置物櫃；男女合計 30 間淋浴，無障礙、排水與機電細部仍待專業深化。`,
       openItemId: 'OPEN-019',
     }, selectables);
   }
+
+  const corridorFeatureGroup = new THREE.Group();
+  const counter = l2Data.corridorFeatures.standingCounter.planExtent;
+  corridorFeatureGroup.add(
+    box([counter.x2 - counter.x1, 0.1, counter.y2 - counter.y1], [
+      (counter.x1 + counter.x2) / 2, l2Data.baseElevation + 1.02, (counter.y1 + counter.y2) / 2,
+    ], dark),
+  );
+  const fountain = l2Data.corridorFeatures.drinkingFountain.planExtent;
+  corridorFeatureGroup.add(box([
+    fountain.x2 - fountain.x1, 0.9, fountain.y2 - fountain.y1,
+  ], [
+    (fountain.x1 + fountain.x2) / 2,
+    l2Data.baseElevation + 0.45,
+    (fountain.y1 + fountain.y2) / 2,
+  ], equipmentZoneMaterial));
+  for (const planter of l2Data.corridorFeatures.planters) {
+    corridorFeatureGroup.add(box([0.48, 0.42, 0.48], [
+      planter.center[0], l2Data.baseElevation + 0.21, planter.center[1],
+    ], siteMaterial));
+  }
+  l2Group.add(corridorFeatureGroup);
+  tag(corridorFeatureGroup, {
+    entityId: l2Data.corridorFeatures.standingCounter.entityId,
+    label: '觀景走道站立設施',
+    status: 'working',
+    description: '設懸空站立長桌（無椅）、飲水機與 3 組可移除低矮盆栽；固定、給排水及通行淨寬仍待專業驗證。',
+    openItemId: 'OPEN-019',
+  }, selectables);
+
   layer('l2').add(l2Group);
   tag(l2Group, {
     entityId: 'EXT-L2-01', label: '2F 固定更衣／淋浴層', status: 'working',
-    description: `固定正交樓板 ${l2Data.length.toFixed(1)} × ${l2Data.width.toFixed(1)} m，標高 +${l2Data.baseElevation.toFixed(2)} m；已配置男女各 15 間 1.00 × 1.00 m 淋浴間，並保留 ST-02 的 Y0.5～2 正交梯帶。更衣、無障礙、除濕與排水豎井仍待深化。`,
+    description: `固定正交樓板 ${l2Data.length.toFixed(1)} × ${l2Data.width.toFixed(1)} m，標高 +${l2Data.baseElevation.toFixed(2)} m；Review A 已配置 L 形面池走道、獨立樓梯區與男女各 15 間含隔間 1.20 × 1.20 m 淋浴模組。無障礙、除濕與排水豎井仍待深化。`,
     openItemId: 'OPEN-016',
   }, selectables);
 
@@ -745,11 +894,18 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const addStair2Flight = (baseX: number, baseElevation: number) => {
     for (let index = 0; index < stair2.treadsPerRun; index += 1) {
       const treadElevation = baseElevation + stair2.riserHeight * (index + 1);
-      stair2Group.add(box(
-        [stair2.treadDepth, 0.06, stair2Width],
-        [baseX + (index + 0.5) * stair2.treadDepth, treadElevation - 0.03, stair2.bounds.y1 + stair2Width / 2],
-        dark,
-      ));
+      stair2Group.add(
+        box(
+          [stair2.treadDepth, 0.06, stair2Width],
+          [baseX + (index + 0.5) * stair2.treadDepth, treadElevation - 0.03, stair2.bounds.y1 + stair2Width / 2],
+          dark,
+        ),
+        box(
+          [0.04, stair2.riserHeight, stair2Width],
+          [baseX + index * stair2.treadDepth, treadElevation - stair2.riserHeight / 2, stair2.bounds.y1 + stair2Width / 2],
+          dark,
+        ),
+      );
     }
   };
   addStair2Flight(stair2.bounds.x1, stair2.lowerElevation);
@@ -759,11 +915,65 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     box([stair2.midLandingLength, 0.16, stair2Width], [stair2.bounds.x1 + stair2.flightRun + stair2.midLandingLength / 2, stair2.midLandingElevation - 0.08, stair2.bounds.y1 + stair2Width / 2], dark),
     box([stair2.upperLandingLength, 0.16, stair2Width], [stair2.bounds.x2 - stair2.upperLandingLength / 2, stair2.upperElevation - 0.08, stair2.bounds.y1 + stair2Width / 2], dark),
   );
+  const stair2StringerZs = [
+    stair2.bounds.y1 + stringerInset,
+    stair2.bounds.y2 - stringerInset,
+  ];
+  for (const z of stair2StringerZs) {
+    stair2Group.add(
+      beamBetween(
+        new THREE.Vector3(stair2.bounds.x1 + 0.1, stair2.lowerElevation - 0.1, z),
+        new THREE.Vector3(stair2.bounds.x1 + stair2.flightRun - 0.1, stair2.midLandingElevation - 0.1, z),
+        0.2,
+        0.12,
+        dark,
+      ),
+      box([stair2.midLandingLength, 0.2, 0.12], [
+        stair2.bounds.x1 + stair2.flightRun + stair2.midLandingLength / 2,
+        stair2.midLandingElevation - 0.18,
+        z,
+      ], dark),
+      beamBetween(
+        new THREE.Vector3(stair2SecondStart + 0.1, stair2.midLandingElevation - 0.1, z),
+        new THREE.Vector3(stair2.bounds.x2 - stair2.upperLandingLength - 0.1, stair2.upperElevation - 0.1, z),
+        0.2,
+        0.12,
+        dark,
+      ),
+      box([stair2.upperLandingLength, 0.2, 0.12], [
+        stair2.bounds.x2 - stair2.upperLandingLength / 2,
+        stair2.upperElevation - 0.18,
+        z,
+      ], dark),
+    );
+  }
   layer('circulation').add(stair2Group);
   tag(stair2Group, {
-    entityId: stair2.entityId, label: 'ST-02 方案一正交樓梯', status: 'working',
-    description: `2F 起步端 X${stair2.lowerStartX.toFixed(1)}，固定於 Y${stair2.bounds.y1.toFixed(1)}～${stair2.bounds.y2.toFixed(1)}，全程朝 +X 上行至 3F；${stair2.riserCount} 級高、兩跑、1.50 m 中平台與 1.50 m 上平台。結構、扶手、防火與避難仍待專業核定。`,
+    entityId: stair2.entityId, label: 'ST-02 懸空式正交樓梯', status: 'working',
+    description: `2F 起步端 X${stair2.lowerStartX.toFixed(1)}，固定於 Y${stair2.bounds.y1.toFixed(1)}～${stair2.bounds.y2.toFixed(1)}，全程朝 +X 上行至 3F；${stair2.riserCount} 級高、薄踏步與封閉踢面由兩道連續深色鋼箱梯梁及懸空平台承托，梯下保持開放。結構、扶手、防火與避難仍待專業核定。`,
     openItemId: stair2.openItemId,
+  }, selectables);
+
+  const underStair = stair2.underStairLandscape;
+  const underStairGroup = new THREE.Group();
+  const underStairXStep = (underStair.bounds.x2 - underStair.bounds.x1) / underStair.planterCount;
+  for (let index = 0; index < underStair.planterCount; index += 1) {
+    const x = underStair.bounds.x1 + underStairXStep * (index + 0.5);
+    const z = index % 2 === 0
+      ? underStair.bounds.y1 + 0.28
+      : underStair.bounds.y2 - 0.28;
+    underStairGroup.add(
+      box([0.36, 0.28, 0.36], [x, stair2.lowerElevation + 0.14, z], siteMaterial),
+      box([0.16, 0.28 + index * 0.05, 0.16], [x, stair2.lowerElevation + 0.42 + index * 0.025, z], planterMaterial),
+    );
+  }
+  layer('circulation').add(underStairGroup);
+  tag(underStairGroup, {
+    entityId: underStair.entityId,
+    label: 'ST-02 梯下輕量造景植栽',
+    status: 'working',
+    description: `${underStair.planterCount} 組低矮、耐陰、低落葉且可移除的輕量盆栽；不設深土槽、水景或固定於梯梁的灌溉設備。`,
+    openItemId: underStair.openItemId,
   }, selectables);
 
   const roofMesh = quad([
@@ -791,6 +1001,40 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     entityId: 'RF-GL-01', label: '固定 5° 單坡玻璃屋頂', status: 'confirmed',
     description: `${roof.planRun.toFixed(1)} m 水平跨度，低端 +${roof.lowElevation.toFixed(3)} m、高端 +${roof.highElevation.toFixed(3)} m；相對抬高池畔的低端淨高為 ${(roof.lowElevation - deckElevation).toFixed(2)} m。`,
   }, selectables);
+
+  const pv = l3Data.pvRoofReserve;
+  const pvMaterial = new THREE.MeshStandardMaterial({
+    color: 0x244d73, roughness: 0.42, metalness: 0.28, side: THREE.DoubleSide,
+  });
+  const pvGridMaterial = new THREE.LineBasicMaterial({ color: 0x8fc4e5, transparent: true, opacity: 0.78 });
+  const pvGroup = new THREE.Group();
+  pvGroup.add(horizontalPolygon([
+    [pv.bounds.x1, pv.bounds.y1],
+    [pv.bounds.x2, pv.bounds.y1],
+    [pv.bounds.x2, pv.bounds.y2],
+    [pv.bounds.x1, pv.bounds.y2],
+  ], pv.baseElevation, pvMaterial));
+  for (let x = pv.bounds.x1; x <= pv.bounds.x2 + 0.01; x += 0.75) {
+    pvGroup.add(line([
+      new THREE.Vector3(Math.min(x, pv.bounds.x2), pv.baseElevation + 0.012, pv.bounds.y1),
+      new THREE.Vector3(Math.min(x, pv.bounds.x2), pv.baseElevation + 0.012, pv.bounds.y2),
+    ], pvGridMaterial));
+  }
+  for (let z = pv.bounds.y1; z <= pv.bounds.y2 + 0.01; z += 1.125) {
+    pvGroup.add(line([
+      new THREE.Vector3(pv.bounds.x1, pv.baseElevation + 0.012, Math.min(z, pv.bounds.y2)),
+      new THREE.Vector3(pv.bounds.x2, pv.baseElevation + 0.012, Math.min(z, pv.bounds.y2)),
+    ], pvGridMaterial));
+  }
+  layer('energy').add(pvGroup);
+  tag(pvGroup, {
+    entityId: pv.entityId,
+    label: '3F 屋頂太陽能預留區',
+    status: 'working',
+    description: `${pv.area.toFixed(1)} m² 輕量太陽能屋頂／棚架概念預留，須由固定核心或直接支承線獨立承載；模組排布、容量與發電量尚未定案。儲能優先設於地面層獨立戶外機櫃，3F 一般室內不配置電池。`,
+    openItemId: pv.openItemId,
+  }, selectables);
+
   const transition = box(
     [0.22, roof.transitionBand.value, roof.width],
     [roof.endX + 0.11, roof.highElevation + roof.transitionBand.value / 2, roof.width / 2],

@@ -17,7 +17,7 @@
       </div>
       <div class="header-actions">
         <a class="atlas-link" href="../">返回空間參照圖集</a>
-        <a class="atlas-link" href="../#V062-L1">最新 v0.6.2 圖面</a>
+        <a class="atlas-link" href="../#V063-L1">最新 v0.6.3 圖面</a>
         <a class="atlas-link" href="../3d-viewer/">3D Viewer</a>
         <span id="model-version" class="model-chip"></span>
       </div>
@@ -35,9 +35,9 @@
 
       <section class="decision-summary" aria-labelledby="decision-title">
         <div class="decision-summary-copy">
-          <p class="eyebrow">V0.6.2 WORKING OPTIMUM · PVGIS TMY ENERGY SCREEN</p>
+          <p class="eyebrow">V0.6.3 CURRENT SOLAR BASE · PVGIS TMY ENERGY SCREEN</p>
           <h2 id="decision-title">L3 新高度讓固定鏡面得到暖季零增量候選</h2>
-          <p>以 v0.6.2 的 25 × 8.5 m 池體、L3 +6.88 m、鏡高 3.60 m、12 × 13.5 m 旋轉主體與 X=35 m 工作支點重新確認；0.6.2 新增的正交到達翼／景觀擴板不改變鏡牆輸入角度。裸露固定鏡面的工作最佳化角度為水平 <strong>+25.5°</strong>、外傾 <strong>+23.0°</strong>。在等效鏡面反射率 0.75、玻璃太陽透射率 0.60 下，暖季池面新增為 0，冷季新增 +1,036.829 kWh（+0.962%）。23° 外傾幅度大，僅屬概念工作值，必須經結構、構造、眩光與維修專業驗證，不是施工性能保證。</p>
+          <p>以 v0.6.3 的 25 × 8.5 m 池體、L3 +6.88 m、鏡高 3.60 m、12 × 13.5 m 旋轉主體與 X=35 m 工作支點重新確認；正交到達翼／景觀擴板不改變鏡牆輸入角度。裸露固定鏡面的工作最佳化角度為水平 <strong>+25.5°</strong>、外傾 <strong>+23.0°</strong>。在等效鏡面反射率 0.75、玻璃太陽透射率 0.60 下，暖季池面新增為 0，冷季新增 +1,036.829 kWh（+0.962%）。0.6.3 的 3F 太陽能預留區尚未納入遮蔭、反射或發電模擬；23° 外傾幅度大，兩者都必須再經結構、構造、眩光與維修專業驗證。</p>
         </div>
         <dl>
           <div><dt>L3 水平旋轉</dt><dd><strong id="confirmed-plan">+25.5°</strong></dd></div>
@@ -192,7 +192,7 @@
               <div class="rotation-scale" aria-hidden="true">
                 <span>−20°</span><span>−10°</span><span>0°</span><span>+10°</span><span>+20°</span><span>+30°</span><span>+40°</span>
               </div>
-              <small id="planRotationHelp">−20°～+40°，每格 0.1°；拖曳時平面、鏡牆朝向、剖面反射與手機即時預覽同步重算。初始 +25.5° 是 v0.6.2 工作最佳值，尚待專業驗證。</small>
+              <small id="planRotationHelp">−20°～+40°，每格 0.1°；拖曳時平面、鏡牆朝向、剖面反射與手機即時預覽同步重算。初始 +25.5° 是 v0.6.3 沿用的工作最佳值，尚待專業驗證。</small>
             </div>
             <label class="control" for="lean">
               <span>鏡牆外傾角（相對垂直） <b id="leanValue">23.0°</b></span>
@@ -234,9 +234,9 @@
           <div><b>平面旋轉與剖面外傾分工</b><span>L3 水平旋轉負責朝哪裡反射；承載牆與鏡面共同外傾負責向下多少。兩者需同時通過才算命中泳池。</span></div>
           <div><b>能量差才是性能指標</b><span>反射落在本來已有直射的池面仍會增加能量；必須比較同一 TMY 下有鏡與無鏡的 kWh。</span></div>
           <div><b>新高度改變季節選擇</b><span>L3 鏡牆底升至 +6.88 m 後，固定角度搜尋出現暖季池面零增量、冷季正收益候選；不再假設需要可動遮罩。</span></div>
-          <div><b>上部接收是另一條能量路徑</b><span>v0.6.2 工作支點下，暖季約 289.797 kWh、冷季約 4,857.203 kWh 轉向屋頂／上部接收面；實際 lux、熱效應與去向仍需 BSDF 及年度模擬。</span></div>
+          <div><b>上部接收是另一條能量路徑</b><span>v0.6.3 沿用的工作支點下，暖季約 289.797 kWh、冷季約 4,857.203 kWh 轉向屋頂／上部接收面；新增太陽能預留區尚未納入，實際 lux、熱效應與去向仍需 BSDF 及年度模擬。</span></div>
         </div>
-        <div class="note"><strong>OPEN-011：</strong>正式支點與結構核心、L3 旋轉後的外挑／退縮、鏡牆分格與固定、材料實測光學值、框架遮蔭、屋頂接收後的透反射、眩光、專業 3D 光線追蹤及熱分析仍待驗證。工作 kWh 不是施工節能保證。</div>
+        <div class="note"><strong>OPEN-011／OPEN-022：</strong>正式支點與結構核心、L3 旋轉後的外挑／退縮、鏡牆分格與固定、材料實測光學值、框架遮蔭、屋頂接收後的透反射、太陽能模組遮蔭／眩光／發電、專業 3D 光線追蹤及熱分析仍待驗證。工作 kWh 不是施工節能保證。</div>
       </section>
     </main>
 

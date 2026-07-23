@@ -117,6 +117,16 @@ try {
     shell.dataset.toiletEntranceDoorLeaves = String(model.geometry.l1.toiletEntrances.filter(({ doorLeaf }) => doorLeaf).length);
     shell.dataset.wcCubicleDoorLeaves = String(Object.values(model.geometry.l1.zones).flatMap((zone) => zone.layout?.toiletCubicles ?? []).filter(({ doorLeaf }) => doorLeaf).length);
     shell.dataset.serviceMaterial = model.geometry.l1.serviceWingStyle.materialIntent;
+    shell.dataset.playgroundMaleWashbasins = String(model.geometry.l1.zones.playgroundMaleToilet.fixtures?.washbasins ?? 0);
+    shell.dataset.playgroundMaleUrinals = String(model.geometry.l1.zones.playgroundMaleToilet.fixtures?.urinals ?? 0);
+    shell.dataset.playgroundFemaleWashbasins = String(model.geometry.l1.zones.playgroundFemaleToilet.fixtures?.washbasins ?? 0);
+    shell.dataset.stair2Design = model.geometry.l2.stairToL3.designIntent;
+    shell.dataset.stair2Planters = String(model.geometry.l2.stairToL3.underStairLandscape.planterCount);
+    shell.dataset.l2ShowerModule = model.geometry.l2.zones.maleChangingShower.showerModuleSize.join(' × ');
+    shell.dataset.l2SupportWcPerGender = String(model.geometry.l2.zones.maleChangingShower.supportFixtures.fixtures.toilets);
+    shell.dataset.l2SupportBasinsPerGender = String(model.geometry.l2.zones.maleChangingShower.supportFixtures.fixtures.washbasins);
+    shell.dataset.pvReserveArea = String(model.geometry.l3.pvRoofReserve.area);
+    shell.dataset.l3InteriorBatteryObjects = String(model.geometry.l3.energyStorageStrategy.batteryObjectsOnGeneralL3Interior);
     const layerInputs = new Map<string, HTMLInputElement>();
     for (const modelLayer of model.layers) {
       const label = document.createElement('label');

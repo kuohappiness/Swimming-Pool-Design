@@ -1,7 +1,7 @@
 # 空間參照圖集契約
 
 - 類型：output-contract
-- 狀態：active／v0.6.0
+- 狀態：active／v0.6.3
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 入口：`/`
 
@@ -9,11 +9,11 @@
 
 `reference/src/sheets.ts` 只顯示：
 
-- `REF-001`：`SRC-SITE-001` 原始衛星底圖、MODEL 0.6.0、ACTIVE GEO-0.6.0、SITE-XY 與北向。
-- `V060-L1`：`DRAW-L1-PLAN-v0.6.0.png`。
-- `V060-L2`：`DRAW-L2-PLAN-v0.6.0.png`。
-- `V060-L3`：`DRAW-L3-PLAN-v0.6.0.png`。
-- `V060-SECTION`：`DRAW-LONGITUDINAL-SECTION-v0.6.0.png`。
+- `REF-001`：`SRC-SITE-001` 原始衛星底圖、MODEL 0.6.3、ACTIVE GEO-0.6.3、SITE-XY 與北向。
+- `V063-L1`：`DRAW-L1-PLAN-v0.6.3.png`。
+- `V063-L2`：`DRAW-L2-PLAN-v0.6.3.png`。
+- `V063-L3`：`DRAW-L3-PLAN-v0.6.3.png`。
+- `V063-SECTION`：`DRAW-LONGITUDINAL-SECTION-v0.6.3.png`。
 
 現行 HTML 不得出現 V2.1、V2.2、V2.3 或其他 v0.5.0 current tab。舊圖可留在歷史資料夾，不由 current atlas 載入。
 
@@ -24,13 +24,13 @@
 - L3：X35／Y6.75 支點、水平 +25.5°、面池牆與鏡面共面外傾 +23.0°，並標示需專業驗證。
 - 剖面：X／Z 同尺度；池畔 +0.30 m、L2 +3.30 m、L3 +6.88 m、29 m／5°固定屋頂及 ST-01 方案 E。
 
-每張圖須保留 `v0.6.0`、`GEO-0.6.0`、`SITE-XY` 與「非施工圖」聲明。SVG 由 `npm run drawings:v060` 重現，PNG 必須由同一 SVG render 產生。
+每張圖須保留 `v0.6.3`、`GEO-0.6.3`、`SITE-XY` 與「非施工圖」聲明。SVG 由 `npm run drawings:v063` 重現，PNG 必須由同一 SVG render 產生。
 
 ## 驗收
 
-- model sheet registry 恰為 `REF-001`、`V060-L1`、`V060-L2`、`V060-L3`、`V060-SECTION`。
+- model sheet registry 恰為 `REF-001`、`V063-L1`、`V063-L2`、`V063-L3`、`V063-SECTION`。
 - 四張 SVG／PNG 均存在，SVG metadata 與 active model 一致。
-- Viewer 與 solar-study 最新圖面連結都指向 `#V060-L1`。
+- Viewer 與 solar-study 最新圖面連結都指向 `#V063-L1`。
 - 320 px 以上可操作；圖片以 `preserveAspectRatio` 顯示且不裁掉圖框。
 - `npm test`、`npm run typecheck`、`npm run build` 與桌機／手機 smoke 通過。
 

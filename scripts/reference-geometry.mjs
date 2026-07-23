@@ -64,7 +64,7 @@ export function deriveReferenceGeometry(model) {
     l2StartX: l2.bounds.x1,
     l2EndX: l2.bounds.x2,
     l2Length: l2Size.length,
-    l2SplitAxisX: active.l2.splitAxisX,
+    l2SplitAxisY: active.l2.splitAxisY,
     l3Bounds: l3.bounds,
     l3PlanRotation: active.l3.planRotation,
     planPivot: { x: l3Data.planPivot.x, y: l3Data.planPivot.y, z: levels.l3Elevation },

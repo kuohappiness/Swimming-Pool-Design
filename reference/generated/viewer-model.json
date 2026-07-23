@@ -1,10 +1,10 @@
 {
-  "schemaVersion": "1.2.0",
-  "modelVersion": "0.6.2",
+  "schemaVersion": "1.3.0",
+  "modelVersion": "0.6.3",
   "revision": "2026-07-23",
-  "activeGeometryRevisionId": "GEO-0.6.2",
+  "activeGeometryRevisionId": "GEO-0.6.3",
   "coordinateSystemId": "SITE-XY",
-  "modelHash": "7b56d25d3b199da321107cc48158d327c5bc6b9ed182403c29e521f2af7d3e1c",
+  "modelHash": "b768b9602ba6c4874975b61779a45af6ae74d5cf472cbefdde844e94969be421",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -172,21 +172,39 @@
         "y2": 13.5
       }
     },
-    "Z-CS-M-01": {
+    "Z-L2-CORRIDOR-01": {
       "coordinateSystemId": "SITE-XY",
       "bounds": {
         "x1": 29,
-        "x2": 35,
-        "y1": 2.5,
+        "x2": 32.5,
+        "y1": 0,
         "y2": 13.5
+      }
+    },
+    "Z-ST-02-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 32.5,
+        "x2": 41,
+        "y1": 0,
+        "y2": 2.5
+      }
+    },
+    "Z-CS-M-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 32,
+        "x2": 41,
+        "y1": 2.5,
+        "y2": 8
       }
     },
     "Z-CS-F-01": {
       "coordinateSystemId": "SITE-XY",
       "bounds": {
-        "x1": 35,
+        "x1": 32,
         "x2": 41,
-        "y1": 2.5,
+        "y1": 8,
         "y2": 13.5
       }
     },
@@ -197,6 +215,15 @@
         "x2": 41,
         "y1": 0.5,
         "y2": 2
+      }
+    },
+    "Z-ST-02-PLANT-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 33.2,
+        "x2": 34.6,
+        "y1": 0.72,
+        "y2": 1.78
       }
     },
     "L3-PLATE-01": {
@@ -233,6 +260,15 @@
         "x2": 41,
         "y1": 0,
         "y2": 5.392
+      }
+    },
+    "RF-PV-RES-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 32.5,
+        "x2": 35.5,
+        "y1": 8,
+        "y2": 12.5
       }
     },
     "RF-GL-01": {
@@ -604,8 +640,8 @@
           "entrySide": "x39-only",
           "fixtures": {
             "toilets": 1,
-            "urinals": 1,
-            "washbasins": 1
+            "urinals": 2,
+            "washbasins": 2
           },
           "layout": {
             "entranceRangeY": [
@@ -619,7 +655,16 @@
                   37.7,
                   0.18
                 ],
-                "facing": "positive-y"
+                "facing": "positive-y",
+                "existing": true
+              },
+              {
+                "center": [
+                  36.8,
+                  0.18
+                ],
+                "facing": "positive-y",
+                "addedIn": "0.6.3"
               }
             ],
             "toiletCubicles": [
@@ -641,7 +686,18 @@
                   37.3,
                   3.32
                 ],
-                "facing": "negative-y"
+                "facing": "negative-y",
+                "wallContact": "y3.5",
+                "existing": true
+              },
+              {
+                "center": [
+                  38.1,
+                  3.32
+                ],
+                "facing": "negative-y",
+                "wallContact": "y3.5",
+                "addedIn": "0.6.3"
               }
             ],
             "entranceSightlineAccepted": true
@@ -663,7 +719,7 @@
           "fixtures": {
             "toilets": 2,
             "urinals": 0,
-            "washbasins": 1
+            "washbasins": 2
           },
           "layout": {
             "entranceRangeY": [
@@ -677,7 +733,16 @@
                   37.7,
                   7.32
                 ],
-                "facing": "negative-y"
+                "facing": "negative-y",
+                "existing": true
+              },
+              {
+                "center": [
+                  36.8,
+                  7.32
+                ],
+                "facing": "negative-y",
+                "addedIn": "0.6.3"
               }
             ],
             "toiletCubicles": [
@@ -862,311 +927,560 @@
         "axisLabels": true,
         "status": "confirmed"
       },
+      "circulationZone": {
+        "entityId": "Z-L2-CORRIDOR-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 29,
+          "x2": 32.5,
+          "y1": 0,
+          "y2": 13.5
+        },
+        "polygon": [
+          [
+            29,
+            0
+          ],
+          [
+            32.5,
+            0
+          ],
+          [
+            32.5,
+            2.5
+          ],
+          [
+            32,
+            2.5
+          ],
+          [
+            32,
+            13.5
+          ],
+          [
+            29,
+            13.5
+          ]
+        ],
+        "area": 41.75,
+        "use": "continuous-l-shaped-pool-view-corridor",
+        "standingOnly": true,
+        "seatingAllowed": false,
+        "status": "working"
+      },
+      "stairZone": {
+        "entityId": "Z-ST-02-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 32.5,
+          "x2": 41,
+          "y1": 0,
+          "y2": 2.5
+        },
+        "area": 21.25,
+        "y0Facade": "large-safety-glass",
+        "y2_5Divider": "fair-faced-exposed-concrete",
+        "status": "working-requires-professional-validation"
+      },
+      "changingRoomEntries": [
+        {
+          "entityId": "OP-L2-CS-M-01",
+          "zoneId": "Z-CS-M-01",
+          "side": "x32",
+          "rangeY": [
+            6.7,
+            7.7
+          ],
+          "clearWidth": 1,
+          "openingType": "doorless-opening",
+          "doorLeaf": false,
+          "status": "confirmed"
+        },
+        {
+          "entityId": "OP-L2-CS-F-01",
+          "zoneId": "Z-CS-F-01",
+          "side": "x32",
+          "rangeY": [
+            12.2,
+            13.2
+          ],
+          "clearWidth": 1,
+          "openingType": "doorless-opening",
+          "doorLeaf": false,
+          "status": "confirmed"
+        }
+      ],
+      "corridorFeatures": {
+        "poolObservationWindow": {
+          "entityId": "OP-L2-POOL-VIEW-01",
+          "wall": "x29",
+          "spanY": [
+            2.7,
+            13
+          ],
+          "status": "working-requires-professional-validation"
+        },
+        "standingCounter": {
+          "entityId": "FURN-L2-COUNTER-01",
+          "planExtent": {
+            "x1": 29.22,
+            "x2": 29.84,
+            "y1": 8.85,
+            "y2": 12.45
+          },
+          "suspended": true,
+          "chairs": 0,
+          "status": "working-requires-professional-validation"
+        },
+        "drinkingFountain": {
+          "entityId": "EQ-L2-DRINK-01",
+          "planExtent": {
+            "x1": 30.62,
+            "x2": 31.24,
+            "y1": 3.13,
+            "y2": 3.85
+          },
+          "status": "working-requires-professional-validation"
+        },
+        "planters": [
+          {
+            "center": [
+              30.05,
+              4.65
+            ],
+            "type": "removable-low-planter"
+          },
+          {
+            "center": [
+              31.18,
+              6.05
+            ],
+            "type": "removable-low-planter"
+          },
+          {
+            "center": [
+              30.95,
+              13.05
+            ],
+            "type": "removable-low-planter"
+          }
+        ]
+      },
       "zones": {
         "maleChangingShower": {
           "entityId": "Z-CS-M-01",
           "coordinateSystemId": "SITE-XY",
           "bounds": {
-            "x1": 29,
-            "x2": 35,
+            "x1": 32,
+            "x2": 41,
             "y1": 2.5,
-            "y2": 13.5
+            "y2": 8
           },
           "showerCount": 15,
-          "showerClearSize": [
-            1,
-            1
+          "showerModuleSize": [
+            1.2,
+            1.2
           ],
+          "showerDimensionBasis": "inclusive-of-partitions",
           "showerCubicles": [
             {
               "id": "CS-M-01",
               "planBounds": {
-                "x1": 29.5,
-                "x2": 30.5,
-                "y1": 3,
-                "y2": 4
+                "x1": 34.8,
+                "x2": 36,
+                "y1": 2.55,
+                "y2": 3.75
               }
             },
             {
               "id": "CS-M-02",
               "planBounds": {
-                "x1": 30.5,
-                "x2": 31.5,
-                "y1": 3,
-                "y2": 4
+                "x1": 36,
+                "x2": 37.2,
+                "y1": 2.55,
+                "y2": 3.75
               }
             },
             {
               "id": "CS-M-03",
               "planBounds": {
-                "x1": 31.5,
-                "x2": 32.5,
-                "y1": 3,
-                "y2": 4
+                "x1": 37.2,
+                "x2": 38.4,
+                "y1": 2.55,
+                "y2": 3.75
               }
             },
             {
               "id": "CS-M-04",
               "planBounds": {
-                "x1": 29.5,
-                "x2": 30.5,
-                "y1": 4,
-                "y2": 5
+                "x1": 38.4,
+                "x2": 39.6,
+                "y1": 2.55,
+                "y2": 3.75
               }
             },
             {
               "id": "CS-M-05",
               "planBounds": {
-                "x1": 30.5,
-                "x2": 31.5,
-                "y1": 4,
-                "y2": 5
+                "x1": 39.6,
+                "x2": 40.8,
+                "y1": 2.55,
+                "y2": 3.75
               }
             },
             {
               "id": "CS-M-06",
               "planBounds": {
-                "x1": 31.5,
-                "x2": 32.5,
-                "y1": 4,
-                "y2": 5
+                "x1": 34.8,
+                "x2": 36,
+                "y1": 4.65,
+                "y2": 5.85
               }
             },
             {
               "id": "CS-M-07",
               "planBounds": {
-                "x1": 29.5,
-                "x2": 30.5,
-                "y1": 5,
-                "y2": 6
+                "x1": 36,
+                "x2": 37.2,
+                "y1": 4.65,
+                "y2": 5.85
               }
             },
             {
               "id": "CS-M-08",
               "planBounds": {
-                "x1": 30.5,
-                "x2": 31.5,
-                "y1": 5,
-                "y2": 6
+                "x1": 37.2,
+                "x2": 38.4,
+                "y1": 4.65,
+                "y2": 5.85
               }
             },
             {
               "id": "CS-M-09",
               "planBounds": {
-                "x1": 31.5,
-                "x2": 32.5,
-                "y1": 5,
-                "y2": 6
+                "x1": 38.4,
+                "x2": 39.6,
+                "y1": 4.65,
+                "y2": 5.85
               }
             },
             {
               "id": "CS-M-10",
               "planBounds": {
-                "x1": 29.5,
-                "x2": 30.5,
-                "y1": 6,
-                "y2": 7
+                "x1": 39.6,
+                "x2": 40.8,
+                "y1": 4.65,
+                "y2": 5.85
               }
             },
             {
               "id": "CS-M-11",
               "planBounds": {
-                "x1": 30.5,
-                "x2": 31.5,
-                "y1": 6,
-                "y2": 7
+                "x1": 34.8,
+                "x2": 36,
+                "y1": 6.75,
+                "y2": 7.95
               }
             },
             {
               "id": "CS-M-12",
               "planBounds": {
-                "x1": 31.5,
-                "x2": 32.5,
-                "y1": 6,
-                "y2": 7
+                "x1": 36,
+                "x2": 37.2,
+                "y1": 6.75,
+                "y2": 7.95
               }
             },
             {
               "id": "CS-M-13",
               "planBounds": {
-                "x1": 29.5,
-                "x2": 30.5,
-                "y1": 7,
-                "y2": 8
+                "x1": 37.2,
+                "x2": 38.4,
+                "y1": 6.75,
+                "y2": 7.95
               }
             },
             {
               "id": "CS-M-14",
               "planBounds": {
-                "x1": 30.5,
-                "x2": 31.5,
-                "y1": 7,
-                "y2": 8
+                "x1": 38.4,
+                "x2": 39.6,
+                "y1": 6.75,
+                "y2": 7.95
               }
             },
             {
               "id": "CS-M-15",
               "planBounds": {
-                "x1": 31.5,
-                "x2": 32.5,
-                "y1": 7,
-                "y2": 8
+                "x1": 39.6,
+                "x2": 40.8,
+                "y1": 6.75,
+                "y2": 7.95
               }
             }
           ],
+          "supportFixtures": {
+            "fixtures": {
+              "toilets": 1,
+              "washbasins": 2
+            },
+            "washbasinWall": "x32",
+            "toiletCubicles": [
+              {
+                "planBounds": {
+                  "x1": 32.18,
+                  "x2": 33.38,
+                  "y1": 2.65,
+                  "y2": 4.15
+                },
+                "doorSide": "y4.15",
+                "doorLeaf": true
+              }
+            ],
+            "washbasins": [
+              {
+                "center": [
+                  32.26,
+                  4.95
+                ],
+                "facing": "positive-x"
+              },
+              {
+                "center": [
+                  32.26,
+                  5.72
+                ],
+                "facing": "positive-x"
+              }
+            ]
+          },
+          "lockerBanks": [
+            {
+              "planExtent": {
+                "x1": 34.36,
+                "x2": 34.7,
+                "y1": 2.9,
+                "y2": 4.45
+              }
+            },
+            {
+              "planExtent": {
+                "x1": 34.36,
+                "x2": 34.7,
+                "y1": 6.25,
+                "y2": 7.8
+              }
+            }
+          ],
+          "entryEntityId": "OP-L2-CS-M-01",
           "status": "working"
         },
         "femaleChangingShower": {
           "entityId": "Z-CS-F-01",
           "coordinateSystemId": "SITE-XY",
           "bounds": {
-            "x1": 35,
+            "x1": 32,
             "x2": 41,
-            "y1": 2.5,
+            "y1": 8,
             "y2": 13.5
           },
           "showerCount": 15,
-          "showerClearSize": [
-            1,
-            1
+          "showerModuleSize": [
+            1.2,
+            1.2
           ],
+          "showerDimensionBasis": "inclusive-of-partitions",
           "showerCubicles": [
             {
               "id": "CS-F-01",
               "planBounds": {
-                "x1": 37.5,
-                "x2": 38.5,
-                "y1": 3,
-                "y2": 4
+                "x1": 34.8,
+                "x2": 36,
+                "y1": 8.05,
+                "y2": 9.25
               }
             },
             {
               "id": "CS-F-02",
               "planBounds": {
-                "x1": 38.5,
-                "x2": 39.5,
-                "y1": 3,
-                "y2": 4
+                "x1": 36,
+                "x2": 37.2,
+                "y1": 8.05,
+                "y2": 9.25
               }
             },
             {
               "id": "CS-F-03",
               "planBounds": {
-                "x1": 39.5,
-                "x2": 40.5,
-                "y1": 3,
-                "y2": 4
+                "x1": 37.2,
+                "x2": 38.4,
+                "y1": 8.05,
+                "y2": 9.25
               }
             },
             {
               "id": "CS-F-04",
               "planBounds": {
-                "x1": 37.5,
-                "x2": 38.5,
-                "y1": 4,
-                "y2": 5
+                "x1": 38.4,
+                "x2": 39.6,
+                "y1": 8.05,
+                "y2": 9.25
               }
             },
             {
               "id": "CS-F-05",
               "planBounds": {
-                "x1": 38.5,
-                "x2": 39.5,
-                "y1": 4,
-                "y2": 5
+                "x1": 39.6,
+                "x2": 40.8,
+                "y1": 8.05,
+                "y2": 9.25
               }
             },
             {
               "id": "CS-F-06",
               "planBounds": {
-                "x1": 39.5,
-                "x2": 40.5,
-                "y1": 4,
-                "y2": 5
+                "x1": 34.8,
+                "x2": 36,
+                "y1": 10.15,
+                "y2": 11.35
               }
             },
             {
               "id": "CS-F-07",
               "planBounds": {
-                "x1": 37.5,
-                "x2": 38.5,
-                "y1": 5,
-                "y2": 6
+                "x1": 36,
+                "x2": 37.2,
+                "y1": 10.15,
+                "y2": 11.35
               }
             },
             {
               "id": "CS-F-08",
               "planBounds": {
-                "x1": 38.5,
-                "x2": 39.5,
-                "y1": 5,
-                "y2": 6
+                "x1": 37.2,
+                "x2": 38.4,
+                "y1": 10.15,
+                "y2": 11.35
               }
             },
             {
               "id": "CS-F-09",
               "planBounds": {
-                "x1": 39.5,
-                "x2": 40.5,
-                "y1": 5,
-                "y2": 6
+                "x1": 38.4,
+                "x2": 39.6,
+                "y1": 10.15,
+                "y2": 11.35
               }
             },
             {
               "id": "CS-F-10",
               "planBounds": {
-                "x1": 37.5,
-                "x2": 38.5,
-                "y1": 6,
-                "y2": 7
+                "x1": 39.6,
+                "x2": 40.8,
+                "y1": 10.15,
+                "y2": 11.35
               }
             },
             {
               "id": "CS-F-11",
               "planBounds": {
-                "x1": 38.5,
-                "x2": 39.5,
-                "y1": 6,
-                "y2": 7
+                "x1": 34.8,
+                "x2": 36,
+                "y1": 12.25,
+                "y2": 13.45
               }
             },
             {
               "id": "CS-F-12",
               "planBounds": {
-                "x1": 39.5,
-                "x2": 40.5,
-                "y1": 6,
-                "y2": 7
+                "x1": 36,
+                "x2": 37.2,
+                "y1": 12.25,
+                "y2": 13.45
               }
             },
             {
               "id": "CS-F-13",
               "planBounds": {
-                "x1": 37.5,
-                "x2": 38.5,
-                "y1": 7,
-                "y2": 8
+                "x1": 37.2,
+                "x2": 38.4,
+                "y1": 12.25,
+                "y2": 13.45
               }
             },
             {
               "id": "CS-F-14",
               "planBounds": {
-                "x1": 38.5,
-                "x2": 39.5,
-                "y1": 7,
-                "y2": 8
+                "x1": 38.4,
+                "x2": 39.6,
+                "y1": 12.25,
+                "y2": 13.45
               }
             },
             {
               "id": "CS-F-15",
               "planBounds": {
-                "x1": 39.5,
-                "x2": 40.5,
-                "y1": 7,
-                "y2": 8
+                "x1": 39.6,
+                "x2": 40.8,
+                "y1": 12.25,
+                "y2": 13.45
               }
             }
           ],
+          "supportFixtures": {
+            "fixtures": {
+              "toilets": 1,
+              "washbasins": 2
+            },
+            "washbasinWall": "x32",
+            "toiletCubicles": [
+              {
+                "planBounds": {
+                  "x1": 32.18,
+                  "x2": 33.38,
+                  "y1": 8.15,
+                  "y2": 9.65
+                },
+                "doorSide": "y9.65",
+                "doorLeaf": true
+              }
+            ],
+            "washbasins": [
+              {
+                "center": [
+                  32.26,
+                  10.45
+                ],
+                "facing": "positive-x"
+              },
+              {
+                "center": [
+                  32.26,
+                  11.22
+                ],
+                "facing": "positive-x"
+              }
+            ]
+          },
+          "lockerBanks": [
+            {
+              "planExtent": {
+                "x1": 34.36,
+                "x2": 34.7,
+                "y1": 8.5,
+                "y2": 10.05
+              }
+            },
+            {
+              "planExtent": {
+                "x1": 34.36,
+                "x2": 34.7,
+                "y1": 11.8,
+                "y2": 13.35
+              }
+            }
+          ],
+          "entryEntityId": "OP-L2-CS-F-01",
           "status": "working"
         }
       },
@@ -1200,6 +1514,34 @@
           2
         ],
         "upperConnection": "covered-orthogonal-arrival-wing-to-rotated-l3",
+        "designIntent": "suspended-floating-stair",
+        "treadConstruction": "thin-closed-riser-steel-treads",
+        "stringerStrategy": "two-continuous-dark-steel-box-stringers",
+        "stringerCount": 2,
+        "midLandingSupport": "suspended-between-continuous-stringers",
+        "underStairEnclosure": false,
+        "underStairLandscape": {
+          "entityId": "Z-ST-02-PLANT-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": {
+            "x1": 33.2,
+            "x2": 34.6,
+            "y1": 0.72,
+            "y2": 1.78
+          },
+          "planterCount": 3,
+          "planting": [
+            "low",
+            "shade-tolerant",
+            "low-leaf-litter"
+          ],
+          "containers": "removable-lightweight-planters",
+          "deepSoil": false,
+          "waterFeature": false,
+          "fixedIrrigationOnStringer": false,
+          "status": "working-requires-professional-validation",
+          "openItemId": "OPEN-019"
+        },
         "status": "working-requires-professional-validation",
         "openItemId": "OPEN-019",
         "flightRun": 2.75,
@@ -1396,6 +1738,63 @@
         "planting": "lightweight-low-maintenance-planters",
         "status": "working-requires-professional-validation",
         "openItemId": "OPEN-020"
+      },
+      "programStrategy": {
+        "currentUse": "low-occupancy-high-level-equipment-and-maintenance",
+        "teacherObservationRoom": "future-flexibility-only",
+        "environmentalEducationDisplay": "future-flexibility-only",
+        "dryMaintenanceStorage": "under-consideration-not-built",
+        "flexibleAreaProtection": "no-fixed-partitions-heavy-equipment-or-irreversible-services",
+        "controlledLandscapeTerrace": "retained",
+        "status": "confirmed"
+      },
+      "pvRoofReserve": {
+        "entityId": "RF-PV-RES-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 32.5,
+          "x2": 35.5,
+          "y1": 8,
+          "y2": 12.5
+        },
+        "area": 13.5,
+        "baseElevation": 10.78,
+        "type": "lightweight-photovoltaic-roof-or-canopy-reserve",
+        "supportStrategy": "independent-fixed-core-or-direct-support-line",
+        "excludedSupports": [
+          "rotating-cantilever",
+          "mirror-wall",
+          "landscape-terrace",
+          "existing-glass-pool-roof"
+        ],
+        "reservedInterfaces": [
+          "embedded-fixings",
+          "dc-cable-route",
+          "inverter",
+          "ems",
+          "drainage",
+          "maintenance-access"
+        ],
+        "moduleLayoutStatus": "deferred",
+        "capacityStatus": "deferred",
+        "generationStatus": "deferred",
+        "status": "working-requires-professional-validation",
+        "openItemId": "OPEN-022"
+      },
+      "energyStorageStrategy": {
+        "preferredLocation": "ground-level-independent-outdoor-enclosure",
+        "exactGroundLocationStatus": "deferred",
+        "batteryObjectsOnGeneralL3Interior": false,
+        "l3ReservedInterfaces": [
+          "power",
+          "ems"
+        ],
+        "l3Fallback": "certified-modular-system-in-dedicated-outdoor-fire-rated-technical-space-on-direct-support-line",
+        "capacityStatus": "deferred",
+        "backupDurationStatus": "deferred",
+        "fireApproval": false,
+        "status": "confirmed-strategy-requires-professional-validation",
+        "openItemId": "OPEN-022"
       }
     },
     "roof": {
@@ -1497,7 +1896,10 @@
         "thirty-one-metre-square-showers",
         "orthogonal-l2-to-l3-stair",
         "covered-l3-arrival-route",
-        "staff-controlled-landscape-terrace"
+        "staff-controlled-landscape-terrace",
+        "l2-review-a-changing-shower-layout",
+        "floating-st02-and-removable-under-stair-planting",
+        "pv-roof-reserve-and-ground-outdoor-storage-strategy"
       ],
       "professionalApprovals": {
         "architect": false,
@@ -1515,7 +1917,9 @@
         "OPEN-017",
         "OPEN-018",
         "OPEN-019",
-        "OPEN-020"
+        "OPEN-020",
+        "OPEN-021",
+        "OPEN-022"
       ]
     }
   },
@@ -1561,6 +1965,11 @@
       "status": "deferred"
     },
     {
+      "id": "energy",
+      "label": "屋頂光電與儲能策略",
+      "status": "working"
+    },
+    {
       "id": "annotations",
       "label": "幾何註記",
       "status": "working"
@@ -1569,12 +1978,12 @@
   "analysis": {
     "solar": {
       "status": "current",
-      "recordedModelHash": "7b56d25d3b199da321107cc48158d327c5bc6b9ed182403c29e521f2af7d3e1c",
-      "currentModelHash": "7b56d25d3b199da321107cc48158d327c5bc6b9ed182403c29e521f2af7d3e1c",
+      "recordedModelHash": "b768b9602ba6c4874975b61779a45af6ae74d5cf472cbefdde844e94969be421",
+      "currentModelHash": "b768b9602ba6c4874975b61779a45af6ae74d5cf472cbefdde844e94969be421",
       "sourceIds": [
         "SRC-SITE-003"
       ],
-      "disclaimer": "0.6.2 概念模型已同步；鏡牆角度未變，新增樓板、樓梯與景觀區仍須結構、消防、排水及法規專業驗證。"
+      "disclaimer": "0.6.3 概念模型已同步；鏡牆角度未變，屋頂光電僅為預留範圍，遮蔭／眩光、結構與儲能消防仍須專業驗證。"
     }
   }
 }

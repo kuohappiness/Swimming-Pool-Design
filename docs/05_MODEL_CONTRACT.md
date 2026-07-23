@@ -7,8 +7,8 @@
 現行版本契約：
 
 - `schemaVersion = 1.3.0`
-- `modelVersion = designTargetVersion = 0.6.2`
-- `activeGeometryRevisionId = GEO-0.6.2`
+- `modelVersion = designTargetVersion = 0.6.3`
+- `activeGeometryRevisionId = GEO-0.6.3`
 - active revision 的 `id` 必須只出現一次，且 `revision`、`modelVersion` 均須等於頂層 `modelVersion`。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
@@ -52,11 +52,15 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 | `RF-GL-01` | X0～X29／Y0～Y14 |
 | `ST-01` | X20.5～X29／Y0.5～Y2.0 |
 | `ST-02` | X32.5～X41／Y0.5～Y2.0 |
-| `Z-CS-M-01` | X29～X35／Y2.5～Y13.5 |
-| `Z-CS-F-01` | X35～X41／Y2.5～Y13.5 |
+| `Z-ST-02-01` | X32.5～X41／Y0～Y2.5 |
+| `Z-ST-02-PLANT-01` | X33.2～X34.6／Y0.72～Y1.78 |
+| `Z-L2-CORRIDOR-01` | L 形：X29～X32.5／Y0～Y13.5，41.75 m² |
+| `Z-CS-M-01` | X32～X41／Y2.5～Y8 |
+| `Z-CS-F-01` | X32～X41／Y8～Y13.5 |
 | `L3-EXT-01` | X38.428～X41／Y0～Y5.392 |
 | `Z-L3-ARRIVAL-01` | X38.666～X41／Y0.5～Y2.0 |
 | `Z-L3-TERRACE-01` | X38.428～X41／Y0～Y5.392 |
+| `RF-PV-RES-01` | X32.5～X35.5／Y8～Y12.5 |
 
 四間廁所、儲物、水處理與藥劑分間的 bounds 以 [03｜設計基準](03_DESIGN_BASIS.md)為準。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
 
@@ -65,7 +69,7 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 - `scripts/reference-geometry.mjs`：從 active revision 衍生圖面與共用尺寸。
 - `scripts/viewer-data.mjs`：產生 `reference/generated/viewer-model.json`，包含 `modelVersion`、`activeGeometryRevisionId`、`coordinateSystemId`、`modelHash` 與 `entityBounds`。
 - `scripts/build-public-content.mjs`：只允許 `{{active:...}}` token 讀 active geometry；未解析 token 必須使 build 失敗。
-- `scripts/generate-v060-drawings.mjs`：產生三張平面與一張縱剖 SVG，之後轉為 PNG。
+- `scripts/generate-current-drawings.mjs`：產生三張平面與一張縱剖 SVG，之後轉為 PNG。
 - 日照角度與能量分析：由 active L3、鏡牆、屋頂與池體 bounds 推導，不得持有第二套池體或舊角度預設。
 
 每次模型改動都會改變 canonical SHA-256 `modelHash`。`model/analysis-registry.json` 的 solar hash 不符時，Viewer 必須標成 `stale`；完成重算與測試後才能更新為 current。
@@ -73,17 +77,19 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 ## 5. 現行硬性規則
 
 - `POOL-01` 為 25.0 × 8.5 m，完整位於泳池大廳內，且不與 `ST-01` 或服務翼重疊。
-- L1 具有四間互不相通廁所；泳池組恰有兩個 X31 入口，操場組恰有兩個 X39 入口。四個入口皆為 1.00 m 無門板開口且不設遮擋版，男廁入口／洗手台靠低 Y，女廁入口／洗手台靠高 Y；8 座 WC 隔間貼 Y3.5 並保留門板，泳池男廁其中一座小便斗位於 X31 且不阻擋入口。
+- L1 具有四間互不相通廁所；泳池組恰有兩個 X31 入口，操場組恰有兩個 X39 入口。四個入口皆為 1.00 m 無門板開口且不設遮擋版，男廁入口／洗手台靠低 Y，女廁入口／洗手台靠高 Y；8 座 WC 隔間貼 Y3.5 並保留門板，泳池男廁其中一座小便斗位於 X31 且不阻擋入口。操場男廁為 1 WC＋2 小便斗＋2 洗手槽，操場女廁為 2 WC＋2 洗手槽；0.6.3 新增器具緊鄰原有同類器具且不搬移原器具。
 - 服務區 L1～L3 所有不透明量體採清水模材質意圖；玻璃屋頂與 L3 鏡牆不得被清水模材質覆蓋。
 - 藥劑分間 `publicAccess=false` 且 `separateVentilation=true`。
 - 結構策略 `isolatedColumnsAllowed=false`、`glassCarriesGravityLoad=false`。
 - `ST-01` 是方案 E：2.70＋3.10＋2.70 m、20 級高／18 踏面，從 +0.30 m 在 X29 直接接 L2 +3.30 m。
-- L2 男女各有 15 間淨 1.00 × 1.00 m 淋浴間；`ST-02` 由 X32.5 起步，固定於 Y0.5～Y2.0 並朝 +X 上升，不得與淋浴間重疊或改成斜向。
+- L2 採 Review A：X29～X32 的面池走道在樓梯端形成 X29～X32.5 的 L 形到達區，X29 設觀景窗；男區 X32～X41／Y2.5～Y8、女區 X32～X41／Y8～Y13.5，入口均在 X32 且為 1.00 m 無門片開口。男女各有 15 間含隔間 1.20 × 1.20 m 淋浴模組、1 WC 與 2 洗手槽。走道只設無座懸空站立桌、飲水機與可移除盆栽。
+- `ST-02` 由 X32.5 起步，固定於 Y0.5～Y2.0 並朝 +X 上升；採薄踏步、封閉踢面、兩道連續鋼箱梯梁與開放梯下。梯下只設 3 組低矮耐陰可移除盆栽，不得設深土槽、水景、固定灌溉或封閉量體。
 - L2 固定；只有 L3 以 X35／Y6.75 水平旋轉 +25.5°。
 - L3 主旋轉矩形的角度與支點不變；另有固定正交三角擴板、有頂室內到達翼及教師／維修人員專用景觀區。景觀區不得開放學生、訪客、公眾聚集或作主要逃生。
 - 鏡面覆層與 L3 面池承載牆共面，共同外傾 +23.0°；不得畫成垂直牆前的獨立斜板。
 - 固定玻璃屋頂為 29 m／5°／+4.00→+6.537 m，不承擔 L2、L3 或樓梯荷重。
 - 高位重物只放在固定核心或直接支承線，不放在旋轉懸挑或鏡牆。
+- L3 本期維持低使用密度設備／維修用途；教師觀察、泳姿分析與環境教育只保留未來彈性，乾式維修儲藏僅列考慮。`RF-PV-RES-01` 是 13.5 m² 太陽能概念預留，不得解讀為容量、模組或發電量已核定；儲能優先位於地面層獨立戶外機櫃，一般 L3 室內不得建立電池物件，只保留電力／EMS 介面及專用戶外防火備案。
 - `integrationReview.professionalApprovals` 的建築、結構、機電、消防與無障礙在正式簽證前全部必須為 `false`。
 
 ## 6. 現行 sheet 契約
@@ -91,10 +97,10 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 `model.sheets` 只保留：
 
 1. `REF-001`
-2. `V062-L1`
-3. `V062-L2`
-4. `V062-L3`
-5. `V062-SECTION`
+2. `V063-L1`
+3. `V063-L2`
+4. `V063-L3`
+5. `V063-SECTION`
 
 v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Viewer／solar-study 的最新圖面連結。
 

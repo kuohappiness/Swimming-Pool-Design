@@ -95,9 +95,9 @@ try {
   );
   assert.equal(await desktop.locator('[data-loading]').isHidden(), true);
   assert.equal(await desktop.locator('[data-scene-nav] button').count(), 5);
-  assert.equal(await desktop.locator('[data-layer-list] input').count(), 9);
+  assert.equal(await desktop.locator('[data-layer-list] input').count(), 10);
   assert.equal(await desktop.locator('canvas[aria-label*="3D 模型"]').count(), 1);
-  assert.match(await desktop.locator('[data-model-version]').innerText(), /^MODEL 0\.6\.2/);
+  assert.match(await desktop.locator('[data-model-version]').innerText(), /^MODEL 0\.6\.3/);
   assert.match(await desktop.locator('.trust-strip [data-model-hash]').innerText(), /^[a-f0-9]{12}/);
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'), '25.5°');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-deck-elevation'), '+0.300 m');
@@ -108,18 +108,32 @@ try {
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-toilet-entrance-door-leaves'), '0');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-wc-cubicle-door-leaves'), '8');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-service-material'), 'fair-faced-exposed-concrete');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-male-washbasins'), '2');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-male-urinals'), '2');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-female-washbasins'), '2');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-stair2-design'), 'suspended-floating-stair');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-stair2-planters'), '3');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-shower-module'), '1.2 × 1.2');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-support-wc-per-gender'), '1');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-support-basins-per-gender'), '2');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pv-reserve-area'), '13.5');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-interior-battery-objects'), 'false');
   await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-perspective.png'), fullPage: true });
 
   for (const [objectId, expectedText, screenshotName] of [
     ['EN-01', /泳池大廳玻璃主入口/, 'viewer-pool-entry.png'],
     ['OP-WC-POOL-F-01', /1\.00 m.*無門板/, 'viewer-pool-female-opening.png'],
     ['WC-L1-DETAIL-01', /不設遮擋版[\s\S]*隔間仍保留門板[\s\S]*Y3\.5/, 'viewer-toilet-details.png'],
-    ['Z-CS-M-01', /15 間[\s\S]*1\.00 × 1\.00 m/, 'viewer-l2-male-showers.png'],
-    ['ST-02', /X32\.5[\s\S]*Y0\.5～2\.0[\s\S]*\+X/, 'viewer-st02.png'],
+    ['Z-CS-M-01', /15 間[\s\S]*1\.20 × 1\.20 m[\s\S]*1 間一般 WC[\s\S]*2 座洗手槽/, 'viewer-l2-male-showers.png'],
+    ['ST-02', /X32\.5[\s\S]*Y0\.5～2\.0[\s\S]*\+X[\s\S]*兩道連續深色鋼箱梯梁/, 'viewer-st02.png'],
+    ['Z-ST-02-PLANT-01', /3 組[\s\S]*可移除[\s\S]*不設深土槽/, 'viewer-st02-planting.png'],
+    ['RF-PV-RES-01', /13\.5 m²[\s\S]*儲能優先設於地面層[\s\S]*3F 一般室內不配置電池/, 'viewer-pv-reserve.png'],
     ['Z-L3-ARRIVAL-01', /有頂室內[\s\S]*戶外景觀區不是唯一/, 'viewer-l3-arrival.png'],
     ['Z-L3-TERRACE-01', /只限教師與維修人員[\s\S]*不開放學生/, 'viewer-l3-terrace.png'],
   ]) {
-    const option = desktop.locator('[data-object-select] option').filter({ hasText: objectId });
+    const option = desktop.locator('[data-object-select] option').filter({
+      hasText: new RegExp(`^${objectId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} ·`),
+    });
     await desktop.locator('[data-object-select]').selectOption(await option.getAttribute('value'));
     assert.match(await desktop.locator('[data-selection-info]').innerText(), expectedText);
     await desktop.screenshot({ path: resolve(outputDirectory, screenshotName), fullPage: true });
@@ -174,7 +188,7 @@ try {
   trackErrors(solarDesktop);
   await solarDesktop.goto(`${origin}/solar-study/`, { waitUntil: 'networkidle' });
   assert.match(await solarDesktop.locator('h1').innerText(), /固定 L1／L2/);
-  assert.match(await solarDesktop.locator('#model-version').innerText(), /^STUDY 0\.6\.2 · MODEL 0\.6\.2/);
+  assert.match(await solarDesktop.locator('#model-version').innerText(), /^STUDY 0\.6\.3 · MODEL 0\.6\.3/);
   assert.equal(await solarDesktop.locator('#confirmed-plan').innerText(), '+25.5°');
   assert.equal(await solarDesktop.locator('#confirmed-lean').innerText(), '+23.0°');
   assert.equal(await solarDesktop.locator('#confirmed-normal').innerText(), '152.5°');
@@ -200,16 +214,16 @@ try {
   trackErrors(atlasDesktop);
   await atlasDesktop.goto(`${origin}/#REF-001`, { waitUntil: 'networkidle' });
   assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 5);
-  assert.equal(await atlasDesktop.locator('#model-version').innerText(), 'MODEL 0.6.2');
+  assert.equal(await atlasDesktop.locator('#model-version').innerText(), 'MODEL 0.6.3');
   assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /基地現況來源圖/);
   assert.match(await atlasDesktop.locator('#sheet-stage image').getAttribute('href'), /SRC-SITE-001_google-maps-satellite/);
   await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-site-latest.png'), fullPage: true });
 
   for (const [sheetId, imagePattern, screenshotName] of [
-    ['V062-L1', /DRAW-L1-PLAN-v0\.6\.2/, 'atlas-v062-l1.png'],
-    ['V062-L2', /DRAW-L2-PLAN-v0\.6\.2/, 'atlas-v062-l2.png'],
-    ['V062-L3', /DRAW-L3-PLAN-v0\.6\.2/, 'atlas-v062-l3.png'],
-    ['V062-SECTION', /DRAW-LONGITUDINAL-SECTION-v0\.6\.2/, 'atlas-v062-section.png'],
+    ['V063-L1', /DRAW-L1-PLAN-v0\.6\.3/, 'atlas-v063-l1.png'],
+    ['V063-L2', /DRAW-L2-PLAN-v0\.6\.3/, 'atlas-v063-l2.png'],
+    ['V063-L3', /DRAW-L3-PLAN-v0\.6\.3/, 'atlas-v063-l3.png'],
+    ['V063-SECTION', /DRAW-LONGITUDINAL-SECTION-v0\.6\.3/, 'atlas-v063-section.png'],
   ]) {
     await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).click();
     assert.equal(await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).getAttribute('aria-current'), 'page');
@@ -228,11 +242,11 @@ try {
 
   const atlasMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(atlasMobile);
-  await atlasMobile.goto(`${origin}/#V062-L1`, { waitUntil: 'networkidle' });
-  assert.equal(await atlasMobile.locator('#model-version').innerText(), 'MODEL 0.6.2');
+  await atlasMobile.goto(`${origin}/#V063-L1`, { waitUntil: 'networkidle' });
+  assert.equal(await atlasMobile.locator('#model-version').innerText(), 'MODEL 0.6.3');
   assert.equal(await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
-  assert.match(await atlasMobile.locator('.review-drawing image').getAttribute('href'), /DRAW-L1-PLAN-v0\.6\.2/);
-  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-v062-l1-mobile.png'), fullPage: true });
+  assert.match(await atlasMobile.locator('.review-drawing image').getAttribute('href'), /DRAW-L1-PLAN-v0\.6\.3/);
+  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-v063-l1-mobile.png'), fullPage: true });
   await atlasMobile.close();
 
   assert.equal(browserErrors.length, 0, browserErrors.join('\n'));
