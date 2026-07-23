@@ -34,9 +34,9 @@ export function validateModel(model) {
   }
 
   check(errors, model.schemaVersion === '1.3.0', 'schemaVersion must be 1.3.0.');
-  check(errors, model.modelVersion === '0.6.4', 'modelVersion must be 0.6.4.');
+  check(errors, model.modelVersion === '0.6.5', 'modelVersion must be 0.6.5.');
   check(errors, model.designTargetVersion === model.modelVersion, 'designTargetVersion must equal modelVersion.');
-  check(errors, active.id === 'GEO-0.6.4', 'GEO-0.6.4 must be the active geometry revision.');
+  check(errors, active.id === 'GEO-0.6.5', 'GEO-0.6.5 must be the active geometry revision.');
   check(errors, active.coordinateSystemId === 'SITE-XY', 'Active geometry must use SITE-XY.');
 
   const coordinateSystem = model.referenceSystem?.coordinateSystems?.find(({ id }) => id === 'SITE-XY');
@@ -51,11 +51,16 @@ export function validateModel(model) {
 
   const requiredBounds = {
     'SITE-01': { x1: 0, x2: 41, y1: 0, y2: 14 },
-    'BLDG-01': { x1: 0, x2: 39, y1: 0, y2: 14 },
-    'Z-PH-01': { x1: 0, x2: 31, y1: 0, y2: 14 },
+    'BLDG-01': { x1: 0.5, x2: 39, y1: 0, y2: 14 },
+    'Z-PH-01': { x1: 0.5, x2: 31, y1: 0, y2: 14 },
     'POOL-01': { x1: 3, x2: 28, y1: 4, y2: 12.5 },
     'CORE-01': { x1: 31, x2: 39, y1: 0, y2: 14 },
-    'F-L1-Y0-01': { x1: 0, x2: 39, y1: 0, y2: 0.14 },
+    'F-L1-Y0-01': { x1: 0.5, x2: 39, y1: 0, y2: 0.14 },
+    'EN-01': { x1: 1, x2: 3, y1: 0, y2: 0.2 },
+    'Z-L1-WEST-SETBACK-01': { x1: 0, x2: 0.5, y1: 0, y2: 14 },
+    'RF-L1-WEST-EAVE-01': { x1: 0, x2: 0.5, y1: 0, y2: 14 },
+    'RF-L1-REAR-CANOPY-01': { x1: 31, x2: 39, y1: 13.5, y2: 14.5 },
+    'RW-WEST-01': { x1: 0, x2: 0.5, y1: 0, y2: 14 },
     'L2-PLATE-01': { x1: 29, x2: 41, y1: 0, y2: 13.5 },
     'CLG-L2-01': { x1: 29, x2: 41, y1: 0, y2: 13.5 },
     'F-L2-Y0-01': { x1: 29, x2: 41, y1: 0, y2: 0.14 },
@@ -90,7 +95,7 @@ export function validateModel(model) {
       errors.push(error instanceof Error ? error.message : String(error));
       continue;
     }
-    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.4 SITE-XY contract.`);
+    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.5 SITE-XY contract.`);
   }
 
   const pool = resolveGeometryEntity(active, 'POOL-01');
@@ -140,7 +145,20 @@ export function validateModel(model) {
   check(errors, active.l1.zones.playgroundFemaleToilet.layout.washbasins.some(({ center, existing }) => closeTo(center[0], 37.7) && existing === true), 'The existing playground female washbasin must remain at X37.7.');
   check(errors, active.l1.zones.playgroundMaleToilet.layout.urinals.some(({ center, existing }) => closeTo(center[0], 37.3) && existing === true), 'The existing playground male urinal must remain at X37.3.');
   check(errors, active.l1.serviceWing?.architecturalStyle?.scope === 'all-opaque-l1-l2-l3-service-volumes', 'All opaque service volumes must use the confirmed fair-faced concrete style.');
-  check(errors, active.l1.y0ExteriorFacade?.materialIntent === 'fair-faced-exposed-concrete' && active.l1.y0ExteriorFacade?.continuousExceptMainEntrance === true && active.l1.y0ExteriorFacade?.mainEntranceEntityId === 'EN-01', 'L1 Y0 must be a continuous fair-faced concrete facade except for EN-01.');
+  check(errors, active.l1.y0ExteriorFacade?.materialIntent === 'segmented-safety-glass-and-fair-faced-concrete'
+    && active.l1.y0ExteriorFacade?.poolHallMaterialIntent === 'safety-glass'
+    && active.l1.y0ExteriorFacade?.serviceWingMaterialIntent === 'fair-faced-exposed-concrete'
+    && active.l1.y0ExteriorFacade?.segments?.length === 4
+    && active.l1.y0ExteriorFacade?.segments?.at(-1)?.x1 === 31
+    && active.l1.y0ExteriorFacade?.segments?.at(-1)?.x2 === 39
+    && active.l1.y0ExteriorFacade?.mainEntranceEntityId === 'EN-01', 'L1 Y0 must keep pool-hall glass at X0.5–31 and fair-faced concrete only at service body X31–39.');
+  check(errors, sameBounds(active.l1.mainEntrance?.bounds, { x1: 1, x2: 3, y1: 0, y2: 0.2 }), 'EN-01 must shift +0.5 m to X1–3/Y0.');
+  check(errors, sameBounds(active.l1.westSetback?.bounds, { x1: 0, x2: 0.5, y1: 0, y2: 14 })
+    && sameBounds(active.l1.westGlassEave?.bounds, { x1: 0, x2: 0.5, y1: 0, y2: 14 })
+    && active.l1.westGlassEave?.rainwaterRecoveryEntityId === 'RW-WEST-01', 'The west wall setback must create the X0–0.5 glass eave and rainwater recovery zone.');
+  check(errors, sameBounds(active.l1.rearGlassCanopy?.bounds, { x1: 31, x2: 39, y1: 13.5, y2: 14.5 })
+    && active.l1.rearGlassCanopy?.buildingLineY === 14
+    && active.l1.rearGlassCanopy?.siteBoundsUnchanged === true, 'The service rear glass canopy must project from Y13.5 to Y14.5 while SITE-XY remains Y0–14.');
   check(errors, active.l1.zones.chemicalRoom?.publicAccess === false, 'The chemical room must remain independent from public circulation.');
   check(errors, active.l1.structuralStrategy?.glassCarriesGravityLoad === false, 'Glass must not be a gravity-support element.');
   check(errors, active.l1.structuralStrategy?.isolatedColumnsAllowed === false, 'The integrated structure strategy must avoid isolated columns.');
@@ -205,7 +223,7 @@ export function validateModel(model) {
     for (const id of duplicates(records.map(({ id }) => id))) errors.push(`${label} ID is duplicated: ${id}`);
   }
   const sheetIds = (model.sheets ?? []).map(({ id }) => id);
-  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V064-L1', 'V064-L2', 'V064-L3', 'V064-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.4 sheets.');
+  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V065-L1', 'V065-L2', 'V065-L3', 'V065-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.5 sheets.');
 
   const boundedEntities = geometryEntities(active);
   check(errors, boundedEntities.size >= Object.keys(requiredBounds).length, 'Active geometry entity index is incomplete.');

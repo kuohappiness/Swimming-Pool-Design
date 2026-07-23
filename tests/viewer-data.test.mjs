@@ -23,11 +23,11 @@ const registry = JSON.parse(registryText);
 const manifest = JSON.parse(manifestText);
 const clone = () => structuredClone(sourceModel);
 
-test('Viewer package derives all major geometry from GEO-0.6.4', () => {
+test('Viewer package derives all major geometry from GEO-0.6.5', () => {
   const viewer = buildViewerModel(clone(), registry);
   assert.equal(viewer.schemaVersion, '1.3.0');
-  assert.equal(viewer.modelVersion, '0.6.4');
-  assert.equal(viewer.activeGeometryRevisionId, 'GEO-0.6.4');
+  assert.equal(viewer.modelVersion, '0.6.5');
+  assert.equal(viewer.activeGeometryRevisionId, 'GEO-0.6.5');
   assert.equal(viewer.coordinateSystemId, 'SITE-XY');
   assert.equal(viewer.geometry.site.length, 41);
   assert.equal(viewer.geometry.site.width, 14);
@@ -55,8 +55,11 @@ test('Viewer package derives all major geometry from GEO-0.6.4', () => {
   assert.deepEqual(viewer.geometry.l2.zones.maleChangingShower.showerModuleSize, [1.2, 1.2]);
   assert.deepEqual(viewer.geometry.l2.zones.maleChangingShower.supportFixtures.fixtures, { toilets: 1, washbasins: 2 });
   assert.equal(viewer.geometry.l2.circulationZone.area, 41.75);
-  assert.equal(viewer.geometry.l1.y0ExteriorFacade.materialIntent, 'fair-faced-exposed-concrete');
+  assert.equal(viewer.geometry.l1.y0ExteriorFacade.materialIntent, 'segmented-safety-glass-and-fair-faced-concrete');
   assert.equal(viewer.geometry.l1.y0ExteriorFacade.mainEntranceEntityId, 'EN-01');
+  assert.deepEqual(viewer.geometry.l1.mainEntranceBounds, { x1: 1, x2: 3, y1: 0, y2: 0.2 });
+  assert.deepEqual(viewer.geometry.l1.westSetbackBounds, { x1: 0, x2: 0.5, y1: 0, y2: 14 });
+  assert.deepEqual(viewer.geometry.l1.rearGlassCanopy.bounds, { x1: 31, x2: 39, y1: 13.5, y2: 14.5 });
   assert.equal(viewer.geometry.l2.y0ExteriorFacade.materialIntent, 'full-width-safety-glass');
   assert.deepEqual(viewer.geometry.l2.stairChangingDivider.spanX, [32, 41]);
   assert.deepEqual(viewer.geometry.l2.stairChangingDivider.openings, []);
@@ -139,18 +142,20 @@ test('generated Viewer and public content artifacts share the current model hash
   assert.equal(generatedModel.analysis.solar.status, 'current');
 });
 
-test('Viewer, solar study, and atlas navigation expose only v0.6.4 drawing anchors', () => {
-  assert.match(viewerHtml, /#V064-L1/);
-  assert.match(solarHtml, /#V064-L1/);
+test('Viewer, solar study, and atlas navigation expose only v0.6.5 drawing anchors', () => {
+  assert.match(viewerHtml, /#V065-L1/);
+  assert.match(solarHtml, /#V065-L1/);
   assert.doesNotMatch(`${viewerHtml}\n${solarHtml}`, /#V23-|最新 V2\.3/);
-  assert.match(solarHtml, /V0\.6\.4 CURRENT SOLAR BASE/);
+  assert.match(solarHtml, /V0\.6\.5 CURRENT SOLAR BASE/);
   assert.match(solarHtml, /完整 3F 屋頂與高覆蓋率太陽能排布尚未納入/);
-  assert.match(solarHtml, /solar inputHash 與 v0\.6\.3 相同/);
+  assert.match(solarHtml, /solar inputHash 與 v0\.6\.4／v0\.6\.3 相同/);
   assert.match(solarHtml, /不重新執行完整最佳化/);
   assert.match(solarHtml, /\+25\.5°/);
   assert.match(solarHtml, /\+23\.0°/);
   assert.match(viewerHtml, /data-orientation-cue/);
   assert.match(viewerHtml, /data-north-direction="lower-right"/);
+  assert.match(viewerHtml, /data-view="pool-cutaway">泳池剖視/);
+  assert.match(viewerHtml, /X3 淺端 1\.20 m/);
 });
 
 test('world, L3, and coplanar mirror transforms remain separated in the scene factory', () => {
@@ -167,12 +172,15 @@ test('world, L3, and coplanar mirror transforms remain separated in the scene fa
   assert.match(sceneFactorySource, /wallAndMirrorCoplanar|0\.012/);
   assert.match(sceneFactorySource, /ST-02 懸空式正交樓梯/);
   assert.match(sceneFactorySource, /ST-02 梯下輕量造景植栽/);
-  assert.match(sceneFactorySource, /L1 Y0 清水模外牆/);
+  assert.match(sceneFactorySource, /L1 Y0 玻璃／清水模分段外牆/);
   assert.match(sceneFactorySource, /L2 Y0 全寬安全玻璃外牆/);
   assert.match(sceneFactorySource, /L2 完整天花板/);
   assert.match(sceneFactorySource, /L3 鏡牆端部三角收邊/);
   assert.match(sceneFactorySource, /3F 完整旋轉屋頂／天花板/);
   assert.match(sceneFactorySource, /3F 屋頂高覆蓋率太陽能排布/);
+  assert.match(sceneFactorySource, /CUTAWAY-HIDE-Y0-POOL-WALL/);
+  assert.match(sceneFactorySource, /POOL-LONGITUDINAL-CUTAWAY-ANNOTATIONS/);
+  assert.match(sceneFactorySource, /服務中心後側透明玻璃突出屋簷/);
   assert.match(sceneFactorySource, /教師／維修專用景觀區/);
   assert.doesNotMatch(sceneFactorySource, /錯位隱私屏風|設錯位隱私屏風/);
   assert.doesNotMatch(sceneFactorySource, /v050Study|v060Study/);

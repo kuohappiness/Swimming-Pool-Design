@@ -38,6 +38,9 @@ const statusLabel: Record<Status, string> = {
 function sheetMeta(sheet: SheetRender): string {
   const definition = model.sheets.find((item) => item.id === sheet.id);
   const title = definition?.title ?? sheet.title ?? sheet.id;
+  const pvToggle = sheet.id === 'V065-L3'
+    ? '<label><input id="toggle-pv" type="checkbox" checked /> 太陽能板</label>'
+    : '';
   return `<div class="sheet-toolbar">
     <div>
       <span class="sheet-number">${sheet.id}</span>
@@ -45,6 +48,7 @@ function sheetMeta(sheet: SheetRender): string {
     </div>
     <div class="toolbar-actions" aria-label="圖層控制">
       <label><input id="toggle-working" type="checkbox" checked /> 工作值</label>
+      ${pvToggle}
       <button id="fit-sheet" type="button">符合畫面</button>
     </div>
   </div>
@@ -146,6 +150,10 @@ function bindDrawingInteractions(): void {
   stage.querySelector<HTMLInputElement>('#toggle-working')?.addEventListener('change', (event) => {
     const visible = (event.currentTarget as HTMLInputElement).checked;
     stage.classList.toggle('hide-working', !visible);
+  });
+  stage.querySelector<HTMLInputElement>('#toggle-pv')?.addEventListener('change', (event) => {
+    const visible = (event.currentTarget as HTMLInputElement).checked;
+    stage.classList.toggle('hide-pv', !visible);
   });
   stage.querySelector<HTMLButtonElement>('#fit-sheet')?.addEventListener('click', () => {
     stage.querySelector<HTMLElement>('.drawing-scroll')?.scrollTo({ left: 0, top: 0, behavior: 'smooth' });

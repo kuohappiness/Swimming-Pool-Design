@@ -1,22 +1,20 @@
 import type { ProjectModel, SheetRender } from './types';
 
 const siteImage = new URL('../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
-const l1Image = new URL('../drafts/v0.6.4/DRAW-L1-PLAN-v0.6.4.png', import.meta.url).href;
-const l2Image = new URL('../drafts/v0.6.4/DRAW-L2-PLAN-v0.6.4.png', import.meta.url).href;
-const l3Image = new URL('../drafts/v0.6.4/DRAW-L3-PLAN-v0.6.4.png', import.meta.url).href;
-const sectionImage = new URL('../drafts/v0.6.4/DRAW-LONGITUDINAL-SECTION-v0.6.4.png', import.meta.url).href;
+import l1Svg from '../drafts/v0.6.5/DRAW-L1-PLAN-v0.6.5.svg?raw';
+import l2Svg from '../drafts/v0.6.5/DRAW-L2-PLAN-v0.6.5.svg?raw';
+import l3Svg from '../drafts/v0.6.5/DRAW-L3-PLAN-v0.6.5.svg?raw';
+import sectionSvg from '../drafts/v0.6.5/DRAW-LONGITUDINAL-SECTION-v0.6.5.svg?raw';
 
-function reviewDrawing(id: string, title: string, imageUrl: string, note: string, model: ProjectModel): SheetRender {
+function reviewDrawing(id: string, title: string, svgSource: string, note: string, model: ProjectModel): SheetRender {
+  const inlineSvg = svgSource
+    .replace('<svg ', `<svg class="drawing review-drawing" data-sheet-id="${id}" `)
+    .replace('</svg>', `<metadata data-sheet-id="${id}" data-model-version="${model.modelVersion}" data-active-geometry="${model.activeGeometryRevisionId}" data-coordinate-system="SITE-XY" /></svg>`);
   return {
     id,
     title,
     note,
-    markup: `<svg class="review-drawing" viewBox="0 0 1920 1080" role="img" aria-labelledby="${id}-title ${id}-desc">
-      <title id="${id}-title">${title}</title>
-      <desc id="${id}-desc">${note}</desc>
-      <image href="${imageUrl}" x="0" y="0" width="1920" height="1080" preserveAspectRatio="xMidYMid meet" />
-      <metadata data-model-version="${model.modelVersion}" data-active-geometry="${model.activeGeometryRevisionId}" data-coordinate-system="SITE-XY" />
-    </svg>`,
+    markup: inlineSvg,
   };
 }
 
@@ -26,7 +24,7 @@ function siteDrawing(model: ProjectModel): SheetRender {
     id: 'REF-001',
     title: '基地與方位圖',
     note,
-    markup: `<svg viewBox="0 0 1200 760" role="img" aria-labelledby="site-title site-desc">
+    markup: `<svg class="drawing" viewBox="0 0 1200 760" role="img" aria-labelledby="site-title site-desc">
       <title id="site-title">基地與方位圖</title>
       <desc id="site-desc">${note}</desc>
       <rect width="1200" height="760" fill="#edf1f2" />
@@ -46,9 +44,9 @@ function siteDrawing(model: ProjectModel): SheetRender {
 export function renderSheets(model: ProjectModel): SheetRender[] {
   return [
     siteDrawing(model),
-    reviewDrawing('V064-L1', 'v0.6.4｜1F 最新平面圖', l1Image, 'L1 Y0 外牆採自然灰清水模並保留 EN-01 玻璃入口；四廁與器具配置不變。非施工圖。', model),
-    reviewDrawing('V064-L2', 'v0.6.4｜2F 最新平面圖', l2Image, 'L2 Y0 全寬玻璃；Y2.5 清水模牆由 X32 連續至 X41，不由樓梯區直通更衣室。非施工圖。', model),
-    reviewDrawing('V064-L3', 'v0.6.4｜3F 最新平面圖', l3Image, '完整 3F 屋頂、鏡牆端部收邊與高覆蓋率太陽能排布；SITE-XY 格線保持可讀。非施工圖。', model),
-    reviewDrawing('V064-SECTION', 'v0.6.4｜最新縱向剖面圖', sectionImage, 'X／Z 座標格線、完整 L2 天花、完整 L3 屋頂與高覆蓋率太陽能排布的概念關係。非施工圖。', model),
+    reviewDrawing('V065-L1', 'v0.6.5｜1F 最新平面圖', l1Svg, '泳池端玻璃、服務本體清水模、西端退縮／玻璃屋簷／雨水回收及後側突出玻璃屋簷。非施工圖。', model),
+    reviewDrawing('V065-L2', 'v0.6.5｜2F 最新平面圖', l2Svg, 'L2 Y0 全寬玻璃；Y2.5 清水模牆由 X32 連續至 X41，不由樓梯區直通更衣室。非施工圖。', model),
+    reviewDrawing('V065-L3', 'v0.6.5｜3F 最新平面圖', l3Svg, 'L3／屋頂／鏡牆／淡藍透明太陽能板共用同一 +25.5° transform；太陽能板可獨立顯示。非施工圖。', model),
+    reviewDrawing('V065-SECTION', 'v0.6.5｜最新縱向剖面圖', sectionSvg, '補齊 X0.5、X29、X41 垂直牆、投影入口、玻璃屋簷與雨水回收關係。非施工圖。', model),
   ];
 }

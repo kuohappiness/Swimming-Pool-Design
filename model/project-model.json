@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.3.0",
-  "modelVersion": "0.6.4",
+  "modelVersion": "0.6.5",
   "revision": "2026-07-24",
-  "activeGeometryRevisionId": "GEO-0.6.4",
-  "designTargetVersion": "0.6.4",
+  "activeGeometryRevisionId": "GEO-0.6.5",
+  "designTargetVersion": "0.6.5",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -70,9 +70,9 @@
       "historicalRecordPath": "geometry.solarReflection.legacyV050Study"
     },
     {
-      "id": "GEO-0.6.4",
-      "revision": "0.6.4",
-      "modelVersion": "0.6.4",
+      "id": "GEO-0.6.5",
+      "revision": "0.6.5",
+      "modelVersion": "0.6.5",
       "status": "working",
       "coordinateSystemId": "SITE-XY",
       "site": {
@@ -97,13 +97,13 @@
         "building": {
           "entityId": "BLDG-01",
           "coordinateSystemId": "SITE-XY",
-          "bounds": { "x1": 0, "x2": 39, "y1": 0, "y2": 14 },
+          "bounds": { "x1": 0.5, "x2": 39, "y1": 0, "y2": 14 },
           "status": "working"
         },
         "poolHall": {
           "entityId": "Z-PH-01",
           "coordinateSystemId": "SITE-XY",
-          "bounds": { "x1": 0, "x2": 31, "y1": 0, "y2": 14 },
+          "bounds": { "x1": 0.5, "x2": 31, "y1": 0, "y2": 14 },
           "floorElevation": 0.3,
           "status": "working"
         },
@@ -144,22 +144,66 @@
           "bounds": { "x1": 39, "x2": 41, "y1": 0, "y2": 14 },
           "status": "confirmed"
         },
+        "westSetback": {
+          "entityId": "Z-L1-WEST-SETBACK-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 0, "x2": 0.5, "y1": 0, "y2": 14 },
+          "status": "confirmed"
+        },
         "mainEntrance": {
           "entityId": "EN-01",
           "coordinateSystemId": "SITE-XY",
-          "bounds": { "x1": 0.5, "x2": 2.5, "y1": 0, "y2": 0.2 },
+          "bounds": { "x1": 1, "x2": 3, "y1": 0, "y2": 0.2 },
           "clearWidthStatus": "requires-professional-validation",
           "status": "confirmed"
         },
         "y0ExteriorFacade": {
           "entityId": "F-L1-Y0-01",
           "coordinateSystemId": "SITE-XY",
-          "bounds": { "x1": 0, "x2": 39, "y1": 0, "y2": 0.14 },
-          "materialIntent": "fair-faced-exposed-concrete",
-          "appearance": "natural-grey-concrete",
+          "bounds": { "x1": 0.5, "x2": 39, "y1": 0, "y2": 0.14 },
+          "materialIntent": "segmented-safety-glass-and-fair-faced-concrete",
+          "segments": [
+            { "x1": 0.5, "x2": 1, "materialIntent": "safety-glass" },
+            { "x1": 1, "x2": 3, "materialIntent": "entrance-safety-glass", "entityId": "EN-01" },
+            { "x1": 3, "x2": 31, "materialIntent": "safety-glass" },
+            { "x1": 31, "x2": 39, "materialIntent": "fair-faced-exposed-concrete", "appearance": "natural-grey-concrete" }
+          ],
           "mainEntranceEntityId": "EN-01",
-          "continuousExceptMainEntrance": true,
+          "poolHallMaterialIntent": "safety-glass",
+          "serviceWingMaterialIntent": "fair-faced-exposed-concrete",
           "status": "confirmed"
+        },
+        "westGlassEave": {
+          "entityId": "RF-L1-WEST-EAVE-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 0, "x2": 0.5, "y1": 0, "y2": 14 },
+          "materialIntent": "transparent-sloped-safety-glass",
+          "projectionBeyondWall": 0.5,
+          "rainwaterRecoveryEntityId": "RW-WEST-01",
+          "status": "working-requires-professional-validation",
+          "openItemId": "OPEN-014"
+        },
+        "rearGlassCanopy": {
+          "entityId": "RF-L1-REAR-CANOPY-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 31, "x2": 39, "y1": 13.5, "y2": 14.5 },
+          "baseElevation": 3.3,
+          "thickness": 0.08,
+          "materialIntent": "transparent-safety-glass",
+          "buildingLineY": 14,
+          "projectionBeyondBuildingLine": 0.5,
+          "siteBoundsUnchanged": true,
+          "status": "working-requires-professional-validation",
+          "openItemId": "OPEN-016"
+        },
+        "westRainwaterRecovery": {
+          "entityId": "RW-WEST-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 0, "x2": 0.5, "y1": 0, "y2": 14 },
+          "collection": "linear-gutter-to-rainwater-reuse-system",
+          "capacityStatus": "deferred",
+          "status": "working-requires-professional-validation",
+          "openItemId": "OPEN-014"
         },
         "playgroundRamp": {
           "entityId": "RTE-L1-PLAYGROUND-01",
@@ -703,7 +747,10 @@
            "l2-review-a-changing-shower-layout",
            "floating-st02-and-removable-under-stair-planting",
            "full-width-l2-y0-glass",
-           "fair-faced-l1-y0-facade",
+           "segmented-l1-y0-glass-and-service-concrete-facade",
+           "west-setback-glass-eave-and-rainwater-recovery",
+           "rear-service-glass-canopy-to-y14.5",
+           "pool-longitudinal-cutaway-view",
            "continuous-l2-stair-changing-divider",
            "complete-l2-and-l3-ceilings",
            "mirror-side-gap-infill",
@@ -717,7 +764,7 @@
   "geometry": {
     "building": {
       "l2VolumeHeight": { "value": 3.58, "status": "working", "sourceIds": [] },
-      "activeGeometryOwner": "GEO-0.6.4"
+      "activeGeometryOwner": "GEO-0.6.5"
     },
     "pool": {
       "shallowDepth": { "value": 1.2, "status": "confirmed", "sourceIds": [] },
@@ -725,7 +772,7 @@
       "laneCount": 3,
       "standardLaneCount": 2,
       "mixedTeachingBandCount": 1,
-      "activeGeometryOwner": "GEO-0.6.4"
+      "activeGeometryOwner": "GEO-0.6.5"
     },
     "roof": {
       "coverageZoneId": "Z-PH-01",
@@ -772,7 +819,7 @@
     "stair": {
       "id": "ST-01",
       "type": "two-run-straight-with-floating-mid-landing",
-      "activeGeometryOwner": "GEO-0.6.4",
+      "activeGeometryOwner": "GEO-0.6.5",
       "upperEndAlignment": "l2-pool-side-edge-x29",
       "stringers": 2,
       "stringerDescription": "S1 雙側連續封閉箱型鋼梯梁",
@@ -973,7 +1020,7 @@
       "dailyPeopleEntrance": true,
       "arrivalContext": "school-playground",
       "boundsEntityId": "EN-01",
-      "siteCoordinateSpan": { "x1": 0.5, "x2": 2.5, "y": 0 },
+      "siteCoordinateSpan": { "x1": 1, "x2": 3, "y": 0 },
       "clearWidthStatus": "requires-professional-validation",
       "geometryStatus": "confirmed-location",
       "openItemId": "OPEN-008"
@@ -1044,9 +1091,13 @@
     { "id": "CORE-01", "name": "原廁所基地服務核心", "type": "service-core", "level": "L1-RF", "grid": "E-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
     { "id": "EXT-L2-01", "name": "二樓專用擴建量體", "type": "l2-extension", "level": "L2", "grid": "D-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] },
     { "id": "F-MIR-01", "name": "L3 面池端外傾承載鏡牆", "type": "mirror-facade", "level": "L3", "grid": "SITE-XY", "status": "working", "sourceIds": ["SRC-CONCEPT-009"] },
-    { "id": "F-L1-Y0-01", "name": "L1 Y0 清水模外牆", "type": "facade", "level": "L1", "grid": "X0-X39/Y0", "status": "confirmed", "sourceIds": [] },
+    { "id": "F-L1-Y0-01", "name": "L1 Y0 泳池端玻璃／服務本體清水模分段外牆", "type": "facade", "level": "L1", "grid": "X0.5-X39/Y0", "status": "confirmed", "sourceIds": [] },
     { "id": "F-L2-Y0-01", "name": "L2 Y0 全寬安全玻璃外牆", "type": "facade", "level": "L2", "grid": "X29-X41/Y0", "status": "confirmed", "sourceIds": [] },
-    { "id": "EN-01", "name": "泳池館主要入口 X0.5～X2.5／Y0", "type": "entrance", "level": "L1", "grid": "X0.5-X2.5/Y0", "status": "confirmed", "sourceIds": [] },
+    { "id": "EN-01", "name": "泳池館主要入口 X1～X3／Y0", "type": "entrance", "level": "L1", "grid": "X1-X3/Y0", "status": "confirmed", "sourceIds": [] },
+    { "id": "Z-L1-WEST-SETBACK-01", "name": "L1 西端 0.5 m 退縮帶", "type": "setback", "level": "L1", "grid": "X0-X0.5/Y0-Y14", "status": "confirmed", "sourceIds": [] },
+    { "id": "RF-L1-WEST-EAVE-01", "name": "L1 西端傾斜玻璃突出屋簷", "type": "roof-eave", "level": "RF", "grid": "X0-X0.5/Y0-Y14", "status": "working", "sourceIds": [] },
+    { "id": "RF-L1-REAR-CANOPY-01", "name": "L1 服務中心後側透明玻璃突出屋簷", "type": "roof-canopy", "level": "L1-RF", "grid": "X31-X39/Y13.5-Y14.5", "status": "working", "sourceIds": [] },
+    { "id": "RW-WEST-01", "name": "L1 西端屋簷雨水回收系統", "type": "rainwater-recovery", "level": "L1", "grid": "X0-X0.5/Y0-Y14", "status": "working", "sourceIds": [] },
     { "id": "RTE-L1-PLAYGROUND-01", "name": "操場側 +0.10 m 外部整坡工作帶", "type": "accessible-route", "level": "L1", "grid": "X39-X41/Y0-Y3.5", "status": "working", "sourceIds": [] },
     { "id": "ST-01", "name": "A2 兩段同向懸空樓梯", "type": "stair", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
     { "id": "Z-ST-01", "name": "乾式透明樓梯廊", "type": "zone", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
@@ -1085,10 +1136,10 @@
   ],
   "sheets": [
     { "id": "REF-001", "title": "基地與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
-    { "id": "V064-L1", "title": "v0.6.4｜1F 最新平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "F-L1-Y0-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-STOR-01", "Z-WTP-01", "Z-CHEM-01"] },
-    { "id": "V064-L2", "title": "v0.6.4｜2F 最新平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "CLG-L2-01", "F-L2-Y0-01", "W-L2-ST-CH-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
-    { "id": "V064-L3", "title": "v0.6.4｜3F 最新平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
-    { "id": "V064-SECTION", "title": "v0.6.4｜最新縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "CLG-L2-01", "L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-PV-RES-01"] }
+    { "id": "V065-L1", "title": "v0.6.5｜1F 最新平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "F-L1-Y0-01", "Z-L1-WEST-SETBACK-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-STOR-01", "Z-WTP-01", "Z-CHEM-01"] },
+    { "id": "V065-L2", "title": "v0.6.5｜2F 最新平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "CLG-L2-01", "F-L2-Y0-01", "W-L2-ST-CH-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
+    { "id": "V065-L3", "title": "v0.6.5｜3F 最新平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
+    { "id": "V065-SECTION", "title": "v0.6.5｜最新縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "CLG-L2-01", "L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "RF-PV-RES-01"] }
   ],
   "sources": [
     { "id": "SRC-SITE-001", "path": "source-materials/site/SRC-SITE-001_google-maps-satellite.png", "kind": "satellite", "pixelSize": [1612, 1430], "sha256": "39D1933CAEFB91020AF10E72ADFDBD04980DA36FEDBF36ED14209F469DA4029D" },

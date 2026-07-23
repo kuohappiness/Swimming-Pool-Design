@@ -11,7 +11,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = async (path) => JSON.parse(await readFile(resolve(repoRoot, path), 'utf8'));
 const model = await readJson('model/project-model.json');
 
-test('v0.6.4 authoritative model and source bytes pass the current contract', async () => {
+test('v0.6.5 authoritative model and source bytes pass the current contract', async () => {
   assert.deepEqual(validateModel(model), []);
   assert.deepEqual(await validateSourceFiles(model, repoRoot), []);
 });
@@ -20,17 +20,17 @@ test('package, lockfile, model, and README release versions stay synchronized', 
   const packageJson = await readJson('package.json');
   const lockfile = await readJson('package-lock.json');
   const readme = await readFile(resolve(repoRoot, 'README.md'), 'utf8');
-  assert.equal(packageJson.version, '0.6.4');
+  assert.equal(packageJson.version, '0.6.5');
   assert.equal(lockfile.version, packageJson.version);
   assert.equal(lockfile.packages[''].version, packageJson.version);
   assert.equal(model.modelVersion, packageJson.version);
-  assert.match(readme, /套件版本：`0\.6\.4`/);
-  assert.match(readme, /模型版本：`0\.6\.4`/);
+  assert.match(readme, /套件版本：`0\.6\.5`/);
+  assert.match(readme, /模型版本：`0\.6\.5`/);
 });
 
 test('active revision is the only geometry source and uses SITE-XY', () => {
   const active = resolveActiveGeometry(model);
-  assert.equal(active.id, 'GEO-0.6.4');
+  assert.equal(active.id, 'GEO-0.6.5');
   assert.equal(active.modelVersion, model.modelVersion);
   assert.equal(active.coordinateSystemId, 'SITE-XY');
   assert.deepEqual(resolveGeometryEntity(active, 'ST-01').bounds, { x1: 20.5, x2: 29, y1: 0.5, y2: 2 });
@@ -71,9 +71,9 @@ test('active resolver rejects missing frames, duplicate entity IDs, and unframed
   assert.throws(() => resolveActiveGeometry(missingFrame), /must declare coordinateSystemId SITE-XY/);
 });
 
-test('derived geometry exposes the confirmed v0.6.4 pool, floors, roof, and stair', () => {
+test('derived geometry exposes the confirmed v0.6.5 pool, floors, roof, and stair', () => {
   const geometry = deriveReferenceGeometry(model);
-  assert.equal(geometry.activeGeometryRevisionId, 'GEO-0.6.4');
+  assert.equal(geometry.activeGeometryRevisionId, 'GEO-0.6.5');
   assert.equal(geometry.siteLength, 41);
   assert.equal(geometry.siteWidth, 14);
   assert.equal(geometry.poolLength, 25);
@@ -91,9 +91,16 @@ test('L1 keeps four independent toilets, equipment rooms, and separated entrance
   const active = resolveActiveGeometry(model);
   const zones = active.l1.zones;
   assert.equal(active.l1.y0ExteriorFacade.entityId, 'F-L1-Y0-01');
-  assert.equal(active.l1.y0ExteriorFacade.materialIntent, 'fair-faced-exposed-concrete');
+  assert.equal(active.l1.y0ExteriorFacade.materialIntent, 'segmented-safety-glass-and-fair-faced-concrete');
   assert.equal(active.l1.y0ExteriorFacade.mainEntranceEntityId, 'EN-01');
-  assert.equal(active.l1.y0ExteriorFacade.continuousExceptMainEntrance, true);
+  assert.equal(active.l1.y0ExteriorFacade.poolHallMaterialIntent, 'safety-glass');
+  assert.equal(active.l1.y0ExteriorFacade.serviceWingMaterialIntent, 'fair-faced-exposed-concrete');
+  assert.deepEqual(active.l1.mainEntrance.bounds, { x1: 1, x2: 3, y1: 0, y2: 0.2 });
+  assert.deepEqual(active.l1.westSetback.bounds, { x1: 0, x2: 0.5, y1: 0, y2: 14 });
+  assert.deepEqual(active.l1.westGlassEave.bounds, { x1: 0, x2: 0.5, y1: 0, y2: 14 });
+  assert.equal(active.l1.westGlassEave.rainwaterRecoveryEntityId, 'RW-WEST-01');
+  assert.deepEqual(active.l1.rearGlassCanopy.bounds, { x1: 31, x2: 39, y1: 13.5, y2: 14.5 });
+  assert.equal(active.l1.rearGlassCanopy.siteBoundsUnchanged, true);
   assert.equal(Object.values(zones).filter(({ fixtures }) => fixtures).length, 4);
   assert.equal(zones.poolMaleToilet.entrySide, 'x31-only');
   assert.equal(zones.poolFemaleToilet.entrySide, 'x31-only');
@@ -196,21 +203,23 @@ test('ST-01 scheme E connects the +0.30 m deck directly to L2', () => {
   assert.equal(stair.underStairEnclosure, false);
 });
 
-test('current sheet registry and atlas source contain only latest v0.6.4 drawings', async () => {
-  assert.deepEqual(model.sheets.map(({ id }) => id), ['REF-001', 'V064-L1', 'V064-L2', 'V064-L3', 'V064-SECTION']);
+test('current sheet registry and atlas source contain only latest v0.6.5 inline SVG drawings', async () => {
+  assert.deepEqual(model.sheets.map(({ id }) => id), ['REF-001', 'V065-L1', 'V065-L2', 'V065-L3', 'V065-SECTION']);
   const sheetsSource = await readFile(resolve(repoRoot, 'reference/src/sheets.ts'), 'utf8');
-  for (const id of ['V064-L1', 'V064-L2', 'V064-L3', 'V064-SECTION']) assert.match(sheetsSource, new RegExp(id));
+  for (const id of ['V065-L1', 'V065-L2', 'V065-L3', 'V065-SECTION']) assert.match(sheetsSource, new RegExp(id));
   assert.doesNotMatch(sheetsSource, /V23-|v0\.5\.0\/DRAW/);
+  assert.match(sheetsSource, /\.svg\?raw/);
+  assert.doesNotMatch(sheetsSource, /DRAW-L[123].*\.png/);
 });
 
 test('all four reproducible drawings carry active revision and SITE-XY metadata', async () => {
   const names = ['DRAW-L1-PLAN', 'DRAW-L2-PLAN', 'DRAW-L3-PLAN', 'DRAW-LONGITUDINAL-SECTION'];
   for (const name of names) {
-    const base = resolve(repoRoot, 'reference/drafts/v0.6.4', `${name}-v0.6.4`);
+    const base = resolve(repoRoot, 'reference/drafts/v0.6.5', `${name}-v0.6.5`);
     const svg = await readFile(`${base}.svg`, 'utf8');
     await access(`${base}.png`);
-    assert.match(svg, /data-model-version="0\.6\.4"/);
-    assert.match(svg, /data-active-geometry="GEO-0\.6\.4"/);
+    assert.match(svg, /data-model-version="0\.6\.5"/);
+    assert.match(svg, /data-active-geometry="GEO-0\.6\.5"/);
     assert.match(svg, /data-coordinate-system="SITE-XY"/);
     assert.match(svg, /非施工圖/);
     if (name !== 'DRAW-LONGITUDINAL-SECTION') {
@@ -220,7 +229,10 @@ test('all four reproducible drawings carry active revision and SITE-XY metadata'
     if (name === 'DRAW-L1-PLAN') {
       assert.doesNotMatch(svg, /data-privacy-screen="true"/);
       assert.match(svg, /data-entity="F-L1-Y0-01"/);
-      assert.match(svg, /L1 Y0 自然灰清水模外牆/);
+      assert.match(svg, /data-material-intent="segmented-safety-glass-and-fair-faced-concrete"/);
+      assert.match(svg, /data-entity="RF-L1-WEST-EAVE-01"/);
+      assert.match(svg, /data-entity="RF-L1-REAR-CANOPY-01"/);
+      assert.match(svg, /Y14～Y14\.5 突出屋簷/);
     }
     if (name === 'DRAW-L2-PLAN') {
       assert.match(svg, /data-grid-visible="true"/);
@@ -237,12 +249,19 @@ test('all four reproducible drawings carry active revision and SITE-XY metadata'
       assert.match(svg, /data-entity="RF-L3-01" data-area="182\.628" data-complete-roof="true"/);
       assert.match(svg, /data-entity="RF-PV-RES-01"/);
       assert.match(svg, /data-coverage-percent="92\.74"/);
+      assert.match(svg, /data-entity="L3-ROTATED-ASSEMBLY" data-shared-plan-rotation="25\.5" transform="rotate\(25\.5 /);
+      assert.doesNotMatch(svg, /transform="rotate\(-25\.5 /);
     }
     if (name === 'DRAW-LONGITUDINAL-SECTION') {
       assert.match(svg, /data-coordinate-system="SITE-XZ"/);
       assert.match(svg, /data-grid-visible="true"/);
       assert.match(svg, /data-entity="CLG-L2-01" data-continuous="true"/);
       assert.match(svg, /data-entity="RF-L3-01" data-complete-roof="true"/);
+      assert.match(svg, /data-entity="W-L1-X0\.5-01"/);
+      assert.match(svg, /data-entity="W-L2-X29-01"/);
+      assert.match(svg, /data-entity="W-L2-X41-01"/);
+      assert.match(svg, /data-entity="W-L3-X41-01"/);
+      assert.match(svg, /data-entity="EN-01" data-projection="elevation-not-cut"/);
     }
   }
 });

@@ -240,6 +240,31 @@ button:focus-visible, a:focus-visible, select:focus-visible, canvas:focus-visibl
   pointer-events: none;
   white-space: nowrap;
 }
+.pool-cutaway-key {
+  position: absolute;
+  left: 50%;
+  bottom: 42px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  padding: 9px 13px;
+  color: #eff9fb;
+  background: rgba(18, 42, 50, .88);
+  border: 1px solid rgba(143, 217, 238, .7);
+  border-radius: 99px;
+  box-shadow: 0 11px 28px rgba(10, 24, 30, .2);
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+.pool-cutaway-key[hidden] { display: none; }
+.pool-cutaway-key strong,
+.pool-cutaway-key span,
+.pool-cutaway-key i { white-space: nowrap; }
+.pool-cutaway-key i { color: #f2b26f; font-style: normal; }
 .loading {
   position: absolute;
   inset: 0;
@@ -380,6 +405,14 @@ noscript { display: block; padding: 20px; }
   .viewport-panel { min-height: 486px; }
   .legend-bar { gap: 6px 12px; padding: 8px 10px; }
   .viewport-hint { bottom: 10px; font-size: 8px; }
+  .pool-cutaway-key {
+    bottom: 36px;
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius: 14px;
+    font-size: 8px;
+  }
+  .pool-cutaway-key strong { flex-basis: 100%; text-align: center; }
   .layer-list { grid-template-columns: 1fr; }
   .concept-content h1 { font-size: 27px; }
   .concept-content h2 { font-size: 22px; }

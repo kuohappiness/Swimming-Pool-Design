@@ -28,6 +28,7 @@ const versionLabel = required<HTMLElement>('[data-model-version]');
 const hashLabel = required<HTMLElement>('[data-model-hash]');
 const analysisBadge = required<HTMLElement>('[data-analysis-status]');
 const compass = required<HTMLElement>('[data-compass]');
+const poolCutawayKey = required<HTMLElement>('[data-pool-cutaway-key]');
 
 function showFailure(error: unknown) {
   loading.hidden = true;
@@ -100,7 +101,9 @@ try {
     controls.dampingFactor = 0.08;
     controls.minDistance = 9;
     controls.maxDistance = 105;
-    controls.maxPolarAngle = Math.PI * 0.49;
+    const defaultMaxPolarAngle = Math.PI * 0.49;
+    const cutawayMaxPolarAngle = Math.PI * (2 / 3);
+    controls.maxPolarAngle = defaultMaxPolarAngle;
     controls.listenToKeyEvents(window);
     controls.keyPanSpeed = 18;
 
@@ -163,6 +166,19 @@ try {
 
     const contentByScene = new Map(content.scenes.map((item) => [item.id, item]));
     const sceneButtons = new Map<string, HTMLButtonElement>();
+    const setPoolCutaway = (enabled: boolean) => {
+      for (const object of graph.cutaway.hiddenObjects) object.visible = !enabled;
+      graph.cutaway.annotationGroup.visible = enabled;
+      controls.maxPolarAngle = enabled ? cutawayMaxPolarAngle : defaultMaxPolarAngle;
+      poolCutawayKey.hidden = !enabled;
+      shell.dataset.poolCutaway = String(enabled);
+      if (!enabled) {
+        required<HTMLElement>('[data-view-controls]').querySelectorAll<HTMLButtonElement>('button[data-view]').forEach((button) => {
+          button.dataset.active = 'false';
+          button.setAttribute('aria-pressed', 'false');
+        });
+      }
+    };
     const setEnvironment = (environment: EnvironmentId) => {
       const settings = {
         day: { background: 0xe9eef0, fog: 0xe9eef0, sun: 3.4, ambient: 2.2, sunPosition: [-18, 32, 22] },
@@ -179,6 +195,7 @@ try {
     };
 
     const applyScene = (sceneId: string) => {
+      setPoolCutaway(false);
       const config = getViewerScene(sceneId);
       const visibleLayers = new Set(config.layers);
       for (const [id, group] of graph.layerGroups) {
@@ -214,20 +231,50 @@ try {
       sceneNav.append(button);
     }
 
-    const frameModel = (mode: 'perspective' | 'top' | 'elevation' | 'opposite') => {
-      const views = {
-        perspective: { position: [34, 25, 30], target: [0, 2.4, 0] },
-        top: { position: [0, 58, 0.01], target: [0, 0, 0] },
-        elevation: { position: [0, 9, 52], target: [0, 3.2, 0] },
-        opposite: { position: [0, 9, -52], target: [0, 3.2, 0] },
-      }[mode];
-      camera.position.set(...views.position as [number, number, number]);
-      controls.target.set(...views.target as [number, number, number]);
-      controls.update();
+    type ViewMode = 'perspective' | 'top' | 'elevation' | 'opposite' | 'pool-cutaway';
+    const frameModel = (mode: ViewMode) => {
+      if (mode === 'pool-cutaway') {
+        setPoolCutaway(true);
+        graph.siteRoot.updateWorldMatrix(true, false);
+        const poolBounds = model.geometry.pool.bounds;
+        const position = graph.siteRoot.localToWorld(new THREE.Vector3(
+          (poolBounds.x1 + poolBounds.x2) / 2,
+          4.2,
+          -34,
+        ));
+        const target = graph.siteRoot.localToWorld(new THREE.Vector3(
+          (poolBounds.x1 + poolBounds.x2) / 2,
+          -0.48,
+          (poolBounds.y1 + poolBounds.y2) / 2,
+        ));
+        camera.position.copy(position);
+        camera.fov = 32;
+        camera.updateProjectionMatrix();
+        controls.target.copy(target);
+        controls.update();
+      } else {
+        setPoolCutaway(false);
+        camera.fov = 38;
+        camera.updateProjectionMatrix();
+        const views = {
+          perspective: { position: [34, 25, 30], target: [0, 2.4, 0] },
+          top: { position: [0, 58, 0.01], target: [0, 0, 0] },
+          elevation: { position: [0, 9, 52], target: [0, 3.2, 0] },
+          opposite: { position: [0, 9, -52], target: [0, 3.2, 0] },
+        }[mode];
+        camera.position.set(...views.position as [number, number, number]);
+        controls.target.set(...views.target as [number, number, number]);
+        controls.update();
+      }
+      required<HTMLElement>('[data-view-controls]').querySelectorAll<HTMLButtonElement>('button[data-view]').forEach((button) => {
+        const active = button.dataset.view === mode;
+        button.dataset.active = String(active);
+        button.setAttribute('aria-pressed', String(active));
+      });
     };
     required<HTMLElement>('[data-view-controls]').addEventListener('click', (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-view]');
-      if (button) frameModel(button.dataset.view as 'perspective' | 'top' | 'elevation' | 'opposite');
+      if (button) frameModel(button.dataset.view as ViewMode);
     });
     required<HTMLButtonElement>('[data-reset-view]').addEventListener('click', () => applyScene(shell.dataset.scene ?? 'overview'));
 

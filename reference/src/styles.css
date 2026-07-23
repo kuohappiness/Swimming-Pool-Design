@@ -237,6 +237,7 @@ footer p { margin: 0; }
 [data-entity]:hover, [data-cubicle]:hover, [data-entity]:focus, [data-cubicle]:focus { filter: brightness(1.1) drop-shadow(0 0 5px rgba(73,212,229,.8)); outline: none; }
 .selected { filter: drop-shadow(0 0 7px #e4b547) !important; }
 .hide-working .expansion { opacity: 0; pointer-events: none; }
+.hide-pv [data-entity="RF-PV-RES-01"] { display: none; }
 .entity-badge.extension rect { fill: #a74339; }
 .entity-badge.deferred rect { fill: #a87120; stroke-dasharray: 4 3; }
 .title-block line { stroke: #6a7c84; stroke-width: 1; }

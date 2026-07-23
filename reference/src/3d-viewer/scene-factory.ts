@@ -17,6 +17,10 @@ export interface ViewerSceneGraph {
   layerGroups: Map<string, THREE.Group>;
   selectables: SelectableInfo[];
   lights: { sun: THREE.DirectionalLight; ambient: THREE.HemisphereLight };
+  cutaway: {
+    hiddenObjects: THREE.Object3D[];
+    annotationGroup: THREE.Group;
+  };
 }
 
 const PALETTE = {
@@ -217,7 +221,10 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     metalness: 0, transmission: 0.3, side: THREE.DoubleSide, depthWrite: false,
   });
   const wallGlass = glass.clone();
-  wallGlass.opacity = 0.2;
+  wallGlass.color.set(0x8fd7e5);
+  wallGlass.opacity = 0.34;
+  wallGlass.roughness = 0.1;
+  wallGlass.transmission = 0.16;
   const waterMaterial = new THREE.MeshPhysicalMaterial({
     color: PALETTE.water, transparent: true, opacity: 0.68, roughness: 0.16,
     metalness: 0.03, transmission: 0.18, side: THREE.DoubleSide, depthWrite: false,
@@ -235,6 +242,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   );
   ground.receiveShadow = true;
   site.add(ground);
+  ground.name = 'CUTAWAY-HIDE-SITE-GROUND';
   const setback = box(
     [building.rightSetback.value, 0.07, buildingWidth],
     [model.geometry.l1.rightSetbackBounds.x1 + building.rightSetback.value / 2, 0.005, centreZ],
@@ -400,11 +408,16 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const deckMaterial = new THREE.MeshStandardMaterial({ color: 0xd8d3c8, roughness: 0.88 });
   const deckGroup = new THREE.Group();
   const deckThickness = deckElevation;
+  const westDeck = box([poolX0, deckThickness, buildingWidth], [poolX0 / 2, deckElevation / 2, centreZ], deckMaterial);
+  const eastDeck = box([serviceStart - poolX1, deckThickness, buildingWidth], [(poolX1 + serviceStart) / 2, deckElevation / 2, centreZ], deckMaterial);
+  const nearDeck = box([pool.length.value, deckThickness, poolZ0], [(poolX0 + poolX1) / 2, deckElevation / 2, poolZ0 / 2], deckMaterial);
+  const farDeck = box([pool.length.value, deckThickness, buildingWidth - poolZ1], [(poolX0 + poolX1) / 2, deckElevation / 2, (poolZ1 + buildingWidth) / 2], deckMaterial);
+  nearDeck.name = 'CUTAWAY-HIDE-Y0-POOL-DECK';
   deckGroup.add(
-    box([poolX0, deckThickness, buildingWidth], [poolX0 / 2, deckElevation / 2, centreZ], deckMaterial),
-    box([serviceStart - poolX1, deckThickness, buildingWidth], [(poolX1 + serviceStart) / 2, deckElevation / 2, centreZ], deckMaterial),
-    box([pool.length.value, deckThickness, poolZ0], [(poolX0 + poolX1) / 2, deckElevation / 2, poolZ0 / 2], deckMaterial),
-    box([pool.length.value, deckThickness, buildingWidth - poolZ1], [(poolX0 + poolX1) / 2, deckElevation / 2, (poolZ1 + buildingWidth) / 2], deckMaterial),
+    westDeck,
+    eastDeck,
+    nearDeck,
+    farDeck,
   );
   l1.add(deckGroup);
   tag(deckGroup, {
@@ -436,18 +449,22 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     poolX1, deepBottom, poolZ1,
     poolX1, deepBottom, poolZ0,
   ], basinMaterial));
-  poolGroup.add(quad([
+  const nearPoolWall = quad([
     poolX0, shallowBottom, poolZ0,
     poolX1, deepBottom, poolZ0,
     poolX1, waterLevel, poolZ0,
     poolX0, waterLevel, poolZ0,
-  ], basinMaterial));
-  poolGroup.add(quad([
+  ], basinMaterial);
+  nearPoolWall.name = 'CUTAWAY-HIDE-Y0-POOL-WALL';
+  poolGroup.add(nearPoolWall);
+  const farPoolWall = quad([
     poolX0, waterLevel, poolZ1,
     poolX1, waterLevel, poolZ1,
     poolX1, deepBottom, poolZ1,
     poolX0, shallowBottom, poolZ1,
-  ], basinMaterial));
+  ], basinMaterial);
+  farPoolWall.name = 'CUTAWAY-KEEP-Y14-POOL-WALL';
+  poolGroup.add(farPoolWall);
   poolGroup.add(quad([
     poolX0, shallowBottom, poolZ1,
     poolX0, shallowBottom, poolZ0,
@@ -491,8 +508,10 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     }
   }
   const coping = 0.22;
+  const nearCoping = box([pool.length.value + coping * 2, 0.07, coping], [(poolX0 + poolX1) / 2, deckElevation + 0.02, poolZ0 - coping / 2], deckMaterial);
+  nearCoping.name = 'CUTAWAY-HIDE-Y0-POOL-COPING';
   poolGroup.add(
-    box([pool.length.value + coping * 2, 0.07, coping], [(poolX0 + poolX1) / 2, deckElevation + 0.02, poolZ0 - coping / 2], deckMaterial),
+    nearCoping,
     box([pool.length.value + coping * 2, 0.07, coping], [(poolX0 + poolX1) / 2, deckElevation + 0.02, poolZ1 + coping / 2], deckMaterial),
     box([coping, 0.07, pool.width.value], [poolX0 - coping / 2, deckElevation + 0.02, (poolZ0 + poolZ1) / 2], deckMaterial),
     box([coping, 0.07, pool.width.value], [poolX1 + coping / 2, deckElevation + 0.02, (poolZ0 + poolZ1) / 2], deckMaterial),
@@ -520,29 +539,40 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   ], material);
   const mainEntranceBounds = model.geometry.l1.mainEntranceBounds;
   const l1Y0Facade = new THREE.Group();
+  const facadeStartX = model.geometry.l1.y0ExteriorFacade.bounds.x1;
   l1Y0Facade.add(
-    slopedFacadeSegment(roof.startX, mainEntranceBounds.x1, 0.03, deckElevation, l1Material),
-    slopedFacadeSegment(mainEntranceBounds.x2, roof.endX, 0.03, deckElevation, l1Material),
-    slopedFacadeSegment(mainEntranceBounds.x1, mainEntranceBounds.x2, 0.03, 2.55, l1Material),
+    slopedFacadeSegment(facadeStartX, mainEntranceBounds.x1, 0.03, deckElevation, wallGlass),
+    slopedFacadeSegment(mainEntranceBounds.x2, roof.endX, 0.03, deckElevation, wallGlass),
+    slopedFacadeSegment(mainEntranceBounds.x1, mainEntranceBounds.x2, 0.03, deckElevation + 2.42, wallGlass),
     box([
-      model.geometry.l1.y0ExteriorFacade.bounds.x2 - roof.endX,
+      serviceStart - roof.endX,
       wallHeight,
       model.geometry.l1.y0ExteriorFacade.bounds.y2 - model.geometry.l1.y0ExteriorFacade.bounds.y1,
     ], [
-      (roof.endX + model.geometry.l1.y0ExteriorFacade.bounds.x2) / 2,
+      (roof.endX + serviceStart) / 2,
+      wallHeight / 2,
+      (model.geometry.l1.y0ExteriorFacade.bounds.y1 + model.geometry.l1.y0ExteriorFacade.bounds.y2) / 2,
+    ], wallGlass),
+    box([
+      serviceEnd - serviceStart,
+      wallHeight,
+      model.geometry.l1.y0ExteriorFacade.bounds.y2 - model.geometry.l1.y0ExteriorFacade.bounds.y1,
+    ], [
+      (serviceStart + serviceEnd) / 2,
       wallHeight / 2,
       (model.geometry.l1.y0ExteriorFacade.bounds.y1 + model.geometry.l1.y0ExteriorFacade.bounds.y2) / 2,
     ], l1Material),
   );
+  l1Y0Facade.name = 'CUTAWAY-HIDE-L1-Y0-FACADE';
   l1.add(
     l1Y0Facade,
     slopedFacadeSegment(roof.startX, roof.endX, buildingWidth - 0.03, deckElevation, wallGlass),
   );
   tag(l1Y0Facade, {
     entityId: model.geometry.l1.y0ExteriorFacade.entityId,
-    label: 'L1 Y0 清水模外牆',
+    label: 'L1 Y0 玻璃／清水模分段外牆',
     status: 'confirmed',
-    description: 'Y0 外牆由 X0 連續至 X39 採自然灰清水模，只在 EN-01 保留玻璃主入口；材料樣板、接縫、耐氯胺、保溫與防水仍待專業驗證。',
+    description: 'Y0 外牆自 X0.5 起：泳池端 X0.5～X31 維持安全玻璃，服務本體 X31～X39 採自然灰清水模；材料樣板、框架、接縫、耐氯胺、保溫與防水仍待專業驗證。',
     openItemId: 'OPEN-016',
   }, selectables);
   const entranceGroup = new THREE.Group();
@@ -560,23 +590,30 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     box([entranceWidth + 0.1, 0.065, 0.075], [entranceCentreX, deckElevation + entranceHeight, 0.025], dark),
   );
   l1.add(entranceGroup);
+  entranceGroup.name = 'CUTAWAY-HIDE-EN-01';
   tag(entranceGroup, {
     entityId: 'EN-01', label: '泳池大廳玻璃主入口', status: 'confirmed',
     description: `位於 SITE-XY X${mainEntranceBounds.x1.toFixed(1)}～X${mainEntranceBounds.x2.toFixed(1)}／Y0；Viewer 明確切開長邊玻璃牆並表達雙扇玻璃入口，實際淨寬與門框仍須專業驗證。`,
     openItemId: 'OPEN-008',
   }, selectables);
-  l1.add(quad([
-    roof.startX, deckElevation, 0,
-    roof.startX, roof.lowElevation, 0,
-    roof.startX, roof.lowElevation, buildingWidth,
-    roof.startX, deckElevation, buildingWidth,
-  ], wallGlass));
-  for (let x = roof.startX; x <= roof.endX + 0.01; x += roof.planRun / 5) {
+  const westEndWall = quad([
+    facadeStartX, deckElevation, 0,
+    facadeStartX, roofHeightAt(facadeStartX), 0,
+    facadeStartX, roofHeightAt(facadeStartX), buildingWidth,
+    facadeStartX, deckElevation, buildingWidth,
+  ], wallGlass);
+  l1.add(westEndWall);
+  const l1Y0Mullions = new THREE.Group();
+  l1Y0Mullions.name = 'CUTAWAY-HIDE-L1-Y0-MULLIONS';
+  for (let x = facadeStartX; x <= roof.endX + 0.01; x += roof.planRun / 5) {
     const height = roofHeightAt(Math.min(x, roof.endX)) - deckElevation;
     for (const z of [0.08, buildingWidth - 0.08]) {
-      l1.add(box([0.13, height, 0.13], [Math.min(x, roof.endX), deckElevation + height / 2, z], dark));
+      const mullion = box([0.13, height, 0.13], [Math.min(x, roof.endX), deckElevation + height / 2, z], dark);
+      if (z < 1) l1Y0Mullions.add(mullion);
+      else l1.add(mullion);
     }
   }
+  l1.add(l1Y0Mullions);
 
   const l2Data = model.geometry.l2;
   const l2Group = new THREE.Group();
@@ -626,22 +663,34 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   ], l2Data.baseElevation + 0.016, stairZoneMaterial);
   l2Group.add(corridorSurface, stairZoneSurface);
   const l2Y0Facade = new THREE.Group();
+  const l2FacadeGlass = wallGlass.clone();
+  l2FacadeGlass.color.set(0x79cfe2);
+  l2FacadeGlass.opacity = 0.46;
+  l2FacadeGlass.roughness = 0.08;
+  l2FacadeGlass.transmission = 0.1;
   l2Y0Facade.add(box(
     [l2Data.length, l2WallHeight, l2Data.y0ExteriorFacade.bounds.y2 - l2Data.y0ExteriorFacade.bounds.y1],
     [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.y0ExteriorFacade.bounds.y2 / 2],
-    wallGlass,
+    l2FacadeGlass,
   ));
   for (let x = l2Data.startX; x <= l2Data.endX + 0.01; x += 2) {
     l2Y0Facade.add(box([0.065, l2WallHeight, 0.08], [
       Math.min(x, l2Data.endX), l2WallCentreY, l2Data.y0ExteriorFacade.bounds.y2 / 2,
     ], dark));
   }
+  const l2GlassEdge = new THREE.LineBasicMaterial({ color: 0x5ab8d0, transparent: true, opacity: 0.92 });
+  for (const elevation of [l2Data.baseElevation + 0.08, l2Data.topElevation - 0.32]) {
+    l2Y0Facade.add(line([
+      new THREE.Vector3(l2Data.startX, elevation, l2Data.y0ExteriorFacade.bounds.y2 + 0.006),
+      new THREE.Vector3(l2Data.endX, elevation, l2Data.y0ExteriorFacade.bounds.y2 + 0.006),
+    ], l2GlassEdge));
+  }
   l2Group.add(l2Y0Facade);
   tag(l2Y0Facade, {
     entityId: l2Data.y0ExteriorFacade.entityId,
     label: 'L2 Y0 全寬安全玻璃外牆',
     status: 'confirmed',
-    description: 'X29～X41 全寬皆為安全玻璃，樓梯區與更衣層之間不插入不透明外牆段；玻璃框架、防撞、防窺、熱濕與消防仍待專業驗證。',
+    description: 'X29～X41 全寬皆為淡藍安全玻璃，雙面高光、上下邊框與豎梃讓 Y0／Y14 兩側都可辨識；Y2.5 清水模分隔牆仍是後方獨立平面。玻璃防撞、防窺、熱濕與消防仍待專業驗證。',
     openItemId: 'OPEN-016',
   }, selectables);
   const l2StairChangingDivider = box(
@@ -1103,6 +1152,55 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     description: `${roof.planRun.toFixed(1)} m 水平跨度，低端 +${roof.lowElevation.toFixed(3)} m、高端 +${roof.highElevation.toFixed(3)} m；相對抬高池畔的低端淨高為 ${(roof.lowElevation - deckElevation).toFixed(2)} m。`,
   }, selectables);
 
+  const westEave = model.geometry.l1.westGlassEave;
+  const westEaveMesh = quad([
+    westEave.bounds.x1, roofHeightAt(westEave.bounds.x1) + 0.018, westEave.bounds.y1,
+    westEave.bounds.x1, roofHeightAt(westEave.bounds.x1) + 0.018, westEave.bounds.y2,
+    westEave.bounds.x2, roofHeightAt(westEave.bounds.x2) + 0.018, westEave.bounds.y2,
+    westEave.bounds.x2, roofHeightAt(westEave.bounds.x2) + 0.018, westEave.bounds.y1,
+  ], glass);
+  layer('roof').add(westEaveMesh);
+  tag(westEaveMesh, {
+    entityId: westEave.entityId,
+    label: 'L1 西端傾斜玻璃突出屋簷',
+    status: 'working',
+    description: 'L1 西端牆退至 X0.5，固定玻璃屋頂在 X0～X0.5 形成 0.5 m 突出屋簷；玻璃、支承、防水與抗風仍待專業驗證。',
+    openItemId: westEave.openItemId,
+  }, selectables);
+
+  const rearCanopy = model.geometry.l1.rearGlassCanopy;
+  const rearCanopyGroup = new THREE.Group();
+  rearCanopyGroup.add(box([
+    rearCanopy.bounds.x2 - rearCanopy.bounds.x1,
+    rearCanopy.thickness,
+    rearCanopy.bounds.y2 - rearCanopy.bounds.y1,
+  ], [
+    (rearCanopy.bounds.x1 + rearCanopy.bounds.x2) / 2,
+    rearCanopy.baseElevation + rearCanopy.thickness / 2,
+    (rearCanopy.bounds.y1 + rearCanopy.bounds.y2) / 2,
+  ], glass));
+  const canopyFrame = new THREE.LineBasicMaterial({ color: 0x4e96a7, transparent: true, opacity: 0.85 });
+  for (const x of [rearCanopy.bounds.x1, rearCanopy.bounds.x2]) {
+    rearCanopyGroup.add(line([
+      new THREE.Vector3(x, rearCanopy.baseElevation + rearCanopy.thickness + 0.012, rearCanopy.bounds.y1),
+      new THREE.Vector3(x, rearCanopy.baseElevation + rearCanopy.thickness + 0.012, rearCanopy.bounds.y2),
+    ], canopyFrame));
+  }
+  for (const z of [rearCanopy.bounds.y1, rearCanopy.buildingLineY, rearCanopy.bounds.y2]) {
+    rearCanopyGroup.add(line([
+      new THREE.Vector3(rearCanopy.bounds.x1, rearCanopy.baseElevation + rearCanopy.thickness + 0.012, z),
+      new THREE.Vector3(rearCanopy.bounds.x2, rearCanopy.baseElevation + rearCanopy.thickness + 0.012, z),
+    ], canopyFrame));
+  }
+  layer('roof').add(rearCanopyGroup);
+  tag(rearCanopyGroup, {
+    entityId: rearCanopy.entityId,
+    label: '服務中心後側透明玻璃突出屋簷',
+    status: 'working',
+    description: 'X31～X39／Y13.5～Y14.5 補上透明玻璃屋頂；Y14～Y14.5 明確為跨出建築邊線的突出屋簷，SITE-XY 0～14 不變。支承、防水與排水仍待專業驗證。',
+    openItemId: rearCanopy.openItemId,
+  }, selectables);
+
   const l3Roof = l3Data.roof;
   const l3RoofRotationGroup = new THREE.Group();
   l3RoofRotationGroup.name = 'L3-ROOF-PLAN-ROTATION';
@@ -1128,10 +1226,11 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
 
   const pv = l3Data.pvRoofReserve;
-  const pvMaterial = new THREE.MeshStandardMaterial({
-    color: 0x244d73, roughness: 0.42, metalness: 0.28, side: THREE.DoubleSide,
+  const pvMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x8fd9ee, roughness: 0.22, metalness: 0.08, side: THREE.DoubleSide,
+    transparent: true, opacity: 0.44, transmission: 0.12, depthWrite: false,
   });
-  const pvGridMaterial = new THREE.LineBasicMaterial({ color: 0x8fc4e5, transparent: true, opacity: 0.78 });
+  const pvGridMaterial = new THREE.LineBasicMaterial({ color: 0x4f9fc1, transparent: true, opacity: 0.86 });
   const pvGroup = new THREE.Group();
   pvGroup.name = 'L3-PV-PLAN-ROTATION';
   pvGroup.position.set(l3Data.planPivot.x, l3Data.baseElevation, l3Data.planPivot.y);
@@ -1204,6 +1303,27 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     openItemId: 'OPEN-014',
   }, selectables);
 
+  const westRain = model.geometry.l1.westRainwaterRecovery;
+  const westRainGroup = new THREE.Group();
+  westRainGroup.add(
+    box([0.36, 0.18, westRain.bounds.y2 - westRain.bounds.y1], [0.18, 0.09, centreZ], deferred),
+    box([0.32, 0.62, 0.72], [0.28, 0.31, westRain.bounds.y2 - 0.72], deferred),
+  );
+  const westRainPath = line([
+    new THREE.Vector3(0.22, 0.2, centreZ),
+    new THREE.Vector3(0.28, 0.2, westRain.bounds.y2 - 0.72),
+  ], new THREE.LineDashedMaterial({ color: PALETTE.deferred, dashSize: 0.4, gapSize: 0.24 }));
+  westRainPath.computeLineDistances();
+  westRainGroup.add(westRainPath);
+  layer('rain').add(westRainGroup);
+  tag(westRainGroup, {
+    entityId: westRain.entityId,
+    label: '西端屋簷雨水回收系統',
+    status: 'working',
+    description: 'X0～X0.5 突出玻璃屋簷下方設連續承接溝並接入 RW-01 回用概念系統；容量、水質、泵浦、溢流及施工尺度仍未核定。',
+    openItemId: westRain.openItemId,
+  }, selectables);
+
   const annotations = layer('annotations');
   const grid = new THREE.GridHelper(58, 29, 0x637179, 0xb8c0c2);
   grid.position.set(centreX - 8, 0.018, centreZ);
@@ -1229,5 +1349,66 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   trueNorth.name = 'TRUE-NORTH';
   scene.add(trueNorth);
 
-  return { scene, worldRoot, siteRoot, layerGroups, selectables, lights: { sun, ambient } };
+  const cutawayAnnotations = new THREE.Group();
+  cutawayAnnotations.name = 'POOL-LONGITUDINAL-CUTAWAY-ANNOTATIONS';
+  const cutawayWaterMaterial = new THREE.MeshBasicMaterial({
+    color: 0x39a9cf,
+    transparent: true,
+    opacity: 0.5,
+    side: THREE.DoubleSide,
+    depthTest: false,
+    depthWrite: false,
+  });
+  const cutawayWaterSection = quad([
+    poolX0, shallowBottom, poolZ0 - 0.04,
+    poolX1, deepBottom, poolZ0 - 0.04,
+    poolX1, waterLevel, poolZ0 - 0.04,
+    poolX0, waterLevel, poolZ0 - 0.04,
+  ], cutawayWaterMaterial);
+  cutawayWaterSection.name = 'POOL-CUTAWAY-TRANSPARENT-WATER-SECTION';
+  cutawayWaterSection.renderOrder = 20;
+  const depthLineMaterial = new THREE.LineBasicMaterial({ color: 0xe87451, linewidth: 2, depthTest: false });
+  const depthGuideMaterial = new THREE.LineDashedMaterial({
+    color: 0xf2b26f, dashSize: 0.22, gapSize: 0.14, depthTest: false,
+  });
+  const waterLineMaterial = new THREE.LineBasicMaterial({ color: 0xe9fbff, depthTest: false });
+  const shallowDepthLine = line([
+    new THREE.Vector3(poolX0, waterLevel, poolZ0 - 0.06),
+    new THREE.Vector3(poolX0, shallowBottom, poolZ0 - 0.06),
+  ], depthGuideMaterial);
+  const deepDepthLine = line([
+    new THREE.Vector3(poolX1, waterLevel, poolZ0 - 0.06),
+    new THREE.Vector3(poolX1, deepBottom, poolZ0 - 0.06),
+  ], depthGuideMaterial);
+  shallowDepthLine.computeLineDistances();
+  deepDepthLine.computeLineDistances();
+  cutawayAnnotations.add(
+    cutawayWaterSection,
+    shallowDepthLine,
+    deepDepthLine,
+    line([
+      new THREE.Vector3(poolX0, waterLevel + 0.01, poolZ0 - 0.05),
+      new THREE.Vector3(poolX1, waterLevel + 0.01, poolZ0 - 0.05),
+    ], waterLineMaterial),
+    line([
+      new THREE.Vector3(poolX0, shallowBottom - 0.025, poolZ0 - 0.05),
+      new THREE.Vector3(poolX1, deepBottom - 0.025, poolZ0 - 0.05),
+    ], depthLineMaterial),
+  );
+  cutawayAnnotations.traverse((object) => { object.renderOrder = Math.max(object.renderOrder, 20); });
+  cutawayAnnotations.visible = false;
+  siteRoot.add(cutawayAnnotations);
+
+  return {
+    scene,
+    worldRoot,
+    siteRoot,
+    layerGroups,
+    selectables,
+    lights: { sun, ambient },
+    cutaway: {
+      hiddenObjects: [ground, nearDeck, nearPoolWall, nearCoping, l1Y0Facade, entranceGroup, l1Y0Mullions],
+      annotationGroup: cutawayAnnotations,
+    },
+  };
 }
