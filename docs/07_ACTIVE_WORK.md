@@ -238,7 +238,17 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-051` 已完成並收斂為 [Release 0.6.6](releases/0.6.6.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 14. 未排程設計問題
+## 14. 0.6.7 任務
+
+使用者以 0.6.6 公開手機版截圖指出 L2 服務中心 Y0 仍是實際水泥牆。射線命中診斷證實 0.6.5／0.6.6 的材質判斷錯誤：generated viewer model 漏掉 canonical `l2.splitAxisY=8`，使男女更衣分隔牆以未定義座標建立在 Y0。0.6.7 只修正資料投影與 Viewer 牆位，不變更建築設計或日照分析輸入。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-052 | 撤回 L2 Y0 玻璃材質症狀修補，修正遺漏 `splitAxisY` 造成的實際水泥牆 | done | 0.6.7 | [DEC-116](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-051 | `viewer-data` 不再以容易漏欄位的 L2 白名單輸出，generated viewer model 明確包含 `splitAxisY=8`；adapter 對缺失、非有限值、與男女區邊界不一致或落到 Y0 的值 fail closed。Scene 射線檢查證明 Y0 點第一個 L2 建築表面是玻璃、9 m 清水模男女分隔牆位於 Y8，且 Y2.5 樓梯分隔牆不變。已撤回 0.6.6 過度加深的共用玻璃參數，保留 `DEC-114` 無黃色選取框與 SITE-XY 固定視角。model／HTML／文件／V067 圖面已同步；40 項單元測試、build、E2E、桌機／390 × 844 手機截圖與 `git diff --check` 全數通過，使用者確認後提交並推送。 |
+
+`TASK-052` 已完成並收斂為 [Release 0.6.7](releases/0.6.7.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
+
+## 15. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

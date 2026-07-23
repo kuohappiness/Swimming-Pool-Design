@@ -1,7 +1,7 @@
 # 3D Viewer 契約
 
 - 類型：output-contract
-- 狀態：active／v0.6.6
+- 狀態：active／v0.6.7
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 入口：`/3d-viewer/`
 
@@ -9,10 +9,10 @@
 
 Viewer 只接受：
 
-- `reference/generated/viewer-model.json`：由 active `GEO-0.6.6` 產生。
+- `reference/generated/viewer-model.json`：由 active `GEO-0.6.7` 產生。
 - `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.6.6` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.6.6`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。hash、token、scene ID 或有限幾何不符時直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.6.7` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.6.7`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 
@@ -48,7 +48,7 @@ Viewer 只接受：
 
 Viewer 上須有固定螢幕方位提示，以清楚的 `N ↘` 箭頭表示真北指向畫面右下角；桌面與 390 × 844 行動視窗均須可見。提示不旋轉模型、相機或世界方位。
 
-WebGL 不可用或 `?forceFallback=1` 時提供靜態總覽、五場景內容與最新 v0.6.6 圖集連結。
+WebGL 不可用或 `?forceFallback=1` 時提供靜態總覽、五場景內容與最新 v0.6.7 圖集連結。
 
 ## 驗收
 

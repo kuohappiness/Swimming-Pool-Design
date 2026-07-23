@@ -134,6 +134,10 @@ try {
     shell.dataset.pvCoveragePercent = String(model.geometry.l3.pvRoofReserve.coveragePercent);
     shell.dataset.l1Y0Material = model.geometry.l1.y0ExteriorFacade.materialIntent;
     shell.dataset.l2Y0Material = model.geometry.l2.y0ExteriorFacade.materialIntent;
+    shell.dataset.l2SplitAxisY = String(model.geometry.l2.splitAxisY);
+    shell.dataset.l2GenderDividerOverlapsY0 = String(
+      model.geometry.l2.splitAxisY <= model.geometry.l2.y0ExteriorFacade.bounds.y2,
+    );
     shell.dataset.l2DividerSpan = model.geometry.l2.stairChangingDivider.spanX.join('–');
     shell.dataset.l2DividerOpenings = String(model.geometry.l2.stairChangingDivider.openings.length);
     shell.dataset.l2CeilingContinuous = String(model.geometry.l2.ceiling.continuous);

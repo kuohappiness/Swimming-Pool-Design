@@ -1,10 +1,10 @@
 import type { ProjectModel, SheetRender } from './types';
 
 const siteImage = new URL('../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
-import l1Svg from '../drafts/v0.6.6/DRAW-L1-PLAN-v0.6.6.svg?raw';
-import l2Svg from '../drafts/v0.6.6/DRAW-L2-PLAN-v0.6.6.svg?raw';
-import l3Svg from '../drafts/v0.6.6/DRAW-L3-PLAN-v0.6.6.svg?raw';
-import sectionSvg from '../drafts/v0.6.6/DRAW-LONGITUDINAL-SECTION-v0.6.6.svg?raw';
+import l1Svg from '../drafts/v0.6.7/DRAW-L1-PLAN-v0.6.7.svg?raw';
+import l2Svg from '../drafts/v0.6.7/DRAW-L2-PLAN-v0.6.7.svg?raw';
+import l3Svg from '../drafts/v0.6.7/DRAW-L3-PLAN-v0.6.7.svg?raw';
+import sectionSvg from '../drafts/v0.6.7/DRAW-LONGITUDINAL-SECTION-v0.6.7.svg?raw';
 
 function reviewDrawing(id: string, title: string, svgSource: string, note: string, model: ProjectModel): SheetRender {
   const inlineSvg = svgSource
@@ -44,9 +44,9 @@ function siteDrawing(model: ProjectModel): SheetRender {
 export function renderSheets(model: ProjectModel): SheetRender[] {
   return [
     siteDrawing(model),
-    reviewDrawing('V066-L1', 'v0.6.6｜1F 最新平面圖', l1Svg, '泳池端玻璃、服務本體清水模、西端退縮／玻璃屋簷／雨水回收及後側突出玻璃屋簷。非施工圖。', model),
-    reviewDrawing('V066-L2', 'v0.6.6｜2F 最新平面圖', l2Svg, 'L2 Y0 全寬玻璃；Y2.5 清水模牆由 X32 連續至 X41，不由樓梯區直通更衣室。非施工圖。', model),
-    reviewDrawing('V066-L3', 'v0.6.6｜3F 最新平面圖', l3Svg, 'L3／屋頂／鏡牆／淡藍透明太陽能板共用同一 +25.5° transform；太陽能板可獨立顯示。非施工圖。', model),
-    reviewDrawing('V066-SECTION', 'v0.6.6｜最新縱向剖面圖', sectionSvg, '補齊 X0.5、X29、X41 垂直牆、投影入口、玻璃屋簷與雨水回收關係。非施工圖。', model),
+    reviewDrawing('V067-L1', 'v0.6.7｜1F 最新平面圖', l1Svg, '泳池端玻璃、服務本體清水模、西端退縮／玻璃屋簷／雨水回收及後側突出玻璃屋簷。非施工圖。', model),
+    reviewDrawing('V067-L2', 'v0.6.7｜2F 最新平面圖', l2Svg, 'L2 Y0 全寬玻璃；男女更衣淋浴區實體分隔牆固定於 Y8，Y2.5 清水模牆由 X32 連續至 X41。非施工圖。', model),
+    reviewDrawing('V067-L3', 'v0.6.7｜3F 最新平面圖', l3Svg, 'L3／屋頂／鏡牆／淡藍透明太陽能板共用同一 +25.5° transform；太陽能板可獨立顯示。非施工圖。', model),
+    reviewDrawing('V067-SECTION', 'v0.6.7｜最新縱向剖面圖', sectionSvg, '補齊 X0.5、X29、X41 垂直牆、投影入口、玻璃屋簷與雨水回收關係。非施工圖。', model),
   ];
 }

@@ -24,11 +24,11 @@ const registry = JSON.parse(registryText);
 const manifest = JSON.parse(manifestText);
 const clone = () => structuredClone(sourceModel);
 
-test('Viewer package derives all major geometry from GEO-0.6.6', () => {
+test('Viewer package derives all major geometry from GEO-0.6.7', () => {
   const viewer = buildViewerModel(clone(), registry);
   assert.equal(viewer.schemaVersion, '1.3.0');
-  assert.equal(viewer.modelVersion, '0.6.6');
-  assert.equal(viewer.activeGeometryRevisionId, 'GEO-0.6.6');
+  assert.equal(viewer.modelVersion, '0.6.7');
+  assert.equal(viewer.activeGeometryRevisionId, 'GEO-0.6.7');
   assert.equal(viewer.coordinateSystemId, 'SITE-XY');
   assert.equal(viewer.geometry.site.length, 41);
   assert.equal(viewer.geometry.site.width, 14);
@@ -63,6 +63,9 @@ test('Viewer package derives all major geometry from GEO-0.6.6', () => {
   assert.deepEqual(viewer.geometry.l1.rearGlassCanopy.bounds, { x1: 31, x2: 39, y1: 13.5, y2: 14.5 });
   assert.equal(viewer.geometry.l2.y0ExteriorFacade.materialIntent, 'full-width-safety-glass');
   assert.equal(viewer.geometry.l2.y0ExteriorFacade.viewerMaterialSystem, 'shared-safety-glass-facade');
+  assert.equal(viewer.geometry.l2.splitAxisY, 8);
+  assert.equal(viewer.geometry.l2.splitAxisY, viewer.geometry.l2.zones.maleChangingShower.bounds.y2);
+  assert.equal(viewer.geometry.l2.splitAxisY, viewer.geometry.l2.zones.femaleChangingShower.bounds.y1);
   assert.equal(viewer.viewerPresentation.selectionOutline, 'none');
   assert.deepEqual(viewer.geometry.l2.stairChangingDivider.spanX, [32, 41]);
   assert.deepEqual(viewer.geometry.l2.stairChangingDivider.openings, []);
@@ -145,13 +148,13 @@ test('generated Viewer and public content artifacts share the current model hash
   assert.equal(generatedModel.analysis.solar.status, 'current');
 });
 
-test('Viewer, solar study, and atlas navigation expose only v0.6.6 drawing anchors', () => {
-  assert.match(viewerHtml, /#V066-L1/);
-  assert.match(solarHtml, /#V066-L1/);
+test('Viewer, solar study, and atlas navigation expose only v0.6.7 drawing anchors', () => {
+  assert.match(viewerHtml, /#V067-L1/);
+  assert.match(solarHtml, /#V067-L1/);
   assert.doesNotMatch(`${viewerHtml}\n${solarHtml}`, /#V23-|最新 V2\.3/);
-  assert.match(solarHtml, /V0\.6\.6 CURRENT SOLAR BASE/);
+  assert.match(solarHtml, /V0\.6\.7 CURRENT SOLAR BASE/);
   assert.match(solarHtml, /完整 3F 屋頂與高覆蓋率太陽能排布尚未納入/);
-  assert.match(solarHtml, /solar inputHash 與 v0\.6\.5／v0\.6\.4／v0\.6\.3 相同/);
+  assert.match(solarHtml, /solar inputHash 與 v0\.6\.6／v0\.6\.5／v0\.6\.4／v0\.6\.3 相同/);
   assert.match(solarHtml, /不重新執行完整最佳化/);
   assert.match(solarHtml, /\+25\.5°/);
   assert.match(solarHtml, /\+23\.0°/);
@@ -178,6 +181,12 @@ test('world, L3, and coplanar mirror transforms remain separated in the scene fa
   assert.match(sceneFactorySource, /L1 Y0 玻璃／清水模分段外牆/);
   assert.match(sceneFactorySource, /L2 Y0 全寬安全玻璃外牆/);
   assert.match(sceneFactorySource, /SHARED-SAFETY-GLASS-FACADE-MATERIAL/);
+  assert.match(sceneFactorySource, /F-L2-Y0-01:GLASS/);
+  assert.match(sceneFactorySource, /W-L2-GENDER-DIVIDER:Y/);
+  assert.match(sceneFactorySource, /wallGlass\.color\.set\(0x8fd7e5\)/);
+  assert.match(sceneFactorySource, /wallGlass\.opacity = 0\.34/);
+  assert.match(sceneFactorySource, /wallGlass\.transmission = 0\.16/);
+  assert.doesNotMatch(sceneFactorySource, /wallGlass\.(clearcoat|emissive|reflectivity)/);
   assert.doesNotMatch(sceneFactorySource, /l2FacadeGlass/);
   assert.doesNotMatch(interactionsSource, /BoxHelper|0xffd16b|selection outline/i);
   assert.match(sceneFactorySource, /L2 完整天花板/);

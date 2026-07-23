@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.3.0",
-  "modelVersion": "0.6.6",
+  "modelVersion": "0.6.7",
   "revision": "2026-07-24",
-  "activeGeometryRevisionId": "GEO-0.6.6",
-  "designTargetVersion": "0.6.6",
+  "activeGeometryRevisionId": "GEO-0.6.7",
+  "designTargetVersion": "0.6.7",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -70,9 +70,9 @@
       "historicalRecordPath": "geometry.solarReflection.legacyV050Study"
     },
     {
-      "id": "GEO-0.6.6",
-      "revision": "0.6.6",
-      "modelVersion": "0.6.6",
+      "id": "GEO-0.6.7",
+      "revision": "0.6.7",
+      "modelVersion": "0.6.7",
       "status": "working",
       "coordinateSystemId": "SITE-XY",
       "site": {
@@ -773,7 +773,7 @@
   "geometry": {
     "building": {
       "l2VolumeHeight": { "value": 3.58, "status": "working", "sourceIds": [] },
-      "activeGeometryOwner": "GEO-0.6.6"
+      "activeGeometryOwner": "GEO-0.6.7"
     },
     "pool": {
       "shallowDepth": { "value": 1.2, "status": "confirmed", "sourceIds": [] },
@@ -781,7 +781,7 @@
       "laneCount": 3,
       "standardLaneCount": 2,
       "mixedTeachingBandCount": 1,
-      "activeGeometryOwner": "GEO-0.6.6"
+      "activeGeometryOwner": "GEO-0.6.7"
     },
     "roof": {
       "coverageZoneId": "Z-PH-01",
@@ -828,7 +828,7 @@
     "stair": {
       "id": "ST-01",
       "type": "two-run-straight-with-floating-mid-landing",
-      "activeGeometryOwner": "GEO-0.6.6",
+      "activeGeometryOwner": "GEO-0.6.7",
       "upperEndAlignment": "l2-pool-side-edge-x29",
       "stringers": 2,
       "stringerDescription": "S1 雙側連續封閉箱型鋼梯梁",
@@ -1145,10 +1145,10 @@
   ],
   "sheets": [
     { "id": "REF-001", "title": "基地與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
-    { "id": "V066-L1", "title": "v0.6.6｜1F 最新平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "F-L1-Y0-01", "Z-L1-WEST-SETBACK-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-STOR-01", "Z-WTP-01", "Z-CHEM-01"] },
-    { "id": "V066-L2", "title": "v0.6.6｜2F 最新平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "CLG-L2-01", "F-L2-Y0-01", "W-L2-ST-CH-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
-    { "id": "V066-L3", "title": "v0.6.6｜3F 最新平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
-    { "id": "V066-SECTION", "title": "v0.6.6｜最新縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "CLG-L2-01", "L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "RF-PV-RES-01"] }
+    { "id": "V067-L1", "title": "v0.6.7｜1F 最新平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "F-L1-Y0-01", "Z-L1-WEST-SETBACK-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-STOR-01", "Z-WTP-01", "Z-CHEM-01"] },
+    { "id": "V067-L2", "title": "v0.6.7｜2F 最新平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "CLG-L2-01", "F-L2-Y0-01", "W-L2-ST-CH-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
+    { "id": "V067-L3", "title": "v0.6.7｜3F 最新平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
+    { "id": "V067-SECTION", "title": "v0.6.7｜最新縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "CLG-L2-01", "L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "RF-PV-RES-01"] }
   ],
   "sources": [
     { "id": "SRC-SITE-001", "path": "source-materials/site/SRC-SITE-001_google-maps-satellite.png", "kind": "satellite", "pixelSize": [1612, 1430], "sha256": "39D1933CAEFB91020AF10E72ADFDBD04980DA36FEDBF36ED14209F469DA4029D" },

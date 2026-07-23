@@ -89,6 +89,7 @@ function tag(object: THREE.Object3D, info: Omit<SelectableInfo, 'object'>, selec
   object.userData = { ...object.userData, ...info, selectable: true };
   object.traverse((child) => {
     if (child instanceof THREE.Mesh || child instanceof THREE.Line) {
+      if (child.userData.selectionOwner) return;
       child.userData = { ...child.userData, ...info, selectable: true, selectionOwner: object };
     }
   });
@@ -222,16 +223,10 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   });
   const wallGlass = glass.clone();
   wallGlass.name = 'SHARED-SAFETY-GLASS-FACADE-MATERIAL';
-  wallGlass.color.set(0x83ddea);
-  wallGlass.opacity = 0.56;
-  wallGlass.roughness = 0.06;
-  wallGlass.transmission = 0;
-  wallGlass.clearcoat = 1;
-  wallGlass.clearcoatRoughness = 0.06;
-  wallGlass.ior = 1.45;
-  wallGlass.reflectivity = 0.9;
-  wallGlass.emissive.set(0x2d94a6);
-  wallGlass.emissiveIntensity = 0.22;
+  wallGlass.color.set(0x8fd7e5);
+  wallGlass.opacity = 0.34;
+  wallGlass.roughness = 0.1;
+  wallGlass.transmission = 0.16;
   const waterMaterial = new THREE.MeshPhysicalMaterial({
     color: PALETTE.water, transparent: true, opacity: 0.68, roughness: 0.16,
     metalness: 0.03, transmission: 0.18, side: THREE.DoubleSide, depthWrite: false,
@@ -671,11 +666,13 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   l2Group.add(corridorSurface, stairZoneSurface);
   const l2Y0Facade = new THREE.Group();
   l2Y0Facade.userData.viewerMaterialSystem = l2Data.y0ExteriorFacade.viewerMaterialSystem;
-  l2Y0Facade.add(box(
+  const l2Y0Glass = box(
     [l2Data.length, l2WallHeight, l2Data.y0ExteriorFacade.bounds.y2 - l2Data.y0ExteriorFacade.bounds.y1],
     [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.y0ExteriorFacade.bounds.y2 / 2],
     wallGlass,
-  ));
+  );
+  l2Y0Glass.name = 'F-L2-Y0-01:GLASS';
+  l2Y0Facade.add(l2Y0Glass);
   for (let x = l2Data.startX; x <= l2Data.endX + 0.01; x += 2) {
     l2Y0Facade.add(box([0.065, l2WallHeight, 0.08], [
       Math.min(x, l2Data.endX), l2WallCentreY, l2Data.y0ExteriorFacade.bounds.y2 / 2,
@@ -705,15 +702,22 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     ],
     l2Material,
   );
+  l2StairChangingDivider.name = 'W-L2-ST-CH-01:Y2.5';
+  const l2GenderDivider = box(
+    [l2Data.zones.maleChangingShower.bounds.x2 - l2Data.zones.maleChangingShower.bounds.x1, l2WallHeight, 0.14],
+    [
+      (l2Data.zones.maleChangingShower.bounds.x1 + l2Data.zones.maleChangingShower.bounds.x2) / 2,
+      l2WallCentreY,
+      l2Data.splitAxisY,
+    ],
+    l2Material,
+  );
+  l2GenderDivider.name = `W-L2-GENDER-DIVIDER:Y${l2Data.splitAxisY}`;
   l2Group.add(
     box([0.18, l2WallHeight, l2Data.width], [l2Data.endX - 0.09, l2WallCentreY, upperCentreZ], l2Material),
     box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.bounds.y2 - 0.07], l2Material),
     l2StairChangingDivider,
-    box([l2Data.zones.maleChangingShower.bounds.x2 - l2Data.zones.maleChangingShower.bounds.x1, l2WallHeight, 0.14], [
-      (l2Data.zones.maleChangingShower.bounds.x1 + l2Data.zones.maleChangingShower.bounds.x2) / 2,
-      l2WallCentreY,
-      l2Data.splitAxisY,
-    ], l2Material),
+    l2GenderDivider,
   );
   tag(l2StairChangingDivider, {
     entityId: l2Data.stairChangingDivider.entityId,

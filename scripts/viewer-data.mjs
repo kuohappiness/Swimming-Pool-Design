@@ -158,6 +158,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         structuralStrategy: structuredClone(active.l1.structuralStrategy),
       },
       l2: {
+        ...structuredClone(active.l2),
         bounds: structuredClone(l2.bounds),
         startX: l2.bounds.x1,
         endX: l2.bounds.x2,
@@ -281,7 +282,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         recordedAnalysisInputHash,
         currentAnalysisInputHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: '0.6.6 概念模型已同步；本版只修正 Viewer 選取與玻璃顯示，鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。',
+        disclaimer: '0.6.7 概念模型已同步；本版只修正 Viewer L2 splitAxisY 資料投影、錯置牆面與玻璃材質回復，鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。',
       },
     },
   };

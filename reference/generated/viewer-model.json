@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.3.0",
-  "modelVersion": "0.6.6",
+  "modelVersion": "0.6.7",
   "revision": "2026-07-24",
-  "activeGeometryRevisionId": "GEO-0.6.6",
+  "activeGeometryRevisionId": "GEO-0.6.7",
   "coordinateSystemId": "SITE-XY",
-  "modelHash": "ded80f25500cb81bb9d4d60cc757d4b8b0ad980af9c39a5e9fc42c6a870ced6a",
+  "modelHash": "5c858a468809f8dc62d8997893860869960b9f95c9bc3491ca32364e9db792fc",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -1080,23 +1080,18 @@
       }
     },
     "l2": {
-      "bounds": {
-        "x1": 29,
-        "x2": 41,
-        "y1": 0,
-        "y2": 13.5
-      },
-      "startX": 29,
-      "endX": 41,
-      "length": 12,
-      "width": 13.5,
-      "baseElevation": 3.3,
-      "topElevation": 6.88,
-      "volumeHeight": {
-        "value": 3.58,
-        "status": "working",
-        "sourceIds": [],
-        "openItemId": "OPEN-016"
+      "floorPlate": {
+        "entityId": "L2-PLATE-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 29,
+          "x2": 41,
+          "y1": 0,
+          "y2": 13.5
+        },
+        "baseElevation": 3.3,
+        "topElevation": 6.88,
+        "status": "working"
       },
       "ceiling": {
         "entityId": "CLG-L2-01",
@@ -1119,6 +1114,7 @@
       },
       "poolAtriumOverlap": 2,
       "rightSetbackOverhang": 2,
+      "splitAxisY": 8,
       "gridDisplay": {
         "minorSpacing": 0.5,
         "majorSpacing": 2.5,
@@ -1778,6 +1774,24 @@
         "flightRun": 2.75,
         "midLandingElevation": 5.09
       },
+      "bounds": {
+        "x1": 29,
+        "x2": 41,
+        "y1": 0,
+        "y2": 13.5
+      },
+      "startX": 29,
+      "endX": 41,
+      "length": 12,
+      "width": 13.5,
+      "baseElevation": 3.3,
+      "topElevation": 6.88,
+      "volumeHeight": {
+        "value": 3.58,
+        "status": "working",
+        "sourceIds": [],
+        "openItemId": "OPEN-016"
+      },
       "planPivot": {
         "x": 35,
         "y": 6.75,
@@ -2246,7 +2260,7 @@
       "sourceIds": [
         "SRC-SITE-003"
       ],
-      "disclaimer": "0.6.6 概念模型已同步；本版只修正 Viewer 選取與玻璃顯示，鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。"
+      "disclaimer": "0.6.7 概念模型已同步；本版只修正 Viewer L2 splitAxisY 資料投影、錯置牆面與玻璃材質回復，鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。"
     }
   }
 }

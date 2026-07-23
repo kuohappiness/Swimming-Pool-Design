@@ -7,8 +7,8 @@
 現行版本契約：
 
 - `schemaVersion = 1.3.0`
-- `modelVersion = designTargetVersion = 0.6.6`
-- `activeGeometryRevisionId = GEO-0.6.6`
+- `modelVersion = designTargetVersion = 0.6.7`
+- `activeGeometryRevisionId = GEO-0.6.7`
 - active revision 的 `id` 必須只出現一次，且 `revision`、`modelVersion` 均須等於頂層 `modelVersion`。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
@@ -113,10 +113,10 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 `model.sheets` 只保留：
 
 1. `REF-001`
-2. `V066-L1`
-3. `V066-L2`
-4. `V066-L3`
-5. `V066-SECTION`
+2. `V067-L1`
+3. `V067-L2`
+4. `V067-L3`
+5. `V067-SECTION`
 
 v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Viewer／solar-study 的最新圖面連結。
 

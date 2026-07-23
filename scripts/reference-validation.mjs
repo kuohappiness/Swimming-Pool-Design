@@ -34,9 +34,9 @@ export function validateModel(model) {
   }
 
   check(errors, model.schemaVersion === '1.3.0', 'schemaVersion must be 1.3.0.');
-  check(errors, model.modelVersion === '0.6.6', 'modelVersion must be 0.6.6.');
+  check(errors, model.modelVersion === '0.6.7', 'modelVersion must be 0.6.7.');
   check(errors, model.designTargetVersion === model.modelVersion, 'designTargetVersion must equal modelVersion.');
-  check(errors, active.id === 'GEO-0.6.6', 'GEO-0.6.6 must be the active geometry revision.');
+  check(errors, active.id === 'GEO-0.6.7', 'GEO-0.6.7 must be the active geometry revision.');
   check(errors, active.coordinateSystemId === 'SITE-XY', 'Active geometry must use SITE-XY.');
 
   const coordinateSystem = model.referenceSystem?.coordinateSystems?.find(({ id }) => id === 'SITE-XY');
@@ -95,7 +95,7 @@ export function validateModel(model) {
       errors.push(error instanceof Error ? error.message : String(error));
       continue;
     }
-    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.6 SITE-XY contract.`);
+    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.7 SITE-XY contract.`);
   }
 
   const pool = resolveGeometryEntity(active, 'POOL-01');
@@ -223,7 +223,7 @@ export function validateModel(model) {
     for (const id of duplicates(records.map(({ id }) => id))) errors.push(`${label} ID is duplicated: ${id}`);
   }
   const sheetIds = (model.sheets ?? []).map(({ id }) => id);
-  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V066-L1', 'V066-L2', 'V066-L3', 'V066-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.6 sheets.');
+  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V067-L1', 'V067-L2', 'V067-L3', 'V067-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.7 sheets.');
 
   const boundedEntities = geometryEntities(active);
   check(errors, boundedEntities.size >= Object.keys(requiredBounds).length, 'Active geometry entity index is incomplete.');

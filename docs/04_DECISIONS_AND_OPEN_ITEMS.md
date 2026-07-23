@@ -121,6 +121,7 @@
 | DEC-113 | 0.6.5 不重新執行日照最佳化，沿用既有 solar 分析與 registry `inputHash` | 本次改動不變更池體、L3 旋轉／支點、鏡牆角度／高度、固定屋頂日照接收面、能量假設或氣象來源。西端與服務中心新增屋簷明確屬非日照接收雨棚，Viewer／圖面／材質修正也不在 solar input contract 內；build 必須驗證 current inputHash 仍等於 registry 值 | confirmed analysis reuse for 0.6.5; reinforces DEC-106 |
 | DEC-114 | 0.6.6 完全取消 3D 畫布上的黃色選取外接框；構件點選、鍵盤輪選、下拉選單及右側資訊面板維持 | 外接框以 `depthTest=false` 穿透不透明牆面，容易被誤認為漂浮的黃色建築量體。移除外接框不影響構件辨識與資訊查閱；驗收須在選取 `WT-01` 與其他構件後確認畫布無選取線框 | confirmed Viewer interaction correction for 0.6.6 |
 | DEC-115 | 0.6.6 的 L2 Y0 X29～X41 外牆改與其他安全玻璃外牆共用同一 Viewer 材質與表達系統，不保留 L2 專用的較深透明材質 | 0.6.5 雖建立全寬玻璃幾何，但專用材質與後方 Y2.5 清水模牆疊合後仍被讀成水泥外牆。0.6.6 統一玻璃材質、高光、邊框與豎梃，保留後方 X32～X41／Y2.5 清水模分隔牆；驗收以 Y0／Y14 實際截圖能辨識前方玻璃為準，不只檢查資料標籤 | confirmed Viewer rendering correction for 0.6.6 |
+| DEC-116 | 0.6.7 撤回 0.6.5／0.6.6 以加深玻璃材質處理 L2 Y0 灰牆的錯誤診斷，改修 `viewer-data` 漏傳 `l2.splitAxisY` 的根因 | canonical model 的男女更衣分界為 Y8，但 0.6.6 generated viewer model 漏掉 `splitAxisY`；Three.js 因未定義座標把 9.0 × 3.3 m 清水模內牆建立在 Y0，實際遮在玻璃前。0.6.7 須讓 Viewer L2 資料完整繼承 active L2 欄位、驗證 `splitAxisY=男區 y2=女區 y1=8` 且不得與 Y0 玻璃重合，並把共用玻璃恢復至 0.6.5 前的一般淡藍透明基準。`DEC-114` 的取消黃色外接框保留；`DEC-109`／`DEC-115` 的玻璃外牆意圖仍有效，但「後牆反射／材質過淡是主因」的診斷由本決策取代 | confirmed root-cause correction for 0.6.7; supersedes DEC-109/DEC-115 diagnosis only |
 
 ## 2. 尚待精化
 
