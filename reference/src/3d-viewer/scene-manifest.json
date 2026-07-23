@@ -5,14 +5,14 @@
       "id": "overview",
       "label": "總覽",
       "camera": { "position": [39, 29, 34], "target": [0, 3.3, 0], "fov": 40 },
-      "layers": ["site", "l1", "water", "l2", "l3", "roof", "circulation", "annotations"],
+      "layers": ["site", "l1", "water", "l2", "l3", "roof", "energy", "circulation", "annotations"],
       "environment": "day"
     },
     {
       "id": "light",
       "label": "向光",
       "camera": { "position": [24, 20, 35], "target": [7, 6.8, 0], "fov": 35 },
-      "layers": ["site", "l1", "water", "l2", "l3", "roof", "annotations"],
+      "layers": ["site", "l1", "water", "l2", "l3", "roof", "energy", "annotations"],
       "environment": "winter-light"
     },
     {
@@ -33,7 +33,7 @@
       "id": "time",
       "label": "向時間",
       "camera": { "position": [42, 22, 12], "target": [8, 4.6, 0], "fov": 40 },
-      "layers": ["site", "l1", "l2", "l3", "roof", "circulation", "annotations"],
+      "layers": ["site", "l1", "l2", "l3", "roof", "energy", "circulation", "annotations"],
       "environment": "soft"
     }
   ]

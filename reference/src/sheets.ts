@@ -1,10 +1,10 @@
 import type { ProjectModel, SheetRender } from './types';
 
 const siteImage = new URL('../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
-const l1Image = new URL('../drafts/v0.6.3/DRAW-L1-PLAN-v0.6.3.png', import.meta.url).href;
-const l2Image = new URL('../drafts/v0.6.3/DRAW-L2-PLAN-v0.6.3.png', import.meta.url).href;
-const l3Image = new URL('../drafts/v0.6.3/DRAW-L3-PLAN-v0.6.3.png', import.meta.url).href;
-const sectionImage = new URL('../drafts/v0.6.3/DRAW-LONGITUDINAL-SECTION-v0.6.3.png', import.meta.url).href;
+const l1Image = new URL('../drafts/v0.6.4/DRAW-L1-PLAN-v0.6.4.png', import.meta.url).href;
+const l2Image = new URL('../drafts/v0.6.4/DRAW-L2-PLAN-v0.6.4.png', import.meta.url).href;
+const l3Image = new URL('../drafts/v0.6.4/DRAW-L3-PLAN-v0.6.4.png', import.meta.url).href;
+const sectionImage = new URL('../drafts/v0.6.4/DRAW-LONGITUDINAL-SECTION-v0.6.4.png', import.meta.url).href;
 
 function reviewDrawing(id: string, title: string, imageUrl: string, note: string, model: ProjectModel): SheetRender {
   return {
@@ -46,9 +46,9 @@ function siteDrawing(model: ProjectModel): SheetRender {
 export function renderSheets(model: ProjectModel): SheetRender[] {
   return [
     siteDrawing(model),
-    reviewDrawing('V063-L1', 'v0.6.3｜1F 最新平面圖', l1Image, '操場男女廁各增一座洗手槽，操場男廁另增一座小便斗；原有器具保留。非施工圖。', model),
-    reviewDrawing('V063-L2', 'v0.6.3｜2F 最新平面圖', l2Image, 'Review A：L 形面池走道、男女各 15 間含隔間 1.2 × 1.2 m 淋浴模組、各 1 WC＋2 洗手槽，以及懸空 ST-02／梯下植栽。非施工圖。', model),
-    reviewDrawing('V063-L3', 'v0.6.3｜3F 最新平面圖', l3Image, '維持低使用密度設備／維修用途與未來彈性，屋頂新增太陽能概念預留；儲能優先落地戶外。非施工圖。', model),
-    reviewDrawing('V063-SECTION', 'v0.6.3｜最新縱向剖面圖', sectionImage, '池畔、L2、L3、ST-01／ST-02 懸空樓梯、梯下植栽及 3F 太陽能預留的概念標高關係。非施工圖。', model),
+    reviewDrawing('V064-L1', 'v0.6.4｜1F 最新平面圖', l1Image, 'L1 Y0 外牆採自然灰清水模並保留 EN-01 玻璃入口；四廁與器具配置不變。非施工圖。', model),
+    reviewDrawing('V064-L2', 'v0.6.4｜2F 最新平面圖', l2Image, 'L2 Y0 全寬玻璃；Y2.5 清水模牆由 X32 連續至 X41，不由樓梯區直通更衣室。非施工圖。', model),
+    reviewDrawing('V064-L3', 'v0.6.4｜3F 最新平面圖', l3Image, '完整 3F 屋頂、鏡牆端部收邊與高覆蓋率太陽能排布；SITE-XY 格線保持可讀。非施工圖。', model),
+    reviewDrawing('V064-SECTION', 'v0.6.4｜最新縱向剖面圖', sectionImage, 'X／Z 座標格線、完整 L2 天花、完整 L3 屋頂與高覆蓋率太陽能排布的概念關係。非施工圖。', model),
   ];
 }

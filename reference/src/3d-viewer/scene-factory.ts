@@ -52,6 +52,17 @@ function quad(vertices: number[], material: THREE.Material) {
   return mesh;
 }
 
+function triangle(vertices: number[], material: THREE.Material) {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setIndex([0, 1, 2]);
+  geometry.computeVertexNormals();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
 function horizontalPolygon(points: Array<[number, number]>, elevation: number, material: THREE.Material) {
   const vertices = points.flatMap(([x, z]) => [x, elevation, z]);
   const indices: number[] = [];
@@ -495,19 +506,45 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const roof = model.geometry.roof;
   const roofHeightAt = (x: number) => roof.lowElevation
     + (roof.highElevation - roof.lowElevation) * ((x - roof.startX) / roof.planRun);
-  const glassWallSegment = (x1: number, x2: number, z: number, bottom: number) => quad([
+  const slopedFacadeSegment = (
+    x1: number,
+    x2: number,
+    z: number,
+    bottom: number,
+    material: THREE.Material,
+  ) => quad([
     x1, bottom, z,
     x1, roofHeightAt(x1), z,
     x2, roofHeightAt(x2), z,
     x2, bottom, z,
-  ], wallGlass);
+  ], material);
   const mainEntranceBounds = model.geometry.l1.mainEntranceBounds;
-  l1.add(
-    glassWallSegment(roof.startX, mainEntranceBounds.x1, 0.03, deckElevation),
-    glassWallSegment(mainEntranceBounds.x2, roof.endX, 0.03, deckElevation),
-    glassWallSegment(mainEntranceBounds.x1, mainEntranceBounds.x2, 0.03, 2.55),
-    glassWallSegment(roof.startX, roof.endX, buildingWidth - 0.03, deckElevation),
+  const l1Y0Facade = new THREE.Group();
+  l1Y0Facade.add(
+    slopedFacadeSegment(roof.startX, mainEntranceBounds.x1, 0.03, deckElevation, l1Material),
+    slopedFacadeSegment(mainEntranceBounds.x2, roof.endX, 0.03, deckElevation, l1Material),
+    slopedFacadeSegment(mainEntranceBounds.x1, mainEntranceBounds.x2, 0.03, 2.55, l1Material),
+    box([
+      model.geometry.l1.y0ExteriorFacade.bounds.x2 - roof.endX,
+      wallHeight,
+      model.geometry.l1.y0ExteriorFacade.bounds.y2 - model.geometry.l1.y0ExteriorFacade.bounds.y1,
+    ], [
+      (roof.endX + model.geometry.l1.y0ExteriorFacade.bounds.x2) / 2,
+      wallHeight / 2,
+      (model.geometry.l1.y0ExteriorFacade.bounds.y1 + model.geometry.l1.y0ExteriorFacade.bounds.y2) / 2,
+    ], l1Material),
   );
+  l1.add(
+    l1Y0Facade,
+    slopedFacadeSegment(roof.startX, roof.endX, buildingWidth - 0.03, deckElevation, wallGlass),
+  );
+  tag(l1Y0Facade, {
+    entityId: model.geometry.l1.y0ExteriorFacade.entityId,
+    label: 'L1 Y0 清水模外牆',
+    status: 'confirmed',
+    description: 'Y0 外牆由 X0 連續至 X39 採自然灰清水模，只在 EN-01 保留玻璃主入口；材料樣板、接縫、耐氯胺、保溫與防水仍待專業驗證。',
+    openItemId: 'OPEN-016',
+  }, selectables);
   const entranceGroup = new THREE.Group();
   const entranceWidth = mainEntranceBounds.x2 - mainEntranceBounds.x1;
   const entranceCentreX = (mainEntranceBounds.x1 + mainEntranceBounds.x2) / 2;
@@ -551,6 +588,23 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     l2Material,
   );
   l2Group.add(l2Slab);
+  const l2Ceiling = box(
+    [l2Data.length, l2Data.ceiling.thickness, l2Data.width],
+    [
+      (l2Data.startX + l2Data.endX) / 2,
+      l2Data.ceiling.elevation - l2Data.ceiling.thickness / 2,
+      upperCentreZ,
+    ],
+    l2Material,
+  );
+  l2Group.add(l2Ceiling);
+  tag(l2Ceiling, {
+    entityId: l2Data.ceiling.entityId,
+    label: 'L2 完整天花板',
+    status: 'confirmed',
+    description: '固定 X29～X41／Y0～Y13.5 全範圍連續封閉，不再由旋轉 L3 樓板代替天花；結構厚度、設備穿孔與防火仍待專業深化。',
+    openItemId: 'OPEN-016',
+  }, selectables);
   const l2WallHeight = l2Data.topElevation - l2Data.baseElevation - 0.28;
   const l2WallCentreY = l2Data.baseElevation + l2WallHeight / 2;
   const corridorMaterial = new THREE.MeshStandardMaterial({
@@ -571,21 +625,51 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     [l2Data.stairZone.bounds.x1, l2Data.stairZone.bounds.y2],
   ], l2Data.baseElevation + 0.016, stairZoneMaterial);
   l2Group.add(corridorSurface, stairZoneSurface);
+  const l2Y0Facade = new THREE.Group();
+  l2Y0Facade.add(box(
+    [l2Data.length, l2WallHeight, l2Data.y0ExteriorFacade.bounds.y2 - l2Data.y0ExteriorFacade.bounds.y1],
+    [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.y0ExteriorFacade.bounds.y2 / 2],
+    wallGlass,
+  ));
+  for (let x = l2Data.startX; x <= l2Data.endX + 0.01; x += 2) {
+    l2Y0Facade.add(box([0.065, l2WallHeight, 0.08], [
+      Math.min(x, l2Data.endX), l2WallCentreY, l2Data.y0ExteriorFacade.bounds.y2 / 2,
+    ], dark));
+  }
+  l2Group.add(l2Y0Facade);
+  tag(l2Y0Facade, {
+    entityId: l2Data.y0ExteriorFacade.entityId,
+    label: 'L2 Y0 全寬安全玻璃外牆',
+    status: 'confirmed',
+    description: 'X29～X41 全寬皆為安全玻璃，樓梯區與更衣層之間不插入不透明外牆段；玻璃框架、防撞、防窺、熱濕與消防仍待專業驗證。',
+    openItemId: 'OPEN-016',
+  }, selectables);
+  const l2StairChangingDivider = box(
+    [l2Data.stairChangingDivider.spanX[1] - l2Data.stairChangingDivider.spanX[0], l2WallHeight, 0.14],
+    [
+      (l2Data.stairChangingDivider.spanX[0] + l2Data.stairChangingDivider.spanX[1]) / 2,
+      l2WallCentreY,
+      2.5,
+    ],
+    l2Material,
+  );
   l2Group.add(
     box([0.18, l2WallHeight, l2Data.width], [l2Data.endX - 0.09, l2WallCentreY, upperCentreZ], l2Material),
-    box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.bounds.y1 + 0.07], wallGlass),
     box([l2Data.length, l2WallHeight, 0.14], [(l2Data.startX + l2Data.endX) / 2, l2WallCentreY, l2Data.bounds.y2 - 0.07], l2Material),
-    box([l2Data.stairZone.bounds.x2 - l2Data.stairZone.bounds.x1, l2WallHeight, 0.14], [
-      (l2Data.stairZone.bounds.x1 + l2Data.stairZone.bounds.x2) / 2,
-      l2WallCentreY,
-      l2Data.stairZone.bounds.y2,
-    ], l2Material),
+    l2StairChangingDivider,
     box([l2Data.zones.maleChangingShower.bounds.x2 - l2Data.zones.maleChangingShower.bounds.x1, l2WallHeight, 0.14], [
       (l2Data.zones.maleChangingShower.bounds.x1 + l2Data.zones.maleChangingShower.bounds.x2) / 2,
       l2WallCentreY,
       l2Data.splitAxisY,
     ], l2Material),
   );
+  tag(l2StairChangingDivider, {
+    entityId: l2Data.stairChangingDivider.entityId,
+    label: 'L2 樓梯／更衣室連續分隔牆',
+    status: 'confirmed',
+    description: 'Y2.5 牆面由 X32 連續填滿至 X41，無門洞或穿越開口，因此樓梯間不能直接進入男更衣室；材料接縫、防火與逃生仍待專業驗證。',
+    openItemId: 'OPEN-009',
+  }, selectables);
 
   const observation = l2Data.corridorFeatures.poolObservationWindow;
   const observationBottom = l2Data.baseElevation + 0.82;
@@ -816,7 +900,24 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     -halfL3X - 0.012, 0, halfL3Z,
     -halfL3X - 0.012, 0, -halfL3Z,
   ], mirrorMaterial);
-  l3RotationGroup.add(mirrorBacking, mirrorMesh);
+  const mirrorSideInfillMaterial = l3Material.clone();
+  mirrorSideInfillMaterial.side = THREE.DoubleSide;
+  const mirrorSideInfills = new THREE.Group();
+  for (const sideZ of [-halfL3Z, halfL3Z]) {
+    mirrorSideInfills.add(triangle([
+      -halfL3X, 0, sideZ,
+      -halfL3X - leanOffset, mirrorHeight, sideZ,
+      -halfL3X, mirrorHeight, sideZ,
+    ], mirrorSideInfillMaterial));
+  }
+  l3RotationGroup.add(mirrorBacking, mirrorMesh, mirrorSideInfills);
+  tag(mirrorSideInfills, {
+    entityId: 'F-MIR-SIDE-INFILL-01',
+    label: 'L3 鏡牆端部三角收邊',
+    status: 'confirmed',
+    description: '外傾鏡牆兩端與相鄰直立側牆之間的三角空隙已用同系不透明牆體補滿，使樓板至屋頂連續封閉；構造節點仍待專業驗證。',
+    openItemId: 'OPEN-011',
+  }, selectables);
   tag(mirrorMesh, {
     entityId: l3Data.mirror.entityId, label: 'L3 共面外傾鏡牆', status: 'working',
     description: `建築承載牆本體與原始鏡面覆層共同向池側外傾 ${l3Data.mirror.leanFromVertical.value.toFixed(1)}°；0.012 m 僅為避免畫面閃爍的顯示偏移。`,
@@ -1002,36 +1103,68 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     description: `${roof.planRun.toFixed(1)} m 水平跨度，低端 +${roof.lowElevation.toFixed(3)} m、高端 +${roof.highElevation.toFixed(3)} m；相對抬高池畔的低端淨高為 ${(roof.lowElevation - deckElevation).toFixed(2)} m。`,
   }, selectables);
 
+  const l3Roof = l3Data.roof;
+  const l3RoofRotationGroup = new THREE.Group();
+  l3RoofRotationGroup.name = 'L3-ROOF-PLAN-ROTATION';
+  l3RoofRotationGroup.position.set(l3Data.planPivot.x, l3Data.baseElevation, l3Data.planPivot.y);
+  l3RoofRotationGroup.rotation.y = THREE.MathUtils.degToRad(l3Data.planRotation.value);
+  const l3RoofMesh = box([
+    l3Roof.bounds.x2 - l3Roof.bounds.x1,
+    l3Roof.thickness,
+    l3Roof.bounds.y2 - l3Roof.bounds.y1,
+  ], [
+    (l3Roof.bounds.x1 + l3Roof.bounds.x2) / 2 - l3Data.planPivot.x,
+    l3Roof.baseElevation - l3Data.baseElevation + l3Roof.thickness / 2,
+    (l3Roof.bounds.y1 + l3Roof.bounds.y2) / 2 - l3Data.planPivot.y,
+  ], l3Material);
+  l3RoofRotationGroup.add(l3RoofMesh);
+  layer('roof').add(l3RoofRotationGroup);
+  tag(l3RoofMesh, {
+    entityId: l3Roof.entityId,
+    label: '3F 完整旋轉屋頂／天花板',
+    status: 'working',
+    description: `${l3Roof.area.toFixed(3)} m² 連續屋頂由外傾鏡牆上緣覆蓋至相對側直立牆，填滿 L3 天花且隨主量體旋轉 ${l3Data.planRotation.value.toFixed(1)}°；厚度、結構、防水與設備穿孔仍待專業驗證。`,
+    openItemId: l3Roof.openItemId,
+  }, selectables);
+
   const pv = l3Data.pvRoofReserve;
   const pvMaterial = new THREE.MeshStandardMaterial({
     color: 0x244d73, roughness: 0.42, metalness: 0.28, side: THREE.DoubleSide,
   });
   const pvGridMaterial = new THREE.LineBasicMaterial({ color: 0x8fc4e5, transparent: true, opacity: 0.78 });
   const pvGroup = new THREE.Group();
+  pvGroup.name = 'L3-PV-PLAN-ROTATION';
+  pvGroup.position.set(l3Data.planPivot.x, l3Data.baseElevation, l3Data.planPivot.y);
+  pvGroup.rotation.y = THREE.MathUtils.degToRad(l3Data.planRotation.value);
+  const pvLocalX1 = pv.bounds.x1 - l3Data.planPivot.x;
+  const pvLocalX2 = pv.bounds.x2 - l3Data.planPivot.x;
+  const pvLocalZ1 = pv.bounds.y1 - l3Data.planPivot.y;
+  const pvLocalZ2 = pv.bounds.y2 - l3Data.planPivot.y;
+  const pvLocalElevation = pv.baseElevation - l3Data.baseElevation;
   pvGroup.add(horizontalPolygon([
-    [pv.bounds.x1, pv.bounds.y1],
-    [pv.bounds.x2, pv.bounds.y1],
-    [pv.bounds.x2, pv.bounds.y2],
-    [pv.bounds.x1, pv.bounds.y2],
-  ], pv.baseElevation, pvMaterial));
+    [pvLocalX1, pvLocalZ1],
+    [pvLocalX2, pvLocalZ1],
+    [pvLocalX2, pvLocalZ2],
+    [pvLocalX1, pvLocalZ2],
+  ], pvLocalElevation, pvMaterial));
   for (let x = pv.bounds.x1; x <= pv.bounds.x2 + 0.01; x += 0.75) {
     pvGroup.add(line([
-      new THREE.Vector3(Math.min(x, pv.bounds.x2), pv.baseElevation + 0.012, pv.bounds.y1),
-      new THREE.Vector3(Math.min(x, pv.bounds.x2), pv.baseElevation + 0.012, pv.bounds.y2),
+      new THREE.Vector3(Math.min(x, pv.bounds.x2) - l3Data.planPivot.x, pvLocalElevation + 0.012, pvLocalZ1),
+      new THREE.Vector3(Math.min(x, pv.bounds.x2) - l3Data.planPivot.x, pvLocalElevation + 0.012, pvLocalZ2),
     ], pvGridMaterial));
   }
   for (let z = pv.bounds.y1; z <= pv.bounds.y2 + 0.01; z += 1.125) {
     pvGroup.add(line([
-      new THREE.Vector3(pv.bounds.x1, pv.baseElevation + 0.012, Math.min(z, pv.bounds.y2)),
-      new THREE.Vector3(pv.bounds.x2, pv.baseElevation + 0.012, Math.min(z, pv.bounds.y2)),
+      new THREE.Vector3(pvLocalX1, pvLocalElevation + 0.012, Math.min(z, pv.bounds.y2) - l3Data.planPivot.y),
+      new THREE.Vector3(pvLocalX2, pvLocalElevation + 0.012, Math.min(z, pv.bounds.y2) - l3Data.planPivot.y),
     ], pvGridMaterial));
   }
   layer('energy').add(pvGroup);
   tag(pvGroup, {
     entityId: pv.entityId,
-    label: '3F 屋頂太陽能預留區',
+    label: '3F 屋頂高覆蓋率太陽能排布',
     status: 'working',
-    description: `${pv.area.toFixed(1)} m² 輕量太陽能屋頂／棚架概念預留，須由固定核心或直接支承線獨立承載；模組排布、容量與發電量尚未定案。儲能優先設於地面層獨立戶外機櫃，3F 一般室內不配置電池。`,
+    description: `完整 3F 屋頂 ${pv.roofArea.toFixed(1)} m²；保留 ${pv.perimeterSetback.toFixed(2)} m 周邊後概念排布 ${pv.area.toFixed(1)} m² 太陽能板，覆蓋率 ${pv.coveragePercent.toFixed(2)}%。模組、檢修道、容量、發電量、結構、防水與眩光尚未定案；儲能仍優先設於地面層獨立戶外機櫃。`,
     openItemId: pv.openItemId,
   }, selectables);
 

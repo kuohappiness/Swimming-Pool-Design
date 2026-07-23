@@ -16,6 +16,40 @@ export function hashData(value) {
   return createHash('sha256').update(JSON.stringify(canonicalize(value))).digest('hex');
 }
 
+export function solarAnalysisInput(model) {
+  const active = resolveActiveGeometry(model);
+  const pool = resolveGeometryEntity(active, 'POOL-01');
+  const l3 = resolveGeometryEntity(active, 'L3-PLATE-01');
+  const roof = resolveGeometryEntity(active, 'RF-GL-01');
+  return {
+    schemaVersion: '1.0.0',
+    siteLocation: structuredClone(model.referenceSystem.siteLocation),
+    localLongAxisBearingFromTrueNorth: model.referenceSystem.localLongAxisBearingFromTrueNorth,
+    poolBounds: structuredClone(pool.bounds),
+    l3FloorBounds: structuredClone(l3.bounds),
+    l3PlanPivot: structuredClone(active.l3.planPivot),
+    mirror: {
+      baseElevation: active.l3.mirror.baseElevation,
+      height: active.l3.mirror.height,
+      planRotation: active.solar.planRotation.value,
+      leanFromVertical: active.solar.mirrorLeanFromVertical.value,
+    },
+    pivotSensitivityX: structuredClone(active.solar.pivotSensitivityX),
+    fixedRoof: {
+      bounds: structuredClone(roof.bounds),
+      highElevation: active.roof.highElevation,
+      pitch: active.roof.pitch,
+    },
+    energyAssumptions: {
+      mirrorReflectance: 0.75,
+      glazingSolarTransmittance: 0.60,
+      daylightStartHour: 7,
+      daylightEndHour: 17,
+    },
+    weatherSourceIds: ['SRC-SITE-003'],
+  };
+}
+
 const finiteRecord = (value, path = 'viewerModel') => {
   if (typeof value === 'number' && !Number.isFinite(value)) {
     throw new TypeError(`${path} must not contain non-finite geometry.`);
@@ -46,10 +80,11 @@ export function buildViewerModel(model, analysisRegistry = {}) {
   const stair = resolveGeometryEntity(active, 'ST-01');
   const stairToL3 = resolveGeometryEntity(active, 'ST-02');
   const currentModelHash = hashData(model);
-  const recordedModelHash = analysisRegistry?.solar?.modelHash ?? null;
-  const analysisStatus = recordedModelHash === null
+  const currentAnalysisInputHash = hashData(solarAnalysisInput(model));
+  const recordedAnalysisInputHash = analysisRegistry?.solar?.inputHash ?? null;
+  const analysisStatus = recordedAnalysisInputHash === null
     ? 'unavailable'
-    : recordedModelHash === currentModelHash ? 'current' : 'stale';
+    : recordedAnalysisInputHash === currentAnalysisInputHash ? 'current' : 'stale';
   const poolSize = size(pool.bounds);
   const l2Size = size(l2.bounds);
   const l3Size = size(l3.bounds);
@@ -109,6 +144,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         bounds: structuredClone(building.bounds),
         serviceWingBounds: structuredClone(serviceWing.bounds),
         serviceWingStyle: structuredClone(active.l1.serviceWing.architecturalStyle),
+        y0ExteriorFacade: structuredClone(active.l1.y0ExteriorFacade),
         rightSetbackBounds: structuredClone(active.l1.rightSetback.bounds),
         mainEntranceBounds: structuredClone(active.l1.mainEntrance.bounds),
         playgroundRamp: structuredClone(active.l1.playgroundRamp),
@@ -125,12 +161,15 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         baseElevation: active.levels.l2Elevation,
         topElevation: active.levels.l3Elevation,
         volumeHeight: working(active.levels.l2FloorToFloor, [], 'OPEN-016'),
+        ceiling: structuredClone(active.l2.ceiling),
         planRotation: confirmed(active.l2.planRotation, []),
         poolAtriumOverlap: active.l2.poolAtriumOverlap,
         rightSetbackOverhang: active.l2.rightSetbackOverhang,
         gridDisplay: structuredClone(active.l2.gridDisplay),
         circulationZone: structuredClone(active.l2.circulationZone),
         stairZone: structuredClone(active.l2.stairZone),
+        y0ExteriorFacade: structuredClone(active.l2.y0ExteriorFacade),
+        stairChangingDivider: structuredClone(active.l2.stairChangingDivider),
         changingRoomEntries: structuredClone(active.l2.changingRoomEntries),
         corridorFeatures: structuredClone(active.l2.corridorFeatures),
         zones: structuredClone(active.l2.zones),
@@ -164,6 +203,8 @@ export function buildViewerModel(model, analysisRegistry = {}) {
           leanFromVertical: working(active.solar.mirrorLeanFromVertical.value, active.solar.mirrorLeanFromVertical.sourceIds, 'OPEN-011'),
           materialIntent: l3Data.mirror.materialIntent,
           wallAndMirrorCoplanar: l3Data.mirror.wallAndMirrorCoplanar,
+          sideWallEndGapsFilled: l3Data.mirror.sideWallEndGapsFilled,
+          roofEdgeContinuous: l3Data.mirror.roofEdgeContinuous,
           openItemId: 'OPEN-011',
         },
         highLevelEquipment: structuredClone(l3Data.highLevelEquipment),
@@ -172,6 +213,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         arrivalWing: structuredClone(l3Data.arrivalWing),
         landscapeTerrace: structuredClone(l3Data.landscapeTerrace),
         programStrategy: structuredClone(l3Data.programStrategy),
+        roof: structuredClone(l3Data.roof),
         pvRoofReserve: structuredClone(l3Data.pvRoofReserve),
         energyStorageStrategy: structuredClone(l3Data.energyStorageStrategy),
       },
@@ -222,7 +264,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
       { id: 'water', label: '25 m 泳池與混合水道', status: 'confirmed' },
       { id: 'l2', label: '2F 固定更衣層', status: 'working' },
       { id: 'l3', label: '3F 旋轉服務層', status: 'working' },
-      { id: 'roof', label: '玻璃屋頂', status: 'confirmed' },
+      { id: 'roof', label: '玻璃屋頂與 3F 完整屋頂', status: 'working' },
       { id: 'circulation', label: '樓梯與結構整合', status: 'working' },
       { id: 'rain', label: '雨簾與回用水路', status: 'deferred' },
       { id: 'energy', label: '屋頂光電與儲能策略', status: 'working' },
@@ -231,10 +273,10 @@ export function buildViewerModel(model, analysisRegistry = {}) {
     analysis: {
       solar: {
         status: analysisStatus,
-        recordedModelHash,
-        currentModelHash,
+        recordedAnalysisInputHash,
+        currentAnalysisInputHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: '0.6.3 概念模型已同步；鏡牆角度未變，屋頂光電僅為預留範圍，遮蔭／眩光、結構與儲能消防仍須專業驗證。',
+        disclaimer: '0.6.4 概念模型已同步；鏡牆角度未變，3F 完整屋頂與高覆蓋率光電排布尚未納入遮蔭／眩光分析，結構與儲能消防仍須專業驗證。',
       },
     },
   };

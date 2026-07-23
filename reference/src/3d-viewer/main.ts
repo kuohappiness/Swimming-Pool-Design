@@ -126,6 +126,14 @@ try {
     shell.dataset.l2SupportWcPerGender = String(model.geometry.l2.zones.maleChangingShower.supportFixtures.fixtures.toilets);
     shell.dataset.l2SupportBasinsPerGender = String(model.geometry.l2.zones.maleChangingShower.supportFixtures.fixtures.washbasins);
     shell.dataset.pvReserveArea = String(model.geometry.l3.pvRoofReserve.area);
+    shell.dataset.pvCoveragePercent = String(model.geometry.l3.pvRoofReserve.coveragePercent);
+    shell.dataset.l1Y0Material = model.geometry.l1.y0ExteriorFacade.materialIntent;
+    shell.dataset.l2Y0Material = model.geometry.l2.y0ExteriorFacade.materialIntent;
+    shell.dataset.l2DividerSpan = model.geometry.l2.stairChangingDivider.spanX.join('–');
+    shell.dataset.l2DividerOpenings = String(model.geometry.l2.stairChangingDivider.openings.length);
+    shell.dataset.l2CeilingContinuous = String(model.geometry.l2.ceiling.continuous);
+    shell.dataset.l3RoofContinuous = String(model.geometry.l3.roof.continuous);
+    shell.dataset.l3MirrorEndGapsFilled = String(model.geometry.l3.mirror.sideWallEndGapsFilled);
     shell.dataset.l3InteriorBatteryObjects = String(model.geometry.l3.energyStorageStrategy.batteryObjectsOnGeneralL3Interior);
     const layerInputs = new Map<string, HTMLInputElement>();
     for (const modelLayer of model.layers) {

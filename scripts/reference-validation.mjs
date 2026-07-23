@@ -34,9 +34,9 @@ export function validateModel(model) {
   }
 
   check(errors, model.schemaVersion === '1.3.0', 'schemaVersion must be 1.3.0.');
-  check(errors, model.modelVersion === '0.6.3', 'modelVersion must be 0.6.3.');
+  check(errors, model.modelVersion === '0.6.4', 'modelVersion must be 0.6.4.');
   check(errors, model.designTargetVersion === model.modelVersion, 'designTargetVersion must equal modelVersion.');
-  check(errors, active.id === 'GEO-0.6.3', 'GEO-0.6.3 must be the active geometry revision.');
+  check(errors, active.id === 'GEO-0.6.4', 'GEO-0.6.4 must be the active geometry revision.');
   check(errors, active.coordinateSystemId === 'SITE-XY', 'Active geometry must use SITE-XY.');
 
   const coordinateSystem = model.referenceSystem?.coordinateSystems?.find(({ id }) => id === 'SITE-XY');
@@ -55,8 +55,13 @@ export function validateModel(model) {
     'Z-PH-01': { x1: 0, x2: 31, y1: 0, y2: 14 },
     'POOL-01': { x1: 3, x2: 28, y1: 4, y2: 12.5 },
     'CORE-01': { x1: 31, x2: 39, y1: 0, y2: 14 },
+    'F-L1-Y0-01': { x1: 0, x2: 39, y1: 0, y2: 0.14 },
     'L2-PLATE-01': { x1: 29, x2: 41, y1: 0, y2: 13.5 },
+    'CLG-L2-01': { x1: 29, x2: 41, y1: 0, y2: 13.5 },
+    'F-L2-Y0-01': { x1: 29, x2: 41, y1: 0, y2: 0.14 },
+    'W-L2-ST-CH-01': { x1: 32, x2: 41, y1: 2.43, y2: 2.57 },
     'L3-PLATE-01': { x1: 29, x2: 41, y1: 0, y2: 13.5 },
+    'RF-L3-01': { x1: 27.472, x2: 41, y1: 0, y2: 13.5 },
     'RF-GL-01': { x1: 0, x2: 29, y1: 0, y2: 14 },
     'ST-01': { x1: 20.5, x2: 29, y1: 0.5, y2: 2 },
     'ST-02': { x1: 32.5, x2: 41, y1: 0.5, y2: 2 },
@@ -75,7 +80,7 @@ export function validateModel(model) {
     'Z-STOR-01': { x1: 31, x2: 32.5, y1: 7.5, y2: 14 },
     'Z-WTP-01': { x1: 32.5, x2: 39, y1: 7.5, y2: 14 },
     'Z-CHEM-01': { x1: 37.5, x2: 39, y1: 11, y2: 14 },
-    'RF-PV-RES-01': { x1: 32.5, x2: 35.5, y1: 8, y2: 12.5 },
+    'RF-PV-RES-01': { x1: 27.722, x2: 40.75, y1: 0.25, y2: 13.25 },
   };
   for (const [entityId, expected] of Object.entries(requiredBounds)) {
     let entity;
@@ -85,7 +90,7 @@ export function validateModel(model) {
       errors.push(error instanceof Error ? error.message : String(error));
       continue;
     }
-    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.3 SITE-XY contract.`);
+    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.4 SITE-XY contract.`);
   }
 
   const pool = resolveGeometryEntity(active, 'POOL-01');
@@ -135,6 +140,7 @@ export function validateModel(model) {
   check(errors, active.l1.zones.playgroundFemaleToilet.layout.washbasins.some(({ center, existing }) => closeTo(center[0], 37.7) && existing === true), 'The existing playground female washbasin must remain at X37.7.');
   check(errors, active.l1.zones.playgroundMaleToilet.layout.urinals.some(({ center, existing }) => closeTo(center[0], 37.3) && existing === true), 'The existing playground male urinal must remain at X37.3.');
   check(errors, active.l1.serviceWing?.architecturalStyle?.scope === 'all-opaque-l1-l2-l3-service-volumes', 'All opaque service volumes must use the confirmed fair-faced concrete style.');
+  check(errors, active.l1.y0ExteriorFacade?.materialIntent === 'fair-faced-exposed-concrete' && active.l1.y0ExteriorFacade?.continuousExceptMainEntrance === true && active.l1.y0ExteriorFacade?.mainEntranceEntityId === 'EN-01', 'L1 Y0 must be a continuous fair-faced concrete facade except for EN-01.');
   check(errors, active.l1.zones.chemicalRoom?.publicAccess === false, 'The chemical room must remain independent from public circulation.');
   check(errors, active.l1.structuralStrategy?.glassCarriesGravityLoad === false, 'Glass must not be a gravity-support element.');
   check(errors, active.l1.structuralStrategy?.isolatedColumnsAllowed === false, 'The integrated structure strategy must avoid isolated columns.');
@@ -150,7 +156,10 @@ export function validateModel(model) {
   check(errors, closeTo(active.l2.poolAtriumOverlap, 2) && closeTo(active.l2.rightSetbackOverhang, 2), 'L2 must preserve the two 2 m overhang relationships.');
   check(errors, active.l2.gridDisplay?.minorSpacing === 0.5 && active.l2.gridDisplay?.majorSpacing === 2.5 && active.l2.gridDisplay?.axisLabels === true, 'L2 must expose the 0.5 m / 2.5 m SITE-XY grid with axis labels.');
   check(errors, closeTo(active.l2.circulationZone?.area, 41.75) && active.l2.circulationZone?.standingOnly === true && active.l2.circulationZone?.seatingAllowed === false, 'L2 must provide the 41.75 m² standing-only L-shaped pool-view corridor.');
-  check(errors, closeTo(active.l2.stairZone?.area, 21.25) && active.l2.stairZone?.y0Facade === 'large-safety-glass' && active.l2.stairZone?.y2_5Divider === 'fair-faced-exposed-concrete', 'L2 must keep the independent Y0–2.5 stair zone with Y0 glass and Y2.5 concrete divider.');
+  check(errors, closeTo(active.l2.stairZone?.area, 21.25) && active.l2.stairZone?.y0Facade === 'full-width-safety-glass' && active.l2.stairZone?.y2_5Divider === 'continuous-fair-faced-exposed-concrete', 'L2 must keep the independent Y0–2.5 stair zone with full-width Y0 glass and a continuous Y2.5 concrete divider.');
+  check(errors, active.l2.y0ExteriorFacade?.materialIntent === 'full-width-safety-glass' && active.l2.y0ExteriorFacade?.opaqueSegments === false, 'L2 Y0 must be full-width safety glass without opaque wall segments.');
+  check(errors, active.l2.stairChangingDivider?.axis === 'y2.5' && JSON.stringify(active.l2.stairChangingDivider?.spanX) === JSON.stringify([32, 41]) && active.l2.stairChangingDivider?.openings?.length === 0 && active.l2.stairChangingDivider?.continuous === true, 'L2 Y2.5 divider must fill X32–41 without an opening from the stair zone to the changing room.');
+  check(errors, active.l2.ceiling?.continuous === true && closeTo(active.l2.ceiling?.elevation, 6.88) && sameBounds(active.l2.ceiling?.bounds, active.l2.floorPlate.bounds), 'L2 must have a complete ceiling over the full fixed floor-plate bounds.');
   check(errors, active.l2.changingRoomEntries?.length === 2 && active.l2.changingRoomEntries.every(({ clearWidth, doorLeaf, openingType }) => closeTo(clearWidth, 1) && doorLeaf === false && openingType === 'doorless-opening'), 'L2 male and female changing rooms must each have one 1.00 m doorless X32 entrance.');
   check(errors, active.l2.corridorFeatures?.standingCounter?.chairs === 0 && active.l2.corridorFeatures?.standingCounter?.suspended === true, 'The L2 corridor counter must be suspended and have no chairs.');
   check(errors, active.l2.corridorFeatures?.poolObservationWindow?.wall === 'x29', 'The L2 pool observation window must remain on X29.');
@@ -167,12 +176,14 @@ export function validateModel(model) {
   check(errors, closeTo(active.l3.planRotation, 25.5), 'L3 plan rotation must be +25.5°.');
   check(errors, closeTo(active.l3.mirror.leanFromVertical, 23), 'L3 mirror wall lean must be +23.0°.');
   check(errors, active.l3.mirror.wallAndMirrorCoplanar === true, 'The mirror and loadbearing wall must remain coplanar.');
+  check(errors, active.l3.mirror.sideWallEndGapsFilled === true && active.l3.mirror.roofEdgeContinuous === true, 'L3 mirror end gaps must be filled and the mirror top must meet the complete roof.');
   check(errors, closeTo(active.l3.planPivot.x, 35) && closeTo(active.l3.planPivot.y, 6.75), 'L3 plan pivot must remain X35/Y6.75.');
   check(errors, closeTo(active.l3.orthogonalExtension.grossArea, 6.935) && active.l3.orthogonalExtension.rotation === 0 && active.l3.orthogonalExtension.withinL2Projection === true, 'L3 must add the fixed orthogonal 6.935 m² extension within the L2 projection.');
   check(errors, closeTo(active.l3.arrivalWing.area, 2.964) && active.l3.arrivalWing.covered === true && active.l3.arrivalWing.connectsStairToIndoorL3 === true && active.l3.arrivalWing.soleRouteViaTerrace === false, 'ST-02 must arrive through a covered indoor L3 wing, not solely through the terrace.');
   check(errors, closeTo(active.l3.landscapeTerrace.netLandscapeArea, 3.971) && active.l3.landscapeTerrace.access === 'teachers-and-maintenance-only' && active.l3.landscapeTerrace.studentsAllowed === false && active.l3.landscapeTerrace.visitorsAllowed === false && active.l3.landscapeTerrace.primaryEgress === false, 'L3 landscape terrace must be controlled for teachers and maintenance staff only and must not be primary egress.');
-  check(errors, closeTo(active.l3.pvRoofReserve?.area, 13.5) && active.l3.pvRoofReserve?.supportStrategy === 'independent-fixed-core-or-direct-support-line' && active.l3.pvRoofReserve?.capacityStatus === 'deferred', 'L3 must expose a 13.5 m² fixed-support PV roof reserve without committing capacity.');
-  check(errors, active.l3.pvRoofReserve?.excludedSupports?.includes('rotating-cantilever') && active.l3.pvRoofReserve?.excludedSupports?.includes('mirror-wall') && active.l3.pvRoofReserve?.excludedSupports?.includes('existing-glass-pool-roof'), 'PV reserve must exclude the rotating cantilever, mirror wall, and existing glass pool roof.');
+  check(errors, active.l3.roof?.continuous === true && active.l3.roof?.extendsToMirrorTopEdge === true && closeTo(active.l3.roof?.area, 182.628) && closeTo(active.l3.roof?.baseElevation, 10.48), 'L3 must have a complete 182.628 m² roof that extends to the leaned mirror top edge.');
+  check(errors, closeTo(active.l3.pvRoofReserve?.area, 169.364) && closeTo(active.l3.pvRoofReserve?.roofArea, 182.628) && closeTo(active.l3.pvRoofReserve?.coveragePercent, 92.74) && closeTo(active.l3.pvRoofReserve?.perimeterSetback, 0.25) && active.l3.pvRoofReserve?.moduleLayoutStatus === 'working-dense-concept-layout' && active.l3.pvRoofReserve?.capacityStatus === 'deferred', 'L3 PV must densely cover the complete roof after a 0.25 m perimeter setback without committing capacity.');
+  check(errors, active.l3.pvRoofReserve?.rotation === active.l3.planRotation && active.l3.pvRoofReserve?.excludedSupports?.includes('existing-glass-pool-roof'), 'The dense PV array must rotate with the L3 roof and remain separate from the glass pool roof.');
   check(errors, active.l3.energyStorageStrategy?.preferredLocation === 'ground-level-independent-outdoor-enclosure' && active.l3.energyStorageStrategy?.batteryObjectsOnGeneralL3Interior === false && active.l3.energyStorageStrategy?.fireApproval === false, 'Energy storage must prefer a ground-level independent outdoor enclosure and prohibit batteries in general L3 interior space.');
   check(errors, active.l3.programStrategy?.teacherObservationRoom === 'future-flexibility-only' && active.l3.programStrategy?.environmentalEducationDisplay === 'future-flexibility-only' && active.l3.programStrategy?.dryMaintenanceStorage === 'under-consideration-not-built', 'L3 must preserve future program flexibility without building observation, education, or dry-storage rooms now.');
   check(errors, closeTo(active.roof.pitch, 5) && closeTo(active.roof.lowElevation, 4) && closeTo(active.roof.highElevation, 6.537), 'The fixed glass roof must remain 29 m at 5° from +4.00 to +6.537 m.');
@@ -194,7 +205,7 @@ export function validateModel(model) {
     for (const id of duplicates(records.map(({ id }) => id))) errors.push(`${label} ID is duplicated: ${id}`);
   }
   const sheetIds = (model.sheets ?? []).map(({ id }) => id);
-  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V063-L1', 'V063-L2', 'V063-L3', 'V063-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.3 sheets.');
+  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V064-L1', 'V064-L2', 'V064-L3', 'V064-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.4 sheets.');
 
   const boundedEntities = geometryEntities(active);
   check(errors, boundedEntities.size >= Object.keys(requiredBounds).length, 'Active geometry entity index is incomplete.');

@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.3.0",
-  "modelVersion": "0.6.3",
-  "revision": "2026-07-23",
-  "activeGeometryRevisionId": "GEO-0.6.3",
-  "designTargetVersion": "0.6.3",
+  "modelVersion": "0.6.4",
+  "revision": "2026-07-24",
+  "activeGeometryRevisionId": "GEO-0.6.4",
+  "designTargetVersion": "0.6.4",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -70,9 +70,9 @@
       "historicalRecordPath": "geometry.solarReflection.legacyV050Study"
     },
     {
-      "id": "GEO-0.6.3",
-      "revision": "0.6.3",
-      "modelVersion": "0.6.3",
+      "id": "GEO-0.6.4",
+      "revision": "0.6.4",
+      "modelVersion": "0.6.4",
       "status": "working",
       "coordinateSystemId": "SITE-XY",
       "site": {
@@ -149,6 +149,16 @@
           "coordinateSystemId": "SITE-XY",
           "bounds": { "x1": 0.5, "x2": 2.5, "y1": 0, "y2": 0.2 },
           "clearWidthStatus": "requires-professional-validation",
+          "status": "confirmed"
+        },
+        "y0ExteriorFacade": {
+          "entityId": "F-L1-Y0-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 0, "x2": 39, "y1": 0, "y2": 0.14 },
+          "materialIntent": "fair-faced-exposed-concrete",
+          "appearance": "natural-grey-concrete",
+          "mainEntranceEntityId": "EN-01",
+          "continuousExceptMainEntrance": true,
           "status": "confirmed"
         },
         "playgroundRamp": {
@@ -287,6 +297,15 @@
           "topElevation": 6.88,
           "status": "working"
         },
+        "ceiling": {
+          "entityId": "CLG-L2-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 29, "x2": 41, "y1": 0, "y2": 13.5 },
+          "elevation": 6.88,
+          "thickness": 0.24,
+          "continuous": true,
+          "status": "confirmed"
+        },
         "planRotation": 0,
         "poolAtriumOverlap": 2,
         "rightSetbackOverhang": 2,
@@ -308,9 +327,28 @@
           "coordinateSystemId": "SITE-XY",
           "bounds": { "x1": 32.5, "x2": 41, "y1": 0, "y2": 2.5 },
           "area": 21.25,
-          "y0Facade": "large-safety-glass",
-          "y2_5Divider": "fair-faced-exposed-concrete",
+          "y0Facade": "full-width-safety-glass",
+          "y2_5Divider": "continuous-fair-faced-exposed-concrete",
           "status": "working-requires-professional-validation"
+        },
+        "y0ExteriorFacade": {
+          "entityId": "F-L2-Y0-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 29, "x2": 41, "y1": 0, "y2": 0.14 },
+          "materialIntent": "full-width-safety-glass",
+          "opaqueSegments": false,
+          "status": "confirmed"
+        },
+        "stairChangingDivider": {
+          "entityId": "W-L2-ST-CH-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 32, "x2": 41, "y1": 2.43, "y2": 2.57 },
+          "axis": "y2.5",
+          "spanX": [32, 41],
+          "materialIntent": "fair-faced-exposed-concrete",
+          "openings": [],
+          "continuous": true,
+          "status": "confirmed"
         },
         "changingRoomEntries": [
           { "entityId": "OP-L2-CS-M-01", "zoneId": "Z-CS-M-01", "side": "x32", "rangeY": [6.7, 7.7], "clearWidth": 1, "openingType": "doorless-opening", "doorLeaf": false, "status": "confirmed" },
@@ -449,6 +487,19 @@
           "baseElevation": 6.88,
           "status": "working"
         },
+        "roof": {
+          "entityId": "RF-L3-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 27.472, "x2": 41, "y1": 0, "y2": 13.5 },
+          "baseElevation": 10.48,
+          "thickness": 0.24,
+          "rotation": 25.5,
+          "area": 182.628,
+          "continuous": true,
+          "extendsToMirrorTopEdge": true,
+          "status": "working-requires-professional-validation",
+          "openItemId": "OPEN-011"
+        },
         "planRotation": 25.5,
         "planPivot": { "x": 35, "y": 6.75, "strategy": "floor-plate-centroid-and-fixed-core-proxy", "status": "working" },
         "orthogonalExtension": {
@@ -503,6 +554,8 @@
           "leanFromVertical": 23,
           "materialIntent": "original-mirror",
           "wallAndMirrorCoplanar": true,
+          "sideWallEndGapsFilled": true,
+          "roofEdgeContinuous": true,
           "status": "working"
         },
         "highLevelEquipment": ["water-storage", "dehumidification-heat-recovery", "heat-pump-condenser", "bms-controls"],
@@ -519,14 +572,18 @@
         "pvRoofReserve": {
           "entityId": "RF-PV-RES-01",
           "coordinateSystemId": "SITE-XY",
-          "bounds": { "x1": 32.5, "x2": 35.5, "y1": 8, "y2": 12.5 },
-          "area": 13.5,
-          "baseElevation": 10.78,
-          "type": "lightweight-photovoltaic-roof-or-canopy-reserve",
-          "supportStrategy": "independent-fixed-core-or-direct-support-line",
-          "excludedSupports": ["rotating-cantilever", "mirror-wall", "landscape-terrace", "existing-glass-pool-roof"],
+          "bounds": { "x1": 27.722, "x2": 40.75, "y1": 0.25, "y2": 13.25 },
+          "area": 169.364,
+          "roofArea": 182.628,
+          "coveragePercent": 92.74,
+          "perimeterSetback": 0.25,
+          "baseElevation": 10.74,
+          "rotation": 25.5,
+          "type": "dense-photovoltaic-array-on-complete-l3-roof",
+          "supportStrategy": "continuous-l3-roof-structural-grid-requires-professional-validation",
+          "excludedSupports": ["existing-glass-pool-roof", "landscape-terrace"],
           "reservedInterfaces": ["embedded-fixings", "dc-cable-route", "inverter", "ems", "drainage", "maintenance-access"],
-          "moduleLayoutStatus": "deferred",
+          "moduleLayoutStatus": "working-dense-concept-layout",
           "capacityStatus": "deferred",
           "generationStatus": "deferred",
           "status": "working-requires-professional-validation",
@@ -642,10 +699,15 @@
           "thirty-one-metre-square-showers",
           "orthogonal-l2-to-l3-stair",
           "covered-l3-arrival-route",
-          "staff-controlled-landscape-terrace",
-          "l2-review-a-changing-shower-layout",
-          "floating-st02-and-removable-under-stair-planting",
-          "pv-roof-reserve-and-ground-outdoor-storage-strategy"
+           "staff-controlled-landscape-terrace",
+           "l2-review-a-changing-shower-layout",
+           "floating-st02-and-removable-under-stair-planting",
+           "full-width-l2-y0-glass",
+           "fair-faced-l1-y0-facade",
+           "continuous-l2-stair-changing-divider",
+           "complete-l2-and-l3-ceilings",
+           "mirror-side-gap-infill",
+           "dense-pv-on-complete-l3-roof-and-ground-outdoor-storage-strategy"
         ],
         "professionalApprovals": { "architect": false, "structural": false, "mep": false, "fire": false, "accessibility": false },
         "openItemIds": ["OPEN-008", "OPEN-009", "OPEN-011", "OPEN-014", "OPEN-016", "OPEN-017", "OPEN-018", "OPEN-019", "OPEN-020", "OPEN-021", "OPEN-022"]
@@ -655,7 +717,7 @@
   "geometry": {
     "building": {
       "l2VolumeHeight": { "value": 3.58, "status": "working", "sourceIds": [] },
-      "activeGeometryOwner": "GEO-0.6.3"
+      "activeGeometryOwner": "GEO-0.6.4"
     },
     "pool": {
       "shallowDepth": { "value": 1.2, "status": "confirmed", "sourceIds": [] },
@@ -663,7 +725,7 @@
       "laneCount": 3,
       "standardLaneCount": 2,
       "mixedTeachingBandCount": 1,
-      "activeGeometryOwner": "GEO-0.6.3"
+      "activeGeometryOwner": "GEO-0.6.4"
     },
     "roof": {
       "coverageZoneId": "Z-PH-01",
@@ -710,7 +772,7 @@
     "stair": {
       "id": "ST-01",
       "type": "two-run-straight-with-floating-mid-landing",
-      "activeGeometryOwner": "GEO-0.6.3",
+      "activeGeometryOwner": "GEO-0.6.4",
       "upperEndAlignment": "l2-pool-side-edge-x29",
       "stringers": 2,
       "stringerDescription": "S1 雙側連續封閉箱型鋼梯梁",
@@ -982,6 +1044,8 @@
     { "id": "CORE-01", "name": "原廁所基地服務核心", "type": "service-core", "level": "L1-RF", "grid": "E-F/1-4", "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-CONCEPT-005"] },
     { "id": "EXT-L2-01", "name": "二樓專用擴建量體", "type": "l2-extension", "level": "L2", "grid": "D-E/1-4", "status": "working", "sourceIds": ["SRC-CONCEPT-001", "SRC-CONCEPT-005"] },
     { "id": "F-MIR-01", "name": "L3 面池端外傾承載鏡牆", "type": "mirror-facade", "level": "L3", "grid": "SITE-XY", "status": "working", "sourceIds": ["SRC-CONCEPT-009"] },
+    { "id": "F-L1-Y0-01", "name": "L1 Y0 清水模外牆", "type": "facade", "level": "L1", "grid": "X0-X39/Y0", "status": "confirmed", "sourceIds": [] },
+    { "id": "F-L2-Y0-01", "name": "L2 Y0 全寬安全玻璃外牆", "type": "facade", "level": "L2", "grid": "X29-X41/Y0", "status": "confirmed", "sourceIds": [] },
     { "id": "EN-01", "name": "泳池館主要入口 X0.5～X2.5／Y0", "type": "entrance", "level": "L1", "grid": "X0.5-X2.5/Y0", "status": "confirmed", "sourceIds": [] },
     { "id": "RTE-L1-PLAYGROUND-01", "name": "操場側 +0.10 m 外部整坡工作帶", "type": "accessible-route", "level": "L1", "grid": "X39-X41/Y0-Y3.5", "status": "working", "sourceIds": [] },
     { "id": "ST-01", "name": "A2 兩段同向懸空樓梯", "type": "stair", "level": "L1-L2", "grid": "D-E/1", "status": "confirmed", "sourceIds": ["SRC-CONCEPT-006", "SRC-CONCEPT-007"] },
@@ -995,9 +1059,12 @@
     { "id": "Z-WTP-01", "name": "鄰池水處理機房", "type": "pool-water-treatment", "level": "L1", "grid": "X32.5-X39/Y7.5-Y14", "status": "working", "sourceIds": [] },
     { "id": "Z-CHEM-01", "name": "受管制獨立藥劑分間", "type": "chemical-room", "level": "L1", "grid": "X37.5-X39/Y11-Y14", "status": "working", "sourceIds": [] },
     { "id": "L2-PLATE-01", "name": "固定 L2 更衣淋浴樓板", "type": "floor-plate", "level": "L2", "grid": "X29-X41/Y0-Y13.5", "status": "working", "sourceIds": [] },
+    { "id": "CLG-L2-01", "name": "L2 完整天花板", "type": "ceiling", "level": "L2", "grid": "X29-X41/Y0-Y13.5", "status": "confirmed", "sourceIds": [] },
     { "id": "L3-PLATE-01", "name": "旋轉 L3 服務樓板", "type": "floor-plate", "level": "L3", "grid": "X29-X41/Y0-Y13.5", "status": "working", "sourceIds": [] },
+    { "id": "RF-L3-01", "name": "旋轉 L3 完整屋頂", "type": "roof", "level": "RF", "grid": "X27.472-X41/Y0-Y13.5", "status": "working", "sourceIds": [] },
     { "id": "ST-02", "name": "2F 至 3F 懸空正交樓梯", "type": "stair", "level": "L2-L3", "grid": "X32.5-X41/Y0.5-Y2", "status": "working", "sourceIds": [] },
     { "id": "Z-ST-02-01", "name": "2F 獨立樓梯區", "type": "stair-zone", "level": "L2", "grid": "X32.5-X41/Y0-Y2.5", "status": "working", "sourceIds": [] },
+    { "id": "W-L2-ST-CH-01", "name": "2F 樓梯區與更衣室連續分隔牆", "type": "wall", "level": "L2", "grid": "X32-X41/Y2.5", "status": "confirmed", "sourceIds": [] },
     { "id": "Z-ST-02-PLANT-01", "name": "ST-02 梯下輕量造景植栽", "type": "landscape-zone", "level": "L2", "grid": "X33.2-X34.6/Y0.72-Y1.78", "status": "working", "sourceIds": [] },
     { "id": "L3-EXT-01", "name": "3F 固定正交三角擴板", "type": "floor-plate-extension", "level": "L3", "grid": "X38.428-X41/Y0-Y5.392", "status": "working", "sourceIds": [] },
     { "id": "Z-L3-ARRIVAL-01", "name": "3F 有頂室內到達翼", "type": "circulation-zone", "level": "L3", "grid": "X38.666-X41/Y0.5-Y2", "status": "working", "sourceIds": [] },
@@ -1013,15 +1080,15 @@
     { "id": "RC-RF-01", "name": "低端全寬被動雨簾", "type": "rain-curtain", "level": "RF-L1", "grid": "A/1-4", "status": "confirmed", "sourceIds": [] },
     { "id": "RW-TR-01", "name": "封閉隔離雨簾承接溝", "type": "rainwater-catch-trench", "level": "L1", "grid": "A/1-4", "status": "confirmed", "sourceIds": [] },
     { "id": "RW-01", "name": "屋頂雨水廁所沖洗回用系統", "type": "rainwater-reuse-system", "level": "L1", "grid": "A-F/1-4", "status": "working", "sourceIds": [] },
-    { "id": "RF-PV-RES-01", "name": "3F 上方屋頂光電概念預留區", "type": "pv-roof-reserve", "level": "RF", "grid": "X32.5-X35.5/Y8-Y12.5", "status": "working", "sourceIds": [] },
+    { "id": "RF-PV-RES-01", "name": "3F 完整屋頂高覆蓋率光電概念排布", "type": "pv-roof-reserve", "level": "RF", "grid": "X27.722-X40.75/Y0.25-Y13.25", "status": "working", "sourceIds": [] },
     { "id": "ESS-STRATEGY-01", "name": "地面獨立戶外儲能優先／3F 僅介面備案", "type": "energy-storage-strategy", "level": "SITE-L3", "grid": "ground-outdoor-TBD", "status": "deferred", "sourceIds": [] }
   ],
   "sheets": [
     { "id": "REF-001", "title": "基地與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
-    { "id": "V063-L1", "title": "v0.6.3｜1F 最新平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-STOR-01", "Z-WTP-01", "Z-CHEM-01"] },
-    { "id": "V063-L2", "title": "v0.6.3｜2F 最新平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
-    { "id": "V063-L3", "title": "v0.6.3｜3F 最新平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
-    { "id": "V063-SECTION", "title": "v0.6.3｜最新縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "L3-PLATE-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-PV-RES-01"] }
+    { "id": "V064-L1", "title": "v0.6.4｜1F 最新平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "F-L1-Y0-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-STOR-01", "Z-WTP-01", "Z-CHEM-01"] },
+    { "id": "V064-L2", "title": "v0.6.4｜2F 最新平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "CLG-L2-01", "F-L2-Y0-01", "W-L2-ST-CH-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
+    { "id": "V064-L3", "title": "v0.6.4｜3F 最新平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
+    { "id": "V064-SECTION", "title": "v0.6.4｜最新縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "CLG-L2-01", "L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-PV-RES-01"] }
   ],
   "sources": [
     { "id": "SRC-SITE-001", "path": "source-materials/site/SRC-SITE-001_google-maps-satellite.png", "kind": "satellite", "pixelSize": [1612, 1430], "sha256": "39D1933CAEFB91020AF10E72ADFDBD04980DA36FEDBF36ED14209F469DA4029D" },

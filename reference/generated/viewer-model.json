@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.3.0",
-  "modelVersion": "0.6.3",
-  "revision": "2026-07-23",
-  "activeGeometryRevisionId": "GEO-0.6.3",
+  "modelVersion": "0.6.4",
+  "revision": "2026-07-24",
+  "activeGeometryRevisionId": "GEO-0.6.4",
   "coordinateSystemId": "SITE-XY",
-  "modelHash": "b768b9602ba6c4874975b61779a45af6ae74d5cf472cbefdde844e94969be421",
+  "modelHash": "212479200725800a6de665f840ddb0cec8bd79a36adc1ed961748fd8e58f0fd4",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -91,6 +91,15 @@
         "y2": 0.2
       }
     },
+    "F-L1-Y0-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 0,
+        "x2": 39,
+        "y1": 0,
+        "y2": 0.14
+      }
+    },
     "RTE-L1-PLAYGROUND-01": {
       "coordinateSystemId": "SITE-XY",
       "bounds": {
@@ -172,6 +181,15 @@
         "y2": 13.5
       }
     },
+    "CLG-L2-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 29,
+        "x2": 41,
+        "y1": 0,
+        "y2": 13.5
+      }
+    },
     "Z-L2-CORRIDOR-01": {
       "coordinateSystemId": "SITE-XY",
       "bounds": {
@@ -188,6 +206,24 @@
         "x2": 41,
         "y1": 0,
         "y2": 2.5
+      }
+    },
+    "F-L2-Y0-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 29,
+        "x2": 41,
+        "y1": 0,
+        "y2": 0.14
+      }
+    },
+    "W-L2-ST-CH-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 32,
+        "x2": 41,
+        "y1": 2.43,
+        "y2": 2.57
       }
     },
     "Z-CS-M-01": {
@@ -235,6 +271,15 @@
         "y2": 13.5
       }
     },
+    "RF-L3-01": {
+      "coordinateSystemId": "SITE-XY",
+      "bounds": {
+        "x1": 27.472,
+        "x2": 41,
+        "y1": 0,
+        "y2": 13.5
+      }
+    },
     "L3-EXT-01": {
       "coordinateSystemId": "SITE-XY",
       "bounds": {
@@ -265,10 +310,10 @@
     "RF-PV-RES-01": {
       "coordinateSystemId": "SITE-XY",
       "bounds": {
-        "x1": 32.5,
-        "x2": 35.5,
-        "y1": 8,
-        "y2": 12.5
+        "x1": 27.722,
+        "x2": 40.75,
+        "y1": 0.25,
+        "y2": 13.25
       }
     },
     "RF-GL-01": {
@@ -437,6 +482,21 @@
         "formworkExpression": "subtle-regular-panel-grid",
         "status": "confirmed",
         "detailStatus": "working-requires-professional-validation"
+      },
+      "y0ExteriorFacade": {
+        "entityId": "F-L1-Y0-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 0,
+          "x2": 39,
+          "y1": 0,
+          "y2": 0.14
+        },
+        "materialIntent": "fair-faced-exposed-concrete",
+        "appearance": "natural-grey-concrete",
+        "mainEntranceEntityId": "EN-01",
+        "continuousExceptMainEntrance": true,
+        "status": "confirmed"
       },
       "rightSetbackBounds": {
         "x1": 39,
@@ -914,6 +974,20 @@
         "sourceIds": [],
         "openItemId": "OPEN-016"
       },
+      "ceiling": {
+        "entityId": "CLG-L2-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 29,
+          "x2": 41,
+          "y1": 0,
+          "y2": 13.5
+        },
+        "elevation": 6.88,
+        "thickness": 0.24,
+        "continuous": true,
+        "status": "confirmed"
+      },
       "planRotation": {
         "value": 0,
         "status": "confirmed",
@@ -978,9 +1052,41 @@
           "y2": 2.5
         },
         "area": 21.25,
-        "y0Facade": "large-safety-glass",
-        "y2_5Divider": "fair-faced-exposed-concrete",
+        "y0Facade": "full-width-safety-glass",
+        "y2_5Divider": "continuous-fair-faced-exposed-concrete",
         "status": "working-requires-professional-validation"
+      },
+      "y0ExteriorFacade": {
+        "entityId": "F-L2-Y0-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 29,
+          "x2": 41,
+          "y1": 0,
+          "y2": 0.14
+        },
+        "materialIntent": "full-width-safety-glass",
+        "opaqueSegments": false,
+        "status": "confirmed"
+      },
+      "stairChangingDivider": {
+        "entityId": "W-L2-ST-CH-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 32,
+          "x2": 41,
+          "y1": 2.43,
+          "y2": 2.57
+        },
+        "axis": "y2.5",
+        "spanX": [
+          32,
+          41
+        ],
+        "materialIntent": "fair-faced-exposed-concrete",
+        "openings": [],
+        "continuous": true,
+        "status": "confirmed"
       },
       "changingRoomEntries": [
         {
@@ -1608,6 +1714,8 @@
         },
         "materialIntent": "original-mirror",
         "wallAndMirrorCoplanar": true,
+        "sideWallEndGapsFilled": true,
+        "roofEdgeContinuous": true,
         "openItemId": "OPEN-011"
       },
       "highLevelEquipment": [
@@ -1748,24 +1856,44 @@
         "controlledLandscapeTerrace": "retained",
         "status": "confirmed"
       },
+      "roof": {
+        "entityId": "RF-L3-01",
+        "coordinateSystemId": "SITE-XY",
+        "bounds": {
+          "x1": 27.472,
+          "x2": 41,
+          "y1": 0,
+          "y2": 13.5
+        },
+        "baseElevation": 10.48,
+        "thickness": 0.24,
+        "rotation": 25.5,
+        "area": 182.628,
+        "continuous": true,
+        "extendsToMirrorTopEdge": true,
+        "status": "working-requires-professional-validation",
+        "openItemId": "OPEN-011"
+      },
       "pvRoofReserve": {
         "entityId": "RF-PV-RES-01",
         "coordinateSystemId": "SITE-XY",
         "bounds": {
-          "x1": 32.5,
-          "x2": 35.5,
-          "y1": 8,
-          "y2": 12.5
+          "x1": 27.722,
+          "x2": 40.75,
+          "y1": 0.25,
+          "y2": 13.25
         },
-        "area": 13.5,
-        "baseElevation": 10.78,
-        "type": "lightweight-photovoltaic-roof-or-canopy-reserve",
-        "supportStrategy": "independent-fixed-core-or-direct-support-line",
+        "area": 169.364,
+        "roofArea": 182.628,
+        "coveragePercent": 92.74,
+        "perimeterSetback": 0.25,
+        "baseElevation": 10.74,
+        "rotation": 25.5,
+        "type": "dense-photovoltaic-array-on-complete-l3-roof",
+        "supportStrategy": "continuous-l3-roof-structural-grid-requires-professional-validation",
         "excludedSupports": [
-          "rotating-cantilever",
-          "mirror-wall",
-          "landscape-terrace",
-          "existing-glass-pool-roof"
+          "existing-glass-pool-roof",
+          "landscape-terrace"
         ],
         "reservedInterfaces": [
           "embedded-fixings",
@@ -1775,7 +1903,7 @@
           "drainage",
           "maintenance-access"
         ],
-        "moduleLayoutStatus": "deferred",
+        "moduleLayoutStatus": "working-dense-concept-layout",
         "capacityStatus": "deferred",
         "generationStatus": "deferred",
         "status": "working-requires-professional-validation",
@@ -1899,7 +2027,12 @@
         "staff-controlled-landscape-terrace",
         "l2-review-a-changing-shower-layout",
         "floating-st02-and-removable-under-stair-planting",
-        "pv-roof-reserve-and-ground-outdoor-storage-strategy"
+        "full-width-l2-y0-glass",
+        "fair-faced-l1-y0-facade",
+        "continuous-l2-stair-changing-divider",
+        "complete-l2-and-l3-ceilings",
+        "mirror-side-gap-infill",
+        "dense-pv-on-complete-l3-roof-and-ground-outdoor-storage-strategy"
       ],
       "professionalApprovals": {
         "architect": false,
@@ -1951,8 +2084,8 @@
     },
     {
       "id": "roof",
-      "label": "玻璃屋頂",
-      "status": "confirmed"
+      "label": "玻璃屋頂與 3F 完整屋頂",
+      "status": "working"
     },
     {
       "id": "circulation",
@@ -1978,12 +2111,12 @@
   "analysis": {
     "solar": {
       "status": "current",
-      "recordedModelHash": "b768b9602ba6c4874975b61779a45af6ae74d5cf472cbefdde844e94969be421",
-      "currentModelHash": "b768b9602ba6c4874975b61779a45af6ae74d5cf472cbefdde844e94969be421",
+      "recordedAnalysisInputHash": "3f9ae69b4dcde4e2dc88894f6e441b878a8b242a938f4f568419275282ddb999",
+      "currentAnalysisInputHash": "3f9ae69b4dcde4e2dc88894f6e441b878a8b242a938f4f568419275282ddb999",
       "sourceIds": [
         "SRC-SITE-003"
       ],
-      "disclaimer": "0.6.3 概念模型已同步；鏡牆角度未變，屋頂光電僅為預留範圍，遮蔭／眩光、結構與儲能消防仍須專業驗證。"
+      "disclaimer": "0.6.4 概念模型已同步；鏡牆角度未變，3F 完整屋頂與高覆蓋率光電排布尚未納入遮蔭／眩光分析，結構與儲能消防仍須專業驗證。"
     }
   }
 }

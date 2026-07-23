@@ -83,6 +83,12 @@ export interface ViewerModel {
         status: 'confirmed';
         detailStatus: string;
       };
+      y0ExteriorFacade: ViewerZone & {
+        materialIntent: 'fair-faced-exposed-concrete';
+        appearance: string;
+        mainEntranceEntityId: 'EN-01';
+        continuousExceptMainEntrance: true;
+      };
       rightSetbackBounds: SiteBounds;
       mainEntranceBounds: SiteBounds;
       playgroundRamp: ViewerZone & { startElevation: number; endElevation: number; workingSlope: string };
@@ -118,6 +124,7 @@ export interface ViewerModel {
       baseElevation: number;
       topElevation: number;
       volumeHeight: ViewerMeasure;
+      ceiling: ViewerZone & { elevation: number; thickness: number; continuous: true };
       planRotation: ViewerMeasure;
       poolAtriumOverlap: number;
       rightSetbackOverhang: number;
@@ -127,6 +134,13 @@ export interface ViewerModel {
         polygon: Array<[number, number]>; area: number; use: string; standingOnly: true; seatingAllowed: false;
       };
       stairZone: ViewerZone & { area: number; y0Facade: string; y2_5Divider: string };
+      y0ExteriorFacade: ViewerZone & {
+        materialIntent: 'full-width-safety-glass'; opaqueSegments: false;
+      };
+      stairChangingDivider: ViewerZone & {
+        axis: 'y2.5'; spanX: [number, number]; materialIntent: 'fair-faced-exposed-concrete';
+        openings: []; continuous: true;
+      };
       changingRoomEntries: Array<{
         entityId: string; zoneId: string; side: 'x32'; rangeY: [number, number]; clearWidth: number;
         openingType: 'doorless-opening'; doorLeaf: false; status: string;
@@ -184,6 +198,8 @@ export interface ViewerModel {
         leanFromVertical: ViewerMeasure;
         materialIntent: string;
         wallAndMirrorCoplanar: true;
+        sideWallEndGapsFilled: true;
+        roofEdgeContinuous: true;
         openItemId: string;
       };
       highLevelEquipment: string[];
@@ -196,9 +212,14 @@ export interface ViewerModel {
         visitorsAllowed: false; publicGathering: false; primaryEgress: false; accessControl: string[];
       };
       programStrategy: Record<string, string>;
+      roof: ViewerZone & {
+        baseElevation: number; thickness: number; rotation: number; area: number;
+        continuous: true; extendsToMirrorTopEdge: true; openItemId: string;
+      };
       pvRoofReserve: ViewerZone & {
-        area: number; baseElevation: number; type: string; supportStrategy: string; excludedSupports: string[];
-        reservedInterfaces: string[]; moduleLayoutStatus: 'deferred'; capacityStatus: 'deferred';
+        area: number; roofArea: number; coveragePercent: number; perimeterSetback: number;
+        baseElevation: number; rotation: number; type: string; supportStrategy: string; excludedSupports: string[];
+        reservedInterfaces: string[]; moduleLayoutStatus: 'working-dense-concept-layout'; capacityStatus: 'deferred';
         generationStatus: 'deferred'; openItemId: string;
       };
       energyStorageStrategy: {
@@ -259,8 +280,8 @@ export interface ViewerModel {
   analysis: {
     solar: {
       status: 'current' | 'stale' | 'unavailable';
-      recordedModelHash: string | null;
-      currentModelHash: string;
+      recordedAnalysisInputHash: string | null;
+      currentAnalysisInputHash: string;
       sourceIds: string[];
       disclaimer: string;
     };
@@ -336,6 +357,11 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
   if (model.geometry.l1.serviceWingStyle.materialIntent !== 'fair-faced-exposed-concrete') {
     throw new TypeError('服務量體必須使用清水模材質意圖。');
   }
+  if (model.geometry.l1.y0ExteriorFacade.materialIntent !== 'fair-faced-exposed-concrete'
+    || model.geometry.l1.y0ExteriorFacade.continuousExceptMainEntrance !== true
+    || model.geometry.l1.y0ExteriorFacade.mainEntranceEntityId !== 'EN-01') {
+    throw new TypeError('0.6.4 的 L1 Y0 外牆必須為連續清水模，且只保留 EN-01 玻璃入口。');
+  }
   const toiletZones = [
     model.geometry.l1.zones.poolMaleToilet,
     model.geometry.l1.zones.poolFemaleToilet,
@@ -369,6 +395,16 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     || model.geometry.l2.changingRoomEntries.some(({ clearWidth, doorLeaf }) => clearWidth !== 1 || doorLeaf !== false)) {
     throw new TypeError('2F 必須保留 L 形面池走道與男女各一個 1.00 m 無門片入口。');
   }
+  const l2Divider = model.geometry.l2.stairChangingDivider;
+  if (model.geometry.l2.y0ExteriorFacade.materialIntent !== 'full-width-safety-glass'
+    || model.geometry.l2.y0ExteriorFacade.opaqueSegments !== false
+    || l2Divider.axis !== 'y2.5'
+    || l2Divider.spanX[0] !== 32 || l2Divider.spanX[1] !== 41
+    || l2Divider.openings.length !== 0 || l2Divider.continuous !== true
+    || model.geometry.l2.ceiling.continuous !== true
+    || !sameBounds(model.geometry.l2.ceiling.bounds, model.geometry.l2.bounds)) {
+    throw new TypeError('0.6.4 的 L2 必須保留 Y0 全玻璃、X32～41 無開口 Y2.5 分隔牆與完整天花板。');
+  }
   const stairToL3 = model.geometry.l2.stairToL3;
   const canonicalStairToL3 = model.entityBounds[stairToL3.entityId]?.bounds;
   if (!canonicalStairToL3 || !sameBounds(stairToL3.bounds, canonicalStairToL3)
@@ -392,15 +428,19 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     throw new TypeError('3F 到達翼須為有頂室內動線；景觀區只限教師與維修人員且不得作主要逃生。');
   }
   const pv = model.geometry.l3.pvRoofReserve;
+  const l3Roof = model.geometry.l3.roof;
   const storage = model.geometry.l3.energyStorageStrategy;
-  if (pv.area !== 13.5
-    || pv.supportStrategy !== 'independent-fixed-core-or-direct-support-line'
+  if (l3Roof.continuous !== true || l3Roof.extendsToMirrorTopEdge !== true
+    || model.geometry.l3.mirror.sideWallEndGapsFilled !== true
+    || model.geometry.l3.mirror.roofEdgeContinuous !== true
+    || pv.area !== 169.364 || pv.coveragePercent !== 92.74 || pv.perimeterSetback !== 0.25
+    || pv.moduleLayoutStatus !== 'working-dense-concept-layout'
     || pv.capacityStatus !== 'deferred'
-    || !pv.excludedSupports.includes('rotating-cantilever')
+    || pv.rotation !== model.geometry.l3.planRotation.value
     || storage.preferredLocation !== 'ground-level-independent-outdoor-enclosure'
     || storage.batteryObjectsOnGeneralL3Interior !== false
     || storage.fireApproval !== false) {
-    throw new TypeError('屋頂光電只可作固定支承概念預留；儲能須以地面獨立戶外優先，且不得在一般 3F 室內放置電池。');
+    throw new TypeError('0.6.4 的 L3 必須有完整屋頂、鏡牆端部收邊與高覆蓋率光電排布；儲能仍以地面獨立戶外優先。');
   }
   if (model.referenceSystem.unit !== 'm') throw new TypeError('Viewer 只接受公尺模型。');
   for (const [label, value] of [
@@ -413,6 +453,7 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     ['l2.volumeHeight', model.geometry.l2.volumeHeight.value],
     ['l3.baseElevation', model.geometry.l3.baseElevation],
     ['l3.volumeHeight', model.geometry.l3.volumeHeight.value],
+    ['l3.roof.area', model.geometry.l3.roof.area],
     ['roof.highElevation', model.geometry.roof.highElevation],
     ['roof.lowElevation', model.geometry.roof.lowElevation],
     ['stair.totalRise', model.geometry.stair.totalRise],

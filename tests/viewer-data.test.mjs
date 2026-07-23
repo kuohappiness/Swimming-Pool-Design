@@ -23,11 +23,11 @@ const registry = JSON.parse(registryText);
 const manifest = JSON.parse(manifestText);
 const clone = () => structuredClone(sourceModel);
 
-test('Viewer package derives all major geometry from GEO-0.6.3', () => {
+test('Viewer package derives all major geometry from GEO-0.6.4', () => {
   const viewer = buildViewerModel(clone(), registry);
   assert.equal(viewer.schemaVersion, '1.3.0');
-  assert.equal(viewer.modelVersion, '0.6.3');
-  assert.equal(viewer.activeGeometryRevisionId, 'GEO-0.6.3');
+  assert.equal(viewer.modelVersion, '0.6.4');
+  assert.equal(viewer.activeGeometryRevisionId, 'GEO-0.6.4');
   assert.equal(viewer.coordinateSystemId, 'SITE-XY');
   assert.equal(viewer.geometry.site.length, 41);
   assert.equal(viewer.geometry.site.width, 14);
@@ -55,13 +55,23 @@ test('Viewer package derives all major geometry from GEO-0.6.3', () => {
   assert.deepEqual(viewer.geometry.l2.zones.maleChangingShower.showerModuleSize, [1.2, 1.2]);
   assert.deepEqual(viewer.geometry.l2.zones.maleChangingShower.supportFixtures.fixtures, { toilets: 1, washbasins: 2 });
   assert.equal(viewer.geometry.l2.circulationZone.area, 41.75);
+  assert.equal(viewer.geometry.l1.y0ExteriorFacade.materialIntent, 'fair-faced-exposed-concrete');
+  assert.equal(viewer.geometry.l1.y0ExteriorFacade.mainEntranceEntityId, 'EN-01');
+  assert.equal(viewer.geometry.l2.y0ExteriorFacade.materialIntent, 'full-width-safety-glass');
+  assert.deepEqual(viewer.geometry.l2.stairChangingDivider.spanX, [32, 41]);
+  assert.deepEqual(viewer.geometry.l2.stairChangingDivider.openings, []);
+  assert.equal(viewer.geometry.l2.ceiling.continuous, true);
   assert.deepEqual(viewer.geometry.l2.stairToL3.bounds, { x1: 32.5, x2: 41, y1: 0.5, y2: 2 });
   assert.equal(viewer.geometry.l2.stairToL3.axis, '+x');
   assert.equal(viewer.geometry.l2.stairToL3.designIntent, 'suspended-floating-stair');
   assert.equal(viewer.geometry.l2.stairToL3.underStairLandscape.planterCount, 3);
   assert.equal(viewer.geometry.l3.arrivalWing.covered, true);
   assert.equal(viewer.geometry.l3.landscapeTerrace.access, 'teachers-and-maintenance-only');
-  assert.equal(viewer.geometry.l3.pvRoofReserve.area, 13.5);
+  assert.equal(viewer.geometry.l3.roof.area, 182.628);
+  assert.equal(viewer.geometry.l3.roof.continuous, true);
+  assert.equal(viewer.geometry.l3.mirror.sideWallEndGapsFilled, true);
+  assert.equal(viewer.geometry.l3.pvRoofReserve.area, 169.364);
+  assert.equal(viewer.geometry.l3.pvRoofReserve.coveragePercent, 92.74);
   assert.equal(viewer.geometry.l3.energyStorageStrategy.batteryObjectsOnGeneralL3Interior, false);
   assert.equal(viewer.geometry.l1.zones.playgroundMaleToilet.fixtures.urinals, 2);
   assert.equal(viewer.geometry.l1.zones.playgroundMaleToilet.fixtures.washbasins, 2);
@@ -71,15 +81,21 @@ test('Viewer package derives all major geometry from GEO-0.6.3', () => {
   assert.equal(viewer.analysis.solar.status, 'current');
 });
 
-test('a model mutation changes the Viewer hash and marks registered analysis stale', () => {
+test('only a solar-input mutation marks registered analysis stale', () => {
   const baseline = buildViewerModel(clone(), registry);
-  const changed = clone();
-  const active = changed.geometryRevisions.find(({ id }) => id === changed.activeGeometryRevisionId);
-  active.levels.l2Elevation = 3.4;
-  const viewer = buildViewerModel(changed, registry);
-  assert.notEqual(viewer.modelHash, baseline.modelHash);
-  assert.equal(viewer.geometry.l2.baseElevation, 3.4);
-  assert.equal(viewer.analysis.solar.status, 'stale');
+  const nonSolarChange = clone();
+  const nonSolarActive = nonSolarChange.geometryRevisions.find(({ id }) => id === nonSolarChange.activeGeometryRevisionId);
+  nonSolarActive.l2.ceiling.thickness = 0.25;
+  const nonSolarViewer = buildViewerModel(nonSolarChange, registry);
+  assert.notEqual(nonSolarViewer.modelHash, baseline.modelHash);
+  assert.equal(nonSolarViewer.analysis.solar.status, 'current');
+
+  const solarChange = clone();
+  const solarActive = solarChange.geometryRevisions.find(({ id }) => id === solarChange.activeGeometryRevisionId);
+  solarActive.solar.mirrorLeanFromVertical.value = 22.9;
+  const solarViewer = buildViewerModel(solarChange, registry);
+  assert.notEqual(solarViewer.analysis.solar.currentAnalysisInputHash, baseline.analysis.solar.currentAnalysisInputHash);
+  assert.equal(solarViewer.analysis.solar.status, 'stale');
 });
 
 test('Viewer follows the selected active ST-01 Y bounds without a legacy originY fallback', () => {
@@ -123,12 +139,14 @@ test('generated Viewer and public content artifacts share the current model hash
   assert.equal(generatedModel.analysis.solar.status, 'current');
 });
 
-test('Viewer, solar study, and atlas navigation expose only v0.6.3 drawing anchors', () => {
-  assert.match(viewerHtml, /#V063-L1/);
-  assert.match(solarHtml, /#V063-L1/);
+test('Viewer, solar study, and atlas navigation expose only v0.6.4 drawing anchors', () => {
+  assert.match(viewerHtml, /#V064-L1/);
+  assert.match(solarHtml, /#V064-L1/);
   assert.doesNotMatch(`${viewerHtml}\n${solarHtml}`, /#V23-|最新 V2\.3/);
-  assert.match(solarHtml, /V0\.6\.3 CURRENT SOLAR BASE/);
-  assert.match(solarHtml, /太陽能預留區尚未納入/);
+  assert.match(solarHtml, /V0\.6\.4 CURRENT SOLAR BASE/);
+  assert.match(solarHtml, /完整 3F 屋頂與高覆蓋率太陽能排布尚未納入/);
+  assert.match(solarHtml, /solar inputHash 與 v0\.6\.3 相同/);
+  assert.match(solarHtml, /不重新執行完整最佳化/);
   assert.match(solarHtml, /\+25\.5°/);
   assert.match(solarHtml, /\+23\.0°/);
   assert.match(viewerHtml, /data-orientation-cue/);
@@ -149,7 +167,12 @@ test('world, L3, and coplanar mirror transforms remain separated in the scene fa
   assert.match(sceneFactorySource, /wallAndMirrorCoplanar|0\.012/);
   assert.match(sceneFactorySource, /ST-02 懸空式正交樓梯/);
   assert.match(sceneFactorySource, /ST-02 梯下輕量造景植栽/);
-  assert.match(sceneFactorySource, /3F 屋頂太陽能預留區/);
+  assert.match(sceneFactorySource, /L1 Y0 清水模外牆/);
+  assert.match(sceneFactorySource, /L2 Y0 全寬安全玻璃外牆/);
+  assert.match(sceneFactorySource, /L2 完整天花板/);
+  assert.match(sceneFactorySource, /L3 鏡牆端部三角收邊/);
+  assert.match(sceneFactorySource, /3F 完整旋轉屋頂／天花板/);
+  assert.match(sceneFactorySource, /3F 屋頂高覆蓋率太陽能排布/);
   assert.match(sceneFactorySource, /教師／維修專用景觀區/);
   assert.doesNotMatch(sceneFactorySource, /錯位隱私屏風|設錯位隱私屏風/);
   assert.doesNotMatch(sceneFactorySource, /v050Study|v060Study/);

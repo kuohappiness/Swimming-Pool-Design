@@ -208,7 +208,17 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-044`～`TASK-048` 已完成並收斂為 [Release 0.6.3](releases/0.6.3.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 11. 未排程設計問題
+## 11. 0.6.4 任務
+
+0.6.4 依 2026-07-24 使用者審閱，集中修正圖面座標可讀性、L2／L3 封閉性、3F 屋頂與光電覆蓋、鏡牆端部收邊、2F 動線分隔及 Y0 外牆材質。既有泳池、樓層標高、L3 +25.5°、鏡牆 +23.0°、樓梯、廁所及更衣淋浴配置不變。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-049 | 同步 0.6.4 圖面、模型、Viewer、HTML 與發布 | done | 0.6.4 | [DEC-099～DEC-106](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-011／OPEN-016／OPEN-019／OPEN-022 | TASK-048 | 3F 平面與縱剖顯示不被遮蔽的座標軸／格線；2F Y2.5 牆由 X32 連續至 X41 且無樓梯間直通更衣室；Viewer 建立完整 L2 天花與延伸至外傾鏡牆上緣的 L3 屋頂，鏡牆兩端三角縫封閉；L2 Y0 全玻璃、L1 Y0 清水模並保留 `EN-01`；光電板在 0.25 m 周邊退縮後盡量鋪滿 3F 屋頂。solar inputHash 與 0.6.3 相同，沿用既有分析、不重跑完整最佳化。版本、current sheets、HTML、文件、generated data 與 solar registry 同步；完整 build、桌面／行動 Viewer smoke、圖面視覺檢查及 `git diff --check` 通過，建立 release commit 並 push `main`。 |
+
+`TASK-049` 已完成並收斂為 [Release 0.6.4](releases/0.6.4.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
+
+## 12. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
@@ -224,7 +234,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 - [OPEN-019](04_DECISIONS_AND_OPEN_ITEMS.md)：ST-02、固定正交 L3 到達翼及旋轉樓板交接的結構、防水、避難與設備搬運。
 - [OPEN-020](04_DECISIONS_AND_OPEN_ITEMS.md)：受控三角景觀露台的活載、欄杆、門禁、防排水、植栽固定與維修安全。
 - [OPEN-021](04_DECISIONS_AND_OPEN_ITEMS.md)：3F 乾式維修備品間是否納入本期，仍待使用者與消防／維修品項確認。
-- [OPEN-022](04_DECISIONS_AND_OPEN_ITEMS.md)：屋頂光電與地面戶外儲能的精確範圍、容量及專業核定；方向已由 `DEC-098` 確認，概念預留由 `TASK-047` 排程。
+- [OPEN-022](04_DECISIONS_AND_OPEN_ITEMS.md)：3F 屋頂光電的正式模組、檢修道、容量、支承與地面戶外儲能專業核定；0.6.4 高覆蓋率概念排布由 `DEC-100`／`TASK-049` 管理。
 
 這些 OPEN 在取得新輸入、形成可核准設計並建立 TASK 前，不列入執行順序。
 

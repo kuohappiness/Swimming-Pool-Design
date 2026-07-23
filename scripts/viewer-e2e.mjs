@@ -96,8 +96,9 @@ try {
   assert.equal(await desktop.locator('[data-loading]').isHidden(), true);
   assert.equal(await desktop.locator('[data-scene-nav] button').count(), 5);
   assert.equal(await desktop.locator('[data-layer-list] input').count(), 10);
+  assert.equal(await desktop.locator('input[value="energy"]').isChecked(), true);
   assert.equal(await desktop.locator('canvas[aria-label*="3D 模型"]').count(), 1);
-  assert.match(await desktop.locator('[data-model-version]').innerText(), /^MODEL 0\.6\.3/);
+  assert.match(await desktop.locator('[data-model-version]').innerText(), /^MODEL 0\.6\.4/);
   assert.match(await desktop.locator('.trust-strip [data-model-hash]').innerText(), /^[a-f0-9]{12}/);
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'), '25.5°');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-deck-elevation'), '+0.300 m');
@@ -116,7 +117,15 @@ try {
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-shower-module'), '1.2 × 1.2');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-support-wc-per-gender'), '1');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-support-basins-per-gender'), '2');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pv-reserve-area'), '13.5');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pv-reserve-area'), '169.364');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pv-coverage-percent'), '92.74');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l1-y0-material'), 'fair-faced-exposed-concrete');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-y0-material'), 'full-width-safety-glass');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-divider-span'), '32–41');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-divider-openings'), '0');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-ceiling-continuous'), 'true');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-roof-continuous'), 'true');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-mirror-end-gaps-filled'), 'true');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-interior-battery-objects'), 'false');
   await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-perspective.png'), fullPage: true });
 
@@ -127,7 +136,13 @@ try {
     ['Z-CS-M-01', /15 間[\s\S]*1\.20 × 1\.20 m[\s\S]*1 間一般 WC[\s\S]*2 座洗手槽/, 'viewer-l2-male-showers.png'],
     ['ST-02', /X32\.5[\s\S]*Y0\.5～2\.0[\s\S]*\+X[\s\S]*兩道連續深色鋼箱梯梁/, 'viewer-st02.png'],
     ['Z-ST-02-PLANT-01', /3 組[\s\S]*可移除[\s\S]*不設深土槽/, 'viewer-st02-planting.png'],
-    ['RF-PV-RES-01', /13\.5 m²[\s\S]*儲能優先設於地面層[\s\S]*3F 一般室內不配置電池/, 'viewer-pv-reserve.png'],
+    ['F-L1-Y0-01', /Y0 外牆[\s\S]*自然灰清水模[\s\S]*EN-01/, 'viewer-l1-y0-concrete.png'],
+    ['F-L2-Y0-01', /X29～X41[\s\S]*全寬皆為安全玻璃/, 'viewer-l2-y0-glass.png'],
+    ['W-L2-ST-CH-01', /Y2\.5[\s\S]*X32[\s\S]*X41[\s\S]*無門洞/, 'viewer-l2-divider.png'],
+    ['CLG-L2-01', /X29～X41／Y0～Y13\.5[\s\S]*連續封閉/, 'viewer-l2-ceiling.png'],
+    ['F-MIR-SIDE-INFILL-01', /三角空隙[\s\S]*補滿/, 'viewer-l3-mirror-infill.png'],
+    ['RF-L3-01', /182\.628 m²[\s\S]*連續屋頂[\s\S]*填滿 L3 天花/, 'viewer-l3-roof.png'],
+    ['RF-PV-RES-01', /182\.6 m²[\s\S]*169\.4 m²[\s\S]*92\.74%/, 'viewer-pv-reserve.png'],
     ['Z-L3-ARRIVAL-01', /有頂室內[\s\S]*戶外景觀區不是唯一/, 'viewer-l3-arrival.png'],
     ['Z-L3-TERRACE-01', /只限教師與維修人員[\s\S]*不開放學生/, 'viewer-l3-terrace.png'],
   ]) {
@@ -153,6 +168,9 @@ try {
   const coreOption = desktop.locator('[data-object-select] option').filter({ hasText: 'CORE-01' });
   await desktop.locator('[data-object-select]').selectOption(await coreOption.getAttribute('value'));
   assert.match(await desktop.locator('[data-selection-info]').innerText(), /CORE-01/);
+  await desktop.getByRole('button', { name: '總覽' }).click();
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-scene'), 'overview');
+  assert.equal(await desktop.locator('input[value="energy"]').isChecked(), true);
   await desktop.getByRole('button', { name: '俯視' }).click();
   await desktop.locator('canvas').focus();
   await desktop.keyboard.press('Enter');
@@ -188,7 +206,7 @@ try {
   trackErrors(solarDesktop);
   await solarDesktop.goto(`${origin}/solar-study/`, { waitUntil: 'networkidle' });
   assert.match(await solarDesktop.locator('h1').innerText(), /固定 L1／L2/);
-  assert.match(await solarDesktop.locator('#model-version').innerText(), /^STUDY 0\.6\.3 · MODEL 0\.6\.3/);
+  assert.match(await solarDesktop.locator('#model-version').innerText(), /^STUDY 0\.6\.4 · MODEL 0\.6\.4/);
   assert.equal(await solarDesktop.locator('#confirmed-plan').innerText(), '+25.5°');
   assert.equal(await solarDesktop.locator('#confirmed-lean').innerText(), '+23.0°');
   assert.equal(await solarDesktop.locator('#confirmed-normal').innerText(), '152.5°');
@@ -214,16 +232,16 @@ try {
   trackErrors(atlasDesktop);
   await atlasDesktop.goto(`${origin}/#REF-001`, { waitUntil: 'networkidle' });
   assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 5);
-  assert.equal(await atlasDesktop.locator('#model-version').innerText(), 'MODEL 0.6.3');
+  assert.equal(await atlasDesktop.locator('#model-version').innerText(), 'MODEL 0.6.4');
   assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /基地現況來源圖/);
   assert.match(await atlasDesktop.locator('#sheet-stage image').getAttribute('href'), /SRC-SITE-001_google-maps-satellite/);
   await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-site-latest.png'), fullPage: true });
 
   for (const [sheetId, imagePattern, screenshotName] of [
-    ['V063-L1', /DRAW-L1-PLAN-v0\.6\.3/, 'atlas-v063-l1.png'],
-    ['V063-L2', /DRAW-L2-PLAN-v0\.6\.3/, 'atlas-v063-l2.png'],
-    ['V063-L3', /DRAW-L3-PLAN-v0\.6\.3/, 'atlas-v063-l3.png'],
-    ['V063-SECTION', /DRAW-LONGITUDINAL-SECTION-v0\.6\.3/, 'atlas-v063-section.png'],
+    ['V064-L1', /DRAW-L1-PLAN-v0\.6\.4/, 'atlas-v064-l1.png'],
+    ['V064-L2', /DRAW-L2-PLAN-v0\.6\.4/, 'atlas-v064-l2.png'],
+    ['V064-L3', /DRAW-L3-PLAN-v0\.6\.4/, 'atlas-v064-l3.png'],
+    ['V064-SECTION', /DRAW-LONGITUDINAL-SECTION-v0\.6\.4/, 'atlas-v064-section.png'],
   ]) {
     await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).click();
     assert.equal(await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).getAttribute('aria-current'), 'page');
@@ -242,11 +260,11 @@ try {
 
   const atlasMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(atlasMobile);
-  await atlasMobile.goto(`${origin}/#V063-L1`, { waitUntil: 'networkidle' });
-  assert.equal(await atlasMobile.locator('#model-version').innerText(), 'MODEL 0.6.3');
+  await atlasMobile.goto(`${origin}/#V064-L1`, { waitUntil: 'networkidle' });
+  assert.equal(await atlasMobile.locator('#model-version').innerText(), 'MODEL 0.6.4');
   assert.equal(await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
-  assert.match(await atlasMobile.locator('.review-drawing image').getAttribute('href'), /DRAW-L1-PLAN-v0\.6\.3/);
-  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-v063-l1-mobile.png'), fullPage: true });
+  assert.match(await atlasMobile.locator('.review-drawing image').getAttribute('href'), /DRAW-L1-PLAN-v0\.6\.4/);
+  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-v064-l1-mobile.png'), fullPage: true });
   await atlasMobile.close();
 
   assert.equal(browserErrors.length, 0, browserErrors.join('\n'));
