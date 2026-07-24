@@ -17,12 +17,15 @@
 | TASK 狀態、依賴、目標版本與驗收入口 | `07_ACTIVE_WORK.md` |
 | 專題分析的輸入、方法、比較表與限制 | `docs/analysis/<topic>.md` |
 | 個別現行輸出行為 | `docs/contracts/<output>.md` |
+| 子專案範圍索引、owner 導航與目前階段 | `docs/subprojects/<id>/README.md`；只作索引，不重複 DEC、TASK、SPEC 或契約內容 |
 | 核准設計及實作步驟 | `docs/specs/` |
 | 已完成／被取代規格 | `docs/archive/specs/` |
 | 已發布版本證據 | `docs/releases/<version>.md` |
 | 公開設計理念的敘事文字 | `docs/public/swimming-pool-renovation-design-concept.md` |
 
 README 只保留定位、quickstart、URL、版本與 01～07 導航。repo-local skill 只保存工作程序並引用本文件，不複製 owner 規則表。
+
+子專案 README 也只保留入口、固定邊界、預定檔案位置與 owner 連結。設計答案仍進 DEC／design spec，執行狀態仍只進 `07_ACTIVE_WORK.md`，已發布行為仍由 output contract 管理。
 
 ## 3. 分類
 

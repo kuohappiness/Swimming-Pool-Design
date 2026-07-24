@@ -248,7 +248,20 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-052` 已完成並收斂為 [Release 0.6.7](releases/0.6.7.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 15. 未排程設計問題
+## 15. 0.7.0 任務
+
+0.7.0 將第一人稱 Walkthrough 作為現有 `/3d-viewer/` 內的整合式子專案；不建立第二個網站入口、套件、模型或發布流程。依使用者核准，MVP 同時支援桌機與手機、開放所有已建模區域，並包含水面與水下游泳。資料流維持 canonical model → active Viewer derived data → runtime walkthrough descriptors 的單向唯讀關係。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-053 | 建立 Walkthrough 唯讀資料邊界、型別、設定與模組骨架 | done | 0.7.0 | [DEC-117／DEC-118](04_DECISIONS_AND_OPEN_ITEMS.md)、[核准設計](specs/2026-07-24-3d-walkthrough-mvp-design.md)、[implementation plan](specs/2026-07-24-3d-walkthrough-mvp-implementation-plan.md)、[子專案索引](subprojects/3d-walkthrough/README.md) | TASK-052 | 已建立 `reference/src/3d-viewer/walkthrough/` public interface、deep-readonly／deep-freeze adapter、獨立體驗 config、13 個必要 entity、8 個 walk surfaces、2 座 stair descriptors、池殼／water volume、7 個 openings、6 個 safe spawns 與 capability flags。10 組 identity／hash／SITE-XY／adapter／entity／bounds／finite geometry／stair-pool 破壞性輸入均 fail closed；4 項 focused tests、44 項全套測試、typecheck、完整 build 與 `git diff --check` 通過。canonical source 建置前後 SHA-256 均為 `0ADC3DD2EA845C694C7475EF4587BABBBE73C8352FB326200BDC2DA58B1F6AAD`，`project-model.json` 無差異且沒有 walkthrough 體驗欄位。 |
+| TASK-054 | 整合 Inspect／Walkthrough camera mode 與桌機／手機輸入 | ready | 0.7.0 | [核准設計](specs/2026-07-24-3d-walkthrough-mvp-design.md)、[implementation plan](specs/2026-07-24-3d-walkthrough-mvp-implementation-plan.md) | TASK-053 | CameraModeManager 可逆保存／恢復相機、場景、圖層、剖視、panel 與 selection；桌機 Pointer Lock＋fallback、手機左移動／右環視輸出同一 normalized intent。反覆切換不累積 listener，blur／pointercancel／旋轉不黏鍵，reduced motion 可用。 |
+| TASK-055 | 實作 capsule collision、重力、樓梯代理、安全出生點與全區域移動 | queued | 0.7.0 | [核准設計](specs/2026-07-24-3d-walkthrough-mvp-design.md)、[implementation plan](specs/2026-07-24-3d-walkthrough-mvp-implementation-plan.md) | TASK-053、TASK-054 | EN-01 可通行、solid 牆不可穿；ST-01／ST-02 以坡面 proxy 平順雙向通行。307°、SITE adapter、rotated L3 與正交翼的 proxy／visible reference 一致；所有區域有有效 safe spawn，掉出、non-finite 或卡死可恢復。 |
+| TASK-056 | 實作泳池 water volume、水面／水下游泳、上岸與水下環境 | queued | 0.7.0 | [核准設計](specs/2026-07-24-3d-walkthrough-mvp-design.md)、[implementation plan](specs/2026-07-24-3d-walkthrough-mvp-implementation-plan.md) | TASK-055 | water volume 由 active `POOL-01`、水面與 X3 1.20 m→X28 1.50 m 斜底衍生；walk／surface／underwater transition 無水線抖動，可上浮、下潛、碰到底／壁、上岸與返回池畔。水下效果可依手機效能與 reduced motion 降級，不阻斷核心游泳。 |
+| TASK-057 | 完成全區域跳轉、HUD、可用性、效能階級與未來擴充介面 | queued | 0.7.0 | [核准設計](specs/2026-07-24-3d-walkthrough-mvp-design.md)、[implementation plan](specs/2026-07-24-3d-walkthrough-mvp-implementation-plan.md) | TASK-054、TASK-055、TASK-056 | 桌機／390 × 844 HUD、區域選擇、返回與退出可操作且無水平溢出；touch target、focus、ARIA、safe-area、fallback 與權限拒絕可用。畫質降級不改 collision／movement state；Input、Movement、VisualAsset、Area 與 Environment 保持可替換窄介面。 |
+| TASK-058 | 完成 Walkthrough 回歸、桌機／手機 E2E、契約、版本與 0.7.0 發布驗證 | queued | 0.7.0 | [核准設計](specs/2026-07-24-3d-walkthrough-mvp-design.md)、[implementation plan](specs/2026-07-24-3d-walkthrough-mvp-implementation-plan.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[發布流程](06_WORKFLOW_AND_RELEASES.md) | TASK-053、TASK-054、TASK-055、TASK-056、TASK-057 | desktop／mobile E2E 完成入口、兩梯、L3、屋頂跳轉、入水、水下與返回；退出後五場景、圖層、選取、固定視角與泳池剖視恢復。source isolation、fallback、效能證據、完整 build 與 `git diff --check` 通過後，才同步 0.7.0、更新契約／release、封存兩份 spec；不擅自 commit、push 或部署。 |
+
+## 16. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
