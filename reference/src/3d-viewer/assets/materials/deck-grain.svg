@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <metadata>SPDX-License-Identifier: CC0-1.0; project-authored non-slip deck grain</metadata>
+  <filter id="rough">
+    <feTurbulence type="turbulence" baseFrequency=".18 .72" numOctaves="2" seed="31"/>
+    <feColorMatrix values=".3 0 0 0 .55  0 .3 0 0 .53  0 0 .3 0 .48  0 0 0 .26 0"/>
+  </filter>
+  <rect width="256" height="256" fill="#d4cec2"/>
+  <rect width="256" height="256" filter="url(#rough)" opacity=".42"/>
+</svg>

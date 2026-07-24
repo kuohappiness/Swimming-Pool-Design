@@ -139,6 +139,177 @@ button:focus-visible, a:focus-visible, select:focus-visible, canvas:focus-visibl
 .orientation-cue span { font-size: 11px; font-weight: 800; letter-spacing: .08em; }
 .orientation-cue strong { color: #ff9b72; font-size: 36px; line-height: .8; text-align: center; }
 
+.walkthrough-entry {
+  position: absolute;
+  z-index: 10;
+  top: 16px;
+  left: 16px;
+  display: grid;
+  gap: 4px;
+  max-width: 220px;
+}
+.walkthrough-entry button,
+.walkthrough-hud button {
+  min-height: 44px;
+  padding: 9px 14px;
+  color: #fff;
+  background: rgba(21,39,45,.9);
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.16);
+  cursor: pointer;
+}
+.walkthrough-entry button:disabled { color: #c8d0d0; background: rgba(58,69,72,.84); cursor: not-allowed; }
+.walkthrough-entry span { padding-left: 4px; color: #40545a; font-size: 9px; text-shadow: 0 1px 2px #fff; }
+.walkthrough-hud {
+  position: absolute;
+  z-index: 14;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  color: #fff;
+  pointer-events: none;
+}
+.walkthrough-hud[hidden],
+.walkthrough-touch[hidden],
+.walkthrough-entry[hidden] { display: none; }
+.walkthrough-status {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 9px;
+  background: rgba(21,39,45,.82);
+  box-shadow: 0 6px 20px rgba(0,0,0,.18);
+}
+.walkthrough-hud button,
+.walkthrough-hud select { pointer-events: auto; }
+.walkthrough-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: auto;
+}
+.walkthrough-area-select {
+  display: grid;
+  gap: 3px;
+  color: #c6d2d1;
+  font-size: 9px;
+  font-weight: 700;
+}
+.walkthrough-area-select select {
+  min-width: 150px;
+  min-height: 44px;
+  padding: 8px 34px 8px 10px;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: 8px;
+  background: rgba(21,39,45,.92);
+  font: inherit;
+  font-size: 11px;
+}
+.walkthrough-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+.walkthrough-mode { color: #f0b985; font: 700 9px/1.2 ui-monospace, Consolas, monospace; letter-spacing: .14em; }
+.walkthrough-hud strong { font-size: 13px; }
+.walkthrough-hud small { color: #c6d2d1; font-size: 9px; }
+.walkthrough-notice {
+  min-height: 1.2em;
+  color: #dce9e8;
+  font-size: 9px;
+}
+.walkthrough-notice:empty { display: none; }
+.walkthrough-touch {
+  position: absolute;
+  z-index: 12;
+  inset: 74px 0 0;
+  grid-template-columns: 1fr 1fr;
+  pointer-events: none;
+}
+.walkthrough-touch[data-active="true"] { display: grid; }
+.swim-controls {
+  position: absolute;
+  z-index: 2;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(104px, calc(env(safe-area-inset-bottom) + 96px));
+  display: grid;
+  gap: 8px;
+  pointer-events: auto;
+}
+.swim-controls[hidden] { display: none; }
+.swim-controls button {
+  min-width: 64px;
+  min-height: 44px;
+  border-color: rgba(255,255,255,.48);
+  background: rgba(21,39,45,.78);
+  color: #fff;
+}
+.touch-surface {
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-width: 0;
+  padding: 20px max(16px, env(safe-area-inset-left)) max(22px, env(safe-area-inset-bottom));
+  color: rgba(255,255,255,.78);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  touch-action: none;
+  user-select: none;
+  pointer-events: auto;
+}
+.touch-look {
+  justify-items: end;
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+.touch-surface span {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: 50%;
+  background: rgba(21,39,45,.3);
+}
+
+.viewer-shell[data-camera-mode="walkthrough"] {
+  grid-template-columns: 0 minmax(0, 1fr) 0;
+}
+.viewer-shell[data-camera-mode="walkthrough"] .controls-panel,
+.viewer-shell[data-camera-mode="walkthrough"] .information-panel,
+.viewer-shell[data-camera-mode="walkthrough"] .legend-bar,
+.viewer-shell[data-camera-mode="walkthrough"] .viewport-hint {
+  display: none;
+}
+.viewer-shell[data-camera-mode="walkthrough"] .canvas-host canvas { cursor: crosshair; }
+.viewer-shell[data-underwater="true"] .canvas-host::after {
+  content: "";
+  position: absolute;
+  z-index: 11;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(44,141,163,.18), rgba(13,79,98,.3)),
+    radial-gradient(circle at 50% 0%, rgba(179,232,237,.14), transparent 58%);
+  mix-blend-mode: multiply;
+  transition: opacity 180ms ease;
+}
+.viewer-shell[data-underwater-quality="low"][data-underwater="true"] .canvas-host::after {
+  background: rgba(27,106,125,.22);
+  mix-blend-mode: normal;
+}
+.viewer-shell[data-underwater-reduced-motion="true"] .canvas-host::after {
+  transition: none;
+}
+
 .controls-panel, .information-panel {
   min-height: 0;
   overflow-y: auto;
@@ -394,6 +565,15 @@ noscript { display: block; padding: 20px; }
   .information-panel { border: 0; border-top: 1px solid var(--line); }
   .selection-panel { padding: 17px 16px; }
   .concept-content { padding: 23px 18px 45px; }
+  .viewer-shell[data-camera-mode="walkthrough"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 58px calc(100dvh - 58px);
+    grid-template-areas: "top" "viewport";
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+  .viewer-shell[data-camera-mode="walkthrough"] .viewport-panel { min-height: 0; }
 }
 
 @media (max-width: 480px) {
@@ -405,6 +585,23 @@ noscript { display: block; padding: 20px; }
   .viewport-panel { min-height: 486px; }
   .legend-bar { gap: 6px 12px; padding: 8px 10px; }
   .viewport-hint { bottom: 10px; font-size: 8px; }
+  .walkthrough-entry { top: 11px; left: 11px; max-width: 190px; }
+  .walkthrough-entry span { display: none; }
+  .walkthrough-hud {
+    top: max(8px, env(safe-area-inset-top));
+    left: max(8px, env(safe-area-inset-left));
+    right: max(8px, env(safe-area-inset-right));
+    display: grid;
+    gap: 6px;
+  }
+  .walkthrough-status { margin-right: 104px; padding: 7px 9px; }
+  .walkthrough-status small { white-space: normal; }
+  .walkthrough-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .walkthrough-area-select { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+  .walkthrough-area-select select { width: 100%; min-width: 0; }
+  .walkthrough-action-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+  .walkthrough-hud button { min-height: 44px; padding-inline: 11px; }
+  .walkthrough-touch { inset-block-start: 186px; }
   .pool-cutaway-key {
     bottom: 36px;
     flex-wrap: wrap;

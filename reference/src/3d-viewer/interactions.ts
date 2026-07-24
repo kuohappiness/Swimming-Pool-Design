@@ -11,11 +11,22 @@ interface SelectionOptions {
   onSelect: (selection: SelectableInfo) => void;
 }
 
-export function setupSelection(options: SelectionOptions) {
+export interface SelectionController {
+  readonly suspended: boolean;
+  readonly selectedIndex: number;
+  suspend(): void;
+  resume(): void;
+  selectIndex(index: number, frame?: boolean): void;
+  dispose(): void;
+}
+
+export function setupSelection(options: SelectionOptions): SelectionController {
   const { canvas, camera, controls, selectables, objectSelect, onSelect } = options;
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   let currentIndex = -1;
+  let attached = false;
+  let disposed = false;
 
   objectSelect.replaceChildren(new Option('選擇模型構件…', ''));
   selectables.forEach((selection, index) => {
@@ -50,20 +61,60 @@ export function setupSelection(options: SelectionOptions) {
   const selectFromList = () => {
     const index = Number(objectSelect.value);
     if (Number.isInteger(index) && selectables[index]) {
-      select(selectables[index], index);
-      const centre = new THREE.Vector3();
-      new THREE.Box3().setFromObject(selectables[index].object).getCenter(centre);
-      controls.target.copy(centre);
-      controls.update();
+      controller.selectIndex(index, true);
     }
   };
 
-  canvas.addEventListener('pointerup', selectFromPointer);
-  canvas.addEventListener('keydown', selectFromKeyboard);
-  objectSelect.addEventListener('change', selectFromList);
-  return () => {
+  const attach = () => {
+    if (attached || disposed) return;
+    attached = true;
+    objectSelect.disabled = false;
+    canvas.addEventListener('pointerup', selectFromPointer);
+    canvas.addEventListener('keydown', selectFromKeyboard);
+    objectSelect.addEventListener('change', selectFromList);
+  };
+
+  const detach = () => {
+    if (!attached) return;
+    attached = false;
     canvas.removeEventListener('pointerup', selectFromPointer);
     canvas.removeEventListener('keydown', selectFromKeyboard);
     objectSelect.removeEventListener('change', selectFromList);
   };
+
+  const controller: SelectionController = {
+    get suspended() {
+      return !attached;
+    },
+    get selectedIndex() {
+      return currentIndex;
+    },
+    suspend() {
+      detach();
+      objectSelect.disabled = true;
+    },
+    resume() {
+      attach();
+    },
+    selectIndex(index, frame = false) {
+      const selection = selectables[index];
+      if (!selection) return;
+      select(selection, index);
+      if (frame) {
+        const centre = new THREE.Vector3();
+        new THREE.Box3().setFromObject(selection.object).getCenter(centre);
+        controls.target.copy(centre);
+        controls.update();
+      }
+    },
+    dispose() {
+      if (disposed) return;
+      detach();
+      disposed = true;
+      objectSelect.disabled = true;
+    },
+  };
+
+  attach();
+  return controller;
 }

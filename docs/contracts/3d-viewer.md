@@ -1,7 +1,7 @@
 # 3D Viewer 契約
 
 - 類型：output-contract
-- 狀態：active／v0.6.7
+- 狀態：active／v0.8.0
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 入口：`/3d-viewer/`
 
@@ -9,10 +9,10 @@
 
 Viewer 只接受：
 
-- `reference/generated/viewer-model.json`：由 active `GEO-0.6.7` 產生。
+- `reference/generated/viewer-model.json`：由 active `GEO-0.8.0` 產生。
 - `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.6.7` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.6.7`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.8.0` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.0`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.8.0 只在 0.7.0 Walkthrough 上啟用 enhanced visual layer；active 建築幾何與 V067 圖面基線不變。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 
@@ -42,18 +42,40 @@ Viewer 只接受：
 
 `scene-manifest.json` 固定提供 `overview`、`light`、`rain`、`people`、`time`。場景只改相機、visibility、environment 與理念內容，不另建第二套幾何。
 
+### Enhanced rendering
+
+- 0.8.0 預設使用本地 PBR material registry、PMREM environment、ACES tone mapping、stable PCF shadow、可降級水面與純視覺人物／植栽／設備；`?rendering=baseline` 是明確診斷 fallback，不形成第二套資料來源。
+- necessary material／shader runtime 建立失敗時須自動回復 baseline rendering 並公開 diagnostic；optional water／environment／visual asset 失敗只停用對應視覺，不阻斷 Inspect、Walkthrough、選取或碰撞。
+- high／medium／low 只可改 pixel ratio、shadow、texture anisotropy、environment、surface detail、水面與 postprocess 成本。quality 不得改 camera、scene ID、layer visibility、selection、canonical bounds、collision、player position 或 movement mode。
+- hardware desktop／mobile 的 runtime 目標為平均 50／30 FPS；software renderer 從 low 啟動。headless SwiftShader 只用同機 v0.6.7 baseline 的 80% 作相對防退化門檻，不得冒充硬體 FPS。
+- renderer 必須公開平均／p95 frame time、draw calls、triangles、shader programs／compile、drawing buffer 與 context restore diagnostic；context restore 不得重建 canonical 或 collision state。
+- 所有 runtime asset 必須是 repository-local 且具有 manifest provenance、license、SHA-256、byte size、quality tier 與 required／optional 分類；正式頁面不得存取外部 asset origin。
+
 圖層固定為 `site`、`l1`、`water`、`l2`、`l3`、`roof`、`circulation`、`rain`、`energy`、`annotations`。桌機與觸控支援 orbit、pan、zoom、一般固定視角、圖層切換與構件選取；canvas 與等價控制須可鍵盤操作。選取只更新下拉選單與右側資訊面板，3D 畫布不得顯示 `BoxHelper` 或其他外接選取框。390 × 844 不得水平溢出。
 
 另須提供「泳池剖視」固定視角：相機由 SITE Y0 長邊觀看，隱藏鏡頭側地坪、池畔、L1 Y0 立面與近側池壁／壓頂，保留遠側池壁、透明水體、X3 淺端 1.20 m、X28 深端 1.50 m 及高差 0.30 m 斜底。剖視模式把最大極角放寬至約 120°，可稍微向下／越過水平旋轉；切換其他固定視角、場景或重設時，所有遮擋物與一般約 88.2°相機限制必須完整恢復。
 
 Viewer 上須有固定螢幕方位提示，以清楚的 `N ↘` 箭頭表示真北指向畫面右下角；桌面與 390 × 844 行動視窗均須可見。提示不旋轉模型、相機或世界方位。
 
-WebGL 不可用或 `?forceFallback=1` 時提供靜態總覽、五場景內容與最新 v0.6.7 圖集連結。
+### 第一人稱漫遊
+
+- Inspect 是預設且可完整使用；「第一人稱漫遊」從 `EN-01` semantic safe spawn 進入，退出必須恢復原相機、場景、圖層、選取、固定視角／泳池剖視、panel scroll 與焦點。
+- simulation 只接受由 active Viewer model 經 read-only adapter 衍生的 `WalkthroughSource`；不得回寫 `project-model.json`，不得另建第二份建築 bounds。`siteRoot.matrixWorld` 是 visual／collision 共用 transform。
+- player 使用固定 1/120 秒步進、1.65 m 人眼與 0.28 m capsule；桌機與 touch input 只產生共同 `MovementIntent`。frame-time 或 quality 改變不得修改 movement／collision state。
+- solid world 包含建築邊界、池壁、池底與 ST-01／ST-02 連續坡面；`EN-01` 保持可通行。六個 area jump 只可使用 `entrance`、`l1-pool-deck`、`l2-arrival`、`l3-arrival`、`l3-terrace`、`roof-inspection` 的 clear＋supported semantic spawn，不得硬編碼 world 座標。
+- `POOL-01` 可見水面、WaterVolume、X3 1.20 m→X28 1.50 m 斜底與碰撞共用同一 surface elevation。walking／falling／surface／underwater transition 須有 hysteresis；支援浮力、下潛、上浮、池壁／池底、clearance 上岸與「返回池畔」。
+- 桌機使用 WASD／方向鍵、滑鼠拖曳或 pointer lock、Shift、Space、C／Ctrl 與 Esc；pointer lock 拒絕時保留 drag-look。390 × 844 使用雙觸控面、44 CSS px 上浮／下潛、區域、返回與退出控制，並遵守 safe-area inset、ARIA、鍵盤路徑與 reduced motion。
+- capability profile 只可單向 high→medium→low；至少兩個持續超標觀測窗才降級 pixel ratio、shadow、水下效果與 camera motion，本 session 不反覆升級。平均與 p95 frame time 應保留為 diagnostic。
+- `InputAdapter`、`MovementStrategy`、`VisualAssetAdapter`、`AreaRegistry` 與 `EnvironmentEffect` 保持窄介面；不得對 SketchUp／GLB 或未採用的未來格式硬編碼。
+
+WebGL 不可用或 `?forceFallback=1` 時不建立 3D／漫遊 runtime；enhanced necessary asset 失敗時建立 baseline 3D runtime；walkthrough adapter 驗證失敗時只停用漫遊。三種情況都須保留可用的 Inspect 或靜態總覽、五場景內容與 V067 圖集連結。
 
 ## 驗收
 
 - `npm run build:content`：hash、token、scene ID、active revision 與有限幾何通過。
-- `npm test`：SITE-XY bounds、右手座標 adapter、ST-01／ST-02 active bounds、30 間淋浴、到達翼／受控景觀區、右下真北提示、current／stale hash、五場景與 transform 分層通過。
+- `npm test`：SITE-XY bounds、右手座標 adapter、ST-01／ST-02 active bounds、30 間淋浴、到達翼／受控景觀區、右下真北提示、current／stale hash、五場景、transform 分層、source isolation、camera lifecycle、input、collision、safe spawn、游泳、水下與效能 hysteresis 通過。
 - `npm run typecheck`、`npm run build`、`npm run test:e2e` 通過。
 - 桌機、手機與 fallback 截圖確認池體、四廁、樓梯、L3／鏡牆、屋頂、控制區與限制文字可讀；桌機／手機另截「泳池剖視」，並驗證離開剖視後模型恢復。
 - 選取 `WT-01` 與 `F-L2-Y0-01` 後畫布不得出現黃色外接框；另以 Y0／Y14 兩側截圖直接確認 L2 全寬玻璃的淡藍透明面、高光、上下框與豎梃可辨識。
+- desktop／390 × 844 E2E 必須覆蓋六區跳轉、入口移動、兩梯到達區、L3／屋頂、池畔入水、水面、水下、返回池畔與退出；退出後 Inspect snapshot 完整恢復，且 mobile 無水平溢出。
+- 0.8.0 E2E 預設須實際載入 enhanced runtime，另驗證 explicit baseline、necessary enhanced failure→baseline、optional asset degradation 與 WebGL static fallback；全部路徑不得新增 page error。

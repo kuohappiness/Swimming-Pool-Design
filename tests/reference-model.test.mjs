@@ -11,7 +11,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = async (path) => JSON.parse(await readFile(resolve(repoRoot, path), 'utf8'));
 const model = await readJson('model/project-model.json');
 
-test('v0.6.7 authoritative model and source bytes pass the current contract', async () => {
+test('authoritative model and source bytes pass the current contract', async () => {
   assert.deepEqual(validateModel(model), []);
   assert.deepEqual(await validateSourceFiles(model, repoRoot), []);
 });
@@ -20,17 +20,17 @@ test('package, lockfile, model, and README release versions stay synchronized', 
   const packageJson = await readJson('package.json');
   const lockfile = await readJson('package-lock.json');
   const readme = await readFile(resolve(repoRoot, 'README.md'), 'utf8');
-  assert.equal(packageJson.version, '0.6.7');
   assert.equal(lockfile.version, packageJson.version);
   assert.equal(lockfile.packages[''].version, packageJson.version);
   assert.equal(model.modelVersion, packageJson.version);
-  assert.match(readme, /套件版本：`0\.6\.7`/);
-  assert.match(readme, /模型版本：`0\.6\.7`/);
+  const escapedVersion = packageJson.version.replaceAll('.', '\\.');
+  assert.match(readme, new RegExp(`套件版本：\`${escapedVersion}\``));
+  assert.match(readme, new RegExp(`模型版本：\`${escapedVersion}\``));
 });
 
 test('active revision is the only geometry source and uses SITE-XY', () => {
   const active = resolveActiveGeometry(model);
-  assert.equal(active.id, 'GEO-0.6.7');
+  assert.equal(active.id, `GEO-${model.modelVersion}`);
   assert.equal(active.modelVersion, model.modelVersion);
   assert.equal(active.coordinateSystemId, 'SITE-XY');
   assert.deepEqual(resolveGeometryEntity(active, 'ST-01').bounds, { x1: 20.5, x2: 29, y1: 0.5, y2: 2 });
@@ -71,9 +71,9 @@ test('active resolver rejects missing frames, duplicate entity IDs, and unframed
   assert.throws(() => resolveActiveGeometry(missingFrame), /must declare coordinateSystemId SITE-XY/);
 });
 
-test('derived geometry exposes the confirmed v0.6.7 pool, floors, roof, and stair', () => {
+test('derived geometry exposes the confirmed pool, floors, roof, and stair', () => {
   const geometry = deriveReferenceGeometry(model);
-  assert.equal(geometry.activeGeometryRevisionId, 'GEO-0.6.7');
+  assert.equal(geometry.activeGeometryRevisionId, `GEO-${model.modelVersion}`);
   assert.equal(geometry.siteLength, 41);
   assert.equal(geometry.siteWidth, 14);
   assert.equal(geometry.poolLength, 25);

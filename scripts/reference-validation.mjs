@@ -34,9 +34,13 @@ export function validateModel(model) {
   }
 
   check(errors, model.schemaVersion === '1.3.0', 'schemaVersion must be 1.3.0.');
-  check(errors, model.modelVersion === '0.6.7', 'modelVersion must be 0.6.7.');
+  check(errors, /^\d+\.\d+\.\d+$/.test(model.modelVersion), 'modelVersion must be semantic x.y.z.');
   check(errors, model.designTargetVersion === model.modelVersion, 'designTargetVersion must equal modelVersion.');
-  check(errors, active.id === 'GEO-0.6.7', 'GEO-0.6.7 must be the active geometry revision.');
+  check(
+    errors,
+    active.id === `GEO-${model.modelVersion}`,
+    'Active geometry revision ID must match modelVersion.',
+  );
   check(errors, active.coordinateSystemId === 'SITE-XY', 'Active geometry must use SITE-XY.');
 
   const coordinateSystem = model.referenceSystem?.coordinateSystems?.find(({ id }) => id === 'SITE-XY');
@@ -95,7 +99,7 @@ export function validateModel(model) {
       errors.push(error instanceof Error ? error.message : String(error));
       continue;
     }
-    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the v0.6.7 SITE-XY contract.`);
+    check(errors, sameBounds(entity.bounds, expected), `${entityId} bounds must match the active SITE-XY contract.`);
   }
 
   const pool = resolveGeometryEntity(active, 'POOL-01');

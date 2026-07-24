@@ -53,6 +53,41 @@
 
     <section class="viewport-panel" aria-label="3D 模型視窗">
       <div class="canvas-host" data-canvas-host>
+        <div class="walkthrough-entry" data-walkthrough-entry>
+          <button type="button" data-enter-walkthrough aria-describedby="walkthrough-entry-help">第一人稱漫遊</button>
+          <span id="walkthrough-entry-help">從 EN-01 入口以人眼尺度探索</span>
+        </div>
+        <div class="walkthrough-hud" data-walkthrough-hud hidden aria-label="第一人稱漫遊控制">
+          <div class="walkthrough-status">
+            <span class="walkthrough-mode">WALKTHROUGH · <span data-walkthrough-quality>HIGH</span></span>
+            <strong data-walkthrough-area>入口前場</strong>
+            <small data-walkthrough-input-hint>WASD 移動 · 滑鼠環視 · Esc 退出</small>
+            <span class="walkthrough-notice" data-walkthrough-notice role="status" aria-live="polite"></span>
+          </div>
+          <div class="walkthrough-actions">
+            <label class="walkthrough-area-select">
+              <span>跳至區域</span>
+              <select data-walkthrough-area-select aria-label="選擇漫遊區域"></select>
+            </label>
+            <div class="walkthrough-action-buttons">
+              <button type="button" data-return-poolside hidden>返回池畔</button>
+              <button type="button" data-return-safe>返回最近安全點</button>
+              <button type="button" data-exit-walkthrough>退出漫遊</button>
+            </div>
+          </div>
+        </div>
+        <div class="walkthrough-touch" data-walkthrough-touch hidden aria-label="觸控漫遊區">
+          <div class="touch-surface touch-move" data-touch-move role="application" aria-label="左側移動控制">
+            <span>移動</span>
+          </div>
+          <div class="touch-surface touch-look" data-touch-look role="application" aria-label="右側環視控制">
+            <span>環視</span>
+          </div>
+          <div class="swim-controls" data-swim-controls hidden aria-label="游泳垂直控制">
+            <button type="button" data-swim-up aria-label="上浮">上浮</button>
+            <button type="button" data-swim-down aria-label="下潛">下潛</button>
+          </div>
+        </div>
         <div class="orientation-cue" data-orientation-cue data-north-direction="lower-right" role="img" aria-label="真北指向畫面右下角">
           <span>真北 N</span><strong aria-hidden="true">↘</strong>
         </div>

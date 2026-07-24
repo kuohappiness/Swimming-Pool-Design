@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="256" height="256" fill="#8080ff"/>
+  <path d="M0 64h256M0 128h256M0 192h256M64 0v256M128 0v256M192 0v256"
+        stroke="#7474f2" stroke-width="5"/>
+  <path d="M0 67h256M0 131h256M0 195h256M67 0v256M131 0v256M195 0v256"
+        stroke="#8c8cff" stroke-width="2" opacity=".7"/>
+</svg>

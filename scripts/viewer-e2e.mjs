@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, mkdir } from 'node:fs/promises';
+import { access, mkdir, readFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -9,6 +9,10 @@ const repoRoot = resolve(import.meta.dirname, '..');
 const port = 4173;
 const origin = `http://127.0.0.1:${port}`;
 const outputDirectory = resolve(repoRoot, 'test-results');
+const projectModel = JSON.parse(
+  await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
+);
+const expectedModelVersion = projectModel.modelVersion;
 const chromeCandidates = [
   process.env.CHROME_PATH,
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -83,7 +87,20 @@ try {
   await desktop.locator('[data-viewer-shell]').waitFor({ state: 'visible' });
   await desktop.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') !== 'false');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-viewer-ready'), 'true');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'), 'enhanced');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-material-registry'),
+    'enhanced-pbr-material-registry',
+  );
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-software-renderer'), 'true');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-render-quality'), 'low');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-performance-profile'), 'low');
+  await desktop.waitForFunction(
+    () => Number(document.querySelector('[data-viewer-shell]')?.getAttribute('data-draw-calls')) > 0,
+  );
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-coordinate-adapter'), 'SITE-XYZ-TO-THREE-RH');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-collision-world'), 'capsule-proxies-task-055');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-safe-spawn-count'), '6');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-site-y-to-three'), 'negativeThreeZ');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-site-root-scale-z'), '-1');
   assert.equal(await desktop.locator('[data-orientation-cue]').isVisible(), true);
@@ -98,7 +115,10 @@ try {
   assert.equal(await desktop.locator('[data-layer-list] input').count(), 10);
   assert.equal(await desktop.locator('input[value="energy"]').isChecked(), true);
   assert.equal(await desktop.locator('canvas[aria-label*="3D 模型"]').count(), 1);
-  assert.match(await desktop.locator('[data-model-version]').innerText(), /^MODEL 0\.6\.7/);
+  assert.match(
+    await desktop.locator('[data-model-version]').innerText(),
+    new RegExp(`^MODEL ${expectedModelVersion.replaceAll('.', '\\.')}`),
+  );
   assert.match(await desktop.locator('.trust-strip [data-model-hash]').innerText(), /^[a-f0-9]{12}/);
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'), '25.5°');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-deck-elevation'), '+0.300 m');
@@ -134,6 +154,120 @@ try {
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-roof-continuous'), 'true');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-mirror-end-gaps-filled'), 'true');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-interior-battery-objects'), 'false');
+  await desktop.getByRole('button', { name: '向雨' }).click();
+  await desktop.locator('input[value="energy"]').uncheck();
+  const poolBeforeWalkthrough = desktop.locator('[data-object-select] option').filter({
+    hasText: /^POOL-01 ·/,
+  });
+  await desktop.locator('[data-object-select]').selectOption(
+    await poolBeforeWalkthrough.getAttribute('value'),
+  );
+  await desktop.getByRole('button', { name: '泳池剖視' }).click();
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'true');
+  await desktop.locator('[data-enter-walkthrough]').click();
+  await desktop.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'walkthrough',
+  );
+  const areaSelect = desktop.locator('[data-walkthrough-area-select]');
+  assert.equal(await areaSelect.locator('option').count(), 6);
+  for (const areaId of [
+    'entrance',
+    'l1-pool-deck',
+    'l2-arrival',
+    'l3-arrival',
+    'l3-terrace',
+    'roof-inspection',
+  ]) {
+    await areaSelect.selectOption(areaId);
+    await desktop.waitForFunction(
+      (expectedArea) => document.querySelector('[data-viewer-shell]')
+        ?.getAttribute('data-walkthrough-area') === expectedArea
+        && document.querySelector('[data-viewer-shell]')
+          ?.getAttribute('data-player-grounded') === 'true',
+      areaId,
+    );
+    assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-player-grounded'), 'true');
+  }
+  await areaSelect.selectOption('entrance');
+  const walkthroughStart = await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position');
+  await desktop.keyboard.down('w');
+  await desktop.evaluate(async () => {
+    for (let frame = 0; frame < 16; frame += 1) await new Promise(requestAnimationFrame);
+  });
+  await desktop.keyboard.up('w');
+  const walkthroughMoved = await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position');
+  assert.notEqual(walkthroughMoved, walkthroughStart);
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-player-grounded'), 'true');
+  await desktop.locator('[data-return-safe]').click();
+  await desktop.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-player-site-position')
+      === '2.000,0.000,-1.250',
+  );
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-walkthrough-area'), 'entrance');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position'), '2.000,0.000,-1.250');
+
+  await areaSelect.selectOption('l1-pool-deck');
+  await desktop.locator('canvas').focus();
+  await desktop.keyboard.down('Shift');
+  await desktop.keyboard.down('w');
+  let desktopWaterEntryError = null;
+  try {
+    await desktop.waitForFunction(
+      () => document.querySelector('[data-viewer-shell]')
+        ?.getAttribute('data-movement-mode')?.startsWith('swimming-'),
+      undefined,
+      { timeout: 8_000 },
+    );
+  } catch (error) {
+    desktopWaterEntryError = new Error(
+      `Desktop water entry failed at ${
+        await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position')
+      } in ${
+        await desktop.locator('[data-viewer-shell]').getAttribute('data-movement-mode')
+      }: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  } finally {
+    await desktop.keyboard.up('w');
+    await desktop.keyboard.up('Shift');
+  }
+  if (desktopWaterEntryError) throw desktopWaterEntryError;
+  assert.equal(await desktop.locator('[data-return-poolside]').isVisible(), true);
+  await desktop.keyboard.down('c');
+  try {
+    await desktop.waitForFunction(
+      () => document.querySelector('[data-viewer-shell]')
+        ?.getAttribute('data-movement-mode') === 'swimming-underwater'
+        && document.querySelector('[data-viewer-shell]')
+          ?.getAttribute('data-underwater') === 'true',
+      undefined,
+      { timeout: 3_000 },
+    );
+    assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'), 'true');
+    await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-walkthrough-underwater.png') });
+  } finally {
+    await desktop.keyboard.up('c');
+  }
+  await desktop.locator('[data-return-poolside]').click();
+  await desktop.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')
+      ?.getAttribute('data-walkthrough-area') === 'l1-pool-deck',
+  );
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'), 'false');
+  await desktop.locator('[data-exit-walkthrough]').click();
+  await desktop.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'inspect',
+  );
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-scene'), 'rain');
+  assert.equal(await desktop.locator('input[value="energy"]').isChecked(), false);
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'true');
+  assert.match(await desktop.locator('[data-selection-info]').innerText(), /POOL-01/);
+  assert.equal(
+    await desktop.locator('[data-enter-walkthrough]').evaluate(
+      (element) => element === document.activeElement,
+    ),
+    true,
+  );
+  await desktop.getByRole('button', { name: '總覽' }).click();
   await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-perspective.png'), fullPage: true });
 
   for (const [objectId, expectedText, screenshotName] of [
@@ -208,6 +342,8 @@ try {
   trackErrors(mobile);
   await mobile.goto(`${origin}/3d-viewer/`, { waitUntil: 'networkidle' });
   await mobile.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true');
+  assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'), 'enhanced');
+  assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-render-quality'), 'low');
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-l2-split-axis-y'), '8');
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-l2-gender-divider-overlaps-y0'), 'false');
   await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-l2-y0-mobile-overview.png'), fullPage: true });
@@ -226,7 +362,118 @@ try {
   await mobile.getByRole('button', { name: '重設本場景視角' }).click();
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'false');
   await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-mobile.png'), fullPage: true });
+
+  await mobile.locator('[data-enter-walkthrough]').click();
+  await mobile.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'walkthrough',
+  );
+  assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  assert.equal(await mobile.locator('[data-walkthrough-area-select] option').count(), 6);
+  for (const selector of [
+    '[data-walkthrough-area-select]',
+    '[data-return-safe]',
+    '[data-exit-walkthrough]',
+  ]) {
+    const box = await mobile.locator(selector).boundingBox();
+    assert.ok(box && box.height >= 44, `${selector} must remain at least 44 CSS px high`);
+  }
+  await mobile.locator('[data-walkthrough-area-select]').selectOption('l1-pool-deck');
+  const touchMove = mobile.locator('[data-touch-move]');
+  await touchMove.dispatchEvent('pointerdown', {
+    pointerId: 51,
+    clientX: 70,
+    clientY: 700,
+  });
+  await touchMove.dispatchEvent('pointermove', {
+    pointerId: 51,
+    clientX: 70,
+    clientY: 620,
+  });
+  try {
+    await mobile.waitForFunction(
+      () => document.querySelector('[data-viewer-shell]')
+        ?.getAttribute('data-movement-mode')?.startsWith('swimming-'),
+      undefined,
+      { timeout: 5_000 },
+    );
+  } finally {
+    await touchMove.dispatchEvent('pointerup', {
+      pointerId: 51,
+      clientX: 70,
+      clientY: 620,
+    });
+  }
+  assert.equal(await mobile.locator('[data-swim-controls]').isVisible(), true);
+  for (const selector of ['[data-swim-up]', '[data-swim-down]']) {
+    const box = await mobile.locator(selector).boundingBox();
+    assert.ok(box && box.width >= 44 && box.height >= 44);
+  }
+  await mobile.locator('[data-swim-down]').dispatchEvent('pointerdown', { pointerId: 52 });
+  try {
+    await mobile.waitForFunction(
+      () => document.querySelector('[data-viewer-shell]')
+        ?.getAttribute('data-movement-mode') === 'swimming-underwater'
+        && document.querySelector('[data-viewer-shell]')
+          ?.getAttribute('data-underwater') === 'true',
+      undefined,
+      { timeout: 3_000 },
+    );
+    await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-walkthrough-mobile-underwater.png') });
+  } finally {
+    await mobile.locator('[data-swim-down]').dispatchEvent('pointerup', { pointerId: 52 });
+  }
+  await mobile.locator('[data-return-poolside]').click();
+  await mobile.locator('[data-exit-walkthrough]').click();
+  await mobile.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'inspect',
+  );
+  assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   await mobile.close();
+
+  const explicitBaseline = await browser.newPage({ viewport: { width: 900, height: 700 } });
+  trackErrors(explicitBaseline);
+  await explicitBaseline.goto(`${origin}/3d-viewer/?rendering=baseline`, { waitUntil: 'networkidle' });
+  await explicitBaseline.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+  );
+  assert.equal(
+    await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'),
+    'baseline-explicit',
+  );
+  assert.equal(
+    await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-material-registry'),
+    'baseline-material-registry',
+  );
+  assert.equal(
+    await explicitBaseline.locator('[data-enter-walkthrough]').isEnabled(),
+    true,
+  );
+  await explicitBaseline.close();
+
+  const requiredAssetFallback = await browser.newPage({ viewport: { width: 900, height: 700 } });
+  const requiredAssetPageErrors = [];
+  requiredAssetFallback.on('pageerror', (error) => requiredAssetPageErrors.push(error.message));
+  await requiredAssetFallback.goto(
+    `${origin}/3d-viewer/?simulateRequiredAssetFailure=material`,
+    { waitUntil: 'networkidle' },
+  );
+  await requiredAssetFallback.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+  );
+  assert.equal(
+    await requiredAssetFallback.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'),
+    'baseline-fallback',
+  );
+  assert.match(
+    await requiredAssetFallback.locator('[data-viewer-shell]').getAttribute('data-rendering-diagnostic'),
+    /Simulated required material asset failure/,
+  );
+  assert.equal(
+    await requiredAssetFallback.locator('[data-viewer-shell]').getAttribute('data-material-registry'),
+    'baseline-material-registry',
+  );
+  assert.equal(requiredAssetPageErrors.length, 0, requiredAssetPageErrors.join('\n'));
+  await requiredAssetFallback.close();
 
   const fallback = await browser.newPage({ viewport: { width: 900, height: 700 } });
   trackErrors(fallback);
@@ -241,7 +488,14 @@ try {
   trackErrors(solarDesktop);
   await solarDesktop.goto(`${origin}/solar-study/`, { waitUntil: 'networkidle' });
   assert.match(await solarDesktop.locator('h1').innerText(), /固定 L1／L2/);
-  assert.match(await solarDesktop.locator('#model-version').innerText(), /^STUDY 0\.6\.7 · MODEL 0\.6\.7/);
+  assert.match(
+    await solarDesktop.locator('#model-version').innerText(),
+    new RegExp(
+      `^STUDY ${expectedModelVersion.replaceAll('.', '\\.')} · MODEL ${
+        expectedModelVersion.replaceAll('.', '\\.')
+      }`,
+    ),
+  );
   assert.equal(await solarDesktop.locator('#confirmed-plan').innerText(), '+25.5°');
   assert.equal(await solarDesktop.locator('#confirmed-lean').innerText(), '+23.0°');
   assert.equal(await solarDesktop.locator('#confirmed-normal').innerText(), '152.5°');
@@ -267,7 +521,7 @@ try {
   trackErrors(atlasDesktop);
   await atlasDesktop.goto(`${origin}/#REF-001`, { waitUntil: 'networkidle' });
   assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 5);
-  assert.equal(await atlasDesktop.locator('#model-version').innerText(), 'MODEL 0.6.7');
+  assert.equal(await atlasDesktop.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
   assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /基地現況來源圖/);
   assert.match(await atlasDesktop.locator('#sheet-stage image').getAttribute('href'), /SRC-SITE-001_google-maps-satellite/);
   await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-site-latest.png'), fullPage: true });
@@ -298,7 +552,7 @@ try {
   const atlasMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(atlasMobile);
   await atlasMobile.goto(`${origin}/#V067-L1`, { waitUntil: 'networkidle' });
-  assert.equal(await atlasMobile.locator('#model-version').innerText(), 'MODEL 0.6.7');
+  assert.equal(await atlasMobile.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
   assert.equal(await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   assert.equal(await atlasMobile.locator('.review-drawing[data-sheet-id="V067-L1"]').count(), 1);
   assert.equal(await atlasMobile.locator('.review-drawing [data-entity="F-L1-Y0-01"]').count(), 1);

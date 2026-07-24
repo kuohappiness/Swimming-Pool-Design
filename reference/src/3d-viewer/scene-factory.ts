@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import type { DesignStatus, ViewerModel } from './model-adapter';
+import { getViewerPoolPresentation } from './pool-state';
+import type { SceneRenderingDependencies } from './rendering/contracts';
 
 export interface SelectableInfo {
   object: THREE.Object3D;
@@ -21,21 +23,14 @@ export interface ViewerSceneGraph {
     hiddenObjects: THREE.Object3D[];
     annotationGroup: THREE.Group;
   };
+  water: {
+    group: THREE.Group;
+    surface: THREE.Mesh;
+    surfaceElevation: number;
+    shallowBottomElevation: number;
+    deepBottomElevation: number;
+  };
 }
-
-const PALETTE = {
-  existing: 0xb9b2a6,
-  l1: 0xb9b6b0,
-  l2: 0xaaa7a1,
-  l3: 0x9d9a94,
-  water: 0x3c9eb8,
-  roof: 0x9bd4d9,
-  stair: 0x303b42,
-  deferred: 0x8b65a7,
-  confirmed: 0x397d8f,
-  ground: 0xe8e4da,
-  planting: 0x829f77,
-};
 
 function box(size: [number, number, number], position: [number, number, number], material: THREE.Material) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
@@ -153,7 +148,11 @@ function beamBetween(
   return beam;
 }
 
-export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
+export function createViewerScene(
+  model: ViewerModel,
+  rendering: SceneRenderingDependencies,
+): ViewerSceneGraph {
+  const { materials, visualAssets } = rendering;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xe9eef0);
   scene.fog = new THREE.Fog(0xe9eef0, 72, 150);
@@ -202,39 +201,22 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   };
   const selectables: SelectableInfo[] = [];
 
-  const groundMaterial = new THREE.MeshStandardMaterial({ color: PALETTE.ground, roughness: 1 });
-  const siteMaterial = new THREE.MeshStandardMaterial({ color: PALETTE.planting, roughness: 1 });
+  const groundMaterial = materials.get('ground');
+  const siteMaterial = materials.get('planting');
   if (model.geometry.l1.serviceWingStyle.materialIntent !== 'fair-faced-exposed-concrete') {
     throw new TypeError('CORE-01 必須使用 active model 的清水模材質意圖。');
   }
-  const l1Material = new THREE.MeshStandardMaterial({ color: PALETTE.l1, roughness: 0.94, metalness: 0 });
-  const l2Material = new THREE.MeshStandardMaterial({ color: PALETTE.l2, roughness: 0.92, metalness: 0 });
-  const l3Material = new THREE.MeshStandardMaterial({ color: PALETTE.l3, roughness: 0.9, metalness: 0 });
-  const coreMaterial = new THREE.MeshStandardMaterial({
-    color: 0xb87938, roughness: 0.58, transparent: true, opacity: 0.36, depthWrite: false,
-  });
-  const dark = new THREE.MeshStandardMaterial({ color: PALETTE.stair, roughness: 0.54, metalness: 0.24 });
-  const deferred = new THREE.MeshStandardMaterial({
-    color: PALETTE.deferred, roughness: 0.55, transparent: true, opacity: 0.68,
-  });
-  const glass = new THREE.MeshPhysicalMaterial({
-    color: PALETTE.roof, transparent: true, opacity: 0.34, roughness: 0.16,
-    metalness: 0, transmission: 0.3, side: THREE.DoubleSide, depthWrite: false,
-  });
-  const wallGlass = glass.clone();
-  wallGlass.name = 'SHARED-SAFETY-GLASS-FACADE-MATERIAL';
-  wallGlass.color.set(0x8fd7e5);
-  wallGlass.opacity = 0.34;
-  wallGlass.roughness = 0.1;
-  wallGlass.transmission = 0.16;
-  const waterMaterial = new THREE.MeshPhysicalMaterial({
-    color: PALETTE.water, transparent: true, opacity: 0.68, roughness: 0.16,
-    metalness: 0.03, transmission: 0.18, side: THREE.DoubleSide, depthWrite: false,
-  });
-  const basinMaterial = new THREE.MeshStandardMaterial({ color: 0xd3e1df, roughness: 0.7, side: THREE.DoubleSide });
-  const mirrorMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0xc1d7dc, roughness: 0.06, metalness: 0.86, side: THREE.DoubleSide,
-  });
+  const l1Material = materials.get('exposed-concrete-l1');
+  const l2Material = materials.get('exposed-concrete-l2');
+  const l3Material = materials.get('exposed-concrete-l3');
+  const coreMaterial = materials.get('service-overlay');
+  const dark = materials.get('structural-steel');
+  const deferred = materials.get('deferred');
+  const glass = materials.get('roof-glass');
+  const wallGlass = materials.get('safety-glass');
+  const waterMaterial = materials.get('water');
+  const basinMaterial = materials.get('pool-basin');
+  const mirrorMaterial = materials.get('mirror');
 
   const site = layer('site');
   const ground = box(
@@ -258,7 +240,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
       new THREE.Vector3(buildingLength, 0.04, buildingWidth),
       new THREE.Vector3(0, 0.04, buildingWidth),
     ]),
-    new THREE.LineDashedMaterial({ color: 0x72858c, dashSize: 0.55, gapSize: 0.35 }),
+    materials.get('site-boundary'),
   );
   boundary.computeLineDistances();
   site.add(boundary);
@@ -279,8 +261,8 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   );
   l1.add(serviceFloor);
   const wallHeight = model.geometry.l2.baseElevation - 0.18;
-  const zoneMaterial = new THREE.MeshStandardMaterial({ color: 0xdcc9a9, roughness: 0.88, transparent: true, opacity: 0.7 });
-  const equipmentZoneMaterial = new THREE.MeshStandardMaterial({ color: 0x9eb4b3, roughness: 0.78, transparent: true, opacity: 0.62 });
+  const zoneMaterial = materials.get('program-zone');
+  const equipmentZoneMaterial = materials.get('equipment-zone');
   const zoneEntries = Object.values(model.geometry.l1.zones);
   for (const zone of zoneEntries) {
     const bounds = zone.bounds;
@@ -312,7 +294,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     box([serviceEnd - serviceStart, wallHeight, 0.14], [(serviceStart + serviceEnd) / 2, wallHeight / 2, 7.5], l1Material),
     box([0.14, wallHeight, 6.5], [32.5, wallHeight / 2, 10.75], l1Material),
   );
-  const openingMarkerMaterial = new THREE.MeshStandardMaterial({ color: 0x3f4c51, roughness: 0.72 });
+  const openingMarkerMaterial = materials.get('opening-marker');
   for (const entrance of model.geometry.l1.toiletEntrances) {
     const openingGroup = new THREE.Group();
     const x = entrance.side === 'x31' ? serviceStart - 0.015 : serviceEnd + 0.015;
@@ -327,9 +309,9 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     }, selectables);
   }
 
-  const sanitaryMaterial = new THREE.MeshStandardMaterial({ color: 0xf4f6f4, roughness: 0.42 });
-  const cubicleMaterial = new THREE.MeshStandardMaterial({ color: 0xc8d1ce, roughness: 0.78 });
-  const cubicleDoorMaterial = new THREE.MeshStandardMaterial({ color: 0x65736f, roughness: 0.68 });
+  const sanitaryMaterial = materials.get('sanitary-fixture');
+  const cubicleMaterial = materials.get('cubicle');
+  const cubicleDoorMaterial = materials.get('cubicle-door');
   const toiletDetails = new THREE.Group();
   for (const zone of Object.values(model.geometry.l1.zones).filter((candidate) => candidate.layout)) {
     const layout = zone.layout!;
@@ -402,12 +384,13 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
 
   const pool = model.geometry.pool;
+  const poolPresentation = getViewerPoolPresentation(model);
   const deckElevation = pool.deckElevation.value;
   const poolX0 = pool.origin[0];
   const poolX1 = poolX0 + pool.length.value;
   const poolZ0 = pool.origin[1];
   const poolZ1 = poolZ0 + pool.width.value;
-  const deckMaterial = new THREE.MeshStandardMaterial({ color: 0xd8d3c8, roughness: 0.88 });
+  const deckMaterial = materials.get('pool-deck');
   const deckGroup = new THREE.Group();
   const deckThickness = deckElevation;
   const westDeck = box([poolX0, deckThickness, buildingWidth], [poolX0 / 2, deckElevation / 2, centreZ], deckMaterial);
@@ -442,9 +425,9 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
 
   const poolGroup = new THREE.Group();
-  const waterLevel = deckElevation - 0.08;
-  const shallowBottom = waterLevel - pool.shallowDepth.value;
-  const deepBottom = waterLevel - pool.deepDepth.value;
+  const waterLevel = poolPresentation.waterSurfaceElevation;
+  const shallowBottom = poolPresentation.shallowBottomElevation;
+  const deepBottom = poolPresentation.deepBottomElevation;
   poolGroup.add(quad([
     poolX0, shallowBottom, poolZ0,
     poolX0, shallowBottom, poolZ1,
@@ -479,26 +462,30 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     poolX1, waterLevel, poolZ1,
     poolX1, waterLevel, poolZ0,
   ], basinMaterial));
-  poolGroup.add(quad([
+  const waterSurface = quad([
     poolX0, waterLevel, poolZ0,
     poolX1, waterLevel, poolZ0,
     poolX1, waterLevel, poolZ1,
     poolX0, waterLevel, poolZ1,
-  ], waterMaterial));
+  ], waterMaterial);
+  waterSurface.name = 'POOL-01-WATER-SURFACE';
+  waterSurface.userData.waterStateSource = 'walkthrough-main-pool-water';
+  waterSurface.userData.waterSurfaceElevation = waterLevel;
+  poolGroup.add(waterSurface);
   for (const band of pool.laneBands.slice(0, -1)) {
     const z = band.y2;
     poolGroup.add(line([
       new THREE.Vector3(poolX0, waterLevel + 0.025, z),
       new THREE.Vector3(poolX1, waterLevel + 0.025, z),
-    ], new THREE.LineBasicMaterial({ color: 0xf7f5df })));
+    ], materials.get('lane-line')));
     for (let x = poolX0 + 0.35, index = 0; x < poolX1; x += 0.5, index += 1) {
-      const floatMaterial = new THREE.MeshStandardMaterial({ color: index % 6 < 3 ? 0xf4f1de : 0xc75d4b, roughness: 0.54 });
+      const floatMaterial = materials.get(index % 6 < 3 ? 'lane-float-light' : 'lane-float-red');
       const laneFloat = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), floatMaterial);
       laneFloat.position.set(x, waterLevel + 0.045, z);
       poolGroup.add(laneFloat);
     }
   }
-  const railMaterial = new THREE.MeshStandardMaterial({ color: 0xaeb8ba, roughness: 0.32, metalness: 0.72 });
+  const railMaterial = materials.get('pool-rail');
   for (const z of [poolZ0 + 0.8, poolZ1 - 0.8]) {
     for (const x of [poolX0 + 0.28, poolX0 + 0.7]) {
       const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.2, 14), railMaterial);
@@ -646,12 +633,8 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
   const l2WallHeight = l2Data.topElevation - l2Data.baseElevation - 0.28;
   const l2WallCentreY = l2Data.baseElevation + l2WallHeight / 2;
-  const corridorMaterial = new THREE.MeshStandardMaterial({
-    color: 0xc7d8d2, roughness: 0.82, transparent: true, opacity: 0.74, side: THREE.DoubleSide,
-  });
-  const stairZoneMaterial = new THREE.MeshStandardMaterial({
-    color: 0xd0ccc2, roughness: 0.86, transparent: true, opacity: 0.78, side: THREE.DoubleSide,
-  });
+  const corridorMaterial = materials.get('l2-circulation');
+  const stairZoneMaterial = materials.get('l2-stair-zone');
   const corridorSurface = horizontalPolygon(
     l2Data.circulationZone.polygon,
     l2Data.baseElevation + 0.012,
@@ -678,7 +661,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
       Math.min(x, l2Data.endX), l2WallCentreY, l2Data.y0ExteriorFacade.bounds.y2 / 2,
     ], dark));
   }
-  const l2GlassEdge = new THREE.LineBasicMaterial({ color: 0x5ab8d0, transparent: true, opacity: 0.92 });
+  const l2GlassEdge = materials.get('glass-edge');
   for (const elevation of [l2Data.baseElevation + 0.08, l2Data.topElevation - 0.32]) {
     l2Y0Facade.add(line([
       new THREE.Vector3(l2Data.startX, elevation, l2Data.y0ExteriorFacade.bounds.y2 + 0.006),
@@ -792,9 +775,9 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     openItemId: 'OPEN-019',
   }, selectables);
 
-  const showerMaterial = new THREE.MeshStandardMaterial({ color: 0xd9e4e1, roughness: 0.78 });
-  const fixtureMaterial = new THREE.MeshStandardMaterial({ color: 0xf4f0e8, roughness: 0.5 });
-  const lockerMaterial = new THREE.MeshStandardMaterial({ color: 0x6d827f, roughness: 0.76 });
+  const showerMaterial = materials.get('shower-partition');
+  const fixtureMaterial = materials.get('interior-fixture');
+  const lockerMaterial = materials.get('locker');
   for (const [key, zone] of Object.entries(l2Data.zones)) {
     const showerGroup = new THREE.Group();
     const partitionHeight = 2.1;
@@ -902,9 +885,9 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     openItemId: l3Data.planPivot.openItemId,
   }, selectables);
 
-  const extensionMaterial = new THREE.MeshStandardMaterial({ color: 0xb8b4aa, roughness: 0.82, side: THREE.DoubleSide });
-  const arrivalMaterial = new THREE.MeshStandardMaterial({ color: 0xd7ddd9, roughness: 0.7, side: THREE.DoubleSide });
-  const terraceMaterial = new THREE.MeshStandardMaterial({ color: 0x99b48c, roughness: 0.92, side: THREE.DoubleSide });
+  const extensionMaterial = materials.get('l3-extension');
+  const arrivalMaterial = materials.get('l3-arrival');
+  const terraceMaterial = materials.get('terrace');
   const extension = l3Data.orthogonalExtension;
   const arrival = l3Data.arrivalWing;
   const terrace = l3Data.landscapeTerrace;
@@ -919,7 +902,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     box([terrace.bounds.x2 - terrace.bounds.x1, 1.15, 0.08], [(terrace.bounds.x1 + terrace.bounds.x2) / 2, l3Data.baseElevation + 0.575, 0.04], dark),
     box([0.9, 2.1, 0.06], [40.25, l3Data.baseElevation + 1.05, 2.04], dark),
   );
-  const planterMaterial = new THREE.MeshStandardMaterial({ color: PALETTE.planting, roughness: 0.95 });
+  const planterMaterial = materials.get('planter');
   extensionGroup.add(
     box([0.55, 0.42, 0.75], [40.45, l3Data.baseElevation + 0.21, 3.0], planterMaterial),
     box([0.45, 0.36, 0.65], [40.5, l3Data.baseElevation + 0.18, 4.25], planterMaterial),
@@ -980,7 +963,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     openItemId: l3Data.mirror.openItemId,
   }, selectables);
 
-  const equipmentMaterial = new THREE.MeshStandardMaterial({ color: 0x8aa8ae, roughness: 0.62, metalness: 0.15 });
+  const equipmentMaterial = materials.get('equipment');
   const fixedEquipment = new THREE.Group();
   fixedEquipment.add(
     box([2.2, 1.3, 2.2], [34.1, l3Data.baseElevation + 0.65, 9.0], equipmentMaterial),
@@ -1140,7 +1123,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     roof.endX, roof.highElevation, 0,
   ], glass);
   layer('roof').add(roofMesh);
-  const roofGridMaterial = new THREE.LineBasicMaterial({ color: 0x5e9cac, transparent: true, opacity: 0.62 });
+  const roofGridMaterial = materials.get('roof-grid');
   for (let x = roof.startX; x <= roof.endX + 0.01; x += roof.planRun / 6) {
     const clamped = Math.min(x, roof.endX);
     layer('roof').add(line([
@@ -1186,7 +1169,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     rearCanopy.baseElevation + rearCanopy.thickness / 2,
     (rearCanopy.bounds.y1 + rearCanopy.bounds.y2) / 2,
   ], glass));
-  const canopyFrame = new THREE.LineBasicMaterial({ color: 0x4e96a7, transparent: true, opacity: 0.85 });
+  const canopyFrame = materials.get('canopy-frame');
   for (const x of [rearCanopy.bounds.x1, rearCanopy.bounds.x2]) {
     rearCanopyGroup.add(line([
       new THREE.Vector3(x, rearCanopy.baseElevation + rearCanopy.thickness + 0.012, rearCanopy.bounds.y1),
@@ -1233,11 +1216,8 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
 
   const pv = l3Data.pvRoofReserve;
-  const pvMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x8fd9ee, roughness: 0.22, metalness: 0.08, side: THREE.DoubleSide,
-    transparent: true, opacity: 0.44, transmission: 0.12, depthWrite: false,
-  });
-  const pvGridMaterial = new THREE.LineBasicMaterial({ color: 0x4f9fc1, transparent: true, opacity: 0.86 });
+  const pvMaterial = materials.get('photovoltaic');
+  const pvGridMaterial = materials.get('photovoltaic-grid');
   const pvGroup = new THREE.Group();
   pvGroup.name = 'L3-PV-PLAN-ROTATION';
   pvGroup.position.set(l3Data.planPivot.x, l3Data.baseElevation, l3Data.planPivot.y);
@@ -1287,7 +1267,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   }, selectables);
 
   const rainGroup = new THREE.Group();
-  const rainMaterial = new THREE.LineBasicMaterial({ color: 0x568eaf, transparent: true, opacity: 0.62 });
+  const rainMaterial = materials.get('rain');
   for (let index = 0; index <= 18; index += 1) {
     const z = roof.width * index / 18;
     rainGroup.add(line([
@@ -1300,7 +1280,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     new THREE.Vector3(roof.startX, 0.16, centreZ),
     new THREE.Vector3(-1.35, 0.16, centreZ),
     new THREE.Vector3(35.75, 0.16, 10.75),
-  ], new THREE.LineDashedMaterial({ color: PALETTE.deferred, dashSize: 0.45, gapSize: 0.3 }));
+  ], materials.get('rain-path'));
   waterPath.computeLineDistances();
   rainGroup.add(waterPath);
   layer('rain').add(rainGroup);
@@ -1319,7 +1299,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   const westRainPath = line([
     new THREE.Vector3(0.22, 0.2, centreZ),
     new THREE.Vector3(0.28, 0.2, westRain.bounds.y2 - 0.72),
-  ], new THREE.LineDashedMaterial({ color: PALETTE.deferred, dashSize: 0.4, gapSize: 0.24 }));
+  ], materials.get('west-rain-path'));
   westRainPath.computeLineDistances();
   westRainGroup.add(westRainPath);
   layer('rain').add(westRainGroup);
@@ -1358,14 +1338,7 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
 
   const cutawayAnnotations = new THREE.Group();
   cutawayAnnotations.name = 'POOL-LONGITUDINAL-CUTAWAY-ANNOTATIONS';
-  const cutawayWaterMaterial = new THREE.MeshBasicMaterial({
-    color: 0x39a9cf,
-    transparent: true,
-    opacity: 0.5,
-    side: THREE.DoubleSide,
-    depthTest: false,
-    depthWrite: false,
-  });
+  const cutawayWaterMaterial = materials.get('cutaway-water');
   const cutawayWaterSection = quad([
     poolX0, shallowBottom, poolZ0 - 0.04,
     poolX1, deepBottom, poolZ0 - 0.04,
@@ -1374,11 +1347,9 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   ], cutawayWaterMaterial);
   cutawayWaterSection.name = 'POOL-CUTAWAY-TRANSPARENT-WATER-SECTION';
   cutawayWaterSection.renderOrder = 20;
-  const depthLineMaterial = new THREE.LineBasicMaterial({ color: 0xe87451, linewidth: 2, depthTest: false });
-  const depthGuideMaterial = new THREE.LineDashedMaterial({
-    color: 0xf2b26f, dashSize: 0.22, gapSize: 0.14, depthTest: false,
-  });
-  const waterLineMaterial = new THREE.LineBasicMaterial({ color: 0xe9fbff, depthTest: false });
+  const depthLineMaterial = materials.get('cutaway-depth');
+  const depthGuideMaterial = materials.get('cutaway-guide');
+  const waterLineMaterial = materials.get('cutaway-waterline');
   const shallowDepthLine = line([
     new THREE.Vector3(poolX0, waterLevel, poolZ0 - 0.06),
     new THREE.Vector3(poolX0, shallowBottom, poolZ0 - 0.06),
@@ -1406,6 +1377,8 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
   cutawayAnnotations.visible = false;
   siteRoot.add(cutawayAnnotations);
 
+  visualAssets.attach({ scene, worldRoot, siteRoot, layerGroups });
+
   return {
     scene,
     worldRoot,
@@ -1416,6 +1389,13 @@ export function createViewerScene(model: ViewerModel): ViewerSceneGraph {
     cutaway: {
       hiddenObjects: [ground, nearDeck, nearPoolWall, nearCoping, l1Y0Facade, entranceGroup, l1Y0Mullions],
       annotationGroup: cutawayAnnotations,
+    },
+    water: {
+      group: poolGroup,
+      surface: waterSurface,
+      surfaceElevation: waterLevel,
+      shallowBottomElevation: shallowBottom,
+      deepBottomElevation: deepBottom,
     },
   };
 }

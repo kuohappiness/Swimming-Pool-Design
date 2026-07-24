@@ -39,11 +39,13 @@ README 只保留定位、quickstart、URL、版本與 01～07 導航。repo-loca
 
 ## 4. Task 狀態
 
-允許 `queued`、`ready`、`in_progress`、`blocked`、`done`。同一時間最多一項 `in_progress`。
+允許 `queued`、`ready`、`in_progress`、`blocked`、`done`。預設同一時間最多一項 `in_progress`。
+
+只有在 DEC 與 active specs 明確核准平行工作流、不同目標版本使用獨立 branch／worktree、檔案所有權互斥，且共用整合檔案仍由單一 integration task 管理時，才可改為「每個目標版本最多一項 `in_progress`」。平行例外必須由文件檢查器驗證；在相應 validator task 完成前仍沿用全域單一 `in_progress`。
 
 - `queued`：依賴尚未完成。
 - `ready`：可直接開始。
-- `in_progress`：目前唯一主動執行工作。
+- `in_progress`：目前主動執行工作；若使用已核准平行例外，須屬不同目標版本與隔離工作區。
 - `blocked`：已有明確阻塞證據。
 - `done`：驗收條件已通過；不得只因寫完規格而完成。
 

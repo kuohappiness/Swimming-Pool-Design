@@ -7,7 +7,7 @@ import { buildViewerModel } from '../scripts/viewer-data.mjs';
 import { compilePublicContent, injectModelTokens } from '../scripts/build-public-content.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const [modelText, registryText, markdown, manifestText, generatedModelText, generatedContentText, sceneFactorySource, interactionsSource, viewerHtml, solarHtml] = await Promise.all([
+const [modelText, registryText, markdown, manifestText, generatedModelText, generatedContentText, sceneFactorySource, baselineMaterialsSource, interactionsSource, viewerHtml, solarHtml] = await Promise.all([
   readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
   readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'),
   readFile(resolve(repoRoot, 'docs/public/swimming-pool-renovation-design-concept.md'), 'utf8'),
@@ -15,6 +15,7 @@ const [modelText, registryText, markdown, manifestText, generatedModelText, gene
   readFile(resolve(repoRoot, 'reference/generated/viewer-model.json'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/generated/concept-content.json'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/src/3d-viewer/scene-factory.ts'), 'utf8'),
+  readFile(resolve(repoRoot, 'reference/src/3d-viewer/rendering/baseline-material-registry.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/src/3d-viewer/interactions.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/3d-viewer/index.html'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/solar-study/index.html'), 'utf8'),
@@ -24,11 +25,11 @@ const registry = JSON.parse(registryText);
 const manifest = JSON.parse(manifestText);
 const clone = () => structuredClone(sourceModel);
 
-test('Viewer package derives all major geometry from GEO-0.6.7', () => {
+test('Viewer package derives all major geometry from the active revision', () => {
   const viewer = buildViewerModel(clone(), registry);
   assert.equal(viewer.schemaVersion, '1.3.0');
-  assert.equal(viewer.modelVersion, '0.6.7');
-  assert.equal(viewer.activeGeometryRevisionId, 'GEO-0.6.7');
+  assert.equal(viewer.modelVersion, sourceModel.modelVersion);
+  assert.equal(viewer.activeGeometryRevisionId, `GEO-${sourceModel.modelVersion}`);
   assert.equal(viewer.coordinateSystemId, 'SITE-XY');
   assert.equal(viewer.geometry.site.length, 41);
   assert.equal(viewer.geometry.site.width, 14);
@@ -180,13 +181,14 @@ test('world, L3, and coplanar mirror transforms remain separated in the scene fa
   assert.match(sceneFactorySource, /ST-02 梯下輕量造景植栽/);
   assert.match(sceneFactorySource, /L1 Y0 玻璃／清水模分段外牆/);
   assert.match(sceneFactorySource, /L2 Y0 全寬安全玻璃外牆/);
-  assert.match(sceneFactorySource, /SHARED-SAFETY-GLASS-FACADE-MATERIAL/);
+  assert.match(sceneFactorySource, /materials\.get\('safety-glass'\)/);
+  assert.match(baselineMaterialsSource, /SHARED-SAFETY-GLASS-FACADE-MATERIAL/);
   assert.match(sceneFactorySource, /F-L2-Y0-01:GLASS/);
   assert.match(sceneFactorySource, /W-L2-GENDER-DIVIDER:Y/);
-  assert.match(sceneFactorySource, /wallGlass\.color\.set\(0x8fd7e5\)/);
-  assert.match(sceneFactorySource, /wallGlass\.opacity = 0\.34/);
-  assert.match(sceneFactorySource, /wallGlass\.transmission = 0\.16/);
-  assert.doesNotMatch(sceneFactorySource, /wallGlass\.(clearcoat|emissive|reflectivity)/);
+  assert.match(baselineMaterialsSource, /safetyGlass\.color\.set\(0x8fd7e5\)/);
+  assert.match(baselineMaterialsSource, /safetyGlass\.opacity = 0\.34/);
+  assert.match(baselineMaterialsSource, /safetyGlass\.transmission = 0\.16/);
+  assert.doesNotMatch(baselineMaterialsSource, /safetyGlass\.(clearcoat|emissive|reflectivity)/);
   assert.doesNotMatch(sceneFactorySource, /l2FacadeGlass/);
   assert.doesNotMatch(interactionsSource, /BoxHelper|0xffd16b|selection outline/i);
   assert.match(sceneFactorySource, /L2 完整天花板/);

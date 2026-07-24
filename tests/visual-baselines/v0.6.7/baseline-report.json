@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "1.0.0",
+  "baselineId": "viewer-0.6.7-before-enhanced-rendering",
+  "capturedAt": "2026-07-24T06:22:16.344Z",
+  "captureRuntime": "Playwright Chromium with SwiftShader, deviceScaleFactor 1",
+  "performanceInterpretation": "Relative regression baseline only; SwiftShader results are not hardware acceptance measurements.",
+  "deterministicConditions": {
+    "colorScheme": "light",
+    "locale": "zh-TW",
+    "reducedMotion": "reduce",
+    "sceneIds": [
+      "overview",
+      "light",
+      "rain",
+      "people",
+      "time"
+    ]
+  },
+  "desktop": {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "frameTiming": {
+      "sampleCount": 12,
+      "averageFrameTimeMs": 948.383,
+      "p95FrameTimeMs": 2084.8,
+      "averageFps": 1.05
+    },
+    "resources": {
+      "resourceCount": 3,
+      "transferBytes": 184384,
+      "encodedBodyBytes": 183484,
+      "visualAssetEncodedBytes": 183484,
+      "externalOrigins": [],
+      "resources": [
+        {
+          "path": "/assets/viewer3d-Cb1BAR5v.js",
+          "origin": "http://127.0.0.1:4174",
+          "initiatorType": "script",
+          "transferSize": 178769,
+          "encodedBodySize": 178469
+        },
+        {
+          "path": "/assets/viewer3d-BRTH7iDS.css",
+          "origin": "http://127.0.0.1:4174",
+          "initiatorType": "link",
+          "transferSize": 4604,
+          "encodedBodySize": 4304
+        },
+        {
+          "path": "/assets/modulepreload-polyfill-B5Qt9EMX.js",
+          "origin": "http://127.0.0.1:4174",
+          "initiatorType": "other",
+          "transferSize": 1011,
+          "encodedBodySize": 711
+        }
+      ]
+    },
+    "runtime": {
+      "rendering": {
+        "materialRegistry": "baseline-material-registry",
+        "environmentEffect": "baseline-environment",
+        "frameEffectPipeline": "baseline-frame-pipeline",
+        "visualAssetAdapter": "baseline-visual-assets",
+        "quality": "high"
+      },
+      "inputAdapter": "desktop-keyboard-pointer",
+      "reducedMotion": "true",
+      "canvas": {
+        "cssWidth": 1440,
+        "cssHeight": 834,
+        "drawingBufferWidth": 1440,
+        "drawingBufferHeight": 834
+      }
+    }
+  },
+  "mobile": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "frameTiming": {
+      "sampleCount": 12,
+      "averageFrameTimeMs": 338.85,
+      "p95FrameTimeMs": 676.4,
+      "averageFps": 2.95
+    },
+    "resources": {
+      "resourceCount": 3,
+      "transferBytes": 184384,
+      "encodedBodyBytes": 183484,
+      "visualAssetEncodedBytes": 183484,
+      "externalOrigins": [],
+      "resources": [
+        {
+          "path": "/assets/viewer3d-Cb1BAR5v.js",
+          "origin": "http://127.0.0.1:4174",
+          "initiatorType": "script",
+          "transferSize": 178769,
+          "encodedBodySize": 178469
+        },
+        {
+          "path": "/assets/modulepreload-polyfill-B5Qt9EMX.js",
+          "origin": "http://127.0.0.1:4174",
+          "initiatorType": "other",
+          "transferSize": 1011,
+          "encodedBodySize": 711
+        },
+        {
+          "path": "/assets/viewer3d-BRTH7iDS.css",
+          "origin": "http://127.0.0.1:4174",
+          "initiatorType": "link",
+          "transferSize": 4604,
+          "encodedBodySize": 4304
+        }
+      ]
+    },
+    "runtime": {
+      "rendering": {
+        "materialRegistry": "baseline-material-registry",
+        "environmentEffect": "baseline-environment",
+        "frameEffectPipeline": "baseline-frame-pipeline",
+        "visualAssetAdapter": "baseline-visual-assets",
+        "quality": "high"
+      },
+      "inputAdapter": "touch-dual-surface",
+      "reducedMotion": "true",
+      "canvas": {
+        "cssWidth": 390,
+        "cssHeight": 786,
+        "drawingBufferWidth": 390,
+        "drawingBufferHeight": 786
+      }
+    }
+  },
+  "screenshots": [
+    {
+      "filename": "desktop-1440x900-scene-light.png",
+      "byteSize": 234595,
+      "sha256": "82267670073f4823a037827c0dfc65cb6ce1f413a62d4246ce64ef533a1bbd8a"
+    },
+    {
+      "filename": "desktop-1440x900-scene-overview.png",
+      "byteSize": 230607,
+      "sha256": "d615854f1603548e1547dcb500f511e2aa97564cecd1654be31d31f1dd0e4441"
+    },
+    {
+      "filename": "desktop-1440x900-scene-people.png",
+      "byteSize": 147949,
+      "sha256": "e972093dd5d2ebf78d1ca4f0f4b4e66d0cd951a98f07408afbc8497344df9c77"
+    },
+    {
+      "filename": "desktop-1440x900-scene-rain.png",
+      "byteSize": 199305,
+      "sha256": "47cac29732b50cf5ee54921a4821d528673a08e9ed8fd39ef19b61a1a27c83ef"
+    },
+    {
+      "filename": "desktop-1440x900-scene-time.png",
+      "byteSize": 234094,
+      "sha256": "5e56022bc442ccd9f38515027bf8406b172bc2378f73af30f35a905d8e76dd74"
+    },
+    {
+      "filename": "desktop-1440x900-view-pool-side.png",
+      "byteSize": 109851,
+      "sha256": "fc1351a5780993c0285a1a31cb9266c4907e3dd7e8c8ac7ec78957c76041204b"
+    },
+    {
+      "filename": "desktop-1440x900-view-school-side.png",
+      "byteSize": 88745,
+      "sha256": "c505b471b086c7731d3000096bb9bf342790a6f7464ba93a56432b1028726010"
+    },
+    {
+      "filename": "desktop-1440x900-walkthrough-entrance.png",
+      "byteSize": 262361,
+      "sha256": "950b288df4ee9d512a1b6b9c11d925a402214c59cca794f8c9f4d27fcfb8539e"
+    },
+    {
+      "filename": "mobile-390x844-scene-light.png",
+      "byteSize": 85395,
+      "sha256": "80142b332db86ff5c1a214cc433fc7ea0324327f301bd43f78c909438f5ce932"
+    },
+    {
+      "filename": "mobile-390x844-scene-overview.png",
+      "byteSize": 84076,
+      "sha256": "2d36c43880bdff2a26aba179bf6d9aa0aef278de92e8ba92efe7b0a37d91181f"
+    },
+    {
+      "filename": "mobile-390x844-scene-people.png",
+      "byteSize": 59903,
+      "sha256": "604596b0f85ce02a71b378479c4699a3040154c006a4f405604f267ea6263fe5"
+    },
+    {
+      "filename": "mobile-390x844-scene-rain.png",
+      "byteSize": 73612,
+      "sha256": "744d01961f58251a144e68a73f7479b086cf1c52570b64644a8278e6c15f80a6"
+    },
+    {
+      "filename": "mobile-390x844-scene-time.png",
+      "byteSize": 88869,
+      "sha256": "b11df03125b89a8998c842b0f0617a7e233f5a6ae19b3a2758601b1078159e98"
+    },
+    {
+      "filename": "mobile-390x844-walkthrough-entrance.png",
+      "byteSize": 80537,
+      "sha256": "47448d22259e53bdd273208005ac96e0329a2365feb9f994e84f3489a80ae90e"
+    }
+  ]
+}

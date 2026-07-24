@@ -13,6 +13,7 @@ import type {
   WalkthroughSource,
   WaterVolumeDescriptor,
 } from '../types.js';
+import { getViewerPoolPresentation } from '../../pool-state.ts';
 
 const REQUIRED_ENTITY_IDS = [
   'SITE-01',
@@ -221,6 +222,7 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
   const deckElevation = finite(pool.deckElevation.value, 'pool.deckElevation');
   const shallowDepth = positive(pool.shallowDepth.value, 'pool.shallowDepth');
   const deepDepth = positive(pool.deepDepth.value, 'pool.deepDepth');
+  const poolPresentation = getViewerPoolPresentation(model);
   if (deepDepth < shallowDepth) throw new TypeError('pool.deepDepth must not be less than pool.shallowDepth.');
   const siteBounds = entities['SITE-01'].bounds;
   const buildingBounds = entities['BLDG-01'].bounds;
@@ -335,6 +337,7 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
     coordinateSystemId: 'SITE-XY',
     bounds: cloneBounds(pool.bounds),
     rimElevation: deckElevation,
+    waterSurfaceElevation: poolPresentation.waterSurfaceElevation,
     shallowEndX: pool.bounds.x1,
     deepEndX: pool.bounds.x2,
     shallowDepth,
@@ -347,7 +350,7 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
     entityId: 'POOL-01',
     coordinateSystemId: 'SITE-XY',
     bounds: cloneBounds(pool.bounds),
-    surfaceElevation: deckElevation,
+    surfaceElevation: poolPresentation.waterSurfaceElevation,
     shallowEndX: pool.bounds.x1,
     deepEndX: pool.bounds.x2,
     shallowDepth,
@@ -378,8 +381,8 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
       id: 'l2-arrival',
       entityId: 'ST-01',
       coordinateSystemId: 'SITE-XY',
-      normalizedAnchor: { x: 0.96, y: 0.5 },
-      siteOffset: { x: 0, y: 0, z: 0 },
+      normalizedAnchor: { x: 1, y: 0.5 },
+      siteOffset: { x: 0.45, y: 0, z: 0 },
       elevationRole: 'l2-floor',
     },
     {

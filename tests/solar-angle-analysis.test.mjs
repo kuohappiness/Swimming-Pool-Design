@@ -14,10 +14,10 @@ import {
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 
-test('reads solar geometry only from the active v0.6.7 SITE-XY revision', () => {
+test('reads solar geometry only from the active SITE-XY revision', () => {
   const study = activeSolarStudyGeometry(model);
   assert.deepEqual(study, {
-    revision: '0.6.7',
+    revision: model.modelVersion,
     rotatingLevel: 'L3',
     planRotation: 25.5,
     mirrorLeanFromVertical: 23,

@@ -2,10 +2,11 @@
 
 - 日期：2026-07-24
 - 類型：implementation-plan
-- 狀態：in_progress
+- 狀態：completed
+- 完成日期：2026-07-24
 - 任務：TASK-053～TASK-058
 - 目標版本：0.7.0
-- 依據：[核准設計](2026-07-24-3d-walkthrough-mvp-design.md)、[DEC-117／DEC-118](../04_DECISIONS_AND_OPEN_ITEMS.md)
+- 依據：[核准設計](2026-07-24-3d-walkthrough-mvp-design.md)、[DEC-117／DEC-118](../../04_DECISIONS_AND_OPEN_ITEMS.md)
 
 ## 1. Goal
 
@@ -32,6 +33,7 @@
 - 不修改 solar input contract；若 0.7.0 只新增 Viewer capability，solar `inputHash` 應維持 current。
 - 每個 TASK 完成後執行 focused test；`TASK-058` 才執行完整 build、E2E、視覺與發布門檻。
 - 實作中若發現需要新增真實建築構件，停止該部分並建立 DEC／OPEN；不得由 Viewer 反向決定建築。
+- `TASK-054` 開始前先完成 `TASK-059` 的共用渲染接縫；之後 0.7.0 只使用 baseline rendering contract，不直接實作 0.8.0 的材質或後製。
 
 ---
 
@@ -80,7 +82,7 @@ git diff --check
 
 ## TASK-054｜Camera mode 與桌機／手機輸入
 
-**依賴：** `TASK-053`
+**依賴：** `TASK-053`、`TASK-059`
 
 **Files**
 
@@ -98,14 +100,14 @@ git diff --check
 
 ### Steps
 
-- [ ] 以純邏輯測試建立 mode state machine、重入保護與完整 restore snapshot。
-- [ ] 把 selection setup 改成可 suspend／resume，不在 walkthrough 累積 listener。
-- [ ] 實作 desktop normalized intent、Pointer Lock 與 drag-look fallback。
-- [ ] 實作 touch 左移動／右環視 pointer ownership；多指、pointercancel、orientation change 與 blur 必須清空 intent。
-- [ ] 實作固定步進 accumulator、最大 frame delta 與 substep cap。
-- [ ] 加入「進入漫遊」「退出」「返回安全點」與 touch controls DOM；Inspect 預設不變。
-- [ ] 模式切換保存並恢復 camera、FOV、Orbit target、scene、layers、cutaway 與 panel state。
-- [ ] 為 reduced motion 關閉 head bob／FOV kick，但保留所有控制。
+- [x] 以純邏輯測試建立 mode state machine、重入保護與完整 restore snapshot。
+- [x] 把 selection setup 改成可 suspend／resume，不在 walkthrough 累積 listener。
+- [x] 實作 desktop normalized intent、Pointer Lock 與 drag-look fallback。
+- [x] 實作 touch 左移動／右環視 pointer ownership；多指、pointercancel、orientation change 與 blur 必須清空 intent。
+- [x] 實作固定步進 accumulator、最大 frame delta 與 substep cap。
+- [x] 加入「進入漫遊」「退出」與 touch controls DOM；「返回安全點」在 TASK-055 建立 SafeSpawnRegistry 後接線。
+- [x] 模式切換保存並恢復 camera、FOV、Orbit target、scene、layers、cutaway 與 panel state。
+- [x] reduced motion 不啟用 head bob／FOV kick，完整保留所有控制。
 
 ### Focused validation
 
@@ -139,14 +141,14 @@ npm run typecheck
 
 ### Steps
 
-- [ ] 先以 geometry tests 鎖定 entrance opening、solid walls、floor elevations、pool opening、stair endpoints、L3 transform 與 safe spawn clearance。
-- [ ] 建立 low-poly solid proxies；不可把透明度、render layer 或 material 當碰撞語意。
-- [ ] 以 capsule sweep／penetration resolution 實作牆面滑動、grounded、重力與落地。
-- [ ] 為 `ST-01`、`ST-02` 建立坡面＋平台 proxy，檢查上／下行及側面阻擋。
-- [ ] 烘焙 siteRoot、WORLD-BEARING-ROOT 與 L3 transform，加入 proxy／visible reference 點一致性測試。
-- [ ] 建立入口、L1 池畔、L2、L3、露台與屋頂 safe spawns。
-- [ ] 實作 out-of-bounds／non-finite／stuck recovery；恢復時清除 velocity。
-- [ ] 加入區域跳轉 state，不允許飛行或穿牆作為一般移動。
+- [x] 先以 geometry tests 鎖定 entrance opening、solid walls、floor elevations、pool opening、stair endpoints、L3 transform 與 safe spawn clearance。
+- [x] 建立 low-poly solid proxies；不可把透明度、render layer 或 material 當碰撞語意。
+- [x] 以 capsule sweep／penetration resolution 實作牆面滑動、grounded、重力與落地。
+- [x] 為 `ST-01`、`ST-02` 建立坡面＋平台 proxy，檢查上／下行及側面阻擋。
+- [x] 烘焙 siteRoot、WORLD-BEARING-ROOT 與 L3 transform，加入 proxy／visible reference 點一致性測試。
+- [x] 建立入口、L1 池畔、L2、L3、露台與屋頂 safe spawns。
+- [x] 實作 out-of-bounds／non-finite／stuck recovery；恢復時清除 velocity。
+- [x] 加入區域跳轉 state，不允許飛行或穿牆作為一般移動。
 
 ### Focused validation
 
@@ -181,14 +183,14 @@ npm run typecheck
 
 ### Steps
 
-- [ ] 由 active pool bounds、水面、淺／深端及斜底建立 WaterVolume descriptor 測試。
-- [ ] 實作 walking／falling／surface／underwater transition，加入 hysteresis 防止水線抖動。
-- [ ] 實作浮力、垂直阻尼、三軸水中移動、上浮／下潛及速度限制。
-- [ ] 讓 solid collision world 保持池壁／斜底，但排除水面本身。
-- [ ] 實作 assisted climb：只有池緣目標 clearance 足夠時才上岸。
-- [ ] 實作「返回池畔」使用最近安全點，不硬編碼 world 座標。
-- [ ] 加入水線穿越、水下霧化／色調／聲音 hooks；音訊失敗不得影響移動。
-- [ ] 實作 mobile low-quality 水下效果與 reduced-motion 過渡。
+- [x] 由 active pool bounds、水面、淺／深端及斜底建立 WaterVolume descriptor 測試。
+- [x] 實作 walking／falling／surface／underwater transition，加入 hysteresis 防止水線抖動。
+- [x] 實作浮力、垂直阻尼、三軸水中移動、上浮／下潛及速度限制。
+- [x] 讓 solid collision world 保持池壁／斜底，但排除水面本身。
+- [x] 實作 assisted climb：只有池緣目標 clearance 足夠時才上岸。
+- [x] 實作「返回池畔」使用最近安全點，不硬編碼 world 座標。
+- [x] 加入水線穿越、水下霧化／色調／聲音 hooks；音訊失敗不得影響移動。
+- [x] 實作 mobile low-quality 水下效果與 reduced-motion 過渡。
 
 ### Focused validation
 
@@ -222,14 +224,14 @@ npm run typecheck
 
 ### Steps
 
-- [ ] 完成 desktop／mobile HUD、操作說明、目前區域、區域選擇器、返回與退出控制。
-- [ ] 以 44 CSS px、安全區 inset、直向／橫向 layout 驗收 touch targets。
-- [ ] 實作 capability profile：pixel ratio、shadow、underwater effect、camera motion；核心 collision 不因畫質變更。
-- [ ] 記錄平均與 p95 frame time，以 hysteresis 單向降級本次 session。
-- [ ] 暫停／恢復頁面 panel、selection、scene navigation 與 layer controls，不刪除既有功能。
-- [ ] 確認 fallback 不建立 walkthrough，錯誤只 disable 漫遊而不破壞 Inspect。
-- [ ] 保留 `InputAdapter`、`MovementStrategy`、`VisualAssetAdapter`、`AreaRegistry` 與 `EnvironmentEffect` 的窄介面，移除任何對未來 SketchUp／GLB 格式的硬編碼。
-- [ ] 補齊 aria label、keyboard path、reduced motion 與 focus restore。
+- [x] 完成 desktop／mobile HUD、操作說明、目前區域、區域選擇器、返回與退出控制。
+- [x] 以 44 CSS px、安全區 inset、直向／橫向 layout 驗收 touch targets。
+- [x] 實作 capability profile：pixel ratio、shadow、underwater effect、camera motion；核心 collision 不因畫質變更。
+- [x] 記錄平均與 p95 frame time，以 hysteresis 單向降級本次 session。
+- [x] 暫停／恢復頁面 panel、selection、scene navigation 與 layer controls，不刪除既有功能。
+- [x] 確認 fallback 不建立 walkthrough，錯誤只 disable 漫遊而不破壞 Inspect。
+- [x] 保留 `InputAdapter`、`MovementStrategy`、`VisualAssetAdapter`、`AreaRegistry` 與 `EnvironmentEffect` 的窄介面，移除任何對未來 SketchUp／GLB 格式的硬編碼。
+- [x] 補齊 aria label、keyboard path、reduced motion 與 focus restore。
 
 ### Focused validation
 
@@ -249,7 +251,7 @@ node --test tests/walkthrough-controller.test.mjs
 
 ## TASK-058｜回歸、契約、版本與 0.7.0 發布
 
-**依賴：** `TASK-053`～`TASK-057`
+**依賴：** `TASK-053`～`TASK-057`、`TASK-059`
 
 **Files**
 
@@ -265,14 +267,14 @@ node --test tests/walkthrough-controller.test.mjs
 
 ### Steps
 
-- [ ] 建立 deterministic E2E hooks，不以不穩定滑鼠像素路徑作唯一斷言。
-- [ ] desktop E2E 完成入口、L1、ST-01、L2、ST-02、L3、屋頂跳轉、入水、水下及返回。
-- [ ] mobile E2E 在 390 × 844 完成移動、環視、游泳、上浮／下潛、退出與無溢出檢查。
-- [ ] 驗證反覆 mode lifecycle、fallback、reduced motion、pointer-lock rejection 與 quality downgrade。
-- [ ] 執行 source immutability guard，確認 `model/project-model.json` 除 release metadata 外無 walkthrough 欄位或幾何變化。
-- [ ] 更新 3D Viewer contract 為已發布行為，保留概念／專業驗證界線。
-- [ ] 同步 package／modelVersion／active revision／generated Viewer data 至 0.7.0；solar inputs 未變時沿用 current registry，不跑最佳化。
-- [ ] 產生 release 記錄；TASK 完成後將 design 與 plan 狀態改為 completed 並一起移入 archive。
+- [x] 建立 deterministic E2E hooks，不以不穩定滑鼠像素路徑作唯一斷言。
+- [x] desktop E2E 完成入口、L1、ST-01、L2、ST-02、L3、屋頂跳轉、入水、水下及返回。
+- [x] mobile E2E 在 390 × 844 完成移動、環視、游泳、上浮／下潛、退出與無溢出檢查。
+- [x] 驗證反覆 mode lifecycle、fallback、reduced motion、pointer-lock rejection 與 quality downgrade。
+- [x] 執行 source immutability guard，確認 `model/project-model.json` 除 release metadata 外無 walkthrough 欄位或幾何變化。
+- [x] 更新 3D Viewer contract 為已發布行為，保留概念／專業驗證界線。
+- [x] 同步 package／modelVersion／active revision／generated Viewer data 至 0.7.0；solar inputs 未變時沿用 current registry，不跑最佳化。
+- [x] 產生 release 記錄；TASK 完成後將 design 與 plan 狀態改為 completed 並一起移入 archive。
 
 ### Final validation
 
@@ -289,10 +291,10 @@ git diff -- model/project-model.json
 
 ### Visual acceptance
 
-- [ ] Desktop：入口、兩座樓梯、L3、屋頂、池畔、水面、水下各至少一張證據截圖。
-- [ ] Mobile 390 × 844：陸地控制、水中控制、退出後 Inspect 各至少一張。
-- [ ] 人工走查所有 safe spawn 與主要牆角，不存在已知穿牆／永久卡死。
-- [ ] 退出漫遊後五場景、圖層、構件選取、固定視角與泳池剖視完整恢復。
+- [x] Desktop：入口、兩座樓梯、L3、屋頂、池畔、水面、水下各至少一張證據截圖。
+- [x] Mobile 390 × 844：陸地控制、水中控制、退出後 Inspect 各至少一張。
+- [x] 人工走查所有 safe spawn 與主要牆角，不存在已知穿牆／永久卡死。
+- [x] 退出漫遊後五場景、圖層、構件選取、固定視角與泳池剖視完整恢復。
 
 ### Done when
 

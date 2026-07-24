@@ -282,7 +282,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         recordedAnalysisInputHash,
         currentAnalysisInputHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: '0.6.7 概念模型已同步；本版只修正 Viewer L2 splitAxisY 資料投影、錯置牆面與玻璃材質回復，鏡牆角度與 solar inputHash 未變，因此沿用既有日照分析。3F 光電發電／眩光、玻璃屋簷結構與儲能消防仍須專業驗證。',
+        disclaimer: `${model.modelVersion} 概念模型已同步；本版整合可逆第一人稱漫遊、碰撞、樓梯代理、安全區域跳轉、水面／水下探索與可降級 enhanced rendering，未改變 canonical 建築幾何、鏡牆角度或 solar inputHash，因此沿用既有日照分析。漫遊碰撞、游泳與 PBR 視覺材質只屬 Viewer 模擬；3F 光電發電／眩光、玻璃屋簷結構、儲能消防、實際材料性能與無障礙入水仍須專業驗證。`,
       },
     },
   };

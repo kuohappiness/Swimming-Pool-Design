@@ -18,13 +18,14 @@ test('L2 Y0 ray reaches glass first and the changing-room divider stays at Y8', 
     root: resolve(repoRoot, 'reference'),
     appType: 'custom',
     optimizeDeps: { noDiscovery: true },
-    server: { middlewareMode: true },
+    server: { middlewareMode: true, hmr: { port: 0 } },
   });
 
   try {
-    const [{ createViewerScene }, { adaptViewerData }] = await Promise.all([
+    const [{ createViewerScene }, { adaptViewerData }, { createBaselineSceneRenderingDependencies }] = await Promise.all([
       vite.ssrLoadModule('/src/3d-viewer/scene-factory.ts'),
       vite.ssrLoadModule('/src/3d-viewer/model-adapter.ts'),
+      vite.ssrLoadModule('/src/3d-viewer/rendering/index.ts'),
     ]);
     const viewerModel = buildViewerModel(sourceModel, registry);
     assert.equal(adaptViewerData(viewerModel, content).model.geometry.l2.splitAxisY, 8);
@@ -37,7 +38,7 @@ test('L2 Y0 ray reaches glass first and the changing-room divider stays at Y8', 
       'missing L2 splitAxisY must fail instead of falling back to Y0',
     );
 
-    const graph = createViewerScene(viewerModel);
+    const graph = createViewerScene(viewerModel, createBaselineSceneRenderingDependencies());
     graph.scene.updateMatrixWorld(true);
     const genderDivider = graph.scene.getObjectByName('W-L2-GENDER-DIVIDER:Y8');
     assert.ok(genderDivider instanceof THREE.Mesh);

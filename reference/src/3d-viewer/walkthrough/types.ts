@@ -90,6 +90,7 @@ export interface PoolShellDescriptor {
   readonly coordinateSystemId: SiteCoordinateSystemId;
   readonly bounds: SiteBounds;
   readonly rimElevation: number;
+  readonly waterSurfaceElevation: number;
   readonly shallowEndX: number;
   readonly deepEndX: number;
   readonly shallowDepth: number;

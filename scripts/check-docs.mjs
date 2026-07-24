@@ -92,6 +92,67 @@ function metadata(content) {
   return result;
 }
 
+export function validateTaskConcurrency({
+  taskRows,
+  decisionContent,
+  activeSpecContents,
+  source = 'docs/07_ACTIVE_WORK.md',
+}) {
+  const concurrencyErrors = [];
+  const inProgressRows = taskRows.filter((row) => row[2] === 'in_progress');
+  if (inProgressRows.length <= 1) return concurrencyErrors;
+
+  const targets = inProgressRows.map((row) => row[3]);
+  for (const [index, target] of targets.entries()) {
+    if (!/^\d+\.\d+\.\d+$/.test(target)) {
+      concurrencyErrors.push(`${source}: ${inProgressRows[index][0]} has unknown parallel target ${target}`);
+    }
+  }
+
+  const targetCounts = new Map();
+  for (const target of targets) targetCounts.set(target, (targetCounts.get(target) ?? 0) + 1);
+  for (const [target, count] of targetCounts) {
+    if (count > 1) {
+      concurrencyErrors.push(`${source}: parallel workflow allows at most one in_progress task for ${target}; found ${count}`);
+    }
+  }
+
+  const approvedTargets = new Set(['0.7.0', '0.8.0']);
+  if (targets.some((target) => !approvedTargets.has(target))) {
+    concurrencyErrors.push(`${source}: parallel workflow is approved only for 0.7.0 and 0.8.0`);
+  }
+
+  const integrationTasks = new Set(['TASK-059', 'TASK-065']);
+  const conflictingIntegrationTask = inProgressRows.find((row) => integrationTasks.has(row[0]));
+  if (conflictingIntegrationTask) {
+    concurrencyErrors.push(
+      `${source}: shared integration task ${conflictingIntegrationTask[0]} must be the only in_progress task`,
+    );
+  }
+
+  const decisionApproved = /^\|\s*DEC-120\s*\|.*平行.*\|\s*confirmed parallel-development boundary\s*\|/m.test(decisionContent)
+    && /獨立 branch[／/]worktree/.test(decisionContent);
+  if (!decisionApproved) {
+    concurrencyErrors.push(`${source}: parallel tasks require confirmed DEC-120 isolation approval`);
+  }
+
+  const hasActiveVisualSpec = activeSpecContents.some((content) => {
+    const fields = metadata(content);
+    return fields.get('目標版本') === '0.8.0'
+      && ['approved', 'in_progress'].includes(fields.get('狀態'));
+  });
+  const activeSpecCorpus = activeSpecContents.join('\n');
+  const specApproved = hasActiveVisualSpec
+    && activeSpecCorpus.includes('平行開發邊界')
+    && activeSpecCorpus.includes('隔離工作區')
+    && activeSpecCorpus.includes('integration-owned files');
+  if (!specApproved) {
+    concurrencyErrors.push(`${source}: parallel tasks require an active approved isolation spec`);
+  }
+
+  return concurrencyErrors;
+}
+
 const markdownFiles = [
   'README.md',
   ...await collectMarkdown('docs'),
@@ -132,7 +193,6 @@ const taskIds = taskRows.map((row) => row[0]);
 ensureUnique(taskIds, 'TASK', taskPath);
 
 const allowedTaskStates = new Set(['queued', 'ready', 'in_progress', 'blocked', 'done']);
-let inProgressCount = 0;
 const taskIdSet = new Set(taskIds);
 const taskLinkedFiles = new Set();
 
@@ -141,8 +201,6 @@ for (const row of taskRows) {
   if (!allowedTaskStates.has(state)) {
     errors.push(`${taskPath}: ${taskId} has invalid state ${state}`);
   }
-  if (state === 'in_progress') inProgressCount += 1;
-
   for (const dependency of dependencyCell.match(/TASK-\d{3}/g) ?? []) {
     if (!taskIdSet.has(dependency)) {
       errors.push(`${taskPath}: ${taskId} depends on undeclared ${dependency}`);
@@ -155,10 +213,6 @@ for (const row of taskRows) {
   }
 }
 
-if (inProgressCount > 1) {
-  errors.push(`${taskPath}: at most one task may be in_progress; found ${inProgressCount}`);
-}
-
 const requiredSpecFields = ['日期', '類型', '狀態', '任務', '目標版本'];
 const activeStatus = new Set(['draft', 'approved', 'in_progress']);
 const archiveStatus = new Set(['completed', 'superseded']);
@@ -168,6 +222,13 @@ const activeSpecs = markdownFiles.filter((file) =>
 const archiveSpecs = markdownFiles.filter((file) =>
   path.dirname(file) === path.join('docs', 'archive', 'specs')
 );
+
+errors.push(...validateTaskConcurrency({
+  taskRows,
+  decisionContent,
+  activeSpecContents: activeSpecs.map((file) => contents.get(file)),
+  source: taskPath,
+}));
 
 for (const file of [...activeSpecs, ...archiveSpecs]) {
   const fields = metadata(contents.get(file));

@@ -7,8 +7,8 @@
 現行版本契約：
 
 - `schemaVersion = 1.3.0`
-- `modelVersion = designTargetVersion = 0.6.7`
-- `activeGeometryRevisionId = GEO-0.6.7`
+- `modelVersion = designTargetVersion = 0.8.0`
+- `activeGeometryRevisionId = GEO-0.8.0`
 - active revision 的 `id` 必須只出現一次，且 `revision`、`modelVersion` 均須等於頂層 `modelVersion`。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 

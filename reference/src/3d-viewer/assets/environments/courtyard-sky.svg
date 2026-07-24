@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="512" viewBox="0 0 1024 512">
+  <metadata>SPDX-License-Identifier: CC0-1.0; project-authored equirectangular procedural sky reference</metadata>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fb9d1"/>
+      <stop offset=".52" stop-color="#dbe9ec"/>
+      <stop offset=".62" stop-color="#d9d3c6"/>
+      <stop offset="1" stop-color="#65756f"/>
+    </linearGradient>
+    <radialGradient id="sun">
+      <stop offset="0" stop-color="#fffbd7" stop-opacity=".95"/>
+      <stop offset=".2" stop-color="#ffe4a6" stop-opacity=".54"/>
+      <stop offset="1" stop-color="#ffe4a6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="512" fill="url(#sky)"/>
+  <circle cx="240" cy="156" r="112" fill="url(#sun)"/>
+  <path d="M0 362Q120 336 240 364T480 356t240 10 304-8v154H0z" fill="#718078" opacity=".55"/>
+</svg>

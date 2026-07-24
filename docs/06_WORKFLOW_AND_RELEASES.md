@@ -32,7 +32,7 @@ validator + tests + build
 2. 更新唯一 owner，不在 README 或規格另建第二份狀態。
 3. 設計答案確認後，更新 DEC、設計基準及模型契約。
 4. 需要執行時，於 `07_ACTIVE_WORK.md` 建立穩定 TASK ID，連結 owner、核准規格與驗收。
-5. 只有 `in_progress` 任務可以主動修改實作；同一時間最多一項。
+5. 只有 `in_progress` 任務可以主動修改實作；預設同一時間最多一項。只有依文件治理契約核准、通過 validator 且使用獨立 branch／worktree 與互斥檔案所有權的不同目標版本，才可各有一項 `in_progress`；共用整合檔案仍只由單一 integration task 修改。
 6. 修改模型或 consumer，執行相稱的 validator、測試、build 與視覺檢查。
 7. 驗證完成後將 TASK 設為 `done`，規格移至 `docs/archive/specs/`。
 8. 形成版本時建立 `docs/releases/<version>.md`，記錄範圍、驗證證據與 commit。
@@ -62,6 +62,8 @@ git diff --check
 ## 6. 版本語意
 
 - 套件版本與正式模型版本在 release TASK 中同步。
+- 開發中的後續版本不得預先改寫正式套件／模型版本；runtime 相容性以 schema、active revision、coordinate system 與 hash 契約判定，不以尚未發布的目標版號硬編碼。
+- 不同目標版本可以在隔離分支平行開發，但正式發布保持版本順序；後續版本在前一版本發布後合併其正式基線，再執行完整回歸。
 - Git commit 是可追溯變更；Git tag 只在明確要求時建立。
 - `versions/V02`、`versions/V03` 是不可變歷史快照，不延續為現行模型版號。
 - PATCH：不改幾何語意；MINOR：新增相容能力或完成一組新設計；MAJOR：座標、單位或 schema 的不相容變更。

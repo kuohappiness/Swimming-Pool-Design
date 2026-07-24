@@ -99,7 +99,7 @@ test('walkthrough adapter exposes the complete MVP semantic descriptors', async 
     entityId: 'POOL-01',
     coordinateSystemId: 'SITE-XY',
     bounds: { x1: 3, x2: 28, y1: 4, y2: 12.5 },
-    surfaceElevation: 0.3,
+    surfaceElevation: 0.22,
     shallowEndX: 3,
     deepEndX: 28,
     shallowDepth: 1.2,
@@ -108,6 +108,8 @@ test('walkthrough adapter exposes the complete MVP semantic descriptors', async 
   });
   assert.equal(walkthrough.poolShells.length, 1);
   assert.equal(walkthrough.poolShells[0].entityId, 'POOL-01');
+  assert.equal(walkthrough.poolShells[0].rimElevation, 0.3);
+  assert.equal(walkthrough.poolShells[0].waterSurfaceElevation, 0.22);
   assert.equal(walkthrough.openings.length, 7);
   assert.deepEqual(
     walkthrough.openings.map(({ entityId, clearHeight, heightStatus }) => ({

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="256" height="256" fill="#8080ff"/>
+  <g fill="#7c84fc" opacity=".6">
+    <circle cx="24" cy="36" r="7"/><circle cx="81" cy="68" r="5"/><circle cx="151" cy="31" r="6"/>
+    <circle cx="222" cy="91" r="8"/><circle cx="48" cy="157" r="6"/><circle cx="131" cy="142" r="7"/>
+    <circle cx="199" cy="207" r="6"/><circle cx="87" cy="228" r="5"/>
+  </g>
+</svg>

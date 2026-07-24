@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <metadata>SPDX-License-Identifier: CC0-1.0; project-authored repeatable water normal proxy</metadata>
+  <filter id="waves">
+    <feTurbulence type="fractalNoise" baseFrequency=".035 .12" numOctaves="2" seed="9"/>
+    <feDisplacementMap in="SourceGraphic" scale="18"/>
+  </filter>
+  <rect width="256" height="256" fill="#8080ff"/>
+  <g fill="none" stroke="#8d72ff" stroke-width="5" opacity=".38" filter="url(#waves)">
+    <path d="M-32 48Q32 18 96 48t128 0 128 0"/>
+    <path d="M-32 128Q32 98 96 128t128 0 128 0"/>
+    <path d="M-32 208Q32 178 96 208t128 0 128 0"/>
+  </g>
+</svg>
