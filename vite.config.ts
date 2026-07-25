@@ -15,11 +15,7 @@ export default defineConfig({
     outDir: resolve(repoRoot, 'dist/reference'),
     emptyOutDir: false,
     rollupOptions: {
-      input: {
-        atlas: resolve(referenceRoot, 'index.html'),
-        solarStudy: resolve(referenceRoot, 'solar-study/index.html'),
-        viewer3d: resolve(referenceRoot, '3d-viewer/index.html'),
-      },
+      input: resolve(referenceRoot, 'index.html'),
     },
   },
 });

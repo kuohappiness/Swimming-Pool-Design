@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "1.0.0",
+  "baselineId": "v0.9.0-pre-unification",
+  "capturedAt": "2026-07-25T10:24:44.605Z",
+  "captureRuntime": "Playwright Chromium with SwiftShader, deviceScaleFactor 1",
+  "immutableData": {
+    "modelVersion": "0.8.2",
+    "activeGeometryRevisionId": "GEO-0.8.2",
+    "activeGeometrySha256": "00d4516b17814dd567743c55eb4b9d9a1a3c284fb6dec302861da6d4ade03c95",
+    "activeGeometryDesignSha256": "b674b3c1e1c377f94e78e2290d2756f3bb25b0159fab9ad6c15a31ca9eb65165",
+    "projectModelSha256": "b7f16a95ba23d4b20cab2f2f82d4b8d021fecd4f92a4d06c9c035a76ea14c0d7",
+    "solarInputHash": "3f9ae69b4dcde4e2dc88894f6e441b878a8b242a938f4f568419275282ddb999",
+    "viewerSemanticSha256": "35682f61bd3111111b7f26686e964e6ee64f0a3c51d1712b01c2ed9cd8f6a38e",
+    "conceptSourceHash": "c732edb1d715feb9b4b811b8ed1096ed3e6a6002c6e20d10f8dcfa1e76f5be83",
+    "generated": [
+      {
+        "path": "reference/generated/viewer-model.json",
+        "byteSize": 57771,
+        "sha256": "c1278fc505e617563ade281e9c232627230cbd13c84c84d1c7faaabb4d437584"
+      },
+      {
+        "path": "reference/generated/concept-content.json",
+        "byteSize": 11032,
+        "sha256": "27fe0bd5d3f46c866e8185b0516fd8ed386930cd92a88f20e82b5e34b3b43dcb"
+      }
+    ],
+    "drawings": [
+      {
+        "path": "reference/drafts/v0.6.7/DRAW-L1-PLAN-v0.6.7.svg",
+        "byteSize": 26487,
+        "sha256": "fa48069e2502df34ffff76d75136631b60ff6f1012ad1d5ba101918469e33eea"
+      },
+      {
+        "path": "reference/drafts/v0.6.7/DRAW-L1-PLAN-v0.6.7.png",
+        "byteSize": 134624,
+        "sha256": "f7b0de46974a2e931af941d6b2d08358bfbd18d0cc42fe9116930e437c6aec3c"
+      },
+      {
+        "path": "reference/drafts/v0.6.7/DRAW-L2-PLAN-v0.6.7.svg",
+        "byteSize": 30848,
+        "sha256": "82392de8100221e053c029bebdeb00af85cb99a989dd59febf8751c9f5492de6"
+      },
+      {
+        "path": "reference/drafts/v0.6.7/DRAW-L2-PLAN-v0.6.7.png",
+        "byteSize": 133514,
+        "sha256": "30212c0002da05aeb728e77bd06e0ce71e6d19ed710e35da8d40fa8511153703"
+      },
+      {
+        "path": "reference/drafts/v0.6.7/DRAW-L3-PLAN-v0.6.7.svg",
+        "byteSize": 17707,
+        "sha256": "849f9149e45edfad2e0cfd0dc9f43a08874a3af7906aae6ea913f000de413251"
+      },
+      {
+        "path": "reference/drafts/v0.6.7/DRAW-L3-PLAN-v0.6.7.png",
+        "byteSize": 223294,
+        "sha256": "a3df9b49f6f05c87a1759d9f66fa0d2956a37b062d569ad7bbae04002673bb78"
+      },
+      {
+        "path": "reference/drafts/v0.6.7/DRAW-LONGITUDINAL-SECTION-v0.6.7.svg",
+        "byteSize": 18884,
+        "sha256": "a2af533fc6d1a521f8cac21e46b1ba374c47dd98163f51127fb219fdbd5acbc2"
+      },
+      {
+        "path": "reference/drafts/v0.6.7/DRAW-LONGITUDINAL-SECTION-v0.6.7.png",
+        "byteSize": 148789,
+        "sha256": "5ef9afe56f18d87b3a020f066d7195fe83b171e98a024fc3ec272a91c197cd93"
+      }
+    ]
+  },
+  "screenshots": [
+    {
+      "filename": "desktop-1440x900-drawings.png",
+      "byteSize": 1009304,
+      "sha256": "05d566a7a8e98cd2eaecaf64986696eb2922a74d862ef916dadbdd0c27f4309c"
+    },
+    {
+      "filename": "desktop-1440x900-solar-study.png",
+      "byteSize": 246418,
+      "sha256": "6fbcb8b7d82f413521bb02d0eb7c52b2dccf2897935666b3eb2c43ef21b85e48"
+    },
+    {
+      "filename": "desktop-1440x900-3d-viewer.png",
+      "byteSize": 302799,
+      "sha256": "906f90a7c1183241820a7df299501e557736c8533a26282cc6bca3563c9dd53d"
+    },
+    {
+      "filename": "mobile-390x844-drawings.png",
+      "byteSize": 369677,
+      "sha256": "f37f32d00b8bd224e41c0af0a38cec4c4c56050ee5a7bce1ad9fc804b2c81e71"
+    },
+    {
+      "filename": "mobile-390x844-solar-study.png",
+      "byteSize": 90749,
+      "sha256": "b7d8dc2cd33e09626f70e57baf6dd05cd2e8ae7dfc678ade210d44b070b4537c"
+    },
+    {
+      "filename": "mobile-390x844-3d-viewer.png",
+      "byteSize": 86815,
+      "sha256": "f5037471390935cf8e2d6a7bb2216faabbb8367f70331d2a65314d02dceaf540"
+    }
+  ]
+}

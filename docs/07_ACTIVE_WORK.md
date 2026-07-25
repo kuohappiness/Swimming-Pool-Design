@@ -300,7 +300,26 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | TASK-073 | 分階段自我檢查、視覺回歸與效能優化 | done | 0.8.2 | [完成計畫](archive/specs/2026-07-25-building-first-realism-implementation-plan.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-068～TASK-072 | 資料分布、detail contract、建築細節、衛浴、動畫、desktop high、390 × 844 adaptive／low、fallback 與碰撞不變均有自動測試或 14 張截圖證據；自我檢查以 explicit caster 保留主要器具陰影、low 關閉細節陰影，衛浴 mesh 由 272 批次化為 160 並鎖定 180 上限，靜態陰影改為場景／圖層／剖視／畫質／context 變動時按需更新。SwiftShader high／medium／low 為 0.86／0.86／8.55 FPS，390 × 844 自動 low 為 18.2 FPS，均通過相對門檻；長時間量測與快速視覺快照分離，避免常駐預覽程序 |
 | TASK-074 | 同步 0.8.2 版本、文件、完整驗證並 commit／push | done | 0.8.2 | [Release 0.8.2](releases/0.8.2.md)、[發布流程](06_WORKFLOW_AND_RELEASES.md) | TASK-067～TASK-073 | package／model／`GEO-0.8.2`／schema 1.4.0／generated data／README／contracts 同步；完整測試、typecheck、production build、desktop／mobile E2E、品質證據與 diff 檢查通過後建立一次 release commit 並 push `main` |
 
-## 18. 未排程設計問題
+## 18. 0.9.0 統一公開成果展
+
+0.9.0 將現行三個 HTML 整合為單一公開成果網站，主導覽固定為「設計理念、日照研究、圖面設計、3D 展示」。本版只改入口、版面、字型、視覺層級與響應式體驗；active geometry、日照 inputHash、V067 完稿圖及 3D／漫遊實際資料與行為不變。
+
+設計與執行依據為 [已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md)及[已完成實作計畫](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-implementation-plan.md)。所有工作在同一整合線依序執行，同一時間最多一項 `in_progress`。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-075 | 建立不可變資料／視覺基線、單一 HTML 入口、query router 與 view lifecycle | done | 0.9.0 | [DEC-125／DEC-127](04_DECISIONS_AND_OPEN_ITEMS.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md)、[已完成實作計畫](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-implementation-plan.md) | TASK-074 | 記錄 canonical／solar／V067／三入口視覺基線；Vite 只建置 `index.html`，合法 query view 可直入、無效值回設計理念，舊入口不產生；各 view 有 mount／destroy 邊界，非 3D view 不載入 Three.js；資料、圖面與分析基線無差異，focused tests、typecheck、build 與 diff 檢查通過 |
+| TASK-076 | 建立優雅舒服的共用設計系統、App Shell、四項中文導覽與響應式殼層 | done | 0.9.0 | [DEC-126／DEC-128／DEC-129](04_DECISIONS_AND_OPEN_ITEMS.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-075 | 共用色彩／字型／間距／線條／元件 token 與唯一 header；取消漸層、發光、過量膠囊／陰影；320／390／768／1280／1440 px 導覽、safe area、44 px 觸控、鍵盤與 reduced motion 可用且無整頁水平溢出，字型不存取外部 runtime origin |
+| TASK-077 | 製作「向光、向水、向人、向時間」設計理念策展頁 | done | 0.9.0 | [DEC-126／DEC-127／DEC-128](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-076 | 由公開理念 owner 與 active token 建立作品首屏、核心引言及四章圖文節奏；不使用四張儀表板卡片，不遺漏正文／限制或硬編碼第二份數值；手機單欄、桌面刊物構圖、章節語意與鍵盤閱讀順序通過視覺／無障礙驗收 |
+| TASK-078 | 整合專業日照研究並帶入「向光」設計理念 | done | 0.9.0 | [DEC-127／DEC-130](04_DECISIONS_AND_OPEN_ITEMS.md)、[日照分析](analysis/solar-analysis.md)、[solar contract](contracts/solar-study.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-077 | 研究目的、摘要、平／剖面、控制器、讀值、代表時刻、方法與限制形成清楚層級；v0.6.7、+25.5°、+23.0°、152.5°、+1,036.829 kWh、inputHash、X33 與專業警語不變；既有 solar tests、320／390／920 px sticky 預覽及桌機／手機 smoke 通過，不重跑最佳化 |
+| TASK-079 | 將 V067 現行平面／剖面整合為「圖面設計」建築圖冊 | done | 0.9.0 | [DEC-127／DEC-128／DEC-129](04_DECISIONS_AND_OPEN_ITEMS.md)、[圖集契約](contracts/reference-atlas.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-078 | 保留五個 current sheet、內嵌 SVG、ID 選取、縮放、符合畫面與 L3 太陽能控制；V067 SVG／PNG hash 完全不變；桌面最大化圖面＋詳情，手機可順序查看完整圖框、目錄與詳情，320 px 以上可操作且不裁圖 |
+| TASK-080 | 將 3D Viewer、構件檢視與第一人稱漫遊整合為「3D 展示」 | done | 0.9.0 | [DEC-117／DEC-118／DEC-119／DEC-124／DEC-127～DEC-129](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-079 | Viewer 可動態 mount／destroy且多次進出不殘留 listener／RAF／canvas；五場景、圖層、固定視角、剖視、選取、資訊、畫質、fallback、七區漫遊、樓梯、游泳、水下與 snapshot restore 全保留；手機控制不被導覽遮擋，desktop／390 × 844 E2E 及資料／碰撞／移動回歸通過 |
+| TASK-081 | 完成跨 view、手機、無障礙、效能與不可變資料總驗收 | done | 0.9.0 | [DEC-125～DEC-130](04_DECISIONS_AND_OPEN_ITEMS.md)、[已完成實作計畫](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-implementation-plan.md) | TASK-077～TASK-080 | 四 view route、active 導覽、focus、scroll、資源清理與 CSS 隔離正確；desktop 1440／1280、tablet 768、mobile 390／320、fallback 均完成視覺檢查；非 3D 初始 bundle 不預載重型 runtime；docs、reference、tests、typecheck、build、E2E 與 diff 檢查全部通過，差異只屬核准展示層 |
+| TASK-082 | 同步 0.9.0 契約、版本、release 與單入口部署驗證 | done | 0.9.0 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[已完成實作計畫](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-implementation-plan.md) | TASK-081 | 三份 output contract、README、package／網站／模型 release metadata 與 `docs/releases/0.9.0.md` 同步；active geometry 維持 `GEO-0.8.2`、solar inputHash 與 V067 hashes 不變；artifact 只有單一主要 HTML、四 query view 可直入、舊入口不存在，完整驗證與發布證據齊全；commit／push 仍須依使用者另行指示 |
+
+`TASK-075`～`TASK-082` 已完成並收斂為 [Release 0.9.0](releases/0.9.0.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
+
+## 19. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

@@ -30,8 +30,8 @@ test('package, lockfile, model, and README release versions stay synchronized', 
 
 test('active revision is the only geometry source and uses SITE-XY', () => {
   const active = resolveActiveGeometry(model);
-  assert.equal(active.id, `GEO-${model.modelVersion}`);
-  assert.equal(active.modelVersion, model.modelVersion);
+  assert.equal(active.id, `GEO-${active.revision}`);
+  assert.equal(active.modelVersion, active.revision);
   assert.equal(active.coordinateSystemId, 'SITE-XY');
   assert.deepEqual(resolveGeometryEntity(active, 'ST-01').bounds, { x1: 20.5, x2: 29, y1: 0.5, y2: 2 });
   assert.deepEqual(sitePointToThree([20.5, 0.5, 0.3]), [20.5, 0.3, -0.5]);
@@ -52,7 +52,15 @@ test('active resolver fails closed when the selector is missing, unknown, duplic
 
   const drifted = structuredClone(model);
   drifted.geometryRevisions.find(({ id }) => id === drifted.activeGeometryRevisionId).modelVersion = '0.6.1';
-  assert.throws(() => resolveActiveGeometry(drifted), /revision and modelVersion must match/);
+  assert.throws(() => resolveActiveGeometry(drifted), /id, revision, and geometry modelVersion must match/);
+
+  const futureGeometry = structuredClone(model);
+  const future = futureGeometry.geometryRevisions.find(({ id }) => id === futureGeometry.activeGeometryRevisionId);
+  future.id = 'GEO-9.0.0';
+  future.revision = '9.0.0';
+  future.modelVersion = '9.0.0';
+  futureGeometry.activeGeometryRevisionId = future.id;
+  assert.throws(() => resolveActiveGeometry(futureGeometry), /cannot be newer/);
 });
 
 test('active resolver rejects missing frames, duplicate entity IDs, and unframed bounds', () => {
@@ -73,7 +81,7 @@ test('active resolver rejects missing frames, duplicate entity IDs, and unframed
 
 test('derived geometry exposes the confirmed pool, floors, roof, and stair', () => {
   const geometry = deriveReferenceGeometry(model);
-  assert.equal(geometry.activeGeometryRevisionId, `GEO-${model.modelVersion}`);
+  assert.equal(geometry.activeGeometryRevisionId, model.activeGeometryRevisionId);
   assert.equal(geometry.siteLength, 41);
   assert.equal(geometry.siteWidth, 14);
   assert.equal(geometry.poolLength, 25);

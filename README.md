@@ -6,10 +6,10 @@
 
 ## 目前版本
 
-- 套件版本：`0.8.2`
-- 模型版本：`0.8.2`
-- 已整合版本：`0.7.0` 第一人稱 Walkthrough＋`0.8.2` 建築優先擬真細節與手機降階
-- 下一個目標版本：尚未排程
+- 套件版本：`0.9.0`
+- 模型版本：`0.9.0`
+- 已整合版本：`0.7.0` 第一人稱 Walkthrough＋`0.8.2` 建築優先擬真細節＋`0.9.0` 統一公開成果展
+- 下一個目標版本：尚未排程；待 Active Work 由 OPEN 建立新設計與任務
 - 當前工作與待修順序：[07｜Active Work](docs/07_ACTIVE_WORK.md)
 
 ## 本機使用
@@ -21,9 +21,10 @@ npm run dev
 
 Vite 顯示的 Network URL 可由同一 Wi-Fi 的手機開啟。提交前完整驗證：
 
-- 空間參照圖集：`/`
-- 日照互動研究：`/solar-study/`
-- 3D Viewer：`/3d-viewer/`
+- 設計理念：`/`
+- 日照互動研究：`/?view=solar-study`
+- 空間參照圖集：`/?view=drawings`
+- 3D Viewer：`/?view=3d-viewer`
 
 ```powershell
 npm run build
@@ -31,9 +32,10 @@ npm run build
 
 ## 公開成果
 
-- [空間參照圖集](https://kuohappiness.github.io/Swimming-Pool-Design/)
-- [冬夏日照互動研究](https://kuohappiness.github.io/Swimming-Pool-Design/solar-study/)
-- [3D Viewer](https://kuohappiness.github.io/Swimming-Pool-Design/3d-viewer/)
+- [設計理念](https://kuohappiness.github.io/Swimming-Pool-Design/)
+- [冬夏日照互動研究](https://kuohappiness.github.io/Swimming-Pool-Design/?view=solar-study)
+- [空間參照圖集](https://kuohappiness.github.io/Swimming-Pool-Design/?view=drawings)
+- [3D Viewer](https://kuohappiness.github.io/Swimming-Pool-Design/?view=3d-viewer)
 
 每次 `main` 通過驗證並推送後，GitHub Actions 會重新建置及更新公開網站；本機尚未 push 的變更不會上線。
 

@@ -47,6 +47,7 @@ export interface ViewerModel {
   modelVersion: string;
   revision: string;
   activeGeometryRevisionId: string;
+  geometryRevision: string;
   coordinateSystemId: 'SITE-XY';
   modelHash: string;
   project: { name: string; shortName: string; purpose: string; disclaimer: string };
@@ -378,7 +379,9 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     throw new TypeError('Viewer 模型與理念內容版本不同步。');
   }
   if (content.modelVersion !== model.modelVersion) throw new TypeError('Viewer modelVersion 不同步。');
-  if (!model.activeGeometryRevisionId || model.coordinateSystemId !== 'SITE-XY') {
+  if (!model.geometryRevision
+    || model.activeGeometryRevisionId !== `GEO-${model.geometryRevision}`
+    || model.coordinateSystemId !== 'SITE-XY') {
     throw new TypeError('Viewer 缺少唯一 active geometry 或 SITE-XY 座標系。');
   }
   const adapter = model.referenceSystem.coordinateAdapter;

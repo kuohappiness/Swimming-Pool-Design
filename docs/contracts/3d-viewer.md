@@ -1,9 +1,9 @@
 # 3D Viewer 契約
 
 - 類型：output-contract
-- 狀態：active／v0.8.2
+- 狀態：active／v0.9.0
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
-- 入口：`/3d-viewer/`
+- 入口：`/?view=3d-viewer`
 
 ## 資料來源與同步
 
@@ -12,7 +12,7 @@ Viewer 只接受：
 - `reference/generated/viewer-model.json`：由 active `GEO-0.8.2` 產生。
 - `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.8.2` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.8.2 在既有 Walkthrough／enhanced runtime 上增加建築優先、可依裝置降階的 visual-only 細節；除已明列的 L1 衛浴器具工作配置外，不改 V067 建築圖面基線。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.9.0` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，但不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 
@@ -41,6 +41,8 @@ Viewer 只接受：
 ## 場景與操作
 
 `scene-manifest.json` 固定提供 `overview`、`light`、`rain`、`people`、`time`。場景只改相機、visibility、environment 與理念內容，不另建第二套幾何。
+
+Viewer 必須由 `?view=3d-viewer` 的 view-level dynamic import 才載入 Three.js；離開頁面時停止 RAF、解除 listener／ResizeObserver、清除 canvas 並 dispose renderer／controls／selection／walkthrough runtime。反覆由導覽進入、離開再進入時，每個 document 只可有一個 canvas。
 
 ### Enhanced rendering
 
@@ -78,4 +80,4 @@ WebGL 不可用或 `?forceFallback=1` 時不建立 3D／漫遊 runtime；enhance
 - 桌機、手機與 fallback 截圖確認池體、四廁、樓梯、L3／鏡牆、屋頂、控制區與限制文字可讀；桌機／手機另截「泳池剖視」，並驗證離開剖視後模型恢復。
 - 選取 `WT-01` 與 `F-L2-Y0-01` 後畫布不得出現黃色外接框；另以 Y0／Y14 兩側截圖直接確認 L2 全寬玻璃的淡藍透明面、高光、上下框與豎梃可辨識。
 - desktop／390 × 844 E2E 必須覆蓋七區跳轉（含一樓衛浴）、入口移動、兩梯到達區、L3／屋頂、池畔入水、水面、水下、返回池畔與退出；退出後 Inspect snapshot 完整恢復，且 mobile 無水平溢出。
-- 0.8.2 E2E 預設須實際載入 enhanced runtime，另驗證 desktop high、390 × 844 low／adaptive、explicit baseline、necessary enhanced failure→baseline、optional asset degradation 與 WebGL static fallback；全部路徑不得新增 page error。
+- 0.9.0 E2E 預設須實際載入 enhanced runtime，另驗證 desktop high、390 × 844 low／adaptive、反覆進出、explicit baseline、necessary enhanced failure→baseline、optional asset degradation 與 WebGL static fallback；全部路徑不得新增 page error。

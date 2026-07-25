@@ -1,4 +1,3 @@
-import './styles.css';
 import rawModel from '../../model/project-model.json';
 import type { Entity, ProjectModel, SheetRender, Status } from './types';
 import { escapeHtml } from './geometry';
@@ -13,6 +12,10 @@ const required = <T extends Element>(selector: string): T => {
   if (!element) throw new Error(`Atlas shell is missing ${selector}.`);
   return element;
 };
+
+export function destroyAtlas(): void {
+  window.removeEventListener('hashchange', handleHashChange);
+}
 
 const tabs = required<HTMLElement>('#sheet-tabs');
 const stage = required<HTMLElement>('#sheet-stage');
@@ -155,14 +158,27 @@ function bindDrawingInteractions(): void {
     const visible = (event.currentTarget as HTMLInputElement).checked;
     stage.classList.toggle('hide-pv', !visible);
   });
-  stage.querySelector<HTMLButtonElement>('#fit-sheet')?.addEventListener('click', () => {
-    stage.querySelector<HTMLElement>('.drawing-scroll')?.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+  const fitButton = stage.querySelector<HTMLButtonElement>('#fit-sheet');
+  const setFitSheet = (fit: boolean) => {
+    stage.classList.toggle('fit-sheet', fit);
+    fitButton?.setAttribute('aria-pressed', String(fit));
+    if (fitButton) fitButton.textContent = fit ? '原圖尺寸' : '符合畫面';
+    if (fit) {
+      stage.querySelector<HTMLElement>('.drawing-scroll')
+        ?.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+    }
+  };
+  setFitSheet(window.matchMedia('(max-width: 820px)').matches);
+  fitButton?.addEventListener('click', () => {
+    setFitSheet(!stage.classList.contains('fit-sheet'));
   });
 }
 
-window.addEventListener('hashchange', () => {
+function handleHashChange(): void {
   const requested = location.hash.slice(1).toUpperCase();
   if (sheets.some((sheet) => sheet.id === requested)) setActiveSheet(requested);
-});
+}
+
+window.addEventListener('hashchange', handleHashChange);
 
 setActiveSheet(activeSheetId);

@@ -34,10 +34,11 @@ jobs:
       - name: Validate and build
         run: npm run build
 
-      - name: Verify Pages entry points
+      - name: Verify the single Pages entry point
         run: |
           test -f dist/reference/index.html
-          test -f dist/reference/solar-study/index.html
+          test ! -e dist/reference/solar-study/index.html
+          test ! -e dist/reference/3d-viewer/index.html
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6

@@ -1,0 +1,115 @@
+body {
+  overflow: auto;
+  color: var(--site-ink);
+  background: var(--site-paper);
+}
+
+.site-view {
+  padding: 0;
+}
+
+.site-footer {
+  display: grid;
+  padding: 1.5rem 0 max(2rem, env(safe-area-inset-bottom));
+  color: var(--site-muted);
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.view-intro--viewer {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
+  column-gap: 4rem;
+  padding-block: clamp(2.5rem, 5vw, 5rem);
+}
+
+.view-intro--viewer .site-kicker,
+.view-intro--viewer h1 {
+  grid-column: 1;
+}
+
+.view-intro--viewer > p {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: end;
+}
+
+.site-view--3d-viewer [data-view-root] {
+  background: var(--site-paper);
+}
+
+.site-view--3d-viewer .viewer-shell {
+  height: calc(100dvh - var(--site-header-height));
+  min-height: 620px;
+  background: #e7e7e1;
+}
+
+.site-view--3d-viewer .topbar {
+  padding-left: 16px;
+  background: var(--site-deep);
+}
+
+.site-view--3d-viewer .trust-strip {
+  margin-left: 0;
+}
+
+.site-view--3d-viewer .analysis-badge,
+.site-view--3d-viewer .viewer-links a,
+.site-view--3d-viewer .scene-nav button,
+.site-view--3d-viewer .view-controls button,
+.site-view--3d-viewer .reset-button,
+.site-view--3d-viewer .layer-list label {
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.site-view--3d-viewer .scene-nav button[data-active="true"]::before {
+  box-shadow: none;
+}
+
+.site-view--3d-viewer .webgl-fallback {
+  background: #dfe7e6;
+}
+
+.site-view--3d-viewer .orientation-cue,
+.site-view--3d-viewer .walkthrough-entry button,
+.site-view--3d-viewer .walkthrough-hud button,
+.site-view--3d-viewer .walkthrough-status {
+  box-shadow: none;
+}
+
+.site-view--3d-viewer .controls-panel,
+.site-view--3d-viewer .information-panel {
+  scroll-margin-top: calc(var(--site-header-height) + 8px);
+}
+
+@media (max-width: 900px) {
+  .view-intro--viewer {
+    display: block;
+  }
+
+  .view-intro--viewer > p {
+    margin-top: 1.5rem;
+  }
+
+  .site-view--3d-viewer .viewer-shell {
+    height: auto;
+    min-height: calc(100dvh - var(--site-header-height));
+  }
+
+  .site-view--3d-viewer .topbar {
+    min-height: 58px;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-view--3d-viewer .viewer-shell {
+    grid-template-rows: 58px minmax(470px, calc(100svh - var(--site-header-height) - 58px)) auto auto;
+  }
+
+  .site-view--3d-viewer .walkthrough-hud {
+    top: max(8px, env(safe-area-inset-top));
+  }
+}

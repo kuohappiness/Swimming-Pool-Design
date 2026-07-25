@@ -1,0 +1,38 @@
+:root {
+  color-scheme: light;
+  --site-paper: #f4f0e8;
+  --site-paper-raised: #fbf8f1;
+  --site-ink: #1e292a;
+  --site-muted: #697273;
+  --site-line: #c8c5bc;
+  --site-line-strong: #8d928f;
+  --site-water: #176f76;
+  --site-water-soft: #d9e7e5;
+  --site-concrete: #a6a49d;
+  --site-terracotta: #a64f35;
+  --site-gold: #9b762d;
+  --site-deep: #172829;
+  --site-white: #fffdf8;
+  --site-serif: "Noto Serif TC", "Songti TC", "PMingLiU", Georgia, serif;
+  --site-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --site-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --site-page: min(100% - 40px, 1440px);
+  --site-reading: 760px;
+  --site-space-1: .375rem;
+  --site-space-2: .75rem;
+  --site-space-3: 1.25rem;
+  --site-space-4: 2rem;
+  --site-space-5: 3.5rem;
+  --site-space-6: 6rem;
+  --site-radius: 4px;
+  --site-header-height: 76px;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --site-page: min(100% - 28px, 1440px);
+    --site-space-5: 2.75rem;
+    --site-space-6: 4rem;
+    --site-header-height: 116px;
+  }
+}

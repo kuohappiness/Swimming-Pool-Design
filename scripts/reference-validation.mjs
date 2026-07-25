@@ -38,8 +38,8 @@ export function validateModel(model) {
   check(errors, model.designTargetVersion === model.modelVersion, 'designTargetVersion must equal modelVersion.');
   check(
     errors,
-    active.id === `GEO-${model.modelVersion}`,
-    'Active geometry revision ID must match modelVersion.',
+    active.id === `GEO-${active.revision}`,
+    'Active geometry revision ID must match its immutable geometry revision.',
   );
   check(errors, active.coordinateSystemId === 'SITE-XY', 'Active geometry must use SITE-XY.');
 

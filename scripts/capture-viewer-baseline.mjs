@@ -35,7 +35,7 @@ async function waitForServer() {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     try {
-      const response = await fetch(`${origin}/3d-viewer/`);
+      const response = await fetch(`${origin}/?view=3d-viewer`);
       if (response.ok) return;
     } catch {
       // Preview is still starting.
@@ -128,7 +128,7 @@ async function captureViewport(browser, label, viewport, includeViews) {
   });
 
   try {
-    await page.goto(`${origin}/3d-viewer/`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/?view=3d-viewer`, { waitUntil: 'networkidle' });
     await page.waitForFunction(
       () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
     );

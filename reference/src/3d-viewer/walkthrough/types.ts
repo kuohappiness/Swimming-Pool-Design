@@ -26,6 +26,7 @@ export interface WalkthroughIdentity {
   readonly modelVersion: string;
   readonly revision: string;
   readonly activeGeometryRevisionId: string;
+  readonly geometryRevision: string;
   readonly sourceModelHash: string;
 }
 

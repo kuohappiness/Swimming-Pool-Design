@@ -1,4 +1,3 @@
-import './styles.css';
 import rawModel from '../../../model/project-model.json';
 import type { ProjectModel } from '../types';
 import { resolveActiveGeometry } from '../../../scripts/active-geometry.mjs';
@@ -11,6 +10,13 @@ import {
 } from '../../../scripts/solar-reflection.mjs';
 
 const model = rawModel as unknown as ProjectModel;
+
+export function destroySolarStudy(): void {
+  mobilePreviewMedia.removeEventListener('change', renderMobilePreview);
+  window.removeEventListener('focus', syncCurrentYear);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  window.clearInterval(currentYearInterval);
+}
 const location = model.referenceSystem.siteLocation;
 const planOrientation = deriveSolarPlanOrientation(model.referenceSystem);
 const poolAzimuth = planOrientation.poolFacingAzimuth;
@@ -552,8 +558,10 @@ function syncCurrentYear(): void {
   update();
 }
 
-window.addEventListener('focus', syncCurrentYear);
-document.addEventListener('visibilitychange', () => {
+function handleVisibilityChange(): void {
   if (!document.hidden) syncCurrentYear();
-});
-window.setInterval(syncCurrentYear, 60 * 60 * 1000);
+}
+
+window.addEventListener('focus', syncCurrentYear);
+document.addEventListener('visibilitychange', handleVisibilityChange);
+const currentYearInterval = window.setInterval(syncCurrentYear, 60 * 60 * 1000);

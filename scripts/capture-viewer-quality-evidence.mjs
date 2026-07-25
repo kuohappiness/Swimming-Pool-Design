@@ -53,7 +53,7 @@ async function waitForServer() {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     try {
-      const response = await fetch(`${origin}/3d-viewer/`);
+      const response = await fetch(`${origin}/?view=3d-viewer`);
       if (response.ok) return;
     } catch {
       // Preview is still starting.
@@ -194,7 +194,7 @@ async function openQualityPage(browser, {
   if (tier) renderingParameters.set('quality', tier);
   if (!adaptive) renderingParameters.set('adaptive', 'off');
   await page.goto(
-    `${origin}/3d-viewer/?${renderingParameters}`,
+    `${origin}/?view=3d-viewer&${renderingParameters}`,
     { waitUntil: 'networkidle' },
   );
   await page.waitForFunction(
@@ -380,7 +380,7 @@ async function validateOptionalAssetFailure(browser) {
   page.on('pageerror', (error) => pageErrors.push(error.message));
   try {
     await page.goto(
-      `${origin}/3d-viewer/?rendering=enhanced&quality=high&adaptive=off&simulateOptionalAssetFailure=environment`,
+      `${origin}/?view=3d-viewer&rendering=enhanced&quality=high&adaptive=off&simulateOptionalAssetFailure=environment`,
       { waitUntil: 'networkidle' },
     );
     await page.waitForFunction(

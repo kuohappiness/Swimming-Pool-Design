@@ -172,8 +172,9 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
   }
   if (!model.modelVersion) throw new TypeError('Viewer modelVersion is required.');
   if (!model.revision) throw new TypeError('Viewer revision is required.');
-  if (model.activeGeometryRevisionId !== `GEO-${model.modelVersion}`) {
-    throw new TypeError('activeGeometryRevisionId must match modelVersion.');
+  if (!model.geometryRevision
+    || model.activeGeometryRevisionId !== `GEO-${model.geometryRevision}`) {
+    throw new TypeError('activeGeometryRevisionId must match geometryRevision.');
   }
   if (!/^[a-f0-9]{64}$/.test(model.modelHash)) {
     throw new TypeError('modelHash must be a canonical SHA-256.');
@@ -425,6 +426,7 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
       modelVersion: model.modelVersion,
       revision: model.revision,
       activeGeometryRevisionId: model.activeGeometryRevisionId,
+      geometryRevision: model.geometryRevision,
       sourceModelHash: model.modelHash,
     },
     referenceFrame: {

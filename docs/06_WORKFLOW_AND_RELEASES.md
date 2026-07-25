@@ -53,7 +53,7 @@ git diff --check
 
 ## 5. GitHub Pages
 
-公開首頁是 `https://kuohappiness.github.io/Swimming-Pool-Design/`，日照研究位於 `/solar-study/`。`.github/workflows/deploy-pages.yml` 在 `main` push 或人工觸發時：
+公開首頁是 `https://kuohappiness.github.io/Swimming-Pool-Design/`；設計理念使用根網址，日照研究、圖面設計與 3D 展示分別使用 `?view=solar-study`、`?view=drawings`、`?view=3d-viewer`。`.github/workflows/deploy-pages.yml` 在 `main` push 或人工觸發時：
 
 - 以 lockfile 安裝依賴並執行 `npm run build`。
 - 只上傳 `dist/reference/`；`dist/` 不納入 Git 歷史。
@@ -62,6 +62,7 @@ git diff --check
 ## 6. 版本語意
 
 - 套件版本與正式模型版本在 release TASK 中同步。
+- 發布版號可在 presentation-only release 高於 active geometry revision；此時 active revision 的 ID、revision、幾何 modelVersion 與不可變雜湊必須保持彼此一致，且 release 不得把既有幾何重新命名成不存在的新 revision。
 - 開發中的後續版本不得預先改寫正式套件／模型版本；runtime 相容性以 schema、active revision、coordinate system 與 hash 契約判定，不以尚未發布的目標版號硬編碼。
 - 不同目標版本可以在隔離分支平行開發，但正式發布保持版本順序；後續版本在前一版本發布後合併其正式基線，再執行完整回歸。
 - Git commit 是可追溯變更；Git tag 只在明確要求時建立。

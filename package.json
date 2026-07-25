@@ -1,6 +1,6 @@
 {
   "name": "swimming-pool-design",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,8 +14,10 @@
     "pretest": "npm run build:content",
     "test": "node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "node scripts/viewer-e2e.mjs",
+    "test:public": "node scripts/public-site-e2e.mjs",
+    "test:e2e": "node scripts/public-site-e2e.mjs && node scripts/viewer-e2e.mjs",
     "capture:viewer-baseline": "npm run build && node scripts/capture-viewer-baseline.mjs",
+    "verify:v090-baseline": "npm run build:content && node scripts/verify-v090-immutable-baseline.mjs",
     "capture:viewer-quality": "npm run build && node scripts/capture-viewer-quality-evidence.mjs",
     "clean:reference": "node scripts/clean-reference-dist.mjs",
     "build": "npm run build:content && npm run check:docs && npm run validate:reference && npm test && npm run typecheck && npm run clean:reference && vite build"

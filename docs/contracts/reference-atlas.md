@@ -1,19 +1,21 @@
 # 空間參照圖集契約
 
 - 類型：output-contract
-- 狀態：active／v0.6.7
+- 狀態：active／v0.9.0（V067 圖面內容不變）
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
-- 入口：`/`
+- 入口：`/?view=drawings`
 
 ## 必要輸出
 
-`reference/src/sheets.ts` 只顯示：
+0.9.0 共用 App Shell 內的 `reference/src/sheets.ts` 只顯示：
 
 - `REF-001`：`SRC-SITE-001` 原始衛星底圖、MODEL 0.6.7、ACTIVE GEO-0.6.7、SITE-XY 與北向。
 - `V067-L1`：內嵌 `DRAW-L1-PLAN-v0.6.7.svg`。
 - `V067-L2`：內嵌 `DRAW-L2-PLAN-v0.6.7.svg`。
 - `V067-L3`：內嵌 `DRAW-L3-PLAN-v0.6.7.svg`。
 - `V067-SECTION`：內嵌 `DRAW-LONGITUDINAL-SECTION-v0.6.7.svg`。
+
+公開 shell 顯示 `MODEL 0.9.0` 與 `ACTIVE GEO-0.8.2`；V067 SVG／PNG 本體仍是不可變的 `v0.6.7`／`GEO-0.6.7` 完稿，不因展示層發布改寫。
 
 現行 HTML 不得出現 V2.1、V2.2、V2.3 或其他 v0.5.0 current tab。舊圖可留在歷史資料夾，不由 current atlas 載入。
 
@@ -32,6 +34,7 @@
 - 四張 SVG／PNG 均存在，SVG metadata 與 active model 一致。
 - Viewer 與 solar-study 最新圖面連結都指向 `#V067-L1`。
 - 320 px 以上可操作；圖片以 `preserveAspectRatio` 顯示且不裁掉圖框。
+- 手機預設符合畫面顯示完整圖框，可切回原圖尺寸水平檢視；目錄、圖層控制與構件詳情仍可依序操作。
 - `npm test`、`npm run typecheck`、`npm run build` 與桌機／手機 smoke 通過。
 
 衛星底圖不是地籍或測量成果；所有圖面均為概念協調用途。

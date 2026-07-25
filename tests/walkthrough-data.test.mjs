@@ -35,6 +35,7 @@ test('walkthrough adaptation is read-only and leaves canonical source bytes unch
   assert.equal(walkthrough.identity.sourceModelHash, viewerModel.modelHash);
   assert.equal(walkthrough.identity.modelVersion, viewerModel.modelVersion);
   assert.equal(walkthrough.identity.activeGeometryRevisionId, viewerModel.activeGeometryRevisionId);
+  assert.equal(walkthrough.identity.geometryRevision, viewerModel.geometryRevision);
 
   assert.notStrictEqual(walkthrough.entities['POOL-01'].bounds, viewerModel.entityBounds['POOL-01'].bounds);
   assert.notStrictEqual(walkthrough.waterVolumes[0].bounds, viewerModel.geometry.pool.bounds);
@@ -157,7 +158,7 @@ test('walkthrough adapter fails closed for invalid identity, coordinate, entity,
     {
       label: 'active geometry version mismatch',
       mutate: (value) => { value.activeGeometryRevisionId = 'GEO-0.0.0'; },
-      error: /activeGeometryRevisionId must match modelVersion/,
+      error: /activeGeometryRevisionId must match geometryRevision/,
     },
     {
       label: 'missing revision',

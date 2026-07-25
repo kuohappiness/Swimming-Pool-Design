@@ -13,6 +13,9 @@ const projectModel = JSON.parse(
   await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
 );
 const expectedModelVersion = projectModel.modelVersion;
+const expectedGeometryRevision = projectModel.geometryRevisions
+  .find(({ id }) => id === projectModel.activeGeometryRevisionId)?.revision;
+assert.ok(expectedGeometryRevision, 'Active geometry revision must resolve for browser tests.');
 const chromeCandidates = [
   process.env.CHROME_PATH,
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -37,7 +40,7 @@ async function waitForServer() {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     try {
-      const response = await fetch(`${origin}/3d-viewer/`);
+      const response = await fetch(`${origin}/?view=3d-viewer`);
       if (response.ok) return;
     } catch {
       // Preview is still starting.
@@ -83,7 +86,7 @@ try {
   };
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   trackErrors(desktop);
-  await desktop.goto(`${origin}/3d-viewer/`, { waitUntil: 'networkidle' });
+  await desktop.goto(`${origin}/?view=3d-viewer`, { waitUntil: 'networkidle' });
   await desktop.locator('[data-viewer-shell]').waitFor({ state: 'visible' });
   await desktop.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') !== 'false');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-viewer-ready'), 'true');
@@ -345,14 +348,14 @@ try {
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(mobile);
-  await mobile.goto(`${origin}/3d-viewer/`, { waitUntil: 'networkidle' });
+  await mobile.goto(`${origin}/?view=3d-viewer`, { waitUntil: 'networkidle' });
   await mobile.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true');
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'), 'enhanced');
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-render-quality'), 'low');
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-l2-split-axis-y'), '8');
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-l2-gender-divider-overlaps-y0'), 'false');
   await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-l2-y0-mobile-overview.png'), fullPage: true });
-  await mobile.goto(`${origin}/3d-viewer/#people`, { waitUntil: 'networkidle' });
+  await mobile.goto(`${origin}/?view=3d-viewer#people`, { waitUntil: 'networkidle' });
   await mobile.reload({ waitUntil: 'networkidle' });
   await mobile.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true');
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-scene'), 'people');
@@ -437,7 +440,7 @@ try {
 
   const explicitBaseline = await browser.newPage({ viewport: { width: 900, height: 700 } });
   trackErrors(explicitBaseline);
-  await explicitBaseline.goto(`${origin}/3d-viewer/?rendering=baseline`, { waitUntil: 'networkidle' });
+  await explicitBaseline.goto(`${origin}/?view=3d-viewer&rendering=baseline`, { waitUntil: 'networkidle' });
   await explicitBaseline.waitForFunction(
     () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
   );
@@ -459,7 +462,7 @@ try {
   const requiredAssetPageErrors = [];
   requiredAssetFallback.on('pageerror', (error) => requiredAssetPageErrors.push(error.message));
   await requiredAssetFallback.goto(
-    `${origin}/3d-viewer/?simulateRequiredAssetFailure=material`,
+    `${origin}/?view=3d-viewer&simulateRequiredAssetFailure=material`,
     { waitUntil: 'networkidle' },
   );
   await requiredAssetFallback.waitForFunction(
@@ -482,7 +485,7 @@ try {
 
   const fallback = await browser.newPage({ viewport: { width: 900, height: 700 } });
   trackErrors(fallback);
-  await fallback.goto(`${origin}/3d-viewer/?forceFallback=1`, { waitUntil: 'networkidle' });
+  await fallback.goto(`${origin}/?view=3d-viewer&forceFallback=1`, { waitUntil: 'networkidle' });
   await fallback.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'fallback');
   assert.equal(await fallback.locator('[data-webgl-fallback]').isVisible(), true);
   assert.equal(await fallback.locator('[data-scene-nav] button').count(), 5);
@@ -491,12 +494,12 @@ try {
 
   const solarDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   trackErrors(solarDesktop);
-  await solarDesktop.goto(`${origin}/solar-study/`, { waitUntil: 'networkidle' });
-  assert.match(await solarDesktop.locator('h1').innerText(), /固定 L1／L2/);
+  await solarDesktop.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
+  assert.match(await solarDesktop.locator('h1').innerText(), /讓建築轉向光/);
   assert.match(
     await solarDesktop.locator('#model-version').innerText(),
     new RegExp(
-      `^STUDY ${expectedModelVersion.replaceAll('.', '\\.')} · MODEL ${
+      `^STUDY ${expectedGeometryRevision.replaceAll('.', '\\.')} · MODEL ${
         expectedModelVersion.replaceAll('.', '\\.')
       }`,
     ),
@@ -515,7 +518,7 @@ try {
 
   const solarMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(solarMobile);
-  await solarMobile.goto(`${origin}/solar-study/`, { waitUntil: 'networkidle' });
+  await solarMobile.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
   assert.equal(await solarMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   assert.equal(await solarMobile.locator('.mobile-live-preview').isVisible(), true);
   await solarMobile.screenshot({ path: resolve(outputDirectory, 'solar-study-mobile.png'), fullPage: true });
@@ -524,7 +527,7 @@ try {
 
   const atlasDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   trackErrors(atlasDesktop);
-  await atlasDesktop.goto(`${origin}/#REF-001`, { waitUntil: 'networkidle' });
+  await atlasDesktop.goto(`${origin}/?view=drawings#REF-001`, { waitUntil: 'networkidle' });
   assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 5);
   assert.equal(await atlasDesktop.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
   assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /基地現況來源圖/);
@@ -556,11 +559,27 @@ try {
 
   const atlasMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(atlasMobile);
-  await atlasMobile.goto(`${origin}/#V067-L1`, { waitUntil: 'networkidle' });
+  await atlasMobile.goto(`${origin}/?view=drawings#V067-L1`, { waitUntil: 'networkidle' });
   assert.equal(await atlasMobile.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
   assert.equal(await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   assert.equal(await atlasMobile.locator('.review-drawing[data-sheet-id="V067-L1"]').count(), 1);
   assert.equal(await atlasMobile.locator('.review-drawing [data-entity="F-L1-Y0-01"]').count(), 1);
+  assert.equal(await atlasMobile.locator('#sheet-stage').getAttribute('class'), 'sheet-stage fit-sheet');
+  assert.equal(
+    await atlasMobile.locator('.drawing-scroll').evaluate(
+      (scroller) => scroller.scrollWidth <= scroller.clientWidth + 1,
+    ),
+    true,
+  );
+  await atlasMobile.locator('#fit-sheet').click();
+  assert.equal(await atlasMobile.locator('#fit-sheet').getAttribute('aria-pressed'), 'false');
+  assert.equal(
+    await atlasMobile.locator('.drawing-scroll').evaluate(
+      (scroller) => scroller.scrollWidth > scroller.clientWidth,
+    ),
+    true,
+  );
+  await atlasMobile.locator('#fit-sheet').click();
   await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-v067-l1-mobile.png'), fullPage: true });
   await atlasMobile.close();
 

@@ -130,6 +130,12 @@
 | DEC-122 | 0.8.2 擬真優先順序採「剛完工但已投入使用」的建築本體，校園環境延至第二階段 | 桌機 high 先提升外觀、泳池大廳、室內、更衣淋浴與衛浴器具的材質、接縫、排水、照明、五金及輕微使用痕跡；畫面應乾淨、完整且有少量水痕，不做老舊破損。手機依 high→medium→low 單向降階，low 只保留必要輪廓、基本水面與操作；植栽、校園街具及大範圍環境精化不列本輪阻擋項 | confirmed building-first visual direction; campus phase deferred |
 | DEC-123 | L1 八座 WC 採坐式、蹲式各半，並固定四間廁所內的資料順序 | 全案正好 4 坐式＋4 蹲式；泳池男廁為坐、蹲，泳池女廁為坐、蹲、蹲，操場男廁為坐，操場女廁為蹲、坐，且靠 X39 入口者為坐式。每個隔間以 canonical `fixtureType`、`fixtureCenter`、`fixtureFacing` 驗證；洗手槽、小便斗與隔間細節只作概念配置，器具數、無障礙、管道、防水與法規仍由 OPEN-008 專業核定 | confirmed working sanitary distribution |
 | DEC-124 | 0.8.2 建築細節採 visual-only 分級，不得改變漫遊碰撞或專業核定狀態 | 所有可因畫質切換的接縫、五金、磁磚格線、排水、焦散、照明、淋浴、置物櫃及衛浴附件必須標記 `visualOnly=true`／`collisionExcluded=true`，以 `essential | reduced | full` 單調顯示；水面法線與焦散動畫只在允許時運作，reduced motion 或低階必須停止。canonical bounds、selectables、collision proxies、player／water state、solar inputHash 與 `professionalApprovals=false` 均維持不變 | confirmed reversible visual-detail contract |
+| DEC-125 | 0.9.0 將空間參照圖集、日照研究與 3D Viewer 整合為單一 `index.html` 公開成果網站，使用 `?view=design-concept`、`solar-study`、`drawings`、`3d-viewer` 切換 | GitHub Pages 沒有一般 SPA rewrite，query route 可維持單一正式 HTML 並支援直接連入。缺少或無效 view 回到設計理念；舊 `/solar-study/`、`/3d-viewer/` 直接淘汰，不保留轉址或相容 HTML | confirmed 0.9.0 public-site architecture |
+| DEC-126 | 0.9.0 的中文主導覽固定為「設計理念、日照研究、圖面設計、3D 展示」，網站定位為公開建築成果展而非內部工作台 | 觀看順序由設計敘事進入專業研究與完稿圖，最後以 3D／第一人稱漫遊形成高潮。設計理念以「向光、向水、向人、向時間」作展示章節；`向水`涵蓋既有雨簾、雨水收集與回用內容，不改寫其專業事實 | confirmed 0.9.0 information architecture |
+| DEC-127 | 0.9.0 只改展示架構、版面、字型與視覺層級，不改實際資料來源、完稿設計圖、日照結果或 3D／漫遊語意 | active geometry、solar inputHash、V067 SVG／PNG、模型構件、碰撞、移動、游泳、場景及專業限制保持不變。允許 release metadata、DOM、router、mount lifecycle、CSS 與不改語意的展示標籤變更 | confirmed immutable-content boundary |
+| DEC-128 | 0.9.0 視覺採「優雅、舒服、克制的建築刊物與數位展覽」，以圖紙白、炭墨黑、泳池藍綠、混凝土灰及少量陶土色建立統一識別 | 以襯線展覽標題、無襯線正文／控制及等寬技術數值形成三種字型角色；取消大面積漸層、發光、密集膠囊及普遍卡片陰影，以細線、留白、比例與排版建立層次。3D 可採較深沉浸背景，但仍共用導覽與 token | confirmed 0.9.0 visual direction |
+| DEC-129 | 0.9.0 將手機流暢度列為所有 view 的共同驗收，而非發布前補修 | 最低 320 px、主要 390 × 844、另驗證 768 px；共用 header 採兩列式識別＋可水平滑動文字導覽，主要觸控目標至少 44 CSS px。文章單欄、日照保留 sticky 預覽、圖面不裁圖框、3D／漫遊控制不得被導覽遮擋，整頁不得水平溢出 | confirmed mobile-first presentation boundary |
+| DEC-130 | 0.9.0 日照研究維持完整專業密度，但在研究工具前加入「向光」設計理念、研究問題與策略引導 | +25.5°、+23.0°、152.5°、+1,036.829 kWh、控制範圍、inputHash、X33 限制及專業驗證警語全部保留；資訊可重新排序或收合，但不得以美化弱化工作值、方法或限制 | confirmed solar presentation strategy |
 
 ## 2. 尚待精化
 

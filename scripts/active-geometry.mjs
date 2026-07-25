@@ -57,8 +57,22 @@ export function resolveActiveGeometry(model) {
     throw new RangeError(`activeGeometryRevisionId ${activeId} must resolve exactly once; found ${matches.length}.`);
   }
   const active = matches[0];
-  if (active.modelVersion !== model.modelVersion || active.revision !== model.modelVersion) {
-    throw new RangeError('Active geometry revision and modelVersion must match exactly.');
+  if (active.modelVersion !== active.revision || active.id !== `GEO-${active.revision}`) {
+    throw new RangeError('Active geometry id, revision, and geometry modelVersion must match exactly.');
+  }
+  const releaseVersion = String(model?.modelVersion ?? '').split('.').map(Number);
+  const geometryVersion = String(active.revision).split('.').map(Number);
+  if (releaseVersion.length !== 3
+    || geometryVersion.length !== 3
+    || [...releaseVersion, ...geometryVersion].some((value) => !Number.isInteger(value) || value < 0)) {
+    throw new TypeError('Release and active geometry revisions must be semantic x.y.z versions.');
+  }
+  const geometryIsNewer = geometryVersion.some(
+    (value, index) => value > releaseVersion[index]
+      && geometryVersion.slice(0, index).every((entry, prefixIndex) => entry === releaseVersion[prefixIndex]),
+  );
+  if (geometryIsNewer) {
+    throw new RangeError('Active geometry revision cannot be newer than the release modelVersion.');
   }
   if (active.coordinateSystemId !== SITE_COORDINATE_SYSTEM_ID) {
     throw new TypeError(`Active geometry must use ${SITE_COORDINATE_SYSTEM_ID}.`);

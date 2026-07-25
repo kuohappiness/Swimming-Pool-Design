@@ -17,8 +17,8 @@ const [modelText, registryText, markdown, manifestText, generatedModelText, gene
   readFile(resolve(repoRoot, 'reference/src/3d-viewer/scene-factory.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/src/3d-viewer/rendering/baseline-material-registry.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/src/3d-viewer/interactions.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/3d-viewer/index.html'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/solar-study/index.html'), 'utf8'),
+  readFile(resolve(repoRoot, 'reference/src/views/3d-viewer/legacy-template.html'), 'utf8'),
+  readFile(resolve(repoRoot, 'reference/src/views/solar-study/legacy-template.html'), 'utf8'),
 ]);
 const sourceModel = JSON.parse(modelText);
 const registry = JSON.parse(registryText);
@@ -29,7 +29,8 @@ test('Viewer package derives all major geometry from the active revision', () =>
   const viewer = buildViewerModel(clone(), registry);
   assert.equal(viewer.schemaVersion, '1.4.0');
   assert.equal(viewer.modelVersion, sourceModel.modelVersion);
-  assert.equal(viewer.activeGeometryRevisionId, `GEO-${sourceModel.modelVersion}`);
+  assert.equal(viewer.activeGeometryRevisionId, sourceModel.activeGeometryRevisionId);
+  assert.equal(viewer.activeGeometryRevisionId, `GEO-${viewer.geometryRevision}`);
   assert.equal(viewer.coordinateSystemId, 'SITE-XY');
   assert.equal(viewer.geometry.site.length, 41);
   assert.equal(viewer.geometry.site.width, 14);

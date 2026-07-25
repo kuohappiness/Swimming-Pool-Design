@@ -103,6 +103,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
     modelVersion: model.modelVersion,
     revision: model.revision,
     activeGeometryRevisionId: active.id,
+    geometryRevision: active.revision,
     coordinateSystemId: active.coordinateSystemId,
     modelHash: currentModelHash,
     project: structuredClone(model.project),

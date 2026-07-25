@@ -5,7 +5,7 @@ import rawConceptContent from '../../generated/concept-content.json';
 import { adaptViewerData, formatDegrees, formatElevation } from './model-adapter';
 import { createViewerScene, type SelectableInfo } from './scene-factory';
 import { setupSelection } from './interactions';
-import { createBaselineRenderingRuntime } from './rendering';
+import { createBaselineRenderingRuntime, type ViewerRenderingRuntime } from './rendering';
 import { getViewerScene, viewerScenes } from './scenes';
 import {
   AdaptiveFrameTimeMonitor,
@@ -27,7 +27,13 @@ import {
   WALKTHROUGH_CONFIG,
   type InputAdapter,
 } from './walkthrough';
-import './styles.css';
+let viewerCleanup: (() => void | Promise<void>) | null = null;
+
+export async function destroyViewer(): Promise<void> {
+  const cleanup = viewerCleanup;
+  viewerCleanup = null;
+  await cleanup?.();
+}
 
 const required = <T extends Element>(selector: string) => {
   const element = document.querySelector<T>(selector);
@@ -145,7 +151,7 @@ try {
     const renderingParameters = new URLSearchParams(location.search);
     const baselineRenderingRequested = renderingParameters.get('rendering') === 'baseline';
     const adaptiveQualityEnabled = renderingParameters.get('adaptive') !== 'off';
-    let rendering;
+    let rendering: ViewerRenderingRuntime;
     if (!baselineRenderingRequested) {
       try {
         const {
@@ -739,7 +745,8 @@ try {
       camera.aspect = Math.max(1, rect.width) / Math.max(1, rect.height);
       camera.updateProjectionMatrix();
     };
-    new ResizeObserver(resize).observe(canvasHost);
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvasHost);
     resize();
     const initialId = location.hash.slice(1);
     applyScene(viewerScenes.some((scene) => scene.id === initialId) ? initialId : 'overview');
@@ -831,19 +838,29 @@ try {
         shell.dataset.shaderPrograms = String(renderer.info.programs?.length ?? 0);
       }
     });
-    renderer.domElement.addEventListener('webglcontextrestored', () => {
+    renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
+    function handleContextRestored() {
       rendering.framePipeline.restore();
       requestShadowRefresh();
       shell.dataset.contextRestores = String(Number(shell.dataset.contextRestores ?? '0') + 1);
-    });
-    window.addEventListener('pagehide', () => {
-      void cameraModeManager.dispose();
+    }
+    let runtimeDisposed = false;
+    viewerCleanup = async () => {
+      if (runtimeDisposed) return;
+      runtimeDisposed = true;
+      renderer.setAnimationLoop(null);
+      resizeObserver.disconnect();
+      renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
+      await cameraModeManager.dispose();
       desktopInput.dispose();
       touchInput.dispose();
       selectionController.dispose();
       underwaterEffects.dispose();
+      controls.dispose();
       rendering.dispose();
-    }, { once: true });
+      renderer.dispose();
+      shell.dataset.viewerReady = 'destroyed';
+    };
 
     loading.hidden = true;
     shell.dataset.viewerReady = 'true';
@@ -861,3 +878,6 @@ try {
 }
 
 void bootstrap();
+window.addEventListener('pagehide', () => {
+  void destroyViewer();
+}, { once: true });
