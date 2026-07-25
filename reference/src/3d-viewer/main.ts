@@ -51,6 +51,7 @@ const versionLabel = required<HTMLElement>('[data-model-version]');
 const hashLabel = required<HTMLElement>('[data-model-hash]');
 const analysisBadge = required<HTMLElement>('[data-analysis-status]');
 const compass = required<HTMLElement>('[data-compass]');
+const orientationCue = required<HTMLElement>('[data-orientation-cue]');
 const poolCutawayKey = required<HTMLElement>('[data-pool-cutaway-key]');
 const walkthroughEntry = required<HTMLElement>('[data-walkthrough-entry]');
 const enterWalkthroughButton = required<HTMLButtonElement>('[data-enter-walkthrough]');
@@ -96,8 +97,11 @@ try {
   analysisBadge.textContent = model.analysis.solar.status === 'current' ? '分析與模型同步' : '分析需重新驗證';
   analysisBadge.dataset.status = model.analysis.solar.status;
   analysisBadge.title = model.analysis.solar.disclaimer;
-  compass.setAttribute('data-north-direction', 'lower-right');
+  const northPlanDirection = model.referenceSystem.northArrowPlanDirection;
+  compass.setAttribute('data-north-direction', northPlanDirection);
+  orientationCue.setAttribute('data-north-direction', northPlanDirection);
   compass.setAttribute('aria-label', `真北指向畫面右下角；建築本地長軸方位 ${model.referenceSystem.localLongAxisBearingFromTrueNorth} 度`);
+  orientationCue.setAttribute('aria-label', `真北 N 指向畫面右下角；建築本地長軸方位 ${model.referenceSystem.localLongAxisBearingFromTrueNorth} 度`);
 
   if (!supportsWebGL()) {
     walkthroughEntry.hidden = true;
@@ -220,6 +224,12 @@ try {
     controls.keyPanSpeed = 18;
 
     const graph = createViewerScene(model, rendering);
+    renderer.shadowMap.autoUpdate = false;
+    const requestShadowRefresh = () => {
+      if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
+    };
+    requestShadowRefresh();
+    shell.dataset.shadowUpdateMode = 'on-demand-static-scene';
     let walkthroughSource: ReturnType<typeof adaptWalkthroughSource> | null = null;
     let collisionWorld: CollisionWorld | null = null;
     let safeSpawns: SafeSpawnRegistry | null = null;
@@ -323,6 +333,7 @@ try {
       input.addEventListener('change', () => {
         const group = graph.layerGroups.get(modelLayer.id);
         if (group) group.visible = input.checked;
+        requestShadowRefresh();
       });
       layerInputs.set(modelLayer.id, input);
       layerList.append(label);
@@ -353,6 +364,7 @@ try {
         waterSurfaceElevation: graph.water.surfaceElevation,
         poolCutaway: enabled,
       });
+      requestShadowRefresh();
       if (!enabled) {
         required<HTMLElement>('[data-view-controls]').querySelectorAll<HTMLButtonElement>('button[data-view]').forEach((button) => {
           button.dataset.active = 'false';
@@ -362,6 +374,7 @@ try {
     };
     const setEnvironment = (environment: ReturnType<typeof getViewerScene>['environment']) => {
       rendering.environment.apply(environment, graph);
+      requestShadowRefresh();
       shell.dataset.environment = environment;
     };
 
@@ -437,8 +450,8 @@ try {
           controls.update();
         } else {
           const views = {
-            perspective: { position: [34, 25, 30], target: [0, 2.4, 0] },
-            top: { position: [0, 58, 0.01], target: [0, 0, 0] },
+            perspective: { position: [30, 25, -34], target: [0, 2.4, 0] },
+            top: { position: [0.01, 58, 0], target: [0, 0, 0] },
           }[mode];
           camera.position.set(...views.position as [number, number, number]);
           controls.target.set(...views.target as [number, number, number]);
@@ -706,6 +719,7 @@ try {
       const capability = getWalkthroughCapabilityProfile(tier, reducedMotion);
       rendering.setQuality(profile);
       renderer.shadowMap.enabled = capability.shadows;
+      requestShadowRefresh();
       controls.enableDamping = capability.cameraMotion;
       underwaterEffects.setQuality(capability.underwaterEffect === 'essential' ? 'low' : 'high');
       walkthroughQuality.textContent = tier.toUpperCase();
@@ -735,11 +749,13 @@ try {
     shell.dataset.shaderPrograms = String(renderer.info.programs?.length ?? 0);
     shell.dataset.renderingInitMs = (performance.now() - bootstrapStartedAt).toFixed(2);
     let previousFrameTime = performance.now();
+    let elapsedFrameTime = 0;
     let renderedFrames = 0;
     renderer.setAnimationLoop(() => {
       const currentFrameTime = performance.now();
       const frameDelta = (currentFrameTime - previousFrameTime) / 1000;
       previousFrameTime = currentFrameTime;
+      elapsedFrameTime += Math.min(frameDelta, 0.1);
       const degradedTier = adaptiveQualityEnabled
         ? frameTimeMonitor.observe(frameDelta * 1000)
         : null;
@@ -794,9 +810,15 @@ try {
       } else {
         controls.update();
       }
+      rendering.visualAssets.updateFrame?.({
+        deltaSeconds: Math.min(frameDelta, 0.1),
+        elapsedSeconds: elapsedFrameTime,
+        reducedMotion,
+        camera,
+      });
       renderer.info.reset();
       rendering.framePipeline.render(graph.scene, camera);
-      if (renderedFrames % 30 === 0) {
+      if (renderedFrames === 1 || renderedFrames % 30 === 0) {
         const statistics = frameTimeMonitor.statistics();
         shell.dataset.frameAverageMs = statistics.averageMilliseconds.toFixed(2);
         shell.dataset.frameP95Ms = statistics.p95Milliseconds.toFixed(2);
@@ -811,6 +833,7 @@ try {
     });
     renderer.domElement.addEventListener('webglcontextrestored', () => {
       rendering.framePipeline.restore();
+      requestShadowRefresh();
       shell.dataset.contextRestores = String(Number(shell.dataset.contextRestores ?? '0') + 1);
     });
     window.addEventListener('pagehide', () => {

@@ -130,6 +130,7 @@ test('walkthrough adapter exposes the complete MVP semantic descriptors', async 
   assert.deepEqual(walkthrough.spawns.map(({ id, entityId }) => ({ id, entityId })), [
     { id: 'entrance', entityId: 'EN-01' },
     { id: 'l1-pool-deck', entityId: 'POOL-01' },
+    { id: 'l1-sanitary', entityId: 'BLDG-01' },
     { id: 'l2-arrival', entityId: 'ST-01' },
     { id: 'l3-arrival', entityId: 'Z-L3-ARRIVAL-01' },
     { id: 'l3-terrace', entityId: 'Z-L3-TERRACE-01' },

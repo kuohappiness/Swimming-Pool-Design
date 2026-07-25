@@ -18,6 +18,7 @@ export interface AreaRegistry {
 const AREA_LABELS: Readonly<Record<SpawnDescriptor['id'], string>> = Object.freeze({
   entrance: '入口前場',
   'l1-pool-deck': '一樓池畔',
+  'l1-sanitary': '一樓衛浴',
   'l2-arrival': '二樓到達',
   'l3-arrival': '三樓到達',
   'l3-terrace': '三樓露台',

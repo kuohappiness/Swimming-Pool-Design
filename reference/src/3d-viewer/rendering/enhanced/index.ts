@@ -1,4 +1,5 @@
 export * from './asset-manifest';
+export * from './detail-level';
 export * from './environment-effect';
 export * from './frame-effect-pipeline';
 export * from './material-preview-runtime';

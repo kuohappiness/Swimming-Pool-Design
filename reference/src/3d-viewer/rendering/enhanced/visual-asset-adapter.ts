@@ -2,9 +2,11 @@ import * as THREE from 'three';
 import type {
   VisualAssetAdapter,
   VisualAssetContext,
+  VisualFrameState,
   VisualWalkthroughState,
 } from '../contracts';
 import type { RenderQualityProfile } from '../quality-profile';
+import { EnhancedDetailLevelAdapter } from './detail-level';
 import { EnhancedSurfaceDetailAdapter } from './surface-details';
 import { EnhancedWaterPresentation } from './water-presentation';
 
@@ -120,10 +122,12 @@ function createProceduralScaleAssets(siteBounds: THREE.Box3) {
 export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   readonly id = 'enhanced-water-and-scale-assets';
   private readonly surfaceDetails: EnhancedSurfaceDetailAdapter;
+  private readonly detailLevels: EnhancedDetailLevelAdapter;
   private readonly water: EnhancedWaterPresentation;
   private readonly createOptionalAssets: (siteBounds: THREE.Box3) => THREE.Group;
   private profile: RenderQualityProfile;
   private optionalAssets: THREE.Group | null = null;
+  private readonly caustics: Array<{ mesh: THREE.Mesh; baseX: number; phase: number }> = [];
   private status: 'idle' | 'attached' | 'degraded' | 'disposed' = 'idle';
   private attached = false;
   private disposed = false;
@@ -134,6 +138,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   ) {
     this.profile = initialProfile;
     this.surfaceDetails = new EnhancedSurfaceDetailAdapter(initialProfile);
+    this.detailLevels = new EnhancedDetailLevelAdapter(initialProfile);
     this.water = new EnhancedWaterPresentation(initialProfile);
     this.createOptionalAssets = options.createOptionalAssets ?? createProceduralScaleAssets;
   }
@@ -146,7 +151,16 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     if (this.attached || this.disposed) return;
     this.attached = true;
     this.surfaceDetails.attach(context);
+    this.detailLevels.attach(context);
     this.water.attach(context);
+    context.siteRoot.traverse((object) => {
+      if (!(object instanceof THREE.Mesh) || !object.name.startsWith('visual-only:POOL-01-caustic:')) return;
+      this.caustics.push({
+        mesh: object,
+        baseX: object.position.x,
+        phase: Number(object.userData.causticPhase ?? 0),
+      });
+    });
     try {
       const group = this.createOptionalAssets(siteBoundsFromVisualEntity(context));
       context.siteRoot.add(group);
@@ -164,6 +178,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     if (this.disposed) return;
     this.profile = profile;
     this.surfaceDetails.setQuality(profile);
+    this.detailLevels.setQuality(profile);
     this.water.setQuality(profile);
     this.applyQuality();
   }
@@ -172,12 +187,24 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.water.setWalkthroughState(state);
   }
 
+  updateFrame(state: VisualFrameState) {
+    if (this.disposed) return;
+    this.water.updateFrame(state);
+    if (state.reducedMotion || this.profile.id !== 'high') return;
+    for (const { mesh, baseX, phase } of this.caustics) {
+      mesh.position.x = baseX + Math.sin(state.elapsedSeconds * 0.55 + phase * Math.PI * 2) * 0.12;
+    }
+  }
+
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
     if (this.optionalAssets) disposeGroup(this.optionalAssets);
     this.optionalAssets = null;
+    for (const { mesh, baseX } of this.caustics) mesh.position.x = baseX;
+    this.caustics.length = 0;
     this.water.dispose();
+    this.detailLevels.dispose();
     this.surfaceDetails.dispose();
     this.status = 'disposed';
     this.attached = false;

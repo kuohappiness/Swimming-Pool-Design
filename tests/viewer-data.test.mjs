@@ -27,7 +27,7 @@ const clone = () => structuredClone(sourceModel);
 
 test('Viewer package derives all major geometry from the active revision', () => {
   const viewer = buildViewerModel(clone(), registry);
-  assert.equal(viewer.schemaVersion, '1.3.0');
+  assert.equal(viewer.schemaVersion, '1.4.0');
   assert.equal(viewer.modelVersion, sourceModel.modelVersion);
   assert.equal(viewer.activeGeometryRevisionId, `GEO-${sourceModel.modelVersion}`);
   assert.equal(viewer.coordinateSystemId, 'SITE-XY');
@@ -42,6 +42,9 @@ test('Viewer package derives all major geometry from the active revision', () =>
   assert.deepEqual(viewer.geometry.stair.bounds, { x1: 20.5, x2: 29, y1: 0.5, y2: 2 });
   assert.equal(viewer.referenceSystem.coordinateAdapter.siteY, 'negativeThreeZ');
   assert.equal(viewer.referenceSystem.coordinateAdapter.adapterId, 'SITE-XYZ-TO-THREE-RH');
+  assert.equal(viewer.referenceSystem.localLongAxisBearingFromTrueNorth, 307);
+  assert.equal(viewer.referenceSystem.worldTransform.rotationFromTrueNorth, 307);
+  assert.equal(viewer.referenceSystem.northArrowPlanDirection, 'lower-right');
   assert.equal('originY' in viewer.geometry.stair, false);
   assert.equal('startX' in viewer.geometry.stair, false);
   assert.equal(viewer.geometry.stair.midLandingLength, 3.1);
@@ -86,6 +89,37 @@ test('Viewer package derives all major geometry from the active revision', () =>
   assert.equal(viewer.geometry.l1.zones.playgroundMaleToilet.fixtures.urinals, 2);
   assert.equal(viewer.geometry.l1.zones.playgroundMaleToilet.fixtures.washbasins, 2);
   assert.equal(viewer.geometry.l1.zones.playgroundFemaleToilet.fixtures.washbasins, 2);
+  const l1Cubicles = [
+    viewer.geometry.l1.zones.poolMaleToilet,
+    viewer.geometry.l1.zones.poolFemaleToilet,
+    viewer.geometry.l1.zones.playgroundMaleToilet,
+    viewer.geometry.l1.zones.playgroundFemaleToilet,
+  ].flatMap(({ layout }) => layout.toiletCubicles);
+  assert.equal(l1Cubicles.filter(({ fixtureType }) => fixtureType === 'seated').length, 4);
+  assert.equal(l1Cubicles.filter(({ fixtureType }) => fixtureType === 'squat').length, 4);
+  assert.deepEqual(
+    viewer.geometry.l1.zones.poolMaleToilet.layout.toiletCubicles.map(({ fixtureType }) => fixtureType),
+    ['seated', 'squat'],
+  );
+  assert.deepEqual(
+    viewer.geometry.l1.zones.poolFemaleToilet.layout.toiletCubicles.map(({ fixtureType }) => fixtureType),
+    ['seated', 'squat', 'squat'],
+  );
+  assert.deepEqual(
+    viewer.geometry.l1.zones.playgroundMaleToilet.layout.toiletCubicles.map(({ fixtureType }) => fixtureType),
+    ['seated'],
+  );
+  assert.deepEqual(
+    viewer.geometry.l1.zones.playgroundFemaleToilet.layout.toiletCubicles.map(({ fixtureType }) => fixtureType),
+    ['squat', 'seated'],
+  );
+  assert.ok(l1Cubicles.every(({ fixtureCenter, planBounds }) =>
+    fixtureCenter[0] > planBounds.x1
+    && fixtureCenter[0] < planBounds.x2
+    && fixtureCenter[1] > planBounds.y1
+    && fixtureCenter[1] < planBounds.y2));
+  assert.equal(viewer.viewerPresentation.occupancyAppearance, 'newly-completed-in-use');
+  assert.equal(viewer.viewerPresentation.campusEnvironmentPhase, 'deferred');
   assert.equal(viewer.geometry.l1.serviceWingStyle.materialIntent, 'fair-faced-exposed-concrete');
   assert.equal(viewer.geometry.roof.highElevation, 6.537);
   assert.equal(viewer.analysis.solar.status, 'current');
@@ -116,6 +150,23 @@ test('Viewer follows the selected active ST-01 Y bounds without a legacy originY
   assert.deepEqual(viewer.geometry.stair.bounds, active.stair.bounds);
   assert.deepEqual(viewer.entityBounds['ST-01'].bounds, active.stair.bounds);
   assert.equal('originY' in viewer.geometry.stair, false);
+});
+
+test('Viewer rejects orientation fields that drift away from the single 307 degree bearing', () => {
+  const worldDrift = clone();
+  worldDrift.referenceSystem.worldTransform.rotationFromTrueNorth = 306;
+  assert.throws(
+    () => buildViewerModel(worldDrift, registry),
+    /orientation fields must share one finite bearing/,
+  );
+
+  const siteDrift = clone();
+  const active = siteDrift.geometryRevisions.find(({ id }) => id === siteDrift.activeGeometryRevisionId);
+  active.site.rightwardBearingFromTrueNorth = 308;
+  assert.throws(
+    () => buildViewerModel(siteDrift, registry),
+    /orientation fields must share one finite bearing/,
+  );
 });
 
 test('public content compiler resolves current active geometry tokens for all five scenes', () => {
@@ -167,6 +218,9 @@ test('Viewer, solar study, and atlas navigation expose only v0.6.7 drawing ancho
 
 test('world, L3, and coplanar mirror transforms remain separated in the scene factory', () => {
   assert.equal((sceneFactorySource.match(/worldRoot\.rotation\.y\s*=/g) ?? []).length, 1);
+  assert.match(sceneFactorySource, /deriveViewerOrientation/);
+  assert.doesNotMatch(sceneFactorySource, /degToRad\(-model\.referenceSystem\.localLongAxisBearingFromTrueNorth\)/);
+  assert.match(sceneFactorySource, /TRUE-NORTH-LABEL-N/);
   assert.equal((sceneFactorySource.match(/l3RotationGroup\.rotation\.y\s*=/g) ?? []).length, 1);
   assert.match(sceneFactorySource, /siteRoot\.scale\.set\(1, 1, -1\)/);
   assert.doesNotMatch(sceneFactorySource, /stair\.originY|stair\.startX|stair\.width/);

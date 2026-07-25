@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import type { DesignStatus, ViewerModel } from './model-adapter';
+import { deriveViewerOrientation } from './orientation';
 import { getViewerPoolPresentation } from './pool-state';
+import { createL1SanitaryDetails } from './sanitary-fixtures';
+import { createArchitecturalDetails } from './architectural-details';
+import { createPoolHallDetails } from './pool-hall-details';
+import { createL2InteriorDetails } from './interior-details';
 import type { SceneRenderingDependencies } from './rendering/contracts';
 
 export interface SelectableInfo {
@@ -78,6 +83,50 @@ function horizontalPolygon(points: Array<[number, number]>, elevation: number, m
 
 function line(points: THREE.Vector3[], material: THREE.Material) {
   return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material);
+}
+
+function createNorthLabel() {
+  const label = new THREE.Sprite();
+  label.name = 'TRUE-NORTH-LABEL-N';
+  label.userData = { label: 'N', orientationRole: 'true-north-label' };
+  label.scale.set(2.4, 2.4, 1);
+  label.renderOrder = 40;
+
+  if (typeof document === 'undefined') {
+    label.visible = false;
+    return label;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const context = canvas.getContext('2d');
+  if (!context) return label;
+  context.clearRect(0, 0, 256, 256);
+  context.beginPath();
+  context.arc(128, 128, 92, 0, Math.PI * 2);
+  context.fillStyle = 'rgba(33, 50, 59, 0.92)';
+  context.fill();
+  context.lineWidth = 10;
+  context.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+  context.stroke();
+  context.font = '900 150px system-ui, sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillStyle = '#ffffff';
+  context.fillText('N', 128, 137);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  label.material.dispose();
+  label.material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+  });
+  return label;
 }
 
 function tag(object: THREE.Object3D, info: Omit<SelectableInfo, 'object'>, selectables: SelectableInfo[]) {
@@ -173,9 +222,16 @@ export function createViewerScene(
   const buildingWidth = model.geometry.site.width;
   const centreX = buildingLength / 2;
   const centreZ = buildingWidth / 2;
+  const orientation = deriveViewerOrientation(
+    model.referenceSystem.worldTransform.rotationFromTrueNorth,
+  );
   const worldRoot = new THREE.Group();
   worldRoot.name = 'WORLD-BEARING-ROOT';
-  worldRoot.rotation.y = THREE.MathUtils.degToRad(-model.referenceSystem.localLongAxisBearingFromTrueNorth);
+  worldRoot.rotation.y = orientation.threeWorldRotationRadians;
+  worldRoot.userData = {
+    bearingFromTrueNorth: orientation.bearingFromTrueNorth,
+    threeWorldRotationDegrees: orientation.threeWorldRotationDegrees,
+  };
   scene.add(worldRoot);
 
   const siteRoot = new THREE.Group();
@@ -309,63 +365,14 @@ export function createViewerScene(
     }, selectables);
   }
 
-  const sanitaryMaterial = materials.get('sanitary-fixture');
-  const cubicleMaterial = materials.get('cubicle');
-  const cubicleDoorMaterial = materials.get('cubicle-door');
-  const toiletDetails = new THREE.Group();
-  for (const zone of Object.values(model.geometry.l1.zones).filter((candidate) => candidate.layout)) {
-    const layout = zone.layout!;
-    const floorElevation = zone.floorElevation ?? 0;
-    for (const basin of layout.washbasins) {
-      toiletDetails.add(box([0.72, 0.12, 0.42], [basin.center[0], floorElevation + 0.78, basin.center[1]], sanitaryMaterial));
-      const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.68, 18), sanitaryMaterial);
-      pedestal.position.set(basin.center[0], floorElevation + 0.38, basin.center[1]);
-      toiletDetails.add(pedestal);
-    }
-    for (const urinal of layout.urinals) {
-      toiletDetails.add(box([0.34, 0.58, 0.2], [urinal.center[0], floorElevation + 0.64, urinal.center[1]], sanitaryMaterial));
-    }
-    for (const cubicle of layout.toiletCubicles) {
-      const bounds = cubicle.planBounds;
-      const cubicleHeight = 2.05;
-      toiletDetails.add(
-        box([bounds.x2 - bounds.x1, cubicleHeight, 0.06], [(bounds.x1 + bounds.x2) / 2, floorElevation + cubicleHeight / 2, bounds.y1], cubicleMaterial),
-        box([bounds.x2 - bounds.x1, cubicleHeight, 0.06], [(bounds.x1 + bounds.x2) / 2, floorElevation + cubicleHeight / 2, bounds.y2], cubicleMaterial),
-        box([0.06, cubicleHeight, bounds.y2 - bounds.y1], [bounds.x1, floorElevation + cubicleHeight / 2, (bounds.y1 + bounds.y2) / 2], cubicleMaterial),
-        box([0.06, cubicleHeight, bounds.y2 - bounds.y1], [bounds.x2, floorElevation + cubicleHeight / 2, (bounds.y1 + bounds.y2) / 2], cubicleMaterial),
-      );
-      const doorAxis = cubicle.doorSide[0];
-      const doorCoordinate = Number(cubicle.doorSide.slice(1));
-      if (doorAxis === 'x') {
-        const doorWidth = Math.min(0.72, bounds.y2 - bounds.y1 - 0.24);
-        toiletDetails.add(box([0.045, 1.82, doorWidth], [doorCoordinate, floorElevation + 0.94, (bounds.y1 + bounds.y2) / 2], cubicleDoorMaterial));
-      } else {
-        const doorWidth = Math.min(0.72, bounds.x2 - bounds.x1 - 0.24);
-        toiletDetails.add(box([doorWidth, 1.82, 0.045], [(bounds.x1 + bounds.x2) / 2, floorElevation + 0.94, doorCoordinate], cubicleDoorMaterial));
-      }
-      const toilet = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.27, 0.42, 20), sanitaryMaterial);
-      toilet.position.set((bounds.x1 + bounds.x2) / 2, floorElevation + 0.22, (bounds.y1 + bounds.y2) / 2);
-      toiletDetails.add(toilet);
-    }
-    if (layout.privacyScreen) {
-      const screen = layout.privacyScreen.planBounds;
-      toiletDetails.add(box([
-        screen.x2 - screen.x1,
-        layout.privacyScreen.height,
-        screen.y2 - screen.y1,
-      ], [
-        (screen.x1 + screen.x2) / 2,
-        floorElevation + layout.privacyScreen.height / 2,
-        (screen.y1 + screen.y2) / 2,
-      ], l1Material));
-    }
-  }
+  const toiletDetails = createL1SanitaryDetails(model, materials);
   l1.add(toiletDetails);
   tag(toiletDetails, {
     entityId: 'WC-L1-DETAIL-01', label: '四間廁所內裝與隱私格局', status: 'working',
-    description: '四個主入口均無門板且不設遮擋版，可直接面向洗手台；WC 個別隔間仍保留門板，並全部貼齊 Y3.5 牆面。泳池男廁其中一座小便斗移至 X31 且避開入口。',
+    description: '四個主入口均無門板且不設遮擋版，WC 隔間仍保留門板並全部貼 Y3.5；8 座 WC 依 0.8.2 資料分為 4 座坐式與 4 座蹲式，另含具盆深、五金、排水、鏡面與分級細節的洗手槽及小便斗。實際防水、管道、無障礙與施工淨空仍須專業驗證。',
     openItemId: 'OPEN-008',
   }, selectables);
+  l1.add(createArchitecturalDetails(model, materials));
   const integratedStructure = new THREE.Group();
   integratedStructure.add(
     box([0.28, model.geometry.l3.baseElevation, 6.5], [32.5, model.geometry.l3.baseElevation / 2, 10.75], coreMaterial),
@@ -506,6 +513,7 @@ export function createViewerScene(
     box([coping, 0.07, pool.width.value], [poolX1 + coping / 2, deckElevation + 0.02, (poolZ0 + poolZ1) / 2], deckMaterial),
   );
   layer('water').add(poolGroup);
+  layer('water').add(createPoolHallDetails(model, materials));
   tag(poolGroup, {
     entityId: 'POOL-01', label: '25 m 教學／游泳混合泳池', status: 'confirmed',
     description: `${pool.length.value} × ${pool.width.value} m；兩條 2.5 m 標準水道加 3.0 m 正常游泳／教學混合區，左側低 X 端水深 ${pool.shallowDepth.value} m，向右側服務量體端降至 ${pool.deepDepth.value} m。`,
@@ -851,6 +859,7 @@ export function createViewerScene(
     description: '設懸空站立長桌（無椅）、飲水機與 3 組可移除低矮盆栽；固定、給排水及通行淨寬仍待專業驗證。',
     openItemId: 'OPEN-019',
   }, selectables);
+  l2Group.add(createL2InteriorDetails(model, materials));
 
   layer('l2').add(l2Group);
   tag(l2Group, {
@@ -1325,16 +1334,29 @@ export function createViewerScene(
   );
   localAxis.name = 'LOCAL-X-TO-NORTHWEST-307';
   annotations.add(localAxis);
+  const northDirection = new THREE.Vector3(
+    orientation.northInSite.x,
+    0,
+    orientation.northInSite.y,
+  ).normalize();
+  const northOrigin = new THREE.Vector3(4, 0.28, 26);
+  const northArrowLength = 8;
   const trueNorth = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 0, -1),
-    new THREE.Vector3(-24, 0.28, -12),
-    8,
+    northDirection,
+    northOrigin,
+    northArrowLength,
     0x21323b,
     1.2,
     0.7,
   );
   trueNorth.name = 'TRUE-NORTH';
-  scene.add(trueNorth);
+  trueNorth.userData = {
+    bearingFromTrueNorth: orientation.bearingFromTrueNorth,
+    northPlanDirection: orientation.northPlanDirection,
+  };
+  const northLabel = createNorthLabel();
+  northLabel.position.copy(northOrigin).addScaledVector(northDirection, northArrowLength + 1.35);
+  annotations.add(trueNorth, northLabel);
 
   const cutawayAnnotations = new THREE.Group();
   cutawayAnnotations.name = 'POOL-LONGITUDINAL-CUTAWAY-ANNOTATIONS';

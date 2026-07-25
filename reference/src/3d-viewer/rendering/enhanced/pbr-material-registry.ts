@@ -168,6 +168,68 @@ export class EnhancedPbrMaterialRegistry implements MaterialRegistry {
       roughness: 0.24,
       metalness: 0.82,
     }));
+    this.overrides.set('pool-caustic', new THREE.MeshBasicMaterial({
+      color: 0xd7ffff,
+      transparent: true,
+      opacity: 0.16,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }));
+    this.overrides.set('sanitary-fixture', new THREE.MeshPhysicalMaterial({
+      color: 0xf8faf7,
+      roughness: 0.16,
+      metalness: 0,
+      clearcoat: 0.52,
+      clearcoatRoughness: 0.12,
+    }));
+    this.overrides.set('sanitary-metal', new THREE.MeshStandardMaterial({
+      color: 0xd5dddd,
+      roughness: 0.16,
+      metalness: 0.9,
+    }));
+    this.overrides.set('sanitary-seat', new THREE.MeshPhysicalMaterial({
+      color: 0xe7e9e6,
+      roughness: 0.24,
+      clearcoat: 0.24,
+      clearcoatRoughness: 0.18,
+    }));
+    this.overrides.set('sanitary-dark', new THREE.MeshStandardMaterial({
+      color: 0x273134,
+      roughness: 0.48,
+      metalness: 0.28,
+    }));
+    this.overrides.set('wet-surface', new THREE.MeshPhysicalMaterial({
+      color: 0x9fc3c7,
+      roughness: 0.08,
+      transmission: 0.08,
+      transparent: true,
+      opacity: 0.2,
+      depthWrite: false,
+    }));
+    this.overrides.set('interior-tile', new THREE.MeshStandardMaterial({
+      color: 0xdce6e3,
+      map: poolTileColor,
+      normalMap: poolTileNormal,
+      normalScale: new THREE.Vector2(0.18, 0.18),
+      roughness: 0.72,
+      metalness: 0,
+    }));
+    this.overrides.set('interior-grout', new THREE.MeshStandardMaterial({
+      color: 0x939d9a,
+      roughness: 0.98,
+      metalness: 0,
+    }));
+    this.overrides.set('interior-light', new THREE.MeshStandardMaterial({
+      color: 0xfff9ec,
+      roughness: 0.24,
+      emissive: 0xffe7b0,
+      emissiveIntensity: 0.72,
+    }));
+    this.overrides.set('signage', new THREE.MeshStandardMaterial({
+      color: 0x345f64,
+      roughness: 0.54,
+      metalness: 0.04,
+    }));
     this.overrides.set('mirror', new THREE.MeshPhysicalMaterial({
       color: 0xd7e6e8,
       roughness: 0.025,

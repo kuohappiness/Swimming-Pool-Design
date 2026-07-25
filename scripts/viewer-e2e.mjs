@@ -95,12 +95,16 @@ try {
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-software-renderer'), 'true');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-render-quality'), 'low');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-performance-profile'), 'low');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-shadow-update-mode'),
+    'on-demand-static-scene',
+  );
   await desktop.waitForFunction(
     () => Number(document.querySelector('[data-viewer-shell]')?.getAttribute('data-draw-calls')) > 0,
   );
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-coordinate-adapter'), 'SITE-XYZ-TO-THREE-RH');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-collision-world'), 'capsule-proxies-task-055');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-safe-spawn-count'), '6');
+  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-safe-spawn-count'), '7');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-site-y-to-three'), 'negativeThreeZ');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-site-root-scale-z'), '-1');
   assert.equal(await desktop.locator('[data-orientation-cue]').isVisible(), true);
@@ -169,10 +173,11 @@ try {
     () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'walkthrough',
   );
   const areaSelect = desktop.locator('[data-walkthrough-area-select]');
-  assert.equal(await areaSelect.locator('option').count(), 6);
+  assert.equal(await areaSelect.locator('option').count(), 7);
   for (const areaId of [
     'entrance',
     'l1-pool-deck',
+    'l1-sanitary',
     'l2-arrival',
     'l3-arrival',
     'l3-terrace',
@@ -368,7 +373,7 @@ try {
     () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'walkthrough',
   );
   assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
-  assert.equal(await mobile.locator('[data-walkthrough-area-select] option').count(), 6);
+  assert.equal(await mobile.locator('[data-walkthrough-area-select] option').count(), 7);
   for (const selector of [
     '[data-walkthrough-area-select]',
     '[data-return-safe]',

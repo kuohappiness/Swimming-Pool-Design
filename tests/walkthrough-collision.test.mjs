@@ -106,6 +106,7 @@ test('collision proxies use the live scene transform and all semantic safe spawn
   assert.deepEqual(safeSpawns.ids, [
     'entrance',
     'l1-pool-deck',
+    'l1-sanitary',
     'l2-arrival',
     'l3-arrival',
     'l3-terrace',

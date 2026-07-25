@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as THREE from 'three';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createServer } from 'vite';
@@ -85,8 +86,27 @@ test('enhanced water and scale assets share the canonical visual water hook only
     poolCutaway: false,
   }), /second water surface state/);
 
+  const caustic = graph.siteRoot.getObjectByName('visual-only:POOL-01-caustic:1');
+  assert.ok(caustic);
+  const causticX = caustic.position.x;
+  adapter.updateFrame({
+    deltaSeconds: 1 / 60,
+    elapsedSeconds: 1,
+    reducedMotion: false,
+    camera: new THREE.PerspectiveCamera(),
+  });
+  assert.notEqual(caustic.position.x, causticX);
+
   adapter.setQuality(getEnhancedQualityProfile('low'));
   assert.equal(scaleAssets.visible, false);
+  const lowCausticX = caustic.position.x;
+  adapter.updateFrame({
+    deltaSeconds: 1 / 60,
+    elapsedSeconds: 2,
+    reducedMotion: false,
+    camera: new THREE.PerspectiveCamera(),
+  });
+  assert.equal(caustic.position.x, lowCausticX);
   const presentationMaterial = graph.water.surface.material;
   adapter.dispose();
   assert.equal(adapter.assetStatus, 'disposed');

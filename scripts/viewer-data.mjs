@@ -85,6 +85,12 @@ export function buildViewerModel(model, analysisRegistry = {}) {
   const analysisStatus = recordedAnalysisInputHash === null
     ? 'unavailable'
     : recordedAnalysisInputHash === currentAnalysisInputHash ? 'current' : 'stale';
+  const orientationBearing = model.referenceSystem.localLongAxisBearingFromTrueNorth;
+  if (!Number.isFinite(orientationBearing)
+    || model.referenceSystem.worldTransform?.rotationFromTrueNorth !== orientationBearing
+    || active.site.rightwardBearingFromTrueNorth !== orientationBearing) {
+    throw new RangeError('Viewer orientation fields must share one finite bearing from true north.');
+  }
   const poolSize = size(pool.bounds);
   const l2Size = size(l2.bounds);
   const l3Size = size(l3.bounds);
@@ -93,7 +99,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
   const stairData = active.stair;
 
   const viewerModel = {
-    schemaVersion: '1.3.0',
+    schemaVersion: '1.4.0',
     modelVersion: model.modelVersion,
     revision: model.revision,
     activeGeometryRevisionId: active.id,
@@ -104,7 +110,11 @@ export function buildViewerModel(model, analysisRegistry = {}) {
     referenceSystem: {
       unit: model.referenceSystem.unit,
       angleUnit: model.referenceSystem.angleUnit,
-      localLongAxisBearingFromTrueNorth: model.referenceSystem.localLongAxisBearingFromTrueNorth,
+      localLongAxisBearingFromTrueNorth: orientationBearing,
+      worldTransform: {
+        rotationFromTrueNorth: model.referenceSystem.worldTransform.rotationFromTrueNorth,
+      },
+      northArrowPlanDirection: active.site.northArrowPlanDirection,
       axes: structuredClone(model.referenceSystem.axes),
       coordinateAdapter: {
         siteX: 'threeX', siteY: 'negativeThreeZ', siteZ: 'threeY', adapterId: THREE_SITE_ADAPTER_ID,
@@ -282,7 +292,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         recordedAnalysisInputHash,
         currentAnalysisInputHash,
         sourceIds: [...(analysisRegistry?.solar?.sourceIds ?? [])],
-        disclaimer: `${model.modelVersion} 概念模型已同步；本版整合可逆第一人稱漫遊、碰撞、樓梯代理、安全區域跳轉、水面／水下探索與可降級 enhanced rendering，未改變 canonical 建築幾何、鏡牆角度或 solar inputHash，因此沿用既有日照分析。漫遊碰撞、游泳與 PBR 視覺材質只屬 Viewer 模擬；3F 光電發電／眩光、玻璃屋簷結構、儲能消防、實際材料性能與無障礙入水仍須專業驗證。`,
+        disclaimer: `${model.modelVersion} 概念模型已同步；本版以剛完工且已投入使用的建築外觀、室內、泳池與衛浴擬真為優先，加入 4 座坐式／4 座蹲式 WC、較完整洗手槽與小便斗、建築接縫、泳池溢流排水、照明與可降級動態水面。這些新增項目均為 visual-only 或經驗證的衛浴工作配置，不改 walkthrough collision、鏡牆角度或 solar inputHash，因此沿用既有日照分析。器具法定數量、無障礙、實際材料、防水、排水、結構、消防與機電仍須專業驗證。`,
       },
     },
   };

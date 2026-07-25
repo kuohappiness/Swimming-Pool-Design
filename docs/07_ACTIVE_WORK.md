@@ -281,7 +281,26 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | TASK-064 | 完成桌機／手機效能階級與視覺回歸 | done | 0.8.0 | [視覺擬真設計](archive/specs/2026-07-24-3d-visual-fidelity-design.md)、[implementation plan](archive/specs/2026-07-24-3d-visual-fidelity-implementation-plan.md) | TASK-057、TASK-061、TASK-062、TASK-063 | 1440 × 900 high／medium／low 與 390 × 844 adaptive 均以獨立頁逐級量測 214,109-byte transfer、平均 FPS、p95、draw calls、triangles、shader programs／compile 與 drawing buffer；所有 tier 低於 24／12／6 MiB，SwiftShader 結果均高於同機 0.6.7 baseline 的 80%，硬體 50／30 FPS 保留為裝置端目標而不虛假宣稱。low 將 draw calls 1,678→638、triangles 59,416→27,118、programs 38→22；兩個持續超標窗後才單向 high→medium→low。真實 context loss／restore 保留 scene、cutaway、selection 與 layers；optional environment failure、reduced motion、fallback 均可用。14 張 before／after hash 與人工抽查涵蓋五場景、兩側、俯視、剖視、L1／L2／L3、人眼、水下與 mobile；無新增 UV、透明排序、陰影閃爍、z-fighting、過曝或 controls 遮擋。自我優化依 1.35 FPS 證據取消正式 high 全畫面 SSAO，保留 PBR／PMREM／ACES／PCF shadow 與可選 AO pipeline。 |
 | TASK-065 | 合併已發布 0.7.0、完成 0.8.0 契約、版本與發布驗證 | done | 0.8.0 | [完成設計](archive/specs/2026-07-24-3d-visual-fidelity-design.md)、[完成計畫](archive/specs/2026-07-24-3d-visual-fidelity-implementation-plan.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.8.0](releases/0.8.0.md) | TASK-058、TASK-060、TASK-061、TASK-062、TASK-063、TASK-064 | enhanced 已成正式預設；software renderer low、窄螢幕硬體 medium、desktop hardware high，再以雙觀測窗單向降級。package／model／`GEO-0.8.0`／generated data 同步；model diff 只含 metadata，solar inputHash 不變。82 項測試與 production build 通過；53 秒 E2E 涵蓋 enhanced desktop／390 × 844、Inspect、六區、物理入水、水下、touch、snapshot restore、explicit baseline、necessary material→baseline、WebGL static fallback、solar-study 與 V067 atlas。自我檢查修正放開下潛後 movement／overlay race；最終截圖確認 desktop／mobile 水下、HUD、safe-area 與 controls。Viewer contract、0.8 release 與兩份 completed specs 已同步封存；依使用者指示，最終全套驗證後一次 commit 並 push。 |
 
-## 16. 未排程設計問題
+## 16. 0.8.0 後續修正
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-066 | 修正 3D Viewer 真北箭頭根本方位換算並加入 N 標記 | done | 0.8.0 correction | [DEC-121](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-065 | 已把 307° 羅盤方位以 `90°−bearing` 轉成 Three Y 軸 143°；SITE +X 世界方位為西北 307°、真北在 SITE 平面為右下，場景箭頭尖端顯示 N。Viewer data 現在攜帶並驗證同一 world transform／plan direction，任何漂移 fail closed；固定鏡位同步校正 90°而維持既有構圖。84 項測試、文件與 reference validation、typecheck、production build、desktop／mobile／fallback E2E、俯視／透視人工抽查及 `git diff --check` 全數通過 |
+
+## 17. 0.8.2 建築本體擬真修訂
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-067 | 固定「剛完工但已投入使用」、建築優先與校園第二階段的 0.8.2 設計邊界 | done | 0.8.2 | [DEC-122／DEC-124](04_DECISIONS_AND_OPEN_ITEMS.md)、[完成設計](archive/specs/2026-07-25-building-first-realism-design.md) | TASK-066 | 模型、契約與規格明列桌機 high、手機可降階、建築外觀／室內優先、少量使用水痕及校園環境 deferred；不虛構施工或專業核定 |
+| TASK-068 | 建立 L1 坐式／蹲式各半的 canonical 衛浴資料與擬真程序器具 | done | 0.8.2 | [DEC-123](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-067 | 8 個隔間均有 fixture type／center／facing；分布固定為 4 坐／4 蹲，並建立具盆深、座圈／腳踏、沖水五金、龍頭、鏡面、排水、感應器與隔間五金的 WC／洗手槽／小便斗；validator 與測試 fail closed |
+| TASK-069 | 提升建築外觀與外殼構造細節 | done | 0.8.2 | [完成計畫](archive/specs/2026-07-25-building-first-realism-implementation-plan.md)、OPEN-014／OPEN-016 | TASK-067 | 清水模分割／螺桿孔、玻璃底座／膠條、天溝／落水管、轉接泛水／封膠均為 visual-only，可依畫質移除且不改 canonical bounds |
+| TASK-070 | 提升泳池大廳、池體、水面與濕區完成度 | done | 0.8.2 | [完成計畫](archive/specs/2026-07-25-building-first-realism-implementation-plan.md)、OPEN-016／OPEN-018 | TASK-067 | 溢流格柵、池底水道線、池畔排水、天花照明／通風、少量濕痕與高階焦散完成；水面 normal／焦散依 frame state 動畫，低階／reduced motion 停止 |
+| TASK-071 | 提升 L2 更衣淋浴與室內完成度 | done | 0.8.2 | [完成計畫](archive/specs/2026-07-25-building-first-realism-implementation-plan.md)、OPEN-008／OPEN-016 | TASK-067 | 30 組淋浴頭／管線／排水、高位閥件、置物櫃接縫／把手、室內磁磚、照明、通風與少量濕痕完成，既有 30 間淋浴與男女分區資料不變 |
+| TASK-072 | 建立 essential／reduced／full 視覺細節分級與桌機／手機降階 | done | 0.8.2 | [DEC-124](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-068～TASK-071 | low 只保留必要輪廓、medium 增加操作與構造層次、high 顯示全部接縫／五金／排水／焦散；切換可逆且不改 collision、player、water 或 selection；低階關閉細節陰影 |
+| TASK-073 | 分階段自我檢查、視覺回歸與效能優化 | done | 0.8.2 | [完成計畫](archive/specs/2026-07-25-building-first-realism-implementation-plan.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-068～TASK-072 | 資料分布、detail contract、建築細節、衛浴、動畫、desktop high、390 × 844 adaptive／low、fallback 與碰撞不變均有自動測試或 14 張截圖證據；自我檢查以 explicit caster 保留主要器具陰影、low 關閉細節陰影，衛浴 mesh 由 272 批次化為 160 並鎖定 180 上限，靜態陰影改為場景／圖層／剖視／畫質／context 變動時按需更新。SwiftShader high／medium／low 為 0.86／0.86／8.55 FPS，390 × 844 自動 low 為 18.2 FPS，均通過相對門檻；長時間量測與快速視覺快照分離，避免常駐預覽程序 |
+| TASK-074 | 同步 0.8.2 版本、文件、完整驗證並 commit／push | done | 0.8.2 | [Release 0.8.2](releases/0.8.2.md)、[發布流程](06_WORKFLOW_AND_RELEASES.md) | TASK-067～TASK-073 | package／model／`GEO-0.8.2`／schema 1.4.0／generated data／README／contracts 同步；完整測試、typecheck、production build、desktop／mobile E2E、品質證據與 diff 檢查通過後建立一次 release commit 並 push `main` |
+
+## 18. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

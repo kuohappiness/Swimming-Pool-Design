@@ -33,7 +33,7 @@ export function validateModel(model) {
     return [error instanceof Error ? error.message : String(error)];
   }
 
-  check(errors, model.schemaVersion === '1.3.0', 'schemaVersion must be 1.3.0.');
+  check(errors, model.schemaVersion === '1.4.0', 'schemaVersion must be 1.4.0.');
   check(errors, /^\d+\.\d+\.\d+$/.test(model.modelVersion), 'modelVersion must be semantic x.y.z.');
   check(errors, model.designTargetVersion === model.modelVersion, 'designTargetVersion must equal modelVersion.');
   check(
@@ -148,6 +148,31 @@ export function validateModel(model) {
   check(errors, active.l1.zones.playgroundMaleToilet.layout.washbasins.some(({ center, existing }) => closeTo(center[0], 37.7) && existing === true), 'The existing playground male washbasin must remain at X37.7.');
   check(errors, active.l1.zones.playgroundFemaleToilet.layout.washbasins.some(({ center, existing }) => closeTo(center[0], 37.7) && existing === true), 'The existing playground female washbasin must remain at X37.7.');
   check(errors, active.l1.zones.playgroundMaleToilet.layout.urinals.some(({ center, existing }) => closeTo(center[0], 37.3) && existing === true), 'The existing playground male urinal must remain at X37.3.');
+  const l1Cubicles = toilets.flatMap((zone) => zone.layout?.toiletCubicles ?? []);
+  const seatedCubicles = l1Cubicles.filter(({ fixtureType }) => fixtureType === 'seated');
+  const squatCubicles = l1Cubicles.filter(({ fixtureType }) => fixtureType === 'squat');
+  check(errors, l1Cubicles.length === 8, 'L1 must preserve exactly eight WC cubicles.');
+  check(errors, seatedCubicles.length === 4 && squatCubicles.length === 4, 'L1 WC fixtures must be divided into four seated and four squat pans.');
+  check(errors, toilets.every((zone) => zone.layout?.toiletCubicles?.some(({ fixtureType }) => fixtureType === 'seated')), 'Every L1 toilet room must contain at least one seated WC.');
+  const expectedFixtureTypes = {
+    'Z-WC-POOL-M-01': ['seated', 'squat'],
+    'Z-WC-POOL-F-01': ['seated', 'squat', 'squat'],
+    'Z-WC-PLAY-M-01': ['seated'],
+    'Z-WC-PLAY-F-01': ['squat', 'seated'],
+  };
+  check(errors, toilets.every((zone) =>
+    zone.fixtures.toilets === zone.layout?.toiletCubicles?.length
+    && JSON.stringify(zone.layout.toiletCubicles.map(({ fixtureType }) => fixtureType))
+      === JSON.stringify(expectedFixtureTypes[zone.entityId])
+  ), 'Each L1 toilet room must preserve the approved ordered seated/squat distribution and fixture count.');
+  check(errors, l1Cubicles.every(({ fixtureCenter, fixtureFacing, planBounds }) =>
+    Array.isArray(fixtureCenter)
+    && fixtureCenter.length === 2
+    && fixtureCenter.every(Number.isFinite)
+    && fixtureCenter[0] > planBounds.x1 && fixtureCenter[0] < planBounds.x2
+    && fixtureCenter[1] > planBounds.y1 && fixtureCenter[1] < planBounds.y2
+    && ['positive-y', 'negative-y'].includes(fixtureFacing)
+  ), 'Every L1 WC fixture must have a finite in-cubicle center and a supported facing.');
   check(errors, active.l1.serviceWing?.architecturalStyle?.scope === 'all-opaque-l1-l2-l3-service-volumes', 'All opaque service volumes must use the confirmed fair-faced concrete style.');
   check(errors, active.l1.y0ExteriorFacade?.materialIntent === 'segmented-safety-glass-and-fair-faced-concrete'
     && active.l1.y0ExteriorFacade?.poolHallMaterialIntent === 'safety-glass'

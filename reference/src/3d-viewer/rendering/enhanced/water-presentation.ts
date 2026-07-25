@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type {
+  VisualFrameState,
   VisualAssetContext,
   VisualWalkthroughState,
 } from '../contracts';
@@ -87,6 +88,21 @@ export class EnhancedWaterPresentation {
     }
     this.state = state;
     this.apply();
+  }
+
+  updateFrame(state: VisualFrameState) {
+    if (!this.presentationMaterial || state.reducedMotion || this.profile.id === 'low') return;
+    const material = this.presentationMaterial as THREE.MeshPhysicalMaterial;
+    const normal = material.normalMap;
+    if (!normal) return;
+    normal.wrapS = THREE.RepeatWrapping;
+    normal.wrapT = THREE.RepeatWrapping;
+    const speed = this.profile.id === 'high' ? 1 : 0.55;
+    normal.offset.set(
+      (state.elapsedSeconds * 0.011 * speed) % 1,
+      (state.elapsedSeconds * -0.017 * speed) % 1,
+    );
+    normal.needsUpdate = true;
   }
 
   dispose() {

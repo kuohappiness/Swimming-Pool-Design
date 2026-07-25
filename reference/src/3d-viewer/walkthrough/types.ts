@@ -142,6 +142,7 @@ export interface SpawnDescriptor {
   readonly id:
     | 'entrance'
     | 'l1-pool-deck'
+    | 'l1-sanitary'
     | 'l2-arrival'
     | 'l3-arrival'
     | 'l3-terrace'

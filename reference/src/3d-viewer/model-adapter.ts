@@ -1,3 +1,5 @@
+import { deriveViewerOrientation, type NorthPlanDirection } from './orientation';
+
 export type DesignStatus = 'confirmed' | 'working' | 'deferred';
 
 export interface ViewerMeasure {
@@ -8,6 +10,19 @@ export interface ViewerMeasure {
 }
 
 export interface SiteBounds { x1: number; x2: number; y1: number; y2: number }
+export type ToiletFixtureType = 'seated' | 'squat';
+export type ToiletFixtureFacing = 'positive-y' | 'negative-y';
+
+export interface ViewerToiletCubicle {
+  planBounds: SiteBounds;
+  doorSide: string;
+  doorLeaf: true;
+  wallContact?: string;
+  fixtureType: ToiletFixtureType;
+  fixtureCenter: [number, number];
+  fixtureFacing: ToiletFixtureFacing;
+}
+
 export interface ViewerZone {
   entityId: string;
   coordinateSystemId: 'SITE-XY';
@@ -19,7 +34,7 @@ export interface ViewerZone {
     entranceRangeY: [number, number];
     washbasinWall: string;
     washbasins: Array<{ center: [number, number]; facing: string }>;
-    toiletCubicles: Array<{ planBounds: SiteBounds; doorSide: string; doorLeaf: true; wallContact?: string }>;
+    toiletCubicles: ViewerToiletCubicle[];
     urinals: Array<{ center: [number, number]; facing: string; wallContact?: string }>;
     privacyScreen?: { planBounds: SiteBounds; height: number };
   };
@@ -28,7 +43,7 @@ export interface ViewerZone {
 }
 
 export interface ViewerModel {
-  schemaVersion: '1.3.0';
+  schemaVersion: '1.4.0';
   modelVersion: string;
   revision: string;
   activeGeometryRevisionId: string;
@@ -39,12 +54,19 @@ export interface ViewerModel {
     selectionOutline: 'none';
     selectionChannels: ['canvas', 'keyboard', 'dropdown', 'information-panel'];
     glassFacadeMaterialSystem: 'shared-safety-glass-facade';
+    occupancyAppearance: 'newly-completed-in-use';
+    realismPriority: 'building-exterior-and-interior-first';
+    campusEnvironmentPhase: 'deferred';
     status: 'confirmed';
   };
   referenceSystem: {
     unit: 'm';
     angleUnit: 'degree';
     localLongAxisBearingFromTrueNorth: number;
+    worldTransform: {
+      rotationFromTrueNorth: number;
+    };
+    northArrowPlanDirection: NorthPlanDirection;
     axes: { x: string; y: string; z: string };
     coordinateAdapter: {
       siteX: 'threeX';
@@ -350,7 +372,7 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
 } {
   const model = modelInput as ViewerModel;
   const content = contentInput as ConceptContent;
-  if (model?.schemaVersion !== '1.3.0') throw new TypeError('Viewer model schema 不受支援。');
+  if (model?.schemaVersion !== '1.4.0') throw new TypeError('Viewer model schema 不受支援。');
   if (content?.schemaVersion !== '1.0.0') throw new TypeError('理念內容 schema 不受支援。');
   if (!/^[a-f0-9]{64}$/.test(model.modelHash) || content.modelHash !== model.modelHash) {
     throw new TypeError('Viewer 模型與理念內容版本不同步。');
@@ -365,6 +387,19 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     || adapter.siteY !== 'negativeThreeZ'
     || adapter.siteZ !== 'threeY') {
     throw new TypeError('Viewer 必須使用右手座標 SITE-XYZ-TO-THREE-RH adapter。');
+  }
+  const orientationBearing = finite(
+    model.referenceSystem.localLongAxisBearingFromTrueNorth,
+    'referenceSystem.localLongAxisBearingFromTrueNorth',
+  );
+  const worldBearing = finite(
+    model.referenceSystem.worldTransform?.rotationFromTrueNorth,
+    'referenceSystem.worldTransform.rotationFromTrueNorth',
+  );
+  const orientation = deriveViewerOrientation(orientationBearing);
+  if (worldBearing !== orientationBearing
+    || model.referenceSystem.northArrowPlanDirection !== orientation.northPlanDirection) {
+    throw new TypeError('Viewer 世界方位、建築長軸方位與真北圖面方向必須由同一 transform 推導。');
   }
   const stairBounds = model.geometry.stair.bounds;
   const canonicalStairBounds = model.entityBounds[model.geometry.stair.entityId]?.bounds;
@@ -422,6 +457,36 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
   }
   if (toiletZones.some((zone) => zone.layout?.toiletCubicles.some((cubicle) => cubicle.wallContact !== 'y3.5'))) {
     throw new TypeError('0.6.3 廁所 WC 隔間必須貼齊 Y3.5 牆面。');
+  }
+  const l1Cubicles = toiletZones.flatMap((zone) => zone.layout?.toiletCubicles ?? []);
+  const seatedCubicles = l1Cubicles.filter(({ fixtureType }) => fixtureType === 'seated');
+  const squatCubicles = l1Cubicles.filter(({ fixtureType }) => fixtureType === 'squat');
+  if (l1Cubicles.length !== 8 || seatedCubicles.length !== 4 || squatCubicles.length !== 4
+    || toiletZones.some((zone) => !zone.layout?.toiletCubicles.some(({ fixtureType }) => fixtureType === 'seated'))) {
+    throw new TypeError('0.8.2 四間 L1 廁所必須合計 4 座坐式、4 座蹲式，且每間至少一座坐式。');
+  }
+  const expectedFixtureTypes: Readonly<Record<string, readonly ToiletFixtureType[]>> = {
+    'Z-WC-POOL-M-01': ['seated', 'squat'],
+    'Z-WC-POOL-F-01': ['seated', 'squat', 'squat'],
+    'Z-WC-PLAY-M-01': ['seated'],
+    'Z-WC-PLAY-F-01': ['squat', 'seated'],
+  };
+  if (toiletZones.some((zone) => {
+    const layout = zone.layout;
+    return !layout
+      || zone.fixtures?.toilets !== layout.toiletCubicles.length
+      || layout.toiletCubicles.some(({ fixtureType }, index) =>
+        fixtureType !== expectedFixtureTypes[zone.entityId]?.[index]);
+  })) {
+    throw new TypeError('0.8.2 每間 L1 廁所必須維持核准的坐式／蹲式順序及 WC 數量。');
+  }
+  if (l1Cubicles.some(({ fixtureCenter, fixtureFacing, planBounds }) =>
+    fixtureCenter.length !== 2
+    || fixtureCenter.some((coordinate) => !Number.isFinite(coordinate))
+    || fixtureCenter[0] <= planBounds.x1 || fixtureCenter[0] >= planBounds.x2
+    || fixtureCenter[1] <= planBounds.y1 || fixtureCenter[1] >= planBounds.y2
+    || !['positive-y', 'negative-y'].includes(fixtureFacing))) {
+    throw new TypeError('0.8.2 每座 L1 WC 必須提供隔間內的有限中心點與正確朝向。');
   }
   if (model.geometry.l1.zones.playgroundMaleToilet.fixtures?.urinals !== 2
     || model.geometry.l1.zones.playgroundMaleToilet.fixtures?.washbasins !== 2

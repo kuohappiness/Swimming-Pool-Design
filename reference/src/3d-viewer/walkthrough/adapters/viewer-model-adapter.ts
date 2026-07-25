@@ -167,8 +167,8 @@ function buildOpenings(model: ReadonlyViewerModel): OpeningDescriptor[] {
 
 export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly<WalkthroughSource> {
   const model = input;
-  if (model.schemaVersion !== '1.3.0') {
-    throw new TypeError('Walkthrough only accepts Viewer schemaVersion 1.3.0.');
+  if (model.schemaVersion !== '1.4.0') {
+    throw new TypeError('Walkthrough only accepts Viewer schemaVersion 1.4.0.');
   }
   if (!model.modelVersion) throw new TypeError('Viewer modelVersion is required.');
   if (!model.revision) throw new TypeError('Viewer revision is required.');
@@ -376,6 +376,14 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
       siteOffset: { x: 0, y: -0.8, z: 0 },
       elevationRole: 'pool-deck',
       facingEntityId: 'POOL-01',
+    },
+    {
+      id: 'l1-sanitary',
+      entityId: 'BLDG-01',
+      coordinateSystemId: 'SITE-XY',
+      normalizedAnchor: { x: 0.825, y: 0.1 },
+      siteOffset: { x: 0, y: 0, z: 0 },
+      elevationRole: 'pool-deck',
     },
     {
       id: 'l2-arrival',

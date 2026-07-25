@@ -6,9 +6,9 @@
 
 現行版本契約：
 
-- `schemaVersion = 1.3.0`
-- `modelVersion = designTargetVersion = 0.8.0`
-- `activeGeometryRevisionId = GEO-0.8.0`
+- `schemaVersion = 1.4.0`
+- `modelVersion = designTargetVersion = 0.8.2`
+- `activeGeometryRevisionId = GEO-0.8.2`
 - active revision 的 `id` 必須只出現一次，且 `revision`、`modelVersion` 均須等於頂層 `modelVersion`。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
@@ -31,7 +31,7 @@ type SiteBoundsEntity = {
 3. `referenceSystem.coordinateSystems` 必須恰有一個 `SITE-XY`。
 4. 圖面、Viewer、分析與驗證均由同一 bounds 推導，不得另存第二套 `originY`。
 5. Three.js 只在右手座標 `SITE-XYZ-TO-THREE-RH` adapter 轉成 SITE X→Three X、SITE Y→Three −Z、SITE Z→Three Y；不得使用會鏡射 Y0／Y14 的 `SITE Y→Three +Z`。
-6. 世界方位 307°只在 Viewer 最上層 root 套用一次；L3 +25.5°是獨立局部 transform。
+6. 世界方位 307°只在 Viewer 最上層 root 套用一次；此值是從真北順時針量到 SITE +X 的羅盤方位角，在 SITE Y→Three −Z adapter 下必須換算為 Three.js Y 軸旋轉 `90°−307°=143°`，不得直接使用 `−307°`。L3 +25.5°是獨立局部 transform。
 
 Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`、`width` 等可由 bounds 重建的欄位不得再輸出。Viewer adapter 必須逐次驗證 stair bounds 等於 `entityBounds.ST-01.bounds`，且 `ST-01.y2 <= POOL-01.y1`，否則 fail closed。
 
@@ -72,7 +72,7 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 | `Z-L3-TERRACE-01` | X38.428～X41／Y0～Y5.392 |
 | `RF-PV-RES-01` | X27.722～X40.75／Y0.25～Y13.25 |
 
-四間廁所、儲物、水處理與藥劑分間的 bounds 以 [03｜設計基準](03_DESIGN_BASIS.md)為準。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
+四間廁所、儲物、水處理與藥劑分間的 bounds 以 [03｜設計基準](03_DESIGN_BASIS.md)為準。0.8.2 另要求每個 L1 WC 隔間明列 `fixtureType`、`fixtureCenter` 與 `fixtureFacing`；全案必須正好 8 座 WC、坐式 4 座／蹲式 4 座，且 fixture center 必須位於其隔間 bounds 內。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
 
 ## 4. 衍生層與輸出
 
@@ -91,6 +91,7 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 - L1 西端外牆退至 X0.5，`EN-01` 平移到 X1～X3；L1 Y0 的 X0.5～X31 為泳池端安全玻璃，只有 X31～X39 服務本體採自然灰清水模。L2 Y0 外牆 X29～X41 全寬採安全玻璃，不混入不透明牆段。
 - Viewer 的 L2 Y0 外牆必須和其他安全玻璃外牆共用同一材質／高光／框線系統，不得以只存在於資料層的 `materialIntent` 代替視覺驗收；後方 Y2.5 清水模牆仍保持獨立。
 - Viewer 構件選取只更新下拉選單與右側資訊面板，3D 畫布不得建立、保留或穿透顯示任何 `BoxHelper` 外接選取框。
+- Viewer 場景真北箭頭須由 `localLongAxisBearingFromTrueNorth`、`worldTransform.rotationFromTrueNorth` 與 active `site.rightwardBearingFromTrueNorth` 的同一有限值推導；三者不一致時 fail closed。307° 時 SITE 平面真北必須為右下，箭頭尖端須有可讀的 `N` 標記。
 - X0～X0.5 為傾斜玻璃突出屋簷並由 `RW-WEST-01` 接入雨水回收；X31～X39／Y13.5～Y14.5 為服務中心後側透明玻璃屋簷。SITE-XY 仍為 Y0～Y14，Y14～Y14.5 只標示突出建築邊線。
 - 服務區 L1～L3 所有不透明量體採清水模材質意圖；玻璃屋頂與 L3 鏡牆不得被清水模材質覆蓋。
 - 藥劑分間 `publicAccess=false` 且 `separateVentilation=true`。

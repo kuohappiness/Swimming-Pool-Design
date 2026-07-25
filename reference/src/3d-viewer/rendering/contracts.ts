@@ -22,6 +22,14 @@ export type SemanticMaterialId =
   | 'equipment-zone'
   | 'opening-marker'
   | 'sanitary-fixture'
+  | 'sanitary-metal'
+  | 'sanitary-seat'
+  | 'sanitary-dark'
+  | 'wet-surface'
+  | 'interior-tile'
+  | 'interior-grout'
+  | 'interior-light'
+  | 'signage'
   | 'cubicle'
   | 'cubicle-door'
   | 'pool-deck'
@@ -29,6 +37,7 @@ export type SemanticMaterialId =
   | 'lane-float-light'
   | 'lane-float-red'
   | 'pool-rail'
+  | 'pool-caustic'
   | 'l2-circulation'
   | 'l2-stair-zone'
   | 'glass-edge'
@@ -98,11 +107,19 @@ export interface VisualWalkthroughState {
   readonly poolCutaway: boolean;
 }
 
+export interface VisualFrameState {
+  readonly deltaSeconds: number;
+  readonly elapsedSeconds: number;
+  readonly reducedMotion: boolean;
+  readonly camera: THREE.Camera;
+}
+
 export interface VisualAssetAdapter {
   readonly id: string;
   attach(context: VisualAssetContext): void;
   setQuality(profile: RenderQualityProfile): void;
   setWalkthroughState?(state: VisualWalkthroughState): void;
+  updateFrame?(state: VisualFrameState): void;
   dispose(): void;
 }
 
