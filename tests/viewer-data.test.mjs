@@ -178,6 +178,13 @@ test('public content compiler resolves current active geometry tokens for all fi
   assert.match(content.scenes.find(({ id }) => id === 'light').html, /23°/);
   assert.match(content.scenes.find(({ id }) => id === 'rain').html, /5°/);
   assert.match(content.scenes.find(({ id }) => id === 'people').html, /\+0\.300 m/);
+  const overview = content.scenes.find(({ id }) => id === 'overview');
+  assert.match(overview.html, /向人，<br>再次打開/);
+  assert.match(overview.html, /href="#concept-light"/);
+  assert.match(overview.html, /href="#concept-rain"/);
+  assert.match(overview.html, /href="#concept-people"/);
+  assert.match(overview.html, /href="#concept-time"/);
+  assert.equal(overview.title, '重新定向');
   assert.ok(manifest.scenes.every(({ context }) =>
     context.title
     && context.summary
@@ -220,7 +227,7 @@ test('Viewer, solar study, and atlas navigation expose only v0.6.7 drawing ancho
   assert.match(viewerHtml, /data-north-direction="lower-right"/);
   assert.match(viewerHtml, /data-view="pool-cutaway">泳池剖視/);
   assert.match(viewerHtml, /X3 淺端 1\.20 m/);
-  assert.match(viewerHtml, /data-scene-context/);
+  assert.doesNotMatch(viewerHtml, /data-scene-context/);
   assert.doesNotMatch(viewerHtml, /data-concept-content|<html|<body|<script/);
 });
 

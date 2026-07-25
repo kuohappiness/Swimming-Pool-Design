@@ -1,14 +1,5 @@
 <!-- View fragment only. The shared App Shell owns the document and primary navigation. -->
   <div class="viewer-shell" data-viewer-shell data-viewer-ready="false">
-    <header class="topbar">
-      <div class="trust-strip">
-        <span data-model-version>MODEL LOADING</span>
-        <span data-model-hash>—</span>
-        <span class="analysis-badge" data-analysis-status data-status="unavailable">分析狀態</span>
-      </div>
-      <div class="compass" data-compass data-north-direction="lower-right"><span>N</span><i aria-hidden="true">↘</i></div>
-    </header>
-
     <aside class="controls-panel" aria-label="3D Viewer 控制">
       <section>
         <p class="section-kicker">NARRATIVE SCENES</p>
@@ -32,17 +23,13 @@
           <button type="button" data-view="elevation">池側</button>
           <button type="button" data-view="opposite">校側</button>
           <button type="button" data-view="pool-cutaway">泳池剖視</button>
+          <button class="reset-button" type="button" data-reset-view>重設視角</button>
         </div>
-        <button class="reset-button" type="button" data-reset-view>重設本場景視角</button>
       </section>
     </aside>
 
     <section class="viewport-panel" aria-label="3D 模型視窗">
       <div class="canvas-host" data-canvas-host>
-        <div class="walkthrough-entry" data-walkthrough-entry>
-          <button type="button" data-enter-walkthrough aria-describedby="walkthrough-entry-help">第一人稱漫遊</button>
-          <span id="walkthrough-entry-help">從 EN-01 入口以人眼尺度探索</span>
-        </div>
         <div class="walkthrough-hud" data-walkthrough-hud hidden aria-label="第一人稱漫遊控制">
           <div class="walkthrough-status">
             <span class="walkthrough-mode">WALKTHROUGH · <span data-walkthrough-quality>HIGH</span></span>
@@ -113,6 +100,5 @@
           <p>每個構件會標示 confirmed、working 或 deferred；概念效果不等同施工性能。</p>
         </div>
       </section>
-      <section class="scene-context" data-scene-context aria-live="polite"></section>
     </aside>
   </div>

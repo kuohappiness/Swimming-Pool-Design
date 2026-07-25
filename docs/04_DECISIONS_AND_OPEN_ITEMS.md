@@ -141,6 +141,9 @@
 | DEC-133 | 3D 展示只保留空間觀看與操作所需資訊，不再注入完整設計理念文章 | Viewer 畫布為主角；每個場景只顯示短摘要、三個觀看重點及返回理念頁的連結。WebGL fallback 採相同資訊密度。3D view 改用 App Shell 內的 fragment，不再匯入含 document／body／script 的舊完整頁面再拆解 | confirmed 0.9.1 focused-viewer boundary |
 | DEC-134 | 0.9.1 是敘事、DOM 與響應式展示精修，不是建築或分析改版 | active `GEO-0.8.2`、solar inputHash、V067 current 圖面、3D 幾何／相機／圖層／選取／碰撞／移動／游泳／safe spawn／畫質行為與四項 query route 保持不變；公開理念文案、場景展示摘要、view fragment、CSS 與測試可依本輪設計調整 | confirmed immutable-content boundary |
 | DEC-135 | 0.9.1 ORIGIN 只公開場勘 2／5／6 與樓梯概念圖以外的五張手稿 | HTML 使用 `SRC-CONCEPT-013`／`016`／`017` 與 `SRC-CONCEPT-018`～`022`；`SRC-CONCEPT-012`／`014`／`015`／`023` 保留在來源庫但不被頁面引用。敘事順序為現場觀察→日照判讀→俯視配置→剖面推演→早期 3D→反射深化；來源檔不修改，網站另用校正方向與壓縮後的衍生檔 | confirmed 0.9.1 image selection and sequence |
+| DEC-136 | 0.9.2 定位為四個公開分頁的文字、版面與操作介面細修 | 允許修正文案、斷行、字級、留白、對齊、可見性與按鈕名稱；active `GEO-0.8.2`、solar inputHash、V067 圖面、3D 幾何、相機、圖層、選取、碰撞、移動與游泳語意均不得變更 | confirmed 0.9.2 presentation-only boundary |
+| DEC-137 | 0.9.2 完成後，以實際瀏覽器渲染結果建立 `docs/public/website-copy-v1.0.md` | 快照覆蓋設計理念、日照研究、圖面設計與 3D 展示，保留可見斷行並附各頁 SHA-256；隱藏內容不列入快照但必須保留於來源程式，後續文字改版前可重新擷取比對 | confirmed rendered-copy archive |
+| DEC-138 | 0.9.2 的 3D 展示採聚焦模式 | 場景敘事導覽及右側構件資訊暫不顯示但不刪除；圖層狀態以顏色圓點表示，攝影機控制縮短，第一人稱入口移至頁首並命名「實境漫遊」，整體配色改為低對比的圖紙白與泳池綠 | confirmed focused Viewer presentation |
 
 ## 2. 尚待精化
 

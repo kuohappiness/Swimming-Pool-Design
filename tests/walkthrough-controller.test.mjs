@@ -319,13 +319,15 @@ test('frame-time adaptation only degrades rendering capabilities and preserves s
 });
 
 test('walkthrough UI and selection lifecycle expose stable accessibility hooks', async () => {
-  const [html, styles, interactions, main] = await Promise.all([
+  const [view, html, styles, interactions, main] = await Promise.all([
+    readFile(resolve(repoRoot, 'reference/src/views/3d-viewer/index.ts'), 'utf8'),
     readFile(resolve(repoRoot, 'reference/src/views/3d-viewer/viewer-template.html'), 'utf8'),
     readFile(resolve(repoRoot, 'reference/src/3d-viewer/styles.css'), 'utf8'),
     readFile(resolve(repoRoot, 'reference/src/3d-viewer/interactions.ts'), 'utf8'),
     readFile(resolve(repoRoot, 'reference/src/3d-viewer/main.ts'), 'utf8'),
   ]);
-  assert.match(html, /data-enter-walkthrough/);
+  assert.match(view, /data-enter-walkthrough/);
+  assert.match(view, />實境漫遊</);
   assert.match(html, /data-return-safe/);
   assert.match(html, /data-exit-walkthrough/);
   assert.match(html, /data-walkthrough-area-select[^>]+aria-label=/);

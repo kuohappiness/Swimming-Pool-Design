@@ -13,8 +13,10 @@ body {
 
 .site-footer {
   display: grid;
+  margin-top: calc(var(--site-space-6) / 2);
   padding: 1.5rem 0 max(2rem, env(safe-area-inset-bottom));
   color: var(--site-muted);
+  border-top: 0;
 }
 
 .site-footer p {
@@ -25,24 +27,26 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
   column-gap: 4rem;
-  border-bottom: 1px solid var(--site-line);
+  padding-bottom: clamp(1.05rem, 2.1vw, 2.1rem);
+  border-bottom: 0;
 }
 
 .view-intro--drawings .site-kicker,
+.view-intro--drawings .site-section-description,
 .view-intro--drawings h1 {
   grid-column: 1;
 }
 
 .view-intro--drawings > p:last-child {
   grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: end;
+  grid-row: 3;
+  align-self: start;
 }
 
 .drawings-catalogue {
   width: var(--site-page);
   margin: 0 auto;
-  padding: 2.5rem 0 0;
+  padding: .875rem 0 0;
 }
 
 .sheet-tabs {
@@ -63,7 +67,7 @@ body {
 }
 
 .sheet-tab span {
-  color: var(--site-muted);
+  color: var(--site-terracotta);
 }
 
 .sheet-tab.active {
@@ -74,22 +78,19 @@ body {
 }
 
 .sheet-tab.active span,
-.sheet-number,
-.detail-eyebrow,
-.crosshair {
+.sheet-number {
   color: var(--site-terracotta);
 }
 
 .workspace {
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 21vw);
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   margin-top: 1.5rem;
   border: 1px solid var(--site-line);
   background: var(--site-paper-raised);
 }
 
-.sheet-stage,
-.detail-panel {
+.sheet-stage {
   border: 0;
   border-radius: 0;
   background: var(--site-paper-raised);
@@ -98,7 +99,6 @@ body {
 
 .sheet-stage {
   min-width: 0;
-  border-right: 1px solid var(--site-line);
 }
 
 .sheet-toolbar,
@@ -127,32 +127,6 @@ body {
 
 .drawing-scroll {
   background: #dedbd3;
-}
-
-.detail-panel {
-  top: calc(var(--site-header-height) + 1rem);
-}
-
-.detail-empty,
-.detail-content,
-.detail-empty h2,
-.detail-heading h2,
-.entity-name,
-dd {
-  color: var(--site-ink);
-}
-
-.detail-empty p,
-dt {
-  color: var(--site-muted);
-}
-
-.detail-content dl div {
-  border-color: var(--site-line);
-}
-
-.status {
-  border-radius: 2px;
 }
 
 .drawing-trust-line {
@@ -201,11 +175,6 @@ dt {
   .sheet-stage {
     border-right: 0;
     border-bottom: 1px solid var(--site-line);
-  }
-
-  .detail-panel {
-    position: static;
-    min-height: 0;
   }
 
   .drawing-scroll {

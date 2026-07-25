@@ -47,6 +47,7 @@ export function injectModelTokens(markdown, model) {
 
 function inlineMarkdown(value) {
   return escapeHtml(value)
+    .replace(/&lt;br\s*\/?&gt;/gi, '<br>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/  $/, '<br>');
@@ -138,7 +139,7 @@ export function compilePublicContent(markdown, model, sceneManifest) {
     return {
       id: scene.id,
       label: scene.label,
-      title: titleLine?.replace(/^#{1,3}\s+/, '') ?? scene.label,
+      title: titleLine?.replace(/^#{1,3}\s+/, '').replace(/<br\s*\/?>/gi, ' ') ?? scene.label,
       html: markdownToHtml(lines),
     };
   });

@@ -16,14 +16,14 @@ export const viewDefinitions: readonly ViewDefinition[] = [
     label: '設計理念',
     eyebrow: 'DESIGN NARRATIVE',
     title: '重新定向',
-    description: '向光、向水、向人、向時間',
+    description: '向光、向雨、向人、向時間',
   },
   {
     id: 'solar-study',
     label: '日照研究',
     eyebrow: 'SOLAR STUDY',
     title: '向光而轉',
-    description: 'L3 旋轉鏡牆的季節性光線研究',
+    description: '旋轉L3鏡牆的季節性光線研究',
   },
   {
     id: 'drawings',
@@ -37,9 +37,13 @@ export const viewDefinitions: readonly ViewDefinition[] = [
     label: '3D 展示',
     eyebrow: 'SPATIAL EXPERIENCE',
     title: '走入建築',
-    description: '構件檢視與第一人稱實境漫遊',
+    description: '3D展示與實境漫遊',
   },
 ] as const;
+
+export function getViewDefinition(viewId: ViewId): ViewDefinition {
+  return viewDefinitions.find(({ id }) => id === viewId) ?? viewDefinitions[0];
+}
 
 export function isViewId(value: string | null): value is ViewId {
   return value !== null && viewIds.includes(value as ViewId);

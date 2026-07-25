@@ -10,6 +10,7 @@ body {
 
 .site-footer {
   display: grid;
+  margin-top: calc(var(--site-space-6) / 2);
   padding: 1.5rem 0 max(2rem, env(safe-area-inset-bottom));
   color: var(--site-muted);
 }
@@ -22,26 +23,57 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
   column-gap: 4rem;
-  padding-block: clamp(1.25rem, 2vw, 2rem);
+  padding-bottom: clamp(3.125rem, 5vw, 5rem);
 }
 
 .view-intro--viewer .site-kicker,
+.view-intro--viewer .site-section-description,
 .view-intro--viewer h1 {
   grid-column: 1;
 }
 
-.view-intro--viewer > p {
+.view-intro--viewer > p:not(.site-section-description):not(.site-kicker) {
   grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: end;
+  grid-row: 3;
+  align-self: start;
   max-width: 34rem;
+  margin-top: .6rem;
   line-height: 1.8;
 }
 
 .view-intro--viewer h1 {
   max-width: 10em;
   margin-bottom: 0;
-  font-size: clamp(2.5rem, 4vw, 4.25rem);
+}
+
+.view-intro--viewer .walkthrough-entry--intro {
+  position: static;
+  grid-column: 1;
+  grid-row: 4;
+  width: max-content;
+  max-width: none;
+  margin-top: .85rem;
+}
+
+.site-view--3d-viewer .view-intro--viewer .walkthrough-entry--intro button {
+  min-height: 0;
+  padding: .65rem 1.05rem;
+  color: var(--site-ink);
+  background: transparent;
+  border: 1px solid var(--site-line-strong);
+  border-left: 3px solid var(--site-water);
+  border-radius: 2px;
+  box-shadow: none;
+  backdrop-filter: none;
+  font-size: .86rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.site-view--3d-viewer .view-intro--viewer .walkthrough-entry--intro button:hover {
+  color: var(--site-water);
+  background: var(--site-paper-raised);
+  border-color: var(--site-water);
 }
 
 .site-view--3d-viewer [data-view-root] {
@@ -54,16 +86,6 @@ body {
   background: #e7e7e1;
 }
 
-.site-view--3d-viewer .topbar {
-  padding-left: 16px;
-  background: var(--site-deep);
-}
-
-.site-view--3d-viewer .trust-strip {
-  margin-left: 0;
-}
-
-.site-view--3d-viewer .analysis-badge,
 .site-view--3d-viewer .viewer-links a,
 .site-view--3d-viewer .scene-nav button,
 .site-view--3d-viewer .view-controls button,
@@ -77,6 +99,16 @@ body {
   box-shadow: none;
 }
 
+.site-view--3d-viewer .view-controls .reset-button {
+  width: auto;
+  margin-top: 0;
+}
+
+.site-view--3d-viewer .view-controls button,
+.site-view--3d-viewer .view-controls .reset-button {
+  padding-block: 6px;
+}
+
 .site-view--3d-viewer .webgl-fallback {
   background: #dfe7e6;
 }
@@ -88,9 +120,100 @@ body {
   box-shadow: none;
 }
 
+.site-view--3d-viewer .walkthrough-entry span {
+  display: none;
+}
+
+.site-view--3d-viewer .walkthrough-entry button,
+.site-view--3d-viewer .orientation-cue,
+.site-view--3d-viewer .viewport-hint {
+  color: #29474c;
+  background: rgba(231, 241, 239, .76);
+  border: 1px solid rgba(47, 90, 94, .18);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(34, 64, 67, .08);
+  backdrop-filter: blur(10px) saturate(.86);
+}
+
+.site-view--3d-viewer .walkthrough-entry button {
+  min-height: 36px;
+  padding: 6px 11px;
+  border-left: 3px solid rgba(26, 126, 132, .72);
+  font-weight: 600;
+}
+
+.site-view--3d-viewer .walkthrough-entry button:hover {
+  color: #173a3f;
+  background: rgba(221, 238, 235, .9);
+  border-color: rgba(26, 126, 132, .34);
+  border-left-color: rgba(26, 126, 132, .86);
+}
+
+.site-view--3d-viewer .viewport-hint {
+  padding: 5px 9px;
+  color: rgba(41, 71, 76, .82);
+  background: rgba(239, 245, 243, .7);
+  border-color: rgba(47, 90, 94, .12);
+  box-shadow: 0 3px 10px rgba(34, 64, 67, .05);
+}
+
+.site-view--3d-viewer .orientation-cue strong {
+  color: #c96f4d;
+}
+
 .site-view--3d-viewer .controls-panel,
 .site-view--3d-viewer .information-panel {
   scroll-margin-top: calc(var(--site-header-height) + 8px);
+}
+
+/*
+ * 暫存介面：保留敘事場景與模型構件的完整標記及程式邏輯，
+ * 目前僅從版面隱藏，待內容進一步整理後可直接恢復。
+ */
+.site-view--3d-viewer .controls-panel > section:first-child,
+.site-view--3d-viewer .information-panel {
+  display: none;
+}
+
+.site-view--3d-viewer .controls-panel > section:nth-child(2) {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.site-view--3d-viewer .controls-panel {
+  padding-top: 0;
+}
+
+.site-view--3d-viewer .viewer-shell {
+  grid-template-columns: 250px minmax(420px, 1fr);
+  grid-template-areas: "controls viewport";
+}
+
+.site-view--3d-viewer .layer-toggle {
+  grid-template-columns: 18px minmax(0, 1fr) 8px;
+}
+
+.site-view--3d-viewer .layer-toggle i {
+  width: 8px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: currentColor;
+  font-size: 0;
+}
+
+.site-view--3d-viewer .viewport-panel {
+  margin-top: 0;
+}
+
+.site-view--3d-viewer .viewer-shell[data-camera-mode="walkthrough"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "viewport";
+}
+
+.site-view--3d-viewer .viewer-shell[data-camera-mode="walkthrough"] .viewport-panel {
+  margin-top: 0;
 }
 
 @media (max-width: 900px) {
@@ -98,23 +221,26 @@ body {
     display: block;
   }
 
-  .view-intro--viewer > p {
+  .view-intro--viewer > p:not(.site-section-description):not(.site-kicker) {
     margin-top: 1rem;
   }
 
   .site-view--3d-viewer .viewer-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(470px, 58dvh) auto;
+    grid-template-areas: "viewport" "controls";
     height: auto;
     min-height: calc(100dvh - var(--site-header-height));
   }
 
-  .site-view--3d-viewer .topbar {
-    min-height: 58px;
+  .site-view--3d-viewer .viewport-panel {
+    margin-top: 0;
   }
 }
 
 @media (max-width: 480px) {
   .site-view--3d-viewer .viewer-shell {
-    grid-template-rows: 58px minmax(470px, calc(100svh - var(--site-header-height) - 58px)) auto auto;
+    grid-template-rows: minmax(470px, calc(100svh - var(--site-header-height))) auto;
   }
 
   .site-view--3d-viewer .walkthrough-hud {

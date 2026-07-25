@@ -50,13 +50,8 @@ const controlsPanel = required<HTMLElement>('.controls-panel');
 const informationPanel = required<HTMLElement>('.information-panel');
 const sceneNav = required<HTMLElement>('[data-scene-nav]');
 const layerList = required<HTMLElement>('[data-layer-list]');
-const sceneContextPanel = required<HTMLElement>('[data-scene-context]');
 const selectionPanel = required<HTMLElement>('[data-selection-info]');
 const objectSelect = required<HTMLSelectElement>('[data-object-select]');
-const versionLabel = required<HTMLElement>('[data-model-version]');
-const hashLabel = required<HTMLElement>('[data-model-hash]');
-const analysisBadge = required<HTMLElement>('[data-analysis-status]');
-const compass = required<HTMLElement>('[data-compass]');
 const orientationCue = required<HTMLElement>('[data-orientation-cue]');
 const poolCutawayKey = required<HTMLElement>('[data-pool-cutaway-key]');
 const walkthroughEntry = required<HTMLElement>('[data-walkthrough-entry]');
@@ -94,43 +89,17 @@ function supportsWebGL() {
   }
 }
 
-function renderSceneContext(sceneId: string) {
-  const config = getViewerScene(sceneId);
-  sceneContextPanel.innerHTML = `
-    <p class="section-kicker">CURRENT VIEW · ${config.label}</p>
-    <h2>${config.context.title}</h2>
-    <p>${config.context.summary}</p>
-    <h3>觀看重點</h3>
-    <ol>
-      ${config.context.observations.map((observation) => `<li>${observation}</li>`).join('')}
-    </ol>
-    <a href="?view=design-concept#${config.context.conceptAnchor}">閱讀完整設計理念 <span aria-hidden="true">↗</span></a>
-  `;
-  sceneContextPanel.scrollTop = 0;
-}
-
 async function bootstrap() {
 const bootstrapStartedAt = performance.now();
 try {
-  const { model, content } = adaptViewerData(rawViewerModel, rawConceptContent);
-  versionLabel.textContent = `MODEL ${model.modelVersion} · REV ${model.revision}`;
-  hashLabel.textContent = `${model.modelHash.slice(0, 12)} · CONTENT ${content.contentHash.slice(0, 8)}`;
-  analysisBadge.textContent = model.analysis.solar.status === 'current' ? '分析與模型同步' : '分析需重新驗證';
-  analysisBadge.dataset.status = model.analysis.solar.status;
-  analysisBadge.title = model.analysis.solar.disclaimer;
+  const { model } = adaptViewerData(rawViewerModel, rawConceptContent);
   const northPlanDirection = model.referenceSystem.northArrowPlanDirection;
-  compass.setAttribute('data-north-direction', northPlanDirection);
   orientationCue.setAttribute('data-north-direction', northPlanDirection);
-  compass.setAttribute('aria-label', `真北指向畫面右下角；建築本地長軸方位 ${model.referenceSystem.localLongAxisBearingFromTrueNorth} 度`);
   orientationCue.setAttribute('aria-label', `真北 N 指向畫面右下角；建築本地長軸方位 ${model.referenceSystem.localLongAxisBearingFromTrueNorth} 度`);
 
   if (!supportsWebGL()) {
     walkthroughEntry.hidden = true;
     const renderFallbackContent = (sceneId: string) => {
-      if (!content.scenes.some((scene) => scene.id === sceneId)) {
-        throw new TypeError(`理念內容缺少場景 ${sceneId}`);
-      }
-      renderSceneContext(sceneId);
       sceneNav.querySelectorAll<HTMLButtonElement>('button').forEach((button) => {
         const active = button.dataset.sceneId === sceneId;
         button.dataset.active = String(active);
@@ -146,7 +115,7 @@ try {
       button.addEventListener('click', () => renderFallbackContent(sceneConfig.id));
       sceneNav.append(button);
     }
-    layerList.innerHTML = '<p class="fallback-layer-note">靜態模式不提供模型圖層；右側仍可依場景閱讀觀看重點。</p>';
+    layerList.innerHTML = '<p class="fallback-layer-note">靜態模式不提供模型圖層。</p>';
     objectSelect.replaceChildren(new Option('WebGL 靜態模式', ''));
     objectSelect.disabled = true;
     renderFallbackContent('overview');
@@ -373,7 +342,6 @@ try {
       selectables: graph.selectables, objectSelect, onSelect: renderSelection,
     });
 
-    const contentByScene = new Map(content.scenes.map((item) => [item.id, item]));
     const sceneButtons = new Map<string, HTMLButtonElement>();
     const setPoolCutaway = (enabled: boolean) => {
       for (const object of graph.cutaway.hiddenObjects) object.visible = !enabled;
@@ -420,8 +388,6 @@ try {
         button.dataset.active = String(active);
         button.setAttribute('aria-pressed', String(active));
       }
-      if (!contentByScene.has(sceneId)) throw new TypeError(`理念內容缺少場景 ${sceneId}`);
-      renderSceneContext(sceneId);
       shell.dataset.scene = sceneId;
       history.replaceState(null, '', `#${sceneId}`);
     };

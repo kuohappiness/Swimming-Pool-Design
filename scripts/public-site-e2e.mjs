@@ -191,7 +191,7 @@ try {
   assert.equal(await concept.locator('.concept-chapter').count(), 4);
   assert.deepEqual(
     await concept.locator('.concept-chapter-heading h2').allTextContents(),
-    ['向光', '向水', '向人', '向時間'],
+    ['向光', '向雨', '向人', '向時間', '設計細節', '結語'],
   );
   assert.match(await concept.locator('.concept-overview').innerText(), /不是替舊游泳池換上一張新的臉/);
   assert.equal(await concept.locator('.concept-origin-figure').count(), 8);

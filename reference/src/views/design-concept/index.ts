@@ -3,6 +3,7 @@ import rawModel from '../../../../model/project-model.json';
 import l3Drawing from '../../../drafts/v0.6.7/DRAW-L3-PLAN-v0.6.7.svg?raw';
 import { resolveActiveGeometry } from '../../../../scripts/active-geometry.mjs';
 import type { MountedView } from '../../app/view-contract';
+import { getViewDefinition } from '../../app/router';
 import type { ProjectModel } from '../../types';
 import campus02Large from './assets/origin-campus-02-1920.jpg';
 import campus02Small from './assets/origin-campus-02-960.jpg';
@@ -46,12 +47,13 @@ const activeGeometry = resolveActiveGeometry(rawModel as unknown as ProjectModel
   solar: { planRotation: { value: number } };
 };
 const planRotation = activeGeometry.solar.planRotation.value;
+const viewDescription = getViewDefinition('design-concept').description;
 const originTitle = '一切，從紙上的第一筆開始';
 const chapterMeta = [
-  { sceneId: 'light', number: '01', title: '向光', caption: '讓建築回應季節與太陽', motif: 'sun' },
-  { sceneId: 'rain', number: '02', title: '向水', caption: '讓雨水成為建築可見的循環', motif: 'water' },
-  { sceneId: 'people', number: '03', title: '向人', caption: '讓光線、視線與動線彼此穿透', motif: 'people' },
-  { sceneId: 'time', number: '04', title: '向時間', caption: '讓新與舊清楚並存', motif: 'time' },
+  { sceneId: 'light', number: '01', title: '向光而轉', sideTitle: '向光', caption: '讓建築回應季節與太陽。', motif: 'sun' },
+  { sceneId: 'rain', number: '02', title: '向雨而生', sideTitle: '向雨', caption: '讓雨水成為建築可見的循環。', motif: 'water' },
+  { sceneId: 'people', number: '03', title: '向人而開', sideTitle: '向人', caption: '讓光線串聯視線、動線與彼此。', motif: 'people' },
+  { sceneId: 'time', number: '04', title: '向時間延續', sideTitle: '向時間', caption: '讓回憶延續，新舊並存。', motif: 'time' },
 ] as const;
 const surveyImages: OriginImage[] = [
   {
@@ -172,7 +174,7 @@ function splitOverview(html: string): { heroHtml: string; originHtml: string } {
     heroHtml: template.innerHTML,
     originHtml: origin.innerHTML.replace(
       `<h2>${originTitle}</h2>`,
-      '<h2>一切，從<br>紙上的<br>第一筆開始</h2>',
+      '<h2>從 紙上的<br>第一筆開始</h2>',
     ),
   };
 }
@@ -212,9 +214,9 @@ export function mount(container: HTMLElement): MountedView {
   container.innerHTML = `
     <article class="concept-hero" aria-labelledby="concept-title">
       <div class="concept-hero-copy">
-        <p class="site-kicker">01 ／ DESIGN NARRATIVE</p>
+        <p class="site-kicker">DESIGN NARRATIVE</p>
+        <p class="site-section-description">${viewDescription}</p>
         <div class="concept-overview">${overviewSections.heroHtml}</div>
-        <a class="concept-scroll-cue" href="#concept-origin">回到最初的一筆 <span aria-hidden="true">↓</span></a>
       </div>
       <figure class="concept-hero-figure">
         <div class="concept-drawing-window">${accessibleDrawing()}</div>
@@ -226,7 +228,10 @@ export function mount(container: HTMLElement): MountedView {
     </article>
     <section id="concept-origin" class="concept-origin" aria-labelledby="concept-origin-title">
       <header class="concept-origin-heading">
-        <p class="site-kicker">00 ／ ORIGIN</p>
+        <p class="site-kicker concept-origin-kicker">
+          <span class="concept-origin-number">00</span>
+          <span>／ ORIGIN</span>
+        </p>
         <div class="concept-origin-copy">${overviewSections.originHtml}</div>
       </header>
       <div class="concept-origin-story">
@@ -254,7 +259,6 @@ export function mount(container: HTMLElement): MountedView {
             ${sketchImages.map((image) => originFigure(image, 'sketch')).join('')}
           </div>
         </section>
-        <p class="concept-origin-note">這些影像保留原始紙張、筆跡與拍攝痕跡；網站只製作方向校正與載入最佳化的衍生檔，不重新描繪設計過程。</p>
       </div>
     </section>
     <nav id="concept-chapters" class="concept-index" aria-label="四個設計方向">
@@ -269,6 +273,26 @@ export function mount(container: HTMLElement): MountedView {
     <div class="concept-chapters">
       ${chapterMeta.map((chapter, index) => {
         const contentScene = scene(chapter.sceneId);
+        let chapterHtml = contentScene.html;
+        let detailHtml = '';
+        let conclusionHtml = '';
+        if (chapter.sceneId === 'time') {
+          const detailMarker = '<h2>設計細節</h2>';
+          const conclusionMarker = '<h2>結語</h2>';
+          const detailIndex = chapterHtml.indexOf(detailMarker);
+          const conclusionIndex = chapterHtml.indexOf(conclusionMarker);
+          if (detailIndex < 0 || conclusionIndex < detailIndex) {
+            throw new TypeError('Time concept content is missing its detail or conclusion section.');
+          }
+          detailHtml = chapterHtml.slice(detailIndex + detailMarker.length, conclusionIndex);
+          conclusionHtml = chapterHtml
+            .slice(conclusionIndex + conclusionMarker.length)
+            .replace(
+              '<blockquote>',
+              '<blockquote class="concept-final-note">',
+            );
+          chapterHtml = chapterHtml.slice(0, detailIndex);
+        }
         return `
           <section
             id="concept-${chapter.sceneId}"
@@ -277,33 +301,40 @@ export function mount(container: HTMLElement): MountedView {
           >
             <header class="concept-chapter-heading">
               <span>${chapter.number}</span>
-              <p>ORIENTATION</p>
-              <h2 id="concept-${chapter.sceneId}-title">${chapter.title}</h2>
-              <small>${chapter.caption}</small>
+              <h2 id="concept-${chapter.sceneId}-title">${chapter.sideTitle}</h2>
             </header>
-            <div class="concept-chapter-copy">${contentScene.html}</div>
+            <div class="concept-chapter-copy">${chapterHtml}</div>
             <div class="concept-motif" aria-hidden="true">
               <span></span><span></span><span></span><span></span>
             </div>
           </section>
+          ${detailHtml ? `
+            <section class="concept-detail-section" aria-labelledby="concept-detail-heading">
+              <header class="concept-chapter-heading concept-detail-side-heading">
+                <h2 id="concept-detail-heading">設計細節</h2>
+              </header>
+              <div class="concept-chapter-copy">${detailHtml}</div>
+            </section>
+            <section class="concept-conclusion-section" aria-labelledby="concept-conclusion-heading">
+              <header class="concept-chapter-heading concept-conclusion-side-heading">
+                <h2 id="concept-conclusion-heading">結語</h2>
+              </header>
+              <div class="concept-chapter-copy">${conclusionHtml}</div>
+            </section>
+          ` : ''}
         `;
       }).join('')}
     </div>
     <section class="concept-journey" aria-labelledby="concept-journey-title">
       <p class="site-kicker">EPILOGUE ／ FROM LINE TO SPACE</p>
-      <h2 id="concept-journey-title">從紙上的一筆，走到可以被閱讀、驗證，也能親自走入的空間。</h2>
-      <p>手稿保留最初的直覺；日照研究檢驗方向；建築圖面整理尺度；3D 展示則讓空間關係真正被感受。</p>
+      <h2 id="concept-journey-title">從紙上的一筆，<br>到可被閱讀、驗證、<br>並親自走入的空間。</h2>
+      <p>手稿保留最原始的靈感；<br>日照研究提供科學支持；<br>建築繪圖讓想法被實現；<br>3D展示讓空間真正被感受。</p>
       <nav aria-label="繼續閱讀作品成果">
-        <a href="?view=solar-study"><span>01</span>驗證光線</a>
-        <a href="?view=drawings"><span>02</span>閱讀圖面</a>
-        <a href="?view=3d-viewer"><span>03</span>走入空間</a>
+        <a href="?view=solar-study">驗證光線</a>
+        <a href="?view=drawings">閱讀圖面</a>
+        <a href="?view=3d-viewer">走入空間</a>
       </nav>
     </section>
-    <aside class="concept-integrity" aria-label="內容同步狀態">
-      <span>CONTENT ${content.contentHash.slice(0, 12)}</span>
-      <span>MODEL ${content.modelHash.slice(0, 12)}</span>
-      <p>本頁文字由公開理念正本與 active geometry token 編譯，不另存第二份技術數值。</p>
-    </aside>
   `;
   const heading = container.querySelector<HTMLElement>('.concept-overview h1');
   if (heading) heading.id = 'concept-title';

@@ -26,6 +26,7 @@
 | SRC-SITE-002 | `source-materials/site/SRC-SITE-002_entrance-location-annotated.png` | 衛星圖紅箭頭；確認 `EN-01` 位於兩基地交界的校園側 | 814 × 1146 | `7827DC99D33A1EF61470D19208EF58BF57C880420C94F903CC52BB63D5F2C327` |
 | SRC-SITE-003 | `source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json` | European Commission JRC PVGIS 5.3；基地座標標準氣象年，用於 `TASK-013` 鏡牆能量差分析 | JSON；1,270,483 bytes；8760 hourly records | `1F9E251234F0C5451A77BC20A31C4E83545EC1BAE472CEB65566524E0E451633` |
 | SRC-SITE-004 | `source-materials/site/SRC-SITE-004_current-pool-and-changing-rooms-annotated.png` | 現況衛星圖；紅框為泳池本體，上方綠框為廁所＋女生更衣室，下方綠框為男生更衣室 | 1612 × 1430 | `3DC23D224551E2DB9C6B267A479A3BE169589BA17B9AA3732EF917D9F9ACD9A8` |
+| SRC-SITE-005 | `source-materials/site/SRC-SITE-005_school-emblem-transparent.png` | 校徽透明圖；頁首品牌識別來源 | 1315 × 1197 | `56D34494386D6FAFD35BF5C6BFAD2596E01A39E6A8432D19711E440FEF1B6CBE` |
 | SRC-CONCEPT-001 | `source-materials/concepts/SRC-CONCEPT-001_side-section.jpeg` | 手繪側視／剖面；泳池大廳、男女空間與廁所關係 | 864 × 1536 | `525F52A2A166EBD056A1FAB0E2ED04515A591E5700C312B5F9CDE25659D869BA` |
 | SRC-CONCEPT-002 | `source-materials/concepts/SRC-CONCEPT-002_roof-plan.jpeg` | 手繪屋頂平面；玻璃屋頂及男女空間關係 | 2267 × 2982 | `2344CFC87F2268F401194DA20C9AEF0315A072612CD3D2FC85846C9148465D49` |
 | SRC-CONCEPT-003 | `source-materials/concepts/SRC-CONCEPT-003_l1-plan-v1.0.jpeg` | 使用者手繪「俯視圖－1F V1.0」；泳池、廁所、門與樓梯的早期想法 | 2210 × 2931 | `B39A97283AD36B39745E2A5D4C92A6D90CAB8AE8D142D3B06F1BCEC95E1CE543` |
@@ -63,6 +64,8 @@
 `SRC-SITE-001` 於 2026-07-19 依使用者提供的新 Google Maps 衛星截圖置換；新版提高至 1612 × 1430 像素並擴大基地周邊視野，不含原黃色／綠色基地框。基地框與入口箭頭的既有標註證據仍由 `SRC-SITE-002` 保存。
 
 `SRC-SITE-004` 於 2026-07-20 由使用者提供，原始檔完整保存，未裁切、縮放或重新壓縮。圖面可直接觀察到紅色框與上下兩個綠色框；框線語意依使用者隨附說明登錄為：紅框是目前泳池本體，上方綠框是廁所＋女生更衣室，下方綠框是男生更衣室。此圖已取代 `REF-001` HTML 內顯示的舊衛星空照圖；`SRC-SITE-001`／`SRC-SITE-002` 仍保留為歷史來源，不以新檔覆寫既有證據。彩框只確認現況位置與用途，不提供地籍邊界或精確尺寸。
+
+`SRC-SITE-005` 於 2026-07-25 由使用者提供；原始透明 PNG 保留於來源資料夾，頁首使用 `reference/src/assets/site-emblem-header.png`（256 × 256、71,133 bytes、SHA-256 `2D0DD7CE869E3116E6EA1C8304640EF8E4C9151A15268AC0EFD704076706F77F`）衍生檔。
 
 `SRC-SITE-003` 於 2026-07-16 由 PVGIS 5.3 TMY API 以 `24.14434°N, 120.67341°E` 取得；原始 metadata 記錄海拔 84 m、`PVGIS-ERA5`／ERA5、2005～2023、啟用 DEM horizon，12 個月份各選一個典型月份。觀察資料包含逐時 GHI `G(h)`、DNI `Gb(n)`、DHI `Gd(h)`、溫度、濕度、風與氣壓；本專案只解讀輻射欄位作概念能量比較。TMY 是長期典型月份的組合，不代表 2026 年實際天氣，也不是施工熱負荷保證。來源：[PVGIS 5.3 API](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en)、[PVGIS TMY 說明](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/pvgis-5-tools/pvgis-typical-meteorological-year-tmy-generator_en)。
 

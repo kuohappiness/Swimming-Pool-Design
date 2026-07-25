@@ -1,14 +1,22 @@
 import viewerTemplate from './viewer-template.html?raw';
 import type { MountedView } from '../../app/view-contract';
+import { getViewDefinition } from '../../app/router';
 import '../../3d-viewer/styles.css';
 import './view.css';
+
+const viewDescription = getViewDefinition('3d-viewer').description;
 
 function viewerMarkup(): string {
   return `
     <section class="view-intro view-intro--viewer" aria-labelledby="viewer-view-title">
-      <p class="site-kicker">04 ／ SPATIAL EXPERIENCE</p>
-      <h1 id="viewer-view-title">從圖面走進空間。</h1>
-      <p>觀看、選取，或親自走入空間。完整敘事留在設計理念；這裡專注回答尺度、關係與移動。</p>
+      <p class="site-kicker">SPATIAL EXPERIENCE</p>
+      <p class="site-section-description">${viewDescription}</p>
+      <h1 id="viewer-view-title">從圖面走進空間</h1>
+      <div class="walkthrough-entry walkthrough-entry--intro" data-walkthrough-entry>
+        <button type="button" data-enter-walkthrough aria-describedby="walkthrough-entry-help">實境漫遊</button>
+        <span id="walkthrough-entry-help">從 EN-01 入口以人眼尺度探索</span>
+      </div>
+      <p>走進空間，跟著視線，感受建築中的光線與動線。</p>
     </section>
     ${viewerTemplate}
   `;

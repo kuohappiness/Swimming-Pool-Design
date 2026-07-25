@@ -1,7 +1,7 @@
 # 3D Viewer 契約
 
 - 類型：output-contract
-- 狀態：active／v0.9.1
+- 狀態：active／v0.9.2
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 入口：`/?view=3d-viewer`
 
@@ -12,7 +12,7 @@ Viewer 只接受：
 - `reference/generated/viewer-model.json`：由 active `GEO-0.8.2` 產生。
 - `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.9.1` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，0.9.1 只精簡 Viewer 周邊資訊；兩版都不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.9.2` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，0.9.1 精簡 Viewer 周邊資訊，0.9.2 再調整公開文字與操作介面；三版都不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 
@@ -43,6 +43,8 @@ Viewer 只接受：
 `scene-manifest.json` 固定提供 `overview`、`light`、`rain`、`people`、`time`。場景只改相機、visibility、environment 與展示摘要，不另建第二套幾何。0.9.1 起每個場景另有一段短摘要、恰好三個觀看重點及設計理念 anchor；這些欄位只屬 Viewer 展示層，不替代公開理念 Markdown 正本。
 
 0.9.1 的 3D view 必須是共用 App Shell 內的 HTML fragment，不得再匯入含 `doctype`、`html`、`head`、`body` 或 runtime script 的舊完整頁面後以 DOMParser 拆解。右側 panel 只顯示模型構件資訊與當前場景摘要；完整 `concept-content.json` 仍參與 modelHash、modelVersion 與 scene ID 同步驗證，但不得以 `data-concept-content` 或等價容器把文章全文注入 3D 頁。完整敘事只能透過連結返回 `design-concept` view 閱讀。
+
+0.9.2 公開展示預設隱藏場景敘事導覽與右側構件資訊，但保留其模板及 runtime，供後續修訂後恢復；圖層狀態以顏色圓點表示，攝影機控制採緊湊網格，第一人稱入口移至分頁導言並命名為「實境漫遊」。上述均為展示層調整，不得刪除資料、改寫場景語意或改變碰撞與幾何。
 
 Viewer 必須由 `?view=3d-viewer` 的 view-level dynamic import 才載入 Three.js；離開頁面時停止 RAF、解除 listener／ResizeObserver、清除 canvas 並 dispose renderer／controls／selection／walkthrough runtime。反覆由導覽進入、離開再進入時，每個 document 只可有一個 canvas。
 

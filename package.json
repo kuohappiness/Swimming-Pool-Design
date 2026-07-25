@@ -1,6 +1,6 @@
 {
   "name": "swimming-pool-design",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,6 +20,7 @@
     "verify:v090-baseline": "npm run build:content && node scripts/verify-v090-immutable-baseline.mjs",
     "verify:v091-baseline": "npm run build:content && node scripts/verify-v090-immutable-baseline.mjs --allow-concept-source-change",
     "capture:viewer-quality": "npm run build && node scripts/capture-viewer-quality-evidence.mjs",
+    "capture:copy": "node scripts/capture-public-copy.mjs",
     "clean:reference": "node scripts/clean-reference-dist.mjs",
     "build": "npm run build:content && npm run check:docs && npm run validate:reference && npm test && npm run typecheck && npm run clean:reference && vite build"
   },

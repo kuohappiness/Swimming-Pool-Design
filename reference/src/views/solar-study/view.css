@@ -22,21 +22,23 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
   column-gap: 5rem;
-  border-bottom: 1px solid var(--site-line);
+  padding-bottom: clamp(1.5rem, 3vw, 3rem);
+  border-bottom: 0;
 }
 
 .view-intro--solar .site-kicker,
+.view-intro--solar .site-section-description,
 .view-intro--solar h1 {
   grid-column: 1;
 }
 
-.view-intro--solar > p {
+.view-intro--solar > p:not(.site-section-description) {
   grid-column: 1;
 }
 
 .solar-signature {
   grid-column: 2;
-  grid-row: 1 / span 3;
+  grid-row: 1 / span 4;
   align-self: end;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -75,17 +77,54 @@ body {
   padding: 4rem 20px;
 }
 
+.solar-model {
+  width: var(--site-page);
+  margin: 0 auto;
+  padding-top: clamp(1rem, 2vw, 2rem);
+  border-bottom: 0;
+}
+
+.solar-model > h2 {
+  margin: 0;
+  color: var(--site-ink);
+  font-family: var(--site-sans);
+  font-size: clamp(1.68rem, 2.88vw, 2.16rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.solar-model > h2 span {
+  color: var(--site-water);
+}
+
+.solar-model .solar-model-content {
+  width: 100%;
+  max-width: none;
+  padding: 1rem 0 clamp(1.2rem, 2.1vw, 2.1rem);
+}
+
+.solar-meta {
+  width: var(--site-page);
+  margin: 0 auto;
+  padding: clamp(.9rem, 1.8vw, 1.8rem) 0 0;
+}
+
+.solar-study-view.solar-meta .facts {
+  margin: 0;
+  border-bottom: 0;
+}
+
 .solar-trust-line {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  width: var(--site-page);
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 1rem 0;
   color: var(--site-muted);
   border-bottom: 1px solid var(--site-line);
-  font-family: var(--site-mono);
-  font-size: .64rem;
+  font: 700 13px/1.2 ui-monospace, monospace;
 }
 
 .solar-study-view .lead {

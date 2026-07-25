@@ -84,6 +84,18 @@ try {
       if (response.status() >= 400) browserErrors.push(`${response.status()} ${response.url()}`);
     });
   };
+  const activateScene = async (page, label) => {
+    await page.locator('[data-scene-nav] button').filter({
+      hasText: new RegExp(`^${label}$`),
+    }).evaluate((button) => button.click());
+  };
+  const selectObject = async (page, option) => {
+    const value = await option.getAttribute('value');
+    await page.locator('[data-object-select]').evaluate((select, nextValue) => {
+      select.value = nextValue;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }, value);
+  };
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   trackErrors(desktop);
   await desktop.goto(`${origin}/?view=3d-viewer`, { waitUntil: 'networkidle' });
@@ -119,14 +131,13 @@ try {
   );
   assert.equal(await desktop.locator('[data-loading]').isHidden(), true);
   assert.equal(await desktop.locator('[data-scene-nav] button').count(), 5);
+  assert.equal(await desktop.locator('[data-scene-nav]').isHidden(), true);
+  assert.equal(await desktop.locator('[data-object-select]').isHidden(), true);
   assert.equal(await desktop.locator('[data-layer-list] input').count(), 10);
   assert.equal(await desktop.locator('input[value="energy"]').isChecked(), true);
   assert.equal(await desktop.locator('canvas[aria-label*="3D 模型"]').count(), 1);
-  assert.match(
-    await desktop.locator('[data-model-version]').innerText(),
-    new RegExp(`^MODEL ${expectedModelVersion.replaceAll('.', '\\.')}`),
-  );
-  assert.match(await desktop.locator('.trust-strip [data-model-hash]').innerText(), /^[a-f0-9]{12}/);
+  assert.equal(await desktop.locator('.site-release strong').innerText(), expectedModelVersion);
+  assert.equal(await desktop.locator('.topbar').count(), 0);
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'), '25.5°');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-deck-elevation'), '+0.300 m');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-stair-design'), 'suspended-floating-stair');
@@ -161,14 +172,12 @@ try {
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-roof-continuous'), 'true');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-mirror-end-gaps-filled'), 'true');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-interior-battery-objects'), 'false');
-  await desktop.getByRole('button', { name: '向雨' }).click();
+  await activateScene(desktop, '向雨');
   await desktop.locator('input[value="energy"]').uncheck();
   const poolBeforeWalkthrough = desktop.locator('[data-object-select] option').filter({
     hasText: /^POOL-01 ·/,
   });
-  await desktop.locator('[data-object-select]').selectOption(
-    await poolBeforeWalkthrough.getAttribute('value'),
-  );
+  await selectObject(desktop, poolBeforeWalkthrough);
   await desktop.getByRole('button', { name: '泳池剖視' }).click();
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'true');
   await desktop.locator('[data-enter-walkthrough]').click();
@@ -275,7 +284,7 @@ try {
     ),
     true,
   );
-  await desktop.getByRole('button', { name: '總覽' }).click();
+  await activateScene(desktop, '總覽');
   await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-perspective.png'), fullPage: true });
 
   for (const [objectId, expectedText, screenshotName] of [
@@ -300,7 +309,7 @@ try {
     const option = desktop.locator('[data-object-select] option').filter({
       hasText: new RegExp(`^${objectId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} ·`),
     });
-    await desktop.locator('[data-object-select]').selectOption(await option.getAttribute('value'));
+    await selectObject(desktop, option);
     assert.match(await desktop.locator('[data-selection-info]').innerText(), expectedText);
     await desktop.screenshot({ path: resolve(outputDirectory, screenshotName), fullPage: true });
     if (objectId === 'F-L2-Y0-01') {
@@ -308,26 +317,25 @@ try {
       await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-l2-y0-glass-from-y0.png'), fullPage: true });
       await desktop.getByRole('button', { name: '校側' }).click();
       await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-l2-y0-glass-from-y14.png'), fullPage: true });
-      await desktop.getByRole('button', { name: '重設本場景視角' }).click();
+      await desktop.getByRole('button', { name: '重設視角' }).click();
     }
   }
 
   const stairOption = desktop.locator('[data-object-select] option').filter({ hasText: /^ST-01 ·/ });
-  await desktop.locator('[data-object-select]').selectOption(await stairOption.getAttribute('value'));
+  await selectObject(desktop, stairOption);
   assert.match(await desktop.locator('[data-selection-info]').innerText(), /Y0 側/);
   await desktop.getByRole('button', { name: '俯視' }).click();
   await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-stair-y0-top.png'), fullPage: true });
-  await desktop.getByRole('button', { name: '重設本場景視角' }).click();
+  await desktop.getByRole('button', { name: '重設視角' }).click();
 
-  await desktop.getByRole('button', { name: '向雨' }).click();
+  await activateScene(desktop, '向雨');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-scene'), 'rain');
   assert.equal(await desktop.locator('input[value="rain"]').isChecked(), true);
-  assert.match(await desktop.locator('[data-scene-context]').innerText(), /讓雨水成為可見的路徑/);
-  assert.doesNotMatch(await desktop.locator('[data-scene-context]').innerText(), /初期雨水分流|沉砂與過濾/);
+  assert.equal(await desktop.locator('[data-scene-context]').count(), 0);
   const coreOption = desktop.locator('[data-object-select] option').filter({ hasText: 'CORE-01' });
-  await desktop.locator('[data-object-select]').selectOption(await coreOption.getAttribute('value'));
+  await selectObject(desktop, coreOption);
   assert.match(await desktop.locator('[data-selection-info]').innerText(), /CORE-01/);
-  await desktop.getByRole('button', { name: '總覽' }).click();
+  await activateScene(desktop, '總覽');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-scene'), 'overview');
   assert.equal(await desktop.locator('input[value="energy"]').isChecked(), true);
   await desktop.getByRole('button', { name: '俯視' }).click();
@@ -368,7 +376,7 @@ try {
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'true');
   assert.equal(await mobile.locator('[data-pool-cutaway-key]').isVisible(), true);
   await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-pool-cutaway-mobile.png'), fullPage: true });
-  await mobile.getByRole('button', { name: '重設本場景視角' }).click();
+  await mobile.getByRole('button', { name: '重設視角' }).click();
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'false');
   await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-mobile.png'), fullPage: true });
 
@@ -490,8 +498,9 @@ try {
   await fallback.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'fallback');
   assert.equal(await fallback.locator('[data-webgl-fallback]').isVisible(), true);
   assert.equal(await fallback.locator('[data-scene-nav] button').count(), 5);
-  await fallback.getByRole('button', { name: '向光' }).click();
-  assert.match(await fallback.locator('[data-scene-context]').innerText(), /看見建築如何轉向光/);
+  assert.equal(await fallback.locator('[data-scene-nav]').isHidden(), true);
+  await activateScene(fallback, '向光');
+  assert.equal(await fallback.locator('[data-scene-context]').count(), 0);
 
   const solarDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   trackErrors(solarDesktop);
@@ -530,8 +539,12 @@ try {
   trackErrors(atlasDesktop);
   await atlasDesktop.goto(`${origin}/?view=drawings#REF-001`, { waitUntil: 'networkidle' });
   assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 5);
+  assert.equal(await atlasDesktop.locator('#detail-panel').count(), 0);
   assert.equal(await atlasDesktop.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
-  assert.match(await atlasDesktop.locator('.sheet-note').innerText(), /基地現況來源圖/);
+  assert.equal(
+    await atlasDesktop.locator('.sheet-note').innerText(),
+    `MODEL ${expectedModelVersion} · ACTIVE ${projectModel.activeGeometryRevisionId}`,
+  );
   assert.match(await atlasDesktop.locator('#sheet-stage image').getAttribute('href'), /SRC-SITE-001_google-maps-satellite/);
   await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-site-latest.png'), fullPage: true });
 

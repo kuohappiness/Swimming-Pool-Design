@@ -335,7 +335,20 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-083`～`TASK-087` 已完成並收斂為 [Release 0.9.1](releases/0.9.1.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 20. 未排程設計問題
+## 20. 0.9.2 地端文字與版面細修
+
+0.9.2 彙整使用者在四個公開分頁完成的文字、斷行、比例、留白、對齊、3D 控制與低對比配色調整。本版不改 active geometry、日照計算、V067 圖面或 3D／漫遊行為，並建立可重現的 v1.0 網站可見文字快照。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-088 | 完成設計理念、日照研究與圖面設計的文案、斷行及版面細修 | done | 0.9.2 | [DEC-136](04_DECISIONS_AND_OPEN_ITEMS.md)、各 output contract | TASK-087 | 四分頁標題與註解一致；內容階層、欄寬、對齊、圖片說明及留白依使用者註記完成，不改研究或圖面資料 |
+| TASK-089 | 完成聚焦式 3D 展示介面 | done | 0.9.2 | [DEC-138](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-088 | 暫隱藏但保留敘事／構件 panel；狀態圓點、攝影機網格、重設視角、實境漫遊入口及柔和配色完成，3D runtime 行為不變 |
+| TASK-090 | 登錄校徽來源並建立網站文字 v1.0 快照 | done | 0.9.2 | [DEC-137](04_DECISIONS_AND_OPEN_ITEMS.md)、[來源登錄](02_SITE_AND_SOURCES.md)、[文字快照](public/website-copy-v1.0.md) | TASK-088～TASK-089 | 原始校徽與頁首衍生檔有尺寸／雜湊；四個實際渲染分頁的可見文字、路徑與 SHA-256 由可重跑腳本保存 |
+| TASK-091 | 同步 0.9.2 版本、文件、完整驗證並 commit／push | done | 0.9.2 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[Release 0.9.2](releases/0.9.2.md) | TASK-088～TASK-090 | package／lockfile／model／README／contracts／release 已同步；build、93 tests、四 view × 五 viewport、desktop／mobile／WebGL fallback E2E、v0.9.1 immutable baseline、四頁文字快照與 diff 檢查通過後建立單一 release commit 並 push `main` |
+
+`TASK-088`～`TASK-091` 已完成並收斂為 [Release 0.9.2](releases/0.9.2.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
+
+## 21. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
