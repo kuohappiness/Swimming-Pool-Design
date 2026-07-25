@@ -322,7 +322,8 @@ try {
   await desktop.getByRole('button', { name: '向雨' }).click();
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-scene'), 'rain');
   assert.equal(await desktop.locator('input[value="rain"]').isChecked(), true);
-  assert.match(await desktop.locator('[data-concept-content]').innerText(), /雨天也是建築的風景/);
+  assert.match(await desktop.locator('[data-scene-context]').innerText(), /讓雨水成為可見的路徑/);
+  assert.doesNotMatch(await desktop.locator('[data-scene-context]').innerText(), /初期雨水分流|沉砂與過濾/);
   const coreOption = desktop.locator('[data-object-select] option').filter({ hasText: 'CORE-01' });
   await desktop.locator('[data-object-select]').selectOption(await coreOption.getAttribute('value'));
   assert.match(await desktop.locator('[data-selection-info]').innerText(), /CORE-01/);
@@ -490,7 +491,7 @@ try {
   assert.equal(await fallback.locator('[data-webgl-fallback]').isVisible(), true);
   assert.equal(await fallback.locator('[data-scene-nav] button').count(), 5);
   await fallback.getByRole('button', { name: '向光' }).click();
-  assert.match(await fallback.locator('[data-concept-content]').innerText(), /替游泳池找尋新的「方向」/);
+  assert.match(await fallback.locator('[data-scene-context]').innerText(), /看見建築如何轉向光/);
 
   const solarDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   trackErrors(solarDesktop);

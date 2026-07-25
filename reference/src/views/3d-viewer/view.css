@@ -22,7 +22,7 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
   column-gap: 4rem;
-  padding-block: clamp(2.5rem, 5vw, 5rem);
+  padding-block: clamp(1.25rem, 2vw, 2rem);
 }
 
 .view-intro--viewer .site-kicker,
@@ -34,6 +34,14 @@ body {
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: end;
+  max-width: 34rem;
+  line-height: 1.8;
+}
+
+.view-intro--viewer h1 {
+  max-width: 10em;
+  margin-bottom: 0;
+  font-size: clamp(2.5rem, 4vw, 4.25rem);
 }
 
 .site-view--3d-viewer [data-view-root] {
@@ -41,8 +49,8 @@ body {
 }
 
 .site-view--3d-viewer .viewer-shell {
-  height: calc(100dvh - var(--site-header-height));
-  min-height: 620px;
+  height: min(760px, calc(100dvh - var(--site-header-height) - 150px));
+  min-height: 560px;
   background: #e7e7e1;
 }
 
@@ -91,7 +99,7 @@ body {
   }
 
   .view-intro--viewer > p {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
   }
 
   .site-view--3d-viewer .viewer-shell {

@@ -17,7 +17,7 @@ const [modelText, registryText, markdown, manifestText, generatedModelText, gene
   readFile(resolve(repoRoot, 'reference/src/3d-viewer/scene-factory.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/src/3d-viewer/rendering/baseline-material-registry.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/src/3d-viewer/interactions.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/views/3d-viewer/legacy-template.html'), 'utf8'),
+  readFile(resolve(repoRoot, 'reference/src/views/3d-viewer/viewer-template.html'), 'utf8'),
   readFile(resolve(repoRoot, 'reference/src/views/solar-study/legacy-template.html'), 'utf8'),
 ]);
 const sourceModel = JSON.parse(modelText);
@@ -178,6 +178,11 @@ test('public content compiler resolves current active geometry tokens for all fi
   assert.match(content.scenes.find(({ id }) => id === 'light').html, /23°/);
   assert.match(content.scenes.find(({ id }) => id === 'rain').html, /5°/);
   assert.match(content.scenes.find(({ id }) => id === 'people').html, /\+0\.300 m/);
+  assert.ok(manifest.scenes.every(({ context }) =>
+    context.title
+    && context.summary
+    && context.observations.length === 3
+    && context.conceptAnchor));
 });
 
 test('public content compiler rejects unknown scenes and unresolved active paths', () => {
@@ -215,6 +220,8 @@ test('Viewer, solar study, and atlas navigation expose only v0.6.7 drawing ancho
   assert.match(viewerHtml, /data-north-direction="lower-right"/);
   assert.match(viewerHtml, /data-view="pool-cutaway">泳池剖視/);
   assert.match(viewerHtml, /X3 淺端 1\.20 m/);
+  assert.match(viewerHtml, /data-scene-context/);
+  assert.doesNotMatch(viewerHtml, /data-concept-content|<html|<body|<script/);
 });
 
 test('world, L3, and coplanar mirror transforms remain separated in the scene factory', () => {

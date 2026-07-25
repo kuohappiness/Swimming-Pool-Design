@@ -20,7 +20,7 @@
 
 ## 3. 來源登錄表
 
-| ID | 專案路徑 | 內容與用途 | 原始像素 | SHA-256 |
+| ID | 專案路徑 | 內容與用途 | 格式／規模 | SHA-256 |
 | --- | --- | --- | --- | --- |
 | SRC-SITE-001 | `source-materials/site/SRC-SITE-001_google-maps-satellite.png` | 衛星截圖；基地、周邊道路與校園配置、地圖比例尺 | 1612 × 1430 | `39D1933CAEFB91020AF10E72ADFDBD04980DA36FEDBF36ED14209F469DA4029D` |
 | SRC-SITE-002 | `source-materials/site/SRC-SITE-002_entrance-location-annotated.png` | 衛星圖紅箭頭；確認 `EN-01` 位於兩基地交界的校園側 | 814 × 1146 | `7827DC99D33A1EF61470D19208EF58BF57C880420C94F903CC52BB63D5F2C327` |
@@ -37,12 +37,28 @@
 | SRC-CONCEPT-009 | `source-materials/concepts/SRC-CONCEPT-009_longitudinal-section-correction-annotated.png` | 使用者在 `REF-401` 圖面以紅色斜線標示屋頂概念位置、以綠框圈出入口戶外區；隨附文字另指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜 | 2216 × 1130 | `3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034` |
 | SRC-CONCEPT-010 | `source-materials/concepts/SRC-CONCEPT-010_l1-plan-v2.0.jpeg` | 使用者手繪「俯視圖－1F V2.0」；標示 33 m 泳池主體、右側 8 m 機能翼、男女廁、戶外區、2 m 退縮、門與樓梯 | 3840 × 2110 | `467B4CFB573A5250FCF5D5D74D02AF4D696071B35FCA0C1D96817DFFCA99BD08` |
 | SRC-CONCEPT-011 | `source-materials/concepts/SRC-CONCEPT-011_longitudinal-section-v2.0.jpeg` | 使用者手繪「剖面圖 V2.0」；表達 33 m 泳池主體、右側 8 m 機能翼、L1 廁所、L2 更衣室、外傾鏡牆、玻璃屋頂、雨水回收、2 m 退縮與 1F 至 2F 樓梯 | 3840 × 2747 | `3612C211F9AC06C6E9E8B40210C8282B7088DD81691D36F237C75E483329EB8B` |
+| SRC-CONCEPT-012 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-012_campus-survey-01.jpeg` | 校園場勘 1；操場、校舍與基地周邊廣角現況；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；6,141,202 bytes | `484B5D2B066CE9EDA45316EBEE85E443EE7C4D9928679E30BAFE6D409BEE0E2C` |
+| SRC-CONCEPT-013 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-013_campus-survey-02.jpeg` | 校園場勘 2；球場側既有泳池建物、樹木與入口；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；6,091,749 bytes | `95EE7532DA5F45F82A2905D84496F602B1D4BE9517C192AF10333896FEE4EF29` |
+| SRC-CONCEPT-014 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-014_campus-survey-03.jpeg` | 校園場勘 3；戶外樓梯、樹木與建物端部；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；8,024,325 bytes | `8A4596D3F36FAD00EFC4C787F973F6EAE1E6AA255A4484660BC39E965E59C37E` |
+| SRC-CONCEPT-015 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-015_campus-survey-04.jpeg` | 校園場勘 4；鄰近校舍、連通棚架與建物端部；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；6,874,744 bytes | `E773D1A0AF3152AD5DCAEAE20C881DE2B87B3F3ED6A8A87546BD39DC6F5AF499` |
+| SRC-CONCEPT-016 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-016_campus-survey-05.jpeg` | 校園場勘 5；既有建物、戶外樓梯、老樹與鋪面；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；8,384,281 bytes | `ADB7A6F8F8D2AEDF31254F8FFEC204992B0B311DF3907E4484FB7E7A59863600` |
+| SRC-CONCEPT-017 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-017_campus-survey-06.jpeg` | 校園場勘 6；老樹遮蔭下的既有泳池長向立面；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；8,969,290 bytes | `E0FD617289DB8048E64C3A883480A1114CCDD7579FFC103D7D610F3BB2786809` |
+| SRC-CONCEPT-018 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-018_overhead-plan-sketch.jpeg` | 早期手繪俯視圖；可見泳池、服務空間、戶外區、樓梯與手寫尺度；用於 0.9.1 ORIGIN | image/jpeg；1484 × 2701；EXIF 8；278,985 bytes | `66B1C3004ACF2EA94B3C3A6B265D891DCDFD4B89C1B79B5BF522B7CEF6F4F855` |
+| SRC-CONCEPT-019 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-019_section-sketch.jpeg` | 早期手繪剖面；可見玻璃屋頂、鏡牆、泳池、雨水回收與服務空間；用於 0.9.1 ORIGIN | image/jpeg；1990 × 2782；EXIF 8；408,483 bytes | `A7FE1423B62A1B291DB11A8EFD5B60DB8BB1F793F5008D8EF541F803D3BFA865` |
+| SRC-CONCEPT-020 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-020_early-3d-concept-sketch.jpeg` | 早期三維示意；使用者註記為哥哥協助，呈現泳池、入口、服務量體與傾斜屋頂；用於 0.9.1 ORIGIN | image/jpeg；1993 × 2830；EXIF 8；505,764 bytes | `14D424520AD7B9AB927C5697487F7840D2D7413A5C690A3A415E7A2004FF3390` |
+| SRC-CONCEPT-021 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-021_solar-reflection-sketch.jpeg` | 手繪日照反射剖面；可見冬季／夏季光線、鏡面與水面；用於 0.9.1 ORIGIN | image/jpeg；1777 × 2525；EXIF 8；292,292 bytes | `505C257CE77913BF996A5C005FDBE4014679B27B5C180A2D085676F88971C109` |
+| SRC-CONCEPT-022 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-022_solar-study-sketch.jpeg` | 粉紅紙張上的手繪日照研究；可見方位、季節、太陽與量體方向註記；用於 0.9.1 ORIGIN | image/jpeg；2772 × 1934；EXIF 3；369,294 bytes | `4E9A9BA11CCB56F29FD326CF97A92141AB8A157E30877E69D8B8047AFD3C62AF` |
+| SRC-CONCEPT-023 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-023_stair-concept-reference.png` | 樓梯概念參考截圖；依使用者指示只保存來源，不放入 HTML | image/png；237 × 512；257,988 bytes | `AD631A35040FEE34D88008B7459918F8B160406FA444CF80C9B4DA68607B9D83` |
 
 `SRC-CONCEPT-009` 圖面可直接觀察到紅色斜線位於既有屋頂下方，以及綠框圈出 L1 右端灰色區域。使用者隨附文字指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜。設計上解讀為：`REF-401` 屋頂高端應靠近 L2 樓板、綠框是入口戶外區、`EXT-L2-01` 低 X 面池端牆是向泳池側外傾的鏡面牆；圖面與隨附文字都不提供正式標高、入口寬度或外傾角。
 
 `SRC-CONCEPT-010` 於 2026-07-19 由使用者提供。圖面可直接觀察到 33 m、8 m、7 m、2 m 等手寫尺寸，以及泳池、女廁、男廁、戶外區、門與長邊樓梯。使用者隨附文字進一步確認：33 m 只計泳池主體且不含右側 8 m；戶外區為 8 × 7 m 且不與泳池大廳銜接；廁所 7 m 深度包含最上方與泳池相通的乾式走道，男女廁各有一個操場側開口及一個泳池側開口；原基地邊界內退縮 2 m，用於增加視覺開闊度並保留傾斜屋頂瀑布造景與雨水回收介面。廁所是否改切為對外／對泳池兩套獨立空間不是現行答案，留由 `OPEN-008` 討論。
 
 `SRC-CONCEPT-011` 於 2026-07-20 由使用者提供。圖面可直接觀察到剖面左右端、33 m、8 m、2 m、玻璃屋頂、鏡牆、雨水回收、泳池、L1 男女廁與 L2 男女更衣室；圖上「深 1.4 公尺」不是最終設計值。使用者隨附文字進一步確認：向右上方延伸的兩條斜線代表 `ST-01` 由 1F 至 2F 的樓梯，不是鏡面反射光路；樓梯長度與角度仍需建議及確認；水深改為剖面左端（2 m 退縮／雨水回收端）1.2 m 淺水、剖面右端（8 m 機能翼／廁所端）1.5 m 深水。
+
+`SRC-CONCEPT-012`～`SRC-CONCEPT-023` 於 2026-07-25 由使用者提供。原始位元組只改為穩定檔名，未縮放、旋轉、裁切、標註或重新壓縮；表內 SHA-256 即收件位元組。使用者指定 0.9.1 HTML 只使用校園場勘 2／5／6（`SRC-CONCEPT-013`／`016`／`017`）及除樓梯概念圖外的五張手稿（`SRC-CONCEPT-018`～`022`）；`SRC-CONCEPT-012`／`014`／`015`／`023` 仍保存但不被 HTML 引用。網站衍生檔另存於 `reference/src/views/design-concept/assets/`，只校正 EXIF 方向並縮放壓縮，沒有裁切或重繪。
+
+這批資料的提供者為專案使用者；個別攝影者／繪圖者未另做完整權利登記，其中 `SRC-CONCEPT-020` 依原檔名與使用者敘述記為哥哥協助。使用者已在本輪明確指示上述八張影像放入公開 HTML。圖面中的線條與手寫文字只作為早期設計過程證據，不取代現行尺寸、active geometry 或專業設計確認。
 
 `SRC-SITE-001` 於 2026-07-19 依使用者提供的新 Google Maps 衛星截圖置換；新版提高至 1612 × 1430 像素並擴大基地周邊視野，不含原黃色／綠色基地框。基地框與入口箭頭的既有標註證據仍由 `SRC-SITE-002` 保存。
 
@@ -64,7 +80,7 @@
 
 ## 5. 公開與署名
 
-十四張來源圖可直接存於公開 repo。Google Maps 截圖保留原有品牌、指南針及比例尺；地圖資料與影像權利歸 Google 及適用資料提供者，彩框與箭頭為使用者註記。本 repo 只把它保存為概念設計來源證據。
+來源圖可直接存於公開 repo；個別影像是否在 HTML 呈現仍依來源登錄與使用者指示。Google Maps 截圖保留原有品牌、指南針及比例尺；地圖資料與影像權利歸 Google 及適用資料提供者，彩框與箭頭為使用者註記。本 repo 只把它保存為概念設計來源證據。
 
 ## 6. 已知限制
 

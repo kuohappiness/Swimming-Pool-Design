@@ -4,6 +4,12 @@
     {
       "id": "overview",
       "label": "總覽",
+      "context": {
+        "title": "先看整體，再走進細節",
+        "summary": "從保留的泳池與既有秩序出發，讀出旋轉量體、玻璃屋頂與服務核心之間的新舊關係。",
+        "observations": ["辨認固定的 1F／2F 與旋轉的 3F", "確認泳池、服務量體與兩座樓梯的相對位置", "以總覽建立後續四個場景的共同方位"],
+        "conceptAnchor": "concept-title"
+      },
       "camera": { "position": [34, 29, -39], "target": [0, 3.3, 0], "fov": 40 },
       "layers": ["site", "l1", "water", "l2", "l3", "roof", "energy", "circulation", "annotations"],
       "environment": "day"
@@ -11,6 +17,12 @@
     {
       "id": "light",
       "label": "向光",
+      "context": {
+        "title": "看見建築如何轉向光",
+        "summary": "以旋轉的 3F 與外傾鏡牆觀察日光策略；角度是可驗證的工作值，不是造型裝飾。",
+        "observations": ["比較固定樓層與旋轉量體的方向差", "辨認面池鏡牆與玻璃屋頂的分工", "需要數值與方法時前往日照研究"],
+        "conceptAnchor": "concept-light"
+      },
       "camera": { "position": [35, 20, -24], "target": [0, 6.8, -7], "fov": 35 },
       "layers": ["site", "l1", "water", "l2", "l3", "roof", "energy", "annotations"],
       "environment": "winter-light"
@@ -18,6 +30,12 @@
     {
       "id": "rain",
       "label": "向雨",
+      "context": {
+        "title": "讓雨水成為可見的路徑",
+        "summary": "由玻璃屋頂低端看見雨水匯集、落下與回收的方向，雨簾只在真實降雨時出現。",
+        "observations": ["辨認屋頂高低端與全寬落水邊", "追蹤雨簾下方的承接與回收位置", "區分被動雨景與人工循環水景"],
+        "conceptAnchor": "concept-rain"
+      },
       "camera": { "position": [25, 14, 36], "target": [0, 3.0, 12], "fov": 39 },
       "layers": ["site", "l1", "water", "roof", "rain", "annotations"],
       "environment": "rain"
@@ -25,6 +43,12 @@
     {
       "id": "people",
       "label": "向人",
+      "context": {
+        "title": "沿著人的視線與移動閱讀",
+        "summary": "從入口、池畔與透明樓梯廊理解公共空間如何打開，同時保留更衣與服務空間的界線。",
+        "observations": ["由 EN-01 進入第一人稱漫遊", "觀察 ST-01／ST-02 的通透與落點", "比較玻璃公共面與不透明服務量體"],
+        "conceptAnchor": "concept-people"
+      },
       "camera": { "position": [-30, 15, 34], "target": [-3, 3.0, 0], "fov": 40 },
       "layers": ["site", "l1", "water", "l2", "circulation", "annotations"],
       "environment": "day"
@@ -32,6 +56,12 @@
     {
       "id": "time",
       "label": "向時間",
+      "context": {
+        "title": "辨認被保留與被改變的部分",
+        "summary": "正交基準與旋轉介入並置，讓原建築不被抹去，而是在少數關鍵位置獲得新的方向。",
+        "observations": ["辨認既有基座與新增上層構件", "觀察材料如何區分重量與輕盈", "理解改變集中於最能產生意義的位置"],
+        "conceptAnchor": "concept-time"
+      },
       "camera": { "position": [12, 22, -42], "target": [0, 4.6, -8], "fov": 40 },
       "layers": ["site", "l1", "l2", "l3", "roof", "energy", "circulation", "annotations"],
       "environment": "soft"

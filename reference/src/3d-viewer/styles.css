@@ -1,4 +1,4 @@
-:root {
+.viewer-shell {
   color-scheme: light;
   font-family: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   color: #203239;
@@ -16,12 +16,18 @@
   --line: rgba(32, 50, 57, .14);
 }
 
-* { box-sizing: border-box; }
-html, body { margin: 0; min-width: 320px; min-height: 100%; }
-body { overflow: hidden; background: #dfe6e7; }
-button, select { font: inherit; }
-button, a, select, canvas { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible, select:focus-visible, canvas:focus-visible {
+.viewer-shell,
+.viewer-shell * { box-sizing: border-box; }
+.viewer-shell button,
+.viewer-shell select { font: inherit; }
+.viewer-shell button,
+.viewer-shell a,
+.viewer-shell select,
+.viewer-shell canvas { -webkit-tap-highlight-color: transparent; }
+.viewer-shell button:focus-visible,
+.viewer-shell a:focus-visible,
+.viewer-shell select:focus-visible,
+.viewer-shell canvas:focus-visible {
   outline: 3px solid #f2bd64;
   outline-offset: 2px;
 }
@@ -494,17 +500,50 @@ button:focus-visible, a:focus-visible, select:focus-visible, canvas:focus-visibl
 [data-selection-info] p { margin: 5px 0; color: #647276; font-size: 11px; line-height: 1.65; }
 [data-selection-info] a { color: #8e4e37; font-size: 10px; }
 
-.concept-content { padding: 24px 24px 48px; }
-.concept-content h1, .concept-content h2 { margin: 0 0 12px; color: #1e3036; font-family: Georgia, "Noto Serif TC", serif; font-weight: 500; line-height: 1.25; }
-.concept-content h1 { font-size: 30px; }
-.concept-content h2 { margin-top: 24px; font-size: 24px; }
-.concept-content h3 { margin: 18px 0 7px; color: #8c4f3a; font-size: 12px; letter-spacing: .05em; }
-.concept-content p, .concept-content li { color: #526165; font-size: 12px; line-height: 1.8; }
-.concept-content p { margin: 8px 0; }
-.concept-content ul, .concept-content ol { padding-left: 20px; }
-.concept-content blockquote { margin: 15px 0; padding: 11px 14px; color: #44555a; background: #f0ebe2; border-left: 2px solid var(--accent); font-family: Georgia, "Noto Serif TC", serif; font-size: 13px; line-height: 1.7; }
-.concept-content a { color: #8e4e37; }
-.concept-content hr { margin: 25px 0; border: 0; border-top: 1px solid var(--line); }
+.scene-context {
+  padding: 25px 24px 36px;
+  border-bottom: 1px solid var(--line);
+}
+.scene-context h2 {
+  margin: 6px 0 12px;
+  color: #1e3036;
+  font-family: Georgia, "Noto Serif TC", serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.scene-context > p:not(.section-kicker),
+.scene-context li {
+  color: #526165;
+  font-size: 12px;
+  line-height: 1.75;
+}
+.scene-context > p:not(.section-kicker) { margin: 0; }
+.scene-context h3 {
+  margin: 24px 0 8px;
+  color: #8c4f3a;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.scene-context ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+.scene-context a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 21px;
+  color: #6f3e2e;
+  border-bottom: 1px solid rgba(111, 62, 46, .35);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
 
 .webgl-fallback {
   position: absolute;
@@ -532,11 +571,10 @@ noscript { display: block; padding: 20px; }
 @media (max-width: 1120px) {
   .viewer-shell { grid-template-columns: 225px minmax(390px, 1fr) 310px; }
   .trust-strip > span:nth-child(2) { display: none; }
-  .concept-content { padding-inline: 19px; }
+  .scene-context { padding-inline: 19px; }
 }
 
 @media (max-width: 900px) {
-  body { overflow: auto; }
   .viewer-shell {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 62px minmax(470px, 58dvh) auto auto;
@@ -564,7 +602,7 @@ noscript { display: block; padding: 20px; }
   .viewport-panel { min-height: 470px; }
   .information-panel { border: 0; border-top: 1px solid var(--line); }
   .selection-panel { padding: 17px 16px; }
-  .concept-content { padding: 23px 18px 45px; }
+  .scene-context { padding: 23px 18px 35px; }
   .viewer-shell[data-camera-mode="walkthrough"] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 58px calc(100dvh - 58px);
@@ -611,8 +649,7 @@ noscript { display: block; padding: 20px; }
   }
   .pool-cutaway-key strong { flex-basis: 100%; text-align: center; }
   .layer-list { grid-template-columns: 1fr; }
-  .concept-content h1 { font-size: 27px; }
-  .concept-content h2 { font-size: 22px; }
+  .scene-context h2 { font-size: 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

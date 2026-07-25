@@ -4,6 +4,22 @@ import l3Drawing from '../../../drafts/v0.6.7/DRAW-L3-PLAN-v0.6.7.svg?raw';
 import { resolveActiveGeometry } from '../../../../scripts/active-geometry.mjs';
 import type { MountedView } from '../../app/view-contract';
 import type { ProjectModel } from '../../types';
+import campus02Large from './assets/origin-campus-02-1920.jpg';
+import campus02Small from './assets/origin-campus-02-960.jpg';
+import campus05Large from './assets/origin-campus-05-1920.jpg';
+import campus05Small from './assets/origin-campus-05-960.jpg';
+import campus06Large from './assets/origin-campus-06-1920.jpg';
+import campus06Small from './assets/origin-campus-06-960.jpg';
+import early3dLarge from './assets/origin-early-3d-1920.jpg';
+import early3dSmall from './assets/origin-early-3d-960.jpg';
+import overheadPlanLarge from './assets/origin-overhead-plan-1920.jpg';
+import overheadPlanSmall from './assets/origin-overhead-plan-960.jpg';
+import sectionLarge from './assets/origin-section-1920.jpg';
+import sectionSmall from './assets/origin-section-960.jpg';
+import solarReflectionLarge from './assets/origin-solar-reflection-1920.jpg';
+import solarReflectionSmall from './assets/origin-solar-reflection-960.jpg';
+import solarStudyLarge from './assets/origin-solar-study-1920.jpg';
+import solarStudySmall from './assets/origin-solar-study-960.jpg';
 import './view.css';
 
 interface ConceptScene {
@@ -13,17 +29,116 @@ interface ConceptScene {
   html: string;
 }
 
+interface OriginImage {
+  sourceId: string;
+  smallUrl: string;
+  largeUrl: string;
+  width: number;
+  height: number;
+  label: string;
+  caption: string;
+  alt: string;
+  primary?: boolean;
+}
+
 const content = rawContent as { scenes: ConceptScene[]; contentHash: string; modelHash: string };
 const activeGeometry = resolveActiveGeometry(rawModel as unknown as ProjectModel) as unknown as {
   solar: { planRotation: { value: number } };
 };
 const planRotation = activeGeometry.solar.planRotation.value;
+const originTitle = '一切，從紙上的第一筆開始';
 const chapterMeta = [
   { sceneId: 'light', number: '01', title: '向光', caption: '讓建築回應季節與太陽', motif: 'sun' },
   { sceneId: 'rain', number: '02', title: '向水', caption: '讓雨水成為建築可見的循環', motif: 'water' },
   { sceneId: 'people', number: '03', title: '向人', caption: '讓光線、視線與動線彼此穿透', motif: 'people' },
   { sceneId: 'time', number: '04', title: '向時間', caption: '讓新與舊清楚並存', motif: 'time' },
 ] as const;
+const surveyImages: OriginImage[] = [
+  {
+    sourceId: 'SRC-CONCEPT-013',
+    smallUrl: campus02Small,
+    largeUrl: campus02Large,
+    width: 1920,
+    height: 1080,
+    label: 'SITE NOTE 01',
+    caption: '從球場側回看舊有量體，先記住尺度、入口與校園日常的距離。',
+    alt: '校園場勘二：球場旁的既有泳池建物、樹木與入口',
+    primary: true,
+  },
+  {
+    sourceId: 'SRC-CONCEPT-016',
+    smallUrl: campus05Small,
+    largeUrl: campus05Large,
+    width: 1920,
+    height: 1080,
+    label: 'SITE NOTE 02',
+    caption: '樹冠、鋪面與既有建物共同界定了場地；更新不能只看建築本身。',
+    alt: '校園場勘五：既有建物、戶外樓梯、老樹與前方鋪面',
+  },
+  {
+    sourceId: 'SRC-CONCEPT-017',
+    smallUrl: campus06Small,
+    largeUrl: campus06Large,
+    width: 1920,
+    height: 1080,
+    label: 'SITE NOTE 03',
+    caption: '老樹與長向立面形成最強的現場記憶，也成為新舊關係的起點。',
+    alt: '校園場勘六：老樹遮蔭下的既有泳池長向立面',
+  },
+];
+const sketchImages: OriginImage[] = [
+  {
+    sourceId: 'SRC-CONCEPT-022',
+    smallUrl: solarStudySmall,
+    largeUrl: solarStudyLarge,
+    width: 1920,
+    height: 1340,
+    label: 'SKETCH 01',
+    caption: '先在紙上辨認東西南北與季節日照，讓量體的轉動有一個最初理由。',
+    alt: '粉紅色紙張上的手繪日照研究，包含方位、季節與光線方向註記',
+    primary: true,
+  },
+  {
+    sourceId: 'SRC-CONCEPT-018',
+    smallUrl: overheadPlanSmall,
+    largeUrl: overheadPlanLarge,
+    width: 1920,
+    height: 1055,
+    label: 'SKETCH 02',
+    caption: '俯視圖把泳池、服務空間、戶外區與樓梯放進同一個關係裡。',
+    alt: '手繪俯視圖，標示泳池、服務空間、戶外區與樓梯',
+  },
+  {
+    sourceId: 'SRC-CONCEPT-019',
+    smallUrl: sectionSmall,
+    largeUrl: sectionLarge,
+    width: 1920,
+    height: 1373,
+    label: 'SKETCH 03',
+    caption: '剖面開始追問：玻璃屋頂、鏡牆、雨水與人在不同高度如何相遇。',
+    alt: '手繪剖面圖，標示玻璃屋頂、鏡牆、泳池、雨水回收與服務空間',
+  },
+  {
+    sourceId: 'SRC-CONCEPT-020',
+    smallUrl: early3dSmall,
+    largeUrl: early3dLarge,
+    width: 1920,
+    height: 1352,
+    label: 'SKETCH 04',
+    caption: '與哥哥一起把平面的線轉成立體，第一次看見量體、泳池與入口的整體關係。',
+    alt: '早期手繪三維示意，呈現泳池、入口、服務量體與傾斜屋頂',
+  },
+  {
+    sourceId: 'SRC-CONCEPT-021',
+    smallUrl: solarReflectionSmall,
+    largeUrl: solarReflectionLarge,
+    width: 1920,
+    height: 1351,
+    label: 'SKETCH 05',
+    caption: '最後用最簡單的光線，反覆確認冬季導光與夏季遮陽能否同時成立。',
+    alt: '手繪日照反射剖面，標示冬季與夏季陽光、鏡面與水面',
+  },
+];
 
 function scene(id: string): ConceptScene {
   const found = content.scenes.find((item) => item.id === id);
@@ -40,14 +155,66 @@ function accessibleDrawing(): string {
     );
 }
 
+function splitOverview(html: string): { heroHtml: string; originHtml: string } {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  const heading = [...template.content.querySelectorAll('h2')]
+    .find((candidate) => candidate.textContent?.trim() === originTitle);
+  if (!heading) throw new TypeError('Concept content is missing the hand-sketch origin section.');
+  const origin = document.createElement('div');
+  let node: ChildNode | null = heading;
+  while (node) {
+    const next: ChildNode | null = node.nextSibling;
+    origin.append(node);
+    node = next;
+  }
+  return {
+    heroHtml: template.innerHTML,
+    originHtml: origin.innerHTML.replace(
+      `<h2>${originTitle}</h2>`,
+      '<h2>一切，從<br>紙上的<br>第一筆開始</h2>',
+    ),
+  };
+}
+
+function originFigure(image: OriginImage, collection: 'survey' | 'sketch'): string {
+  const sizes = image.primary
+    ? '(max-width: 720px) calc(100vw - 40px), (max-width: 980px) 58vw, 48vw'
+    : '(max-width: 720px) calc(100vw - 40px), (max-width: 980px) 29vw, 24vw';
+  return `
+    <figure
+      class="concept-origin-figure ${image.primary ? 'concept-origin-figure--primary' : ''}"
+      data-source-id="${image.sourceId}"
+      data-origin-collection="${collection}"
+    >
+      <picture class="concept-origin-media">
+        <source srcset="${image.smallUrl} 960w, ${image.largeUrl} 1920w" sizes="${sizes}">
+        <img
+          src="${image.smallUrl}"
+          width="${image.width}"
+          height="${image.height}"
+          alt="${image.alt}"
+          loading="lazy"
+          decoding="async"
+        >
+      </picture>
+      <figcaption>
+        <span>${image.label}</span>
+        <p>${image.caption}</p>
+      </figcaption>
+    </figure>
+  `;
+}
+
 export function mount(container: HTMLElement): MountedView {
   const overview = scene('overview');
+  const overviewSections = splitOverview(overview.html);
   container.innerHTML = `
     <article class="concept-hero" aria-labelledby="concept-title">
       <div class="concept-hero-copy">
         <p class="site-kicker">01 ／ DESIGN NARRATIVE</p>
-        <div class="concept-overview">${overview.html}</div>
-        <a class="concept-scroll-cue" href="#concept-chapters">閱讀四個方向 <span aria-hidden="true">↓</span></a>
+        <div class="concept-overview">${overviewSections.heroHtml}</div>
+        <a class="concept-scroll-cue" href="#concept-origin">回到最初的一筆 <span aria-hidden="true">↓</span></a>
       </div>
       <figure class="concept-hero-figure">
         <div class="concept-drawing-window">${accessibleDrawing()}</div>
@@ -57,6 +224,39 @@ export function mount(container: HTMLElement): MountedView {
         </figcaption>
       </figure>
     </article>
+    <section id="concept-origin" class="concept-origin" aria-labelledby="concept-origin-title">
+      <header class="concept-origin-heading">
+        <p class="site-kicker">00 ／ ORIGIN</p>
+        <div class="concept-origin-copy">${overviewSections.originHtml}</div>
+      </header>
+      <div class="concept-origin-story">
+        <section class="concept-origin-stage" aria-labelledby="concept-origin-site-title">
+          <header class="concept-origin-stage-heading">
+            <span>00A</span>
+            <div>
+              <h3 id="concept-origin-site-title">先看見，才開始畫</h3>
+              <p>設計不是從形狀開始，而是先回到現場：看見既有建物、老樹、球場與每天經過這裡的人。</p>
+            </div>
+          </header>
+          <div class="concept-origin-gallery concept-origin-gallery--survey" aria-label="校園場勘二、五、六">
+            ${surveyImages.map((image) => originFigure(image, 'survey')).join('')}
+          </div>
+        </section>
+        <section class="concept-origin-stage" aria-labelledby="concept-origin-sketch-title">
+          <header class="concept-origin-stage-heading">
+            <span>00B</span>
+            <div>
+              <h3 id="concept-origin-sketch-title">讓每一條線，回答一個問題</h3>
+              <p>從方位到平面、從剖面到立體，再回到光線；方案不是一次完成，而是在一張張紙上逐漸清楚。</p>
+            </div>
+          </header>
+          <div class="concept-origin-gallery concept-origin-gallery--sketch" data-hand-sketch-gallery aria-label="早期手繪設計稿">
+            ${sketchImages.map((image) => originFigure(image, 'sketch')).join('')}
+          </div>
+        </section>
+        <p class="concept-origin-note">這些影像保留原始紙張、筆跡與拍攝痕跡；網站只製作方向校正與載入最佳化的衍生檔，不重新描繪設計過程。</p>
+      </div>
+    </section>
     <nav id="concept-chapters" class="concept-index" aria-label="四個設計方向">
       ${chapterMeta.map((chapter) => `
         <a href="#concept-${chapter.sceneId}">
@@ -89,6 +289,16 @@ export function mount(container: HTMLElement): MountedView {
         `;
       }).join('')}
     </div>
+    <section class="concept-journey" aria-labelledby="concept-journey-title">
+      <p class="site-kicker">EPILOGUE ／ FROM LINE TO SPACE</p>
+      <h2 id="concept-journey-title">從紙上的一筆，走到可以被閱讀、驗證，也能親自走入的空間。</h2>
+      <p>手稿保留最初的直覺；日照研究檢驗方向；建築圖面整理尺度；3D 展示則讓空間關係真正被感受。</p>
+      <nav aria-label="繼續閱讀作品成果">
+        <a href="?view=solar-study"><span>01</span>驗證光線</a>
+        <a href="?view=drawings"><span>02</span>閱讀圖面</a>
+        <a href="?view=3d-viewer"><span>03</span>走入空間</a>
+      </nav>
+    </section>
     <aside class="concept-integrity" aria-label="內容同步狀態">
       <span>CONTENT ${content.contentHash.slice(0, 12)}</span>
       <span>MODEL ${content.modelHash.slice(0, 12)}</span>

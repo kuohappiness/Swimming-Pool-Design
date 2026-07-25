@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { resolveActiveGeometry } from './active-geometry.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
+const allowConceptSourceChange = process.argv.includes('--allow-concept-source-change');
 const report = JSON.parse(await readFile(
   resolve(repoRoot, 'tests/visual-baselines/v0.9.0-pre-unification/baseline-report.json'),
   'utf8',
@@ -42,11 +43,19 @@ assert.equal(
   report.immutableData.solarInputHash,
   'Solar analysis inputHash changed outside the 0.9.0 presentation boundary.',
 );
-assert.equal(
-  conceptContent.sourceHash,
-  report.immutableData.conceptSourceHash,
-  'The public design narrative source changed during the presentation-only release.',
-);
+if (allowConceptSourceChange) {
+  assert.match(
+    conceptContent.sourceHash,
+    /^[a-f0-9]{64}$/,
+    'The generated public design narrative must expose a valid source hash.',
+  );
+} else {
+  assert.equal(
+    conceptContent.sourceHash,
+    report.immutableData.conceptSourceHash,
+    'The public design narrative source changed during the presentation-only release.',
+  );
+}
 
 const viewerSemantics = {
   coordinateSystemId: viewerModel.coordinateSystemId,
@@ -71,6 +80,7 @@ for (const drawing of report.immutableData.drawings) {
 }
 
 process.stdout.write(
-  `0.9.0 immutable baseline verified: ${report.immutableData.drawings.length} drawing files, `
+  `${allowConceptSourceChange ? '0.9.1 approved narrative boundary' : '0.9.0 immutable baseline'} verified: `
+    + `${report.immutableData.drawings.length} drawing files, `
     + `solar ${registry.solar.inputHash.slice(0, 12)}, geometry ${report.immutableData.activeGeometryDesignSha256.slice(0, 12)}.\n`,
 );

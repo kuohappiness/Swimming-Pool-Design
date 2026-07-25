@@ -34,6 +34,10 @@ test('invalid routes fail safely to design concept and navigation is accessible'
   assert.match(appShellSource, /aria-label="主要章節"/);
   assert.match(appShellSource, /aria-current="page"/);
   assert.match(appShellSource, /site-skip-link/);
+  assert.match(bootstrapSource, /restoreHashTarget\(\)/);
+  assert.match(bootstrapSource, /getElementById\(targetId\)/);
+  assert.match(bootstrapSource, /root\.style\.scrollBehavior = 'auto'/);
+  assert.match(bootstrapSource, /window\.scrollTo\(0, Math\.max\(0, top\)\)/);
 });
 
 test('3D runtime is isolated behind its view-level dynamic import', () => {

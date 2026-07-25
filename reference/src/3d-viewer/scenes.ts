@@ -5,6 +5,12 @@ export type EnvironmentId = 'day' | 'winter-light' | 'rain' | 'soft';
 export interface ViewerSceneConfig {
   id: string;
   label: string;
+  context: {
+    title: string;
+    summary: string;
+    observations: [string, string, string];
+    conceptAnchor: string;
+  };
   camera: { position: [number, number, number]; target: [number, number, number]; fov: number };
   layers: string[];
   environment: EnvironmentId;

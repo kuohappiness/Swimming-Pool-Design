@@ -1,7 +1,7 @@
 # 3D Viewer 契約
 
 - 類型：output-contract
-- 狀態：active／v0.9.0
+- 狀態：active／v0.9.1
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 入口：`/?view=3d-viewer`
 
@@ -12,7 +12,7 @@ Viewer 只接受：
 - `reference/generated/viewer-model.json`：由 active `GEO-0.8.2` 產生。
 - `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.9.0` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，但不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.9.1` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，0.9.1 只精簡 Viewer 周邊資訊；兩版都不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 
@@ -40,7 +40,9 @@ Viewer 只接受：
 
 ## 場景與操作
 
-`scene-manifest.json` 固定提供 `overview`、`light`、`rain`、`people`、`time`。場景只改相機、visibility、environment 與理念內容，不另建第二套幾何。
+`scene-manifest.json` 固定提供 `overview`、`light`、`rain`、`people`、`time`。場景只改相機、visibility、environment 與展示摘要，不另建第二套幾何。0.9.1 起每個場景另有一段短摘要、恰好三個觀看重點及設計理念 anchor；這些欄位只屬 Viewer 展示層，不替代公開理念 Markdown 正本。
+
+0.9.1 的 3D view 必須是共用 App Shell 內的 HTML fragment，不得再匯入含 `doctype`、`html`、`head`、`body` 或 runtime script 的舊完整頁面後以 DOMParser 拆解。右側 panel 只顯示模型構件資訊與當前場景摘要；完整 `concept-content.json` 仍參與 modelHash、modelVersion 與 scene ID 同步驗證，但不得以 `data-concept-content` 或等價容器把文章全文注入 3D 頁。完整敘事只能透過連結返回 `design-concept` view 閱讀。
 
 Viewer 必須由 `?view=3d-viewer` 的 view-level dynamic import 才載入 Three.js；離開頁面時停止 RAF、解除 listener／ResizeObserver、清除 canvas 並 dispose renderer／controls／selection／walkthrough runtime。反覆由導覽進入、離開再進入時，每個 document 只可有一個 canvas。
 
@@ -70,14 +72,15 @@ Viewer 上須有固定螢幕方位提示，以清楚的 `N ↘` 箭頭表示真�
 - capability profile 只可單向 high→medium→low；至少兩個持續超標觀測窗才降級 pixel ratio、shadow、水下效果與 camera motion，本 session 不反覆升級。平均與 p95 frame time 應保留為 diagnostic。
 - `InputAdapter`、`MovementStrategy`、`VisualAssetAdapter`、`AreaRegistry` 與 `EnvironmentEffect` 保持窄介面；不得對 SketchUp／GLB 或未採用的未來格式硬編碼。
 
-WebGL 不可用或 `?forceFallback=1` 時不建立 3D／漫遊 runtime；enhanced necessary asset 失敗時建立 baseline 3D runtime；walkthrough adapter 驗證失敗時只停用漫遊。三種情況都須保留可用的 Inspect 或靜態總覽、五場景內容與 V067 圖集連結。
+WebGL 不可用或 `?forceFallback=1` 時不建立 3D／漫遊 runtime；enhanced necessary asset 失敗時建立 baseline 3D runtime；walkthrough adapter 驗證失敗時只停用漫遊。三種情況都須保留可用的 Inspect 或靜態總覽、五場景短摘要、完整理念連結與 V067 圖集連結，不得以 fallback 為由重新顯示整篇理念文章。
 
 ## 驗收
 
 - `npm run build:content`：hash、token、scene ID、active revision 與有限幾何通過。
 - `npm test`：SITE-XY bounds、右手座標 adapter、307° 羅盤方位→Three 143°換算、SITE +X 世界西北、場景真北右下與 N 標記、ST-01／ST-02 active bounds、30 間淋浴、到達翼／受控景觀區、右下真北提示、current／stale hash、五場景、transform 分層、source isolation、camera lifecycle、input、collision、safe spawn、游泳、水下與效能 hysteresis 通過。
 - `npm run typecheck`、`npm run build`、`npm run test:e2e` 通過。
+- 0.9.1 source／E2E 另須確認 Viewer template 不含 document-level element 或 script、3D DOM 不含 `data-concept-content`，WebGL 與 fallback 都能切換五個短摘要。
 - 桌機、手機與 fallback 截圖確認池體、四廁、樓梯、L3／鏡牆、屋頂、控制區與限制文字可讀；桌機／手機另截「泳池剖視」，並驗證離開剖視後模型恢復。
 - 選取 `WT-01` 與 `F-L2-Y0-01` 後畫布不得出現黃色外接框；另以 Y0／Y14 兩側截圖直接確認 L2 全寬玻璃的淡藍透明面、高光、上下框與豎梃可辨識。
 - desktop／390 × 844 E2E 必須覆蓋七區跳轉（含一樓衛浴）、入口移動、兩梯到達區、L3／屋頂、池畔入水、水面、水下、返回池畔與退出；退出後 Inspect snapshot 完整恢復，且 mobile 無水平溢出。
-- 0.9.0 E2E 預設須實際載入 enhanced runtime，另驗證 desktop high、390 × 844 low／adaptive、反覆進出、explicit baseline、necessary enhanced failure→baseline、optional asset degradation 與 WebGL static fallback；全部路徑不得新增 page error。
+- 0.9.1 E2E 預設須實際載入 enhanced runtime，另驗證 desktop high、390 × 844 low／adaptive、反覆進出、explicit baseline、necessary enhanced failure→baseline、optional asset degradation 與 WebGL static fallback；全部路徑不得新增 page error。

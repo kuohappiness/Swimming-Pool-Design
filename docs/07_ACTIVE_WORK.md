@@ -319,7 +319,23 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-075`～`TASK-082` 已完成並收斂為 [Release 0.9.0](releases/0.9.0.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 19. 未排程設計問題
+## 19. 0.9.1 敘事與閱讀體驗精修
+
+0.9.1 將作品閱讀旅程補成「手稿起點→設計方向→專業驗證→圖面→空間體驗」，並修正 0.9.0 把完整設計理念重複帶入 3D 頁的架構問題。本版延續克制的建築刊物語彙，不改 active geometry、日照、V067 圖面或 3D／漫遊行為。
+
+設計與執行依據為 [已完成設計](archive/specs/2026-07-25-v0.9.1-narrative-reading-refinement-design.md)及[已完成實作計畫](archive/specs/2026-07-25-v0.9.1-narrative-reading-refinement-implementation-plan.md)。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-083 | 建立 0.9.1 設計、決策、不可變邊界與手稿素材收件區 | done | 0.9.1 | [DEC-131～DEC-134](04_DECISIONS_AND_OPEN_ITEMS.md)、[已完成設計](archive/specs/2026-07-25-v0.9.1-narrative-reading-refinement-design.md) | TASK-082 | active spec／plan、決策與 `source-materials/concepts/hand-sketches/README.md` 完成；明列手稿 source intake、原始位元組保留、active GEO-0.8.2／solar／V067／Viewer 行為不可變，docs check 通過 |
+| TASK-084 | 在設計理念加入手稿起點與從一筆線到完整成果的故事收束 | done | 0.9.1 | [DEC-131／DEC-132／DEC-134](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md) | TASK-083 | 公開 Markdown 正本加入 ORIGIN 文案；頁面首屏後有 `00 / ORIGIN` 一主兩輔待收錄架構，四章後有 FROM LINE TO SPACE 收束與日照／圖面／3D 入口；桌機非對稱、手機單欄，沒有假圖、輪播、視差或自動 motion |
+| TASK-085 | 將 3D 頁重構為專注的 Viewer fragment，移除完整設計理念重複 | done | 0.9.1 | [DEC-133／DEC-134](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-083 | 3D 不再匯入舊完整 HTML 或渲染 `data-concept-content`；WebGL／fallback 五場景只顯示短摘要、三個觀察點及理念連結；Viewer 首屏更快進入畫布，既有場景、圖層、選取、剖視、漫遊及 trust boundary 全部通過回歸 |
+| TASK-086 | 收件、登錄、整理並上稿真實手繪設計照片 | done | 0.9.1 | [DEC-132／DEC-135](04_DECISIONS_AND_OPEN_ITEMS.md)、[來源登錄](02_SITE_AND_SOURCES.md)、[實作計畫](archive/specs/2026-07-25-v0.9.1-narrative-reading-refinement-implementation-plan.md) | TASK-084、使用者放入照片 | 12 個原始檔以 `SRC-CONCEPT-012`～`023` 穩定命名，MIME／bytes／dimensions／EXIF／SHA-256／日期／用途／權利完整登錄且位元組不變；HTML 僅使用場勘 2／5／6 與五張非樓梯手稿，共 8 張、16 個響應式衍生檔，完成現場→日照→平面→剖面→3D→反射敘事與 captions |
+| TASK-087 | 完成 0.9.1 跨裝置驗證、版本、release 與依指示發布 | done | 0.9.1 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[已完成實作計畫](archive/specs/2026-07-25-v0.9.1-narrative-reading-refinement-implementation-plan.md)、[Release 0.9.1](releases/0.9.1.md) | TASK-084～TASK-086 | package／lockfile／model／README／contracts 與 release 同步為 0.9.1；build、93 tests、typecheck、四 view × 五 viewport、desktop／mobile／fallback E2E、八圖載入與排除規則、Viewer／漫遊回歸及 v0.9.1 immutable baseline 全部通過；完成後建立單一 release commit 並 push `main` |
+
+`TASK-083`～`TASK-087` 已完成並收斂為 [Release 0.9.1](releases/0.9.1.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
+
+## 20. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

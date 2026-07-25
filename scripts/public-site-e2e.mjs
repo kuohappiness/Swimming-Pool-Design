@@ -194,6 +194,52 @@ try {
     ['向光', '向水', '向人', '向時間'],
   );
   assert.match(await concept.locator('.concept-overview').innerText(), /不是替舊游泳池換上一張新的臉/);
+  assert.equal(await concept.locator('.concept-origin-figure').count(), 8);
+  assert.deepEqual(
+    await concept.locator('.concept-origin-figure').evaluateAll((figures) =>
+      figures.map((figure) => figure.getAttribute('data-source-id')),
+    ),
+    [
+      'SRC-CONCEPT-013',
+      'SRC-CONCEPT-016',
+      'SRC-CONCEPT-017',
+      'SRC-CONCEPT-022',
+      'SRC-CONCEPT-018',
+      'SRC-CONCEPT-019',
+      'SRC-CONCEPT-020',
+      'SRC-CONCEPT-021',
+    ],
+  );
+  await concept.locator('.concept-origin-figure').last().scrollIntoViewIfNeeded();
+  await concept.waitForFunction(() =>
+    [...document.querySelectorAll('.concept-origin-figure img')]
+      .every((image) => image.complete && image.naturalWidth > 0),
+  );
+  assert.equal(
+    await concept.locator('.concept-origin-figure img').evaluateAll((images) =>
+      images.every((image) => image.complete && image.naturalWidth > 0),
+    ),
+    true,
+  );
+  await concept.locator('.concept-origin-stage').nth(0).screenshot({
+    path: resolve(outputDirectory, 'public-origin-survey-desktop.png'),
+  });
+  await concept.locator('.concept-origin-stage').nth(1).screenshot({
+    path: resolve(outputDirectory, 'public-origin-sketches-desktop.png'),
+  });
+  await concept.setViewportSize({ width: 390, height: 844 });
+  await concept.locator('.concept-origin-stage').nth(0).screenshot({
+    path: resolve(outputDirectory, 'public-origin-survey-mobile.png'),
+  });
+  await concept.locator('.concept-origin-stage').nth(1).screenshot({
+    path: resolve(outputDirectory, 'public-origin-sketches-mobile.png'),
+  });
+  assert.equal(
+    await concept.locator(
+      '[data-source-id="SRC-CONCEPT-012"], [data-source-id="SRC-CONCEPT-014"], [data-source-id="SRC-CONCEPT-015"], [data-source-id="SRC-CONCEPT-023"]',
+    ).count(),
+    0,
+  );
   await concept.keyboard.press('Tab');
   assert.equal(await concept.locator('.site-skip-link').evaluate((link) => link === document.activeElement), true);
   await concept.close();

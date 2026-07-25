@@ -13,6 +13,22 @@ const loaders: Record<ViewId, () => Promise<ViewModule>> = {
   '3d-viewer': () => import('../views/3d-viewer'),
 };
 
+function restoreHashTarget(): void {
+  if (!window.location.hash) return;
+  const targetId = decodeURIComponent(window.location.hash.slice(1));
+  window.requestAnimationFrame(() => {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    const headerHeight = document.querySelector<HTMLElement>('.site-masthead')?.offsetHeight ?? 0;
+    const top = window.scrollY + target.getBoundingClientRect().top - headerHeight - 16;
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    window.scrollTo(0, Math.max(0, top));
+    root.style.scrollBehavior = previousScrollBehavior;
+  });
+}
+
 async function bootstrap(): Promise<void> {
   const host = document.querySelector<HTMLElement>('#app');
   if (!host) throw new TypeError('Application root is missing.');
@@ -38,6 +54,7 @@ async function bootstrap(): Promise<void> {
     mountedView = await viewModule.mount(shell.viewContainer);
     shell.viewContainer.dataset.viewMounted = viewId;
     shell.viewContainer.removeAttribute('aria-busy');
+    restoreHashTarget();
   } catch (error) {
     console.error(error);
     shell.viewContainer.innerHTML = `

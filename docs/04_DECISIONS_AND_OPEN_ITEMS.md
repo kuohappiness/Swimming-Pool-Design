@@ -136,6 +136,11 @@
 | DEC-128 | 0.9.0 視覺採「優雅、舒服、克制的建築刊物與數位展覽」，以圖紙白、炭墨黑、泳池藍綠、混凝土灰及少量陶土色建立統一識別 | 以襯線展覽標題、無襯線正文／控制及等寬技術數值形成三種字型角色；取消大面積漸層、發光、密集膠囊及普遍卡片陰影，以細線、留白、比例與排版建立層次。3D 可採較深沉浸背景，但仍共用導覽與 token | confirmed 0.9.0 visual direction |
 | DEC-129 | 0.9.0 將手機流暢度列為所有 view 的共同驗收，而非發布前補修 | 最低 320 px、主要 390 × 844、另驗證 768 px；共用 header 採兩列式識別＋可水平滑動文字導覽，主要觸控目標至少 44 CSS px。文章單欄、日照保留 sticky 預覽、圖面不裁圖框、3D／漫遊控制不得被導覽遮擋，整頁不得水平溢出 | confirmed mobile-first presentation boundary |
 | DEC-130 | 0.9.0 日照研究維持完整專業密度，但在研究工具前加入「向光」設計理念、研究問題與策略引導 | +25.5°、+23.0°、152.5°、+1,036.829 kWh、控制範圍、inputHash、X33 限制及專業驗證警語全部保留；資訊可重新排序或收合，但不得以美化弱化工作值、方法或限制 | confirmed solar presentation strategy |
+| DEC-131 | 0.9.1 把「優雅、清楚、流暢且專注」定為閱讀精修的首要判準 | 延續 0.9.0 建築刊物語彙，以比例、留白、細線與字級建立層次；不新增輪播、自動播放、視差、裝飾動畫、生成式背景或大量等權卡片。任何互動只有在協助閱讀、觀看模型或到達資訊時才成立 | confirmed 0.9.1 reading-experience direction |
+| DEC-132 | 手繪設計稿作為設計理念頁內的 `00 / ORIGIN`，不新增第五個主導覽 | 敘事固定為作品首屏→手稿起點→四個設計方向→日照／圖面／3D 成果。桌面預留一主兩輔的非對稱圖集、手機單欄；收到原圖前只顯示待收錄狀態，不以假圖替代。原始照片放在 `source-materials/concepts/hand-sketches/`，完成 source intake 後才上稿 | confirmed 0.9.1 narrative architecture |
+| DEC-133 | 3D 展示只保留空間觀看與操作所需資訊，不再注入完整設計理念文章 | Viewer 畫布為主角；每個場景只顯示短摘要、三個觀看重點及返回理念頁的連結。WebGL fallback 採相同資訊密度。3D view 改用 App Shell 內的 fragment，不再匯入含 document／body／script 的舊完整頁面再拆解 | confirmed 0.9.1 focused-viewer boundary |
+| DEC-134 | 0.9.1 是敘事、DOM 與響應式展示精修，不是建築或分析改版 | active `GEO-0.8.2`、solar inputHash、V067 current 圖面、3D 幾何／相機／圖層／選取／碰撞／移動／游泳／safe spawn／畫質行為與四項 query route 保持不變；公開理念文案、場景展示摘要、view fragment、CSS 與測試可依本輪設計調整 | confirmed immutable-content boundary |
+| DEC-135 | 0.9.1 ORIGIN 只公開場勘 2／5／6 與樓梯概念圖以外的五張手稿 | HTML 使用 `SRC-CONCEPT-013`／`016`／`017` 與 `SRC-CONCEPT-018`～`022`；`SRC-CONCEPT-012`／`014`／`015`／`023` 保留在來源庫但不被頁面引用。敘事順序為現場觀察→日照判讀→俯視配置→剖面推演→早期 3D→反射深化；來源檔不修改，網站另用校正方向與壓縮後的衍生檔 | confirmed 0.9.1 image selection and sequence |
 
 ## 2. 尚待精化
 

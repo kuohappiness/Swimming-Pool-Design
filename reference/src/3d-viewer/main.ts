@@ -50,7 +50,7 @@ const controlsPanel = required<HTMLElement>('.controls-panel');
 const informationPanel = required<HTMLElement>('.information-panel');
 const sceneNav = required<HTMLElement>('[data-scene-nav]');
 const layerList = required<HTMLElement>('[data-layer-list]');
-const contentPanel = required<HTMLElement>('[data-concept-content]');
+const sceneContextPanel = required<HTMLElement>('[data-scene-context]');
 const selectionPanel = required<HTMLElement>('[data-selection-info]');
 const objectSelect = required<HTMLSelectElement>('[data-object-select]');
 const versionLabel = required<HTMLElement>('[data-model-version]');
@@ -94,6 +94,21 @@ function supportsWebGL() {
   }
 }
 
+function renderSceneContext(sceneId: string) {
+  const config = getViewerScene(sceneId);
+  sceneContextPanel.innerHTML = `
+    <p class="section-kicker">CURRENT VIEW · ${config.label}</p>
+    <h2>${config.context.title}</h2>
+    <p>${config.context.summary}</p>
+    <h3>觀看重點</h3>
+    <ol>
+      ${config.context.observations.map((observation) => `<li>${observation}</li>`).join('')}
+    </ol>
+    <a href="?view=design-concept#${config.context.conceptAnchor}">閱讀完整設計理念 <span aria-hidden="true">↗</span></a>
+  `;
+  sceneContextPanel.scrollTop = 0;
+}
+
 async function bootstrap() {
 const bootstrapStartedAt = performance.now();
 try {
@@ -112,9 +127,10 @@ try {
   if (!supportsWebGL()) {
     walkthroughEntry.hidden = true;
     const renderFallbackContent = (sceneId: string) => {
-      const sceneContent = content.scenes.find((scene) => scene.id === sceneId);
-      if (!sceneContent) return;
-      contentPanel.innerHTML = sceneContent.html;
+      if (!content.scenes.some((scene) => scene.id === sceneId)) {
+        throw new TypeError(`理念內容缺少場景 ${sceneId}`);
+      }
+      renderSceneContext(sceneId);
       sceneNav.querySelectorAll<HTMLButtonElement>('button').forEach((button) => {
         const active = button.dataset.sceneId === sceneId;
         button.dataset.active = String(active);
@@ -122,15 +138,15 @@ try {
       });
       shell.dataset.scene = sceneId;
     };
-    for (const sceneContent of content.scenes) {
+    for (const sceneConfig of viewerScenes) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = sceneContent.label;
-      button.dataset.sceneId = sceneContent.id;
-      button.addEventListener('click', () => renderFallbackContent(sceneContent.id));
+      button.textContent = sceneConfig.label;
+      button.dataset.sceneId = sceneConfig.id;
+      button.addEventListener('click', () => renderFallbackContent(sceneConfig.id));
       sceneNav.append(button);
     }
-    layerList.innerHTML = '<p class="fallback-layer-note">靜態模式不提供模型圖層；狀態與限制仍保留於右側理念內容。</p>';
+    layerList.innerHTML = '<p class="fallback-layer-note">靜態模式不提供模型圖層；右側仍可依場景閱讀觀看重點。</p>';
     objectSelect.replaceChildren(new Option('WebGL 靜態模式', ''));
     objectSelect.disabled = true;
     renderFallbackContent('overview');
@@ -404,10 +420,8 @@ try {
         button.dataset.active = String(active);
         button.setAttribute('aria-pressed', String(active));
       }
-      const sceneContent = contentByScene.get(sceneId);
-      if (!sceneContent) throw new TypeError(`理念內容缺少場景 ${sceneId}`);
-      contentPanel.innerHTML = sceneContent.html;
-      contentPanel.scrollTop = 0;
+      if (!contentByScene.has(sceneId)) throw new TypeError(`理念內容缺少場景 ${sceneId}`);
+      renderSceneContext(sceneId);
       shell.dataset.scene = sceneId;
       history.replaceState(null, '', `#${sceneId}`);
     };
