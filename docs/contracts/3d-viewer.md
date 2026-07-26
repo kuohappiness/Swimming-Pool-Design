@@ -1,7 +1,7 @@
 # 3D Viewer 契約
 
 - 類型：output-contract
-- 狀態：active／v0.9.3
+- 狀態：active／v0.9.4
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 入口：`/?view=3d-viewer`
 
@@ -12,7 +12,7 @@ Viewer 只接受：
 - `reference/generated/viewer-model.json`：由 active `GEO-0.8.2` 產生。
 - `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.9.3` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，0.9.1 精簡 Viewer 周邊資訊，0.9.2 再調整公開文字與操作介面，0.9.3 只修正其他分頁的手機展示；各版都不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.9.4` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，0.9.1 精簡 Viewer 周邊資訊，0.9.2 再調整公開文字與操作介面，0.9.3 只修正其他分頁的手機展示，0.9.4 統一公開理念與 Viewer 的「服務中心」用詞；各版都不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 
@@ -31,7 +31,7 @@ Viewer 只接受：
 - L3 顯示固定正交三角擴板、約 2.964 m² 有頂到達翼及淨約 3.971 m² 受控景觀區；景觀區以鎖門／告示限制教師與維修人員使用，不開放學生、訪客、公眾聚集或作主要逃生。
 - L3 須有隨主量體旋轉 +25.5° 的完整不透明屋頂，連續覆蓋至鏡牆上緣，鏡面牆兩端與相鄰直立牆間的三角缺口須封滿。屋頂在四周保留 0.25 m 概念退縮後以約 169.364 m²／92.74% 高密度太陽能板排布，資訊面板明示模組、容量與發電量 deferred；一般 L3 室內不得顯示電池，儲能策略須說明地面層獨立戶外機櫃優先。
 - `ST-01` 為 X20.5～X29／Y0.5～Y2.0（Y0 側）、1.50 m 淨寬、20 級高／18 踏面、2.70＋3.10＋2.70 m，從 +0.30 m 直接接 L2；Viewer 只讀 active canonical bounds，不保留 `originY` fallback，且必須用薄踏步、封閉踢面、兩道連續鋼箱梯梁與開放梯下表達懸空設計，不得以逐階落地實心箱體代替。
-- L1～L3 不透明服務量體使用自然灰清水模材質；玻璃屋頂與 L3 鏡牆維持獨立材質。
+- L1～L3 不透明服務中心使用自然灰清水模材質；玻璃屋頂與 L3 鏡牆維持獨立材質。
 - 固定屋頂為 29 m／5°／+4.00→+6.537 m。
 - 結構支承整合於 X32.5／X35.5 隔間／設備／立面帶，不使用孤立突兀核心柱；玻璃不承重。
 - 高位設備只在固定支承帶，不隨旋轉 L3 懸挑。

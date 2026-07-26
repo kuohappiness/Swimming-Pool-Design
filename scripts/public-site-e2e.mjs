@@ -262,7 +262,8 @@ try {
       const paragraphStyle = getComputedStyle(paragraph);
       const quoteStyle = getComputedStyle(quote);
       return quoteStyle.fontFamily === paragraphStyle.fontFamily
-        && Math.abs(Number.parseFloat(quoteStyle.fontSize) / Number.parseFloat(paragraphStyle.fontSize) - 1.1) < 0.001;
+        && Math.abs(Number.parseFloat(quoteStyle.fontSize) - Number.parseFloat(paragraphStyle.fontSize)) <= 0.2
+        && quoteStyle.borderLeftWidth === '2px';
     }),
     true,
   );

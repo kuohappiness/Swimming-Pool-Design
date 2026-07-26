@@ -425,7 +425,7 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     throw new TypeError('四間廁所必須各有 1.00 m 無門板主入口。');
   }
   if (model.geometry.l1.serviceWingStyle.materialIntent !== 'fair-faced-exposed-concrete') {
-    throw new TypeError('服務量體必須使用清水模材質意圖。');
+    throw new TypeError('服務中心必須使用清水模材質意圖。');
   }
   const l1Facade = model.geometry.l1.y0ExteriorFacade;
   const entranceBounds = model.geometry.l1.mainEntranceBounds;

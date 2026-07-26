@@ -59,8 +59,8 @@
 | TASK-024 | 補回 Viewer 缺漏的 L1 池畔地坪與 `POOL-01` 池體 | done | 0.5.0 | [DEC-045／DEC-060](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計基準](03_DESIGN_BASIS.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、DEC-044 | Viewer 已用四塊池畔板圍出真實池口，完成面為 +0.30 m，水池可辨識水面、三水道、池緣、池壁與左 1.2 m 淺端至右 1.5 m 深端的斜底；屋頂低端淨高 3.70 m。工作坡道、門檻、防水、溢流與排水仍由 `OPEN-016`／`OPEN-017` 深化 |
 | TASK-025 | 依 L3 新高度重跑日照角度、支點敏感度並同步模型、文件與 solar-study HTML | done | 0.5.0 study | [DEC-054～DEC-057](04_DECISIONS_AND_OPEN_ITEMS.md)、[日照分析](analysis/solar-analysis.md)、[solar contract](contracts/solar-study.md) | TASK-013、DEC-048～DEC-054 | `geometry.solarReflection.v050Study` 保存 12 × 13.5 m、L3 +6.88 m、29 m／5°屋頂、0.343 m 轉接帶與 X=33～41 m 支點；8,760 小時 PVGIS TMY 粗掃 3,111 組並局部細化，工作值為 +26.5°／+3.1°，X=37 m 暖季池面 0、冷季 +910.020 kWh，五支點均暖季 0；模型、analysis registry、owner 文件、HTML、28 項日照測試、typecheck、直接 Vite build 及桌機／手機 browser smoke 通過。完整 `npm run build` 仍被既有 SRC-CONCEPT-001～004 SHA 不一致阻擋 |
 | TASK-026 | 將 L3 工作支點轉為 X=35 m，記錄結構／日照折衷並製作三層 V2.1 檢討圖 | done | 0.5.0 review | [DEC-058](04_DECISIONS_AND_OPEN_ITEMS.md)、[日照分析](analysis/solar-analysis.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md) | TASK-025、OPEN-011、OPEN-016 | X=35 m 對應 L3 幾何中心，重疊 138.099 m²／85.25%、幾何偏心 0 m；同角度下暖季池面 0、冷季 +1,022.903 kWh。模型、HTML、契約、分析與測試同步；新增 1F～3F 平面及縱剖面 V2.1 SVG／PNG 檢討圖，明示旋轉 L3 與固定屋頂的平面錯位、外挑、核心及池畔地坪抬高待確認，3D Viewer 暫不修改 |
-| TASK-027 | 修正平面方位並確認池畔 +0.30 m，發布 V2.2 檢討圖 | done | 0.5.0 review | [DEC-059／DEC-060](04_DECISIONS_AND_OPEN_ITEMS.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md) | TASK-026、OPEN-016、OPEN-017 | V2.2 曾正確標示圖面向右＝服務量體端＝西北 307°並確認池畔 +0.30 m，但把北箭頭誤畫成右上；此錯誤已由 `DEC-061`／`TASK-028` 的 V2.3 取代，V2.2 只保留歷史檢討用途 |
-| TASK-028 | 發布 V2.3 圖面，完成 0.5.0 Viewer、圖集、日照 HTML 與最新來源置換 | done | 0.5.0 | [DEC-061](04_DECISIONS_AND_OPEN_ITEMS.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-019、TASK-021～TASK-027 | V2.3 北箭頭改指右下而不旋轉建築；Viewer 完成 41 × 14 m L1、三層服務量體、L3 旋轉鏡牆、固定 5°屋頂、+0.30 m 池畔、池體、樓梯、雨水路徑與未決轉接帶；空間圖集直接載入最新衛星圖及 V2.3 平／剖面，日照 HTML 與 Viewer 同步 0.5.0；模型、文件、測試、桌機／手機瀏覽驗證與 production build 全數通過 |
+| TASK-027 | 修正平面方位並確認池畔 +0.30 m，發布 V2.2 檢討圖 | done | 0.5.0 review | [DEC-059／DEC-060](04_DECISIONS_AND_OPEN_ITEMS.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md) | TASK-026、OPEN-016、OPEN-017 | V2.2 曾正確標示圖面向右＝服務中心端＝西北 307°並確認池畔 +0.30 m，但把北箭頭誤畫成右上；此錯誤已由 `DEC-061`／`TASK-028` 的 V2.3 取代，V2.2 只保留歷史檢討用途 |
+| TASK-028 | 發布 V2.3 圖面，完成 0.5.0 Viewer、圖集、日照 HTML 與最新來源置換 | done | 0.5.0 | [DEC-061](04_DECISIONS_AND_OPEN_ITEMS.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-019、TASK-021～TASK-027 | V2.3 北箭頭改指右下而不旋轉建築；Viewer 完成 41 × 14 m L1、三層服務中心、L3 旋轉鏡牆、固定 5°屋頂、+0.30 m 池畔、池體、樓梯、雨水路徑與未決轉接帶；空間圖集直接載入最新衛星圖及 V2.3 平／剖面，日照 HTML 與 Viewer 同步 0.5.0；模型、文件、測試、桌機／手機瀏覽驗證與 production build 全數通過 |
 | TASK-019 | 完成 Viewer 材質、環境、理念細節、固定鏡位及高解析擷取 | done | 0.5.0 | [3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-021～TASK-024 | 向光、向雨、向人、向時間及總覽五場景可重現；圖層、構件選取、四固定鏡位、工作材質、雨簾／光感、WebGL fallback、版本 hash 與桌機／手機高解析擷取均通過；效果不冒充施工性能 |
 | TASK-020 | 建立理念介紹 HTML，輸出 PDF／DOCX 並淘汰舊版文件 | queued | 0.5.0 | [公開理念文字](public/swimming-pool-renovation-design-concept.md)、[completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md) | TASK-019 | 理念 HTML 直接讀取 Markdown 內容與 Viewer畫面；PDF及DOCX分別由共同來源產生並通過視覺驗收；替代檔案確認可開啟後才刪除舊版 DOCX |
 
@@ -173,7 +173,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-036 | 修正 3D Viewer 將 ST-01 視覺鏡射到 Y14 側的回歸，封死相同資料來源問題 | done | 0.6.1 | [DEC-078](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-034 | Viewer 仍由頂層 `activeGeometryRevisionId` 解析 `ST-01=X20.5～X29／Y0.5～Y2.0`；Three adapter 改為右手座標 X／−Z／Y；stair payload 不再輸出 `originY` 等重複座標。unit、schema、scene source 與 browser smoke 分別鎖定 active bounds、adapter ID、site root `scale.z=-1` 及 Y0 side，任何回退到 +Z、legacy originY 或 Y14 側都會失敗。 |
-| TASK-037 | 實作四間廁所入口方向、洗手台／隔間格局、無門板開口與服務區清水模風格 | done | 0.6.1 | [DEC-079／DEC-080](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-008 | TASK-036 | canonical data、平面圖與 Viewer 統一：男廁入口在低 Y 且洗手台貼 Y0，女廁入口為 Y6～7 且洗手台貼 Y7.5；四個主入口 1.00 m 無門板、內部 WC 隔間有門板、入口有錯位隱私屏風；L1～L3 不透明服務量體採自然灰清水模，玻璃屋頂與鏡牆維持原材質。隔間淨空、無障礙與材料施工細節保留專業驗證。 |
+| TASK-037 | 實作四間廁所入口方向、洗手台／隔間格局、無門板開口與服務區清水模風格 | done | 0.6.1 | [DEC-079／DEC-080](04_DECISIONS_AND_OPEN_ITEMS.md)、OPEN-008 | TASK-036 | canonical data、平面圖與 Viewer 統一：男廁入口在低 Y 且洗手台貼 Y0，女廁入口為 Y6～7 且洗手台貼 Y7.5；四個主入口 1.00 m 無門板、內部 WC 隔間有門板、入口有錯位隱私屏風；L1～L3 不透明服務中心採自然灰清水模，玻璃屋頂與鏡牆維持原材質。隔間淨空、無障礙與材料施工細節保留專業驗證。 |
 | TASK-038 | 完成 0.6.1 北箭頭、Viewer 細節、向量圖／HTML 同步與發布 | done | 0.6.1 | [DEC-081／DEC-082](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-036、TASK-037 | 四張 current SVG／PNG 的真北均指右下並標示 v0.6.1／GEO-0.6.1；Viewer 可辨識泳池玻璃入口、四個廁所無門板洞口、洗手台、WC 隔間門、池體與懸空雙梯梁 ST-01；圖集與 Viewer HTML 只連到 V061 current sheets；模型、文件、測試、build、browser／視覺 smoke 全數通過後建立 `release: v0.6.1` commit 並 push main。 |
 
 0.6.1 樓梯回歸根因（2026-07-22）：0.6.0 完成了「資料選 active」但沒有完成「渲染座標保持同一手性」。`SITE X→Three X／SITE Y→Three +Z／SITE Z→Three Y` 交換 Y、Z 後的行列式為負，俯視時必然鏡射 Y 軸；測試當時只確認 JSON 中 ST-01 的 X 值與部分尺寸，沒有驗證 Three scene 的 Y 方向。加上 Viewer payload 仍複製 `originY`，因此文件聲稱單一 bounds，consumer 卻仍保有第二套語意。本輪將資料選取、adapter 手性、scene root 與實際 Y0 關係拆成四層回歸門檻，後續不得只用「JSON 值正確」替代渲染驗證。
@@ -359,7 +359,18 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-092`～`TASK-093` 已完成並收斂為 [Release 0.9.3](releases/0.9.3.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 22. 未排程設計問題
+## 22. 0.9.4 理念文案與用詞精修
+
+0.9.4 依前一輪核准內容，精簡四個理念章節與設計細節，統一「服務中心」稱呼並改善引言閱讀樣式。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-094 | 精修公開理念敘事、服務中心用詞與引言樣式 | done | 0.9.4 | [DEC-140](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-093 | 四章與設計細節採核准文字；來源登錄、場景摘要、替代文字及日照示意統一稱服務中心；三段引言採一致易讀樣式，沒有改動建築幾何或研究輸入 |
+| TASK-095 | 同步 0.9.4 版本、文件、完整驗證並發布 | done | 0.9.4 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[Release 0.9.4](releases/0.9.4.md) | TASK-094 | package／lockfile／model／generated data／README／contracts／release 同步；完整 build、tests、typecheck、公開頁與 Viewer E2E、immutable baseline 及 diff 檢查通過後建立單一 release commit 並 push `main` |
+
+`TASK-094`～`TASK-095` 已完成並收斂為 [Release 0.9.4](releases/0.9.4.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
+
+## 23. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

@@ -128,7 +128,7 @@ const sketchImages: OriginImage[] = [
     height: 1352,
     label: 'SKETCH 04',
     caption: '與哥哥一起把平面的線轉成立體，第一次看見量體、泳池與入口的整體關係。',
-    alt: '早期手繪三維示意，呈現泳池、入口、服務量體與傾斜屋頂',
+    alt: '早期手繪三維示意，呈現泳池、入口、服務中心與傾斜屋頂',
   },
   {
     sourceId: 'SRC-CONCEPT-021',

@@ -516,7 +516,7 @@ export function createViewerScene(
   layer('water').add(createPoolHallDetails(model, materials));
   tag(poolGroup, {
     entityId: 'POOL-01', label: '25 m 教學／游泳混合泳池', status: 'confirmed',
-    description: `${pool.length.value} × ${pool.width.value} m；兩條 2.5 m 標準水道加 3.0 m 正常游泳／教學混合區，左側低 X 端水深 ${pool.shallowDepth.value} m，向右側服務量體端降至 ${pool.deepDepth.value} m。`,
+    description: `${pool.length.value} × ${pool.width.value} m；兩條 2.5 m 標準水道加 3.0 m 正常游泳／教學混合區，左側低 X 端水深 ${pool.shallowDepth.value} m，向右側服務中心端降至 ${pool.deepDepth.value} m。`,
   }, selectables);
 
   const roof = model.geometry.roof;

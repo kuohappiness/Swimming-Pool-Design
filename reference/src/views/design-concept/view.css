@@ -433,6 +433,20 @@
   line-height: 1.7;
 }
 
+#concept-rain .concept-chapter-copy blockquote,
+#concept-people .concept-chapter-copy blockquote,
+#concept-time .concept-chapter-copy blockquote {
+  max-width: 28em;
+  margin: 1.4rem 0 2rem;
+  padding: 0 0 0 1.25rem;
+  color: var(--site-muted);
+  border-block: 0;
+  border-left: 2px solid var(--site-terracotta);
+  font-family: var(--site-sans);
+  font-size: .98rem;
+  line-height: 1.9;
+}
+
 .concept-motif {
   position: sticky;
   top: calc(var(--site-header-height) + 2rem);

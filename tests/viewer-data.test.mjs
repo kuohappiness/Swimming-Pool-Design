@@ -177,7 +177,7 @@ test('public content compiler resolves current active geometry tokens for all fi
   assert.match(content.scenes.find(({ id }) => id === 'light').html, /25\.5°/);
   assert.match(content.scenes.find(({ id }) => id === 'light').html, /23°/);
   assert.match(content.scenes.find(({ id }) => id === 'rain').html, /5°/);
-  assert.match(content.scenes.find(({ id }) => id === 'people').html, /\+0\.300 m/);
+  assert.match(content.scenes.find(({ id }) => id === 'people').html, /服務中心1F\/3F/);
   const overview = content.scenes.find(({ id }) => id === 'overview');
   assert.match(overview.html, /向人，<br>再次打開/);
   assert.match(overview.html, /href="#concept-light"/);
