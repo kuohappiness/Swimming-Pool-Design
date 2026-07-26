@@ -27,7 +27,7 @@ const clone = () => structuredClone(sourceModel);
 
 test('Viewer package derives all major geometry from the active revision', () => {
   const viewer = buildViewerModel(clone(), registry);
-  assert.equal(viewer.schemaVersion, '1.4.0');
+  assert.equal(viewer.schemaVersion, '1.5.0');
   assert.equal(viewer.modelVersion, sourceModel.modelVersion);
   assert.equal(viewer.activeGeometryRevisionId, sourceModel.activeGeometryRevisionId);
   assert.equal(viewer.activeGeometryRevisionId, `GEO-${viewer.geometryRevision}`);
@@ -43,9 +43,16 @@ test('Viewer package derives all major geometry from the active revision', () =>
   assert.deepEqual(viewer.geometry.stair.bounds, { x1: 20.5, x2: 29, y1: 0.5, y2: 2 });
   assert.equal(viewer.referenceSystem.coordinateAdapter.siteY, 'negativeThreeZ');
   assert.equal(viewer.referenceSystem.coordinateAdapter.adapterId, 'SITE-XYZ-TO-THREE-RH');
-  assert.equal(viewer.referenceSystem.localLongAxisBearingFromTrueNorth, 307);
-  assert.equal(viewer.referenceSystem.worldTransform.rotationFromTrueNorth, 307);
-  assert.equal(viewer.referenceSystem.northArrowPlanDirection, 'lower-right');
+  assert.deepEqual(
+    viewer.referenceSystem.siteOrientation,
+    sourceModel.referenceSystem.siteOrientation,
+  );
+  assert.equal(
+    viewer.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+    307,
+  );
+  assert.equal('worldTransform' in viewer.referenceSystem, false);
+  assert.equal('northArrowPlanDirection' in viewer.referenceSystem, false);
   assert.equal('originY' in viewer.geometry.stair, false);
   assert.equal('startX' in viewer.geometry.stair, false);
   assert.equal(viewer.geometry.stair.midLandingLength, 3.1);
@@ -141,6 +148,20 @@ test('only a solar-input mutation marks registered analysis stale', () => {
   const solarViewer = buildViewerModel(solarChange, registry);
   assert.notEqual(solarViewer.analysis.solar.currentAnalysisInputHash, baseline.analysis.solar.currentAnalysisInputHash);
   assert.equal(solarViewer.analysis.solar.status, 'stale');
+
+  const methodChange = clone();
+  const methodActive = methodChange.geometryRevisions.find(({ id }) => id === methodChange.activeGeometryRevisionId);
+  methodActive.solar.analysisMethodRevision = 'SOLAR-METHOD-1.0.1';
+  const methodViewer = buildViewerModel(methodChange, registry);
+  assert.notEqual(methodViewer.analysis.solar.currentAnalysisInputHash, baseline.analysis.solar.currentAnalysisInputHash);
+  assert.equal(methodViewer.analysis.solar.status, 'stale');
+
+  const assumptionChange = clone();
+  const assumptionActive = assumptionChange.geometryRevisions.find(({ id }) => id === assumptionChange.activeGeometryRevisionId);
+  assumptionActive.solar.energyAssumptions.mirrorReflectance = 0.74;
+  const assumptionViewer = buildViewerModel(assumptionChange, registry);
+  assert.notEqual(assumptionViewer.analysis.solar.currentAnalysisInputHash, baseline.analysis.solar.currentAnalysisInputHash);
+  assert.equal(assumptionViewer.analysis.solar.status, 'stale');
 });
 
 test('Viewer follows the selected active ST-01 Y bounds without a legacy originY fallback', () => {
@@ -153,20 +174,28 @@ test('Viewer follows the selected active ST-01 Y bounds without a legacy originY
   assert.equal('originY' in viewer.geometry.stair, false);
 });
 
-test('Viewer rejects orientation fields that drift away from the single 307 degree bearing', () => {
-  const worldDrift = clone();
-  worldDrift.referenceSystem.worldTransform.rotationFromTrueNorth = 306;
+test('Viewer accepts only canonical site orientation and rejects parallel sources', () => {
+  const legacyReference = clone();
+  legacyReference.referenceSystem.localLongAxisBearingFromTrueNorth = 306;
   assert.throws(
-    () => buildViewerModel(worldDrift, registry),
-    /orientation fields must share one finite bearing/,
+    () => buildViewerModel(legacyReference, registry),
+    /localLongAxisBearingFromTrueNorth is forbidden/,
   );
 
-  const siteDrift = clone();
-  const active = siteDrift.geometryRevisions.find(({ id }) => id === siteDrift.activeGeometryRevisionId);
+  const legacySite = clone();
+  const active = legacySite.geometryRevisions.find(({ id }) => id === legacySite.activeGeometryRevisionId);
   active.site.rightwardBearingFromTrueNorth = 308;
   assert.throws(
-    () => buildViewerModel(siteDrift, registry),
-    /orientation fields must share one finite bearing/,
+    () => buildViewerModel(legacySite, registry),
+    /must not duplicate canonical orientation data/,
+  );
+
+  const changedCanonical = clone();
+  changedCanonical.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth = 308;
+  const viewer = buildViewerModel(changedCanonical, registry);
+  assert.equal(
+    viewer.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+    308,
   );
 });
 
@@ -213,18 +242,39 @@ test('generated Viewer and public content artifacts share the current model hash
   assert.equal(generatedModel.analysis.solar.status, 'current');
 });
 
-test('Viewer, solar study, and atlas navigation expose only v0.6.7 drawing anchors', () => {
+test('Viewer, solar study, and atlas navigation expose current owners and only v0.6.7 drawing anchors', () => {
   assert.match(viewerHtml, /#V067-L1/);
   assert.match(solarHtml, /#V067-L1/);
   assert.doesNotMatch(`${viewerHtml}\n${solarHtml}`, /#V23-|最新 V2\.3/);
-  assert.match(solarHtml, /V0\.6\.7 CURRENT SOLAR BASE/);
+  assert.match(solarHtml, /id="study-baseline-label"/);
+  assert.match(solarHtml, /id="study-method"/);
+  assert.match(solarHtml, /id="study-thresholds"/);
+  assert.match(solarHtml, /id="study-energy-assumptions"/);
+  assert.match(solarHtml, /id="study-analysis-status"/);
   assert.match(solarHtml, /完整 3F 屋頂與高覆蓋率太陽能排布尚未納入/);
-  assert.match(solarHtml, /solar inputHash 與 v0\.6\.6／v0\.6\.5／v0\.6\.4／v0\.6\.3 相同/);
-  assert.match(solarHtml, /不重新執行完整最佳化/);
-  assert.match(solarHtml, /\+25\.5°/);
-  assert.match(solarHtml, /\+23\.0°/);
+  assert.doesNotMatch(solarHtml, /solar inputHash 與 v0\.6\.6／v0\.6\.5／v0\.6\.4／v0\.6\.3 相同/);
+  assert.match(solarHtml, /不代表重新執行角度最佳化/);
+  assert.doesNotMatch(solarHtml, /id="(?:date|time|planRotation|lean)"[^>]*\svalue=/);
+  assert.match(solarHtml, /id="azimuthToleranceFan"/);
+  assert.match(solarHtml, /id="minimumDownwardLine"/);
+  assert.match(solarHtml, /id="plan-arrow-incoming"/);
+  assert.match(solarHtml, /id="plan-arrow-reflected"/);
+  assert.match(solarHtml, /id="planIncidentPoint"/);
+  assert.doesNotMatch(solarHtml, /角度示意中心/);
+  assert.match(solarHtml, /平面虛線只顯示向下 3D 反射光的水平投影，不代表光線穿透鏡牆/);
+  assert.match(solarHtml, /3D 反射光水平投影（虛線）/);
+  assert.match(solarHtml, /<h2>平面：L3 旋轉改變鏡牆法線方位<\/h2>/);
+  assert.doesNotMatch(solarHtml, /<h2>平面方位投影/);
+  assert.match(solarHtml, /未命中池面時仍維持完整對比、末端箭頭與文字標示/);
+  assert.match(solarHtml, /id="reflected"[^>]*aria-label="反射光"/);
+  assert.match(solarHtml, /id="desktopPlanPreviewViewport"/);
+  assert.match(solarHtml, /id="desktopSectionPreviewViewport"/);
+  assert.match(solarHtml, /桌面版平面與剖面即時預覽/);
+  assert.match(solarHtml, /鏡牆法線方位/);
+  assert.match(solarHtml, /方向診斷可選 07:00–18:00/);
   assert.match(viewerHtml, /data-orientation-cue/);
-  assert.match(viewerHtml, /data-north-direction="lower-right"/);
+  assert.match(viewerHtml, /data-orientation-arrow/);
+  assert.doesNotMatch(viewerHtml, /data-north-direction="lower-right"|↘/);
   assert.match(viewerHtml, /data-view="pool-cutaway">泳池剖視/);
   assert.match(viewerHtml, /X3 淺端 1\.20 m/);
   assert.doesNotMatch(viewerHtml, /data-scene-context/);
@@ -234,7 +284,7 @@ test('Viewer, solar study, and atlas navigation expose only v0.6.7 drawing ancho
 test('world, L3, and coplanar mirror transforms remain separated in the scene factory', () => {
   assert.equal((sceneFactorySource.match(/worldRoot\.rotation\.y\s*=/g) ?? []).length, 1);
   assert.match(sceneFactorySource, /deriveViewerOrientation/);
-  assert.doesNotMatch(sceneFactorySource, /degToRad\(-model\.referenceSystem\.localLongAxisBearingFromTrueNorth\)/);
+  assert.doesNotMatch(sceneFactorySource, /rotationFromTrueNorth|localLongAxisBearingFromTrueNorth/);
   assert.match(sceneFactorySource, /TRUE-NORTH-LABEL-N/);
   assert.equal((sceneFactorySource.match(/l3RotationGroup\.rotation\.y\s*=/g) ?? []).length, 1);
   assert.match(sceneFactorySource, /siteRoot\.scale\.set\(1, 1, -1\)/);

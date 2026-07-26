@@ -167,8 +167,8 @@ function buildOpenings(model: ReadonlyViewerModel): OpeningDescriptor[] {
 
 export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly<WalkthroughSource> {
   const model = input;
-  if (model.schemaVersion !== '1.4.0') {
-    throw new TypeError('Walkthrough only accepts Viewer schemaVersion 1.4.0.');
+  if (model.schemaVersion !== '1.5.0') {
+    throw new TypeError('Walkthrough only accepts Viewer schemaVersion 1.5.0.');
   }
   if (!model.modelVersion) throw new TypeError('Viewer modelVersion is required.');
   if (!model.revision) throw new TypeError('Viewer revision is required.');
@@ -436,8 +436,8 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
       siteY: 'negativeThreeZ',
       siteZ: 'threeY',
       worldBearingDegrees: finite(
-        model.referenceSystem.localLongAxisBearingFromTrueNorth,
-        'referenceSystem.localLongAxisBearingFromTrueNorth',
+        model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+        'referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth',
       ),
     },
     entities,

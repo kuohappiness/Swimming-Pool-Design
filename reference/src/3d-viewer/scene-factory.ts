@@ -222,9 +222,7 @@ export function createViewerScene(
   const buildingWidth = model.geometry.site.width;
   const centreX = buildingLength / 2;
   const centreZ = buildingWidth / 2;
-  const orientation = deriveViewerOrientation(
-    model.referenceSystem.worldTransform.rotationFromTrueNorth,
-  );
+  const orientation = deriveViewerOrientation(model.referenceSystem);
   const worldRoot = new THREE.Group();
   worldRoot.name = 'WORLD-BEARING-ROOT';
   worldRoot.rotation.y = orientation.threeWorldRotationRadians;
@@ -1332,7 +1330,7 @@ export function createViewerScene(
     1.2,
     0.7,
   );
-  localAxis.name = 'LOCAL-X-TO-NORTHWEST-307';
+  localAxis.name = `LOCAL-X-BEARING-${orientation.bearingFromTrueNorth}`;
   annotations.add(localAxis);
   const northDirection = new THREE.Vector3(
     orientation.northInSite.x,

@@ -34,6 +34,14 @@ export interface ActiveGeometryRevision {
     mirrorLeanFromVertical: NumericMeasure;
     azimuthTolerance: NumericMeasure;
     minimumDownwardAngle: NumericMeasure;
+    analysisMethodRevision: string;
+    energyAssumptions: {
+      mirrorReflectance: number;
+      glazingSolarTransmittance: number;
+      daylightStartHour: number;
+      daylightEndHour: number;
+    };
+    weatherSourceId: string;
   };
   [key: string]: unknown;
 }
@@ -55,12 +63,17 @@ export interface ProjectModel {
     unit: string;
     angleUnit: string;
     axes: Record<string, string>;
-    localLongAxisBearingFromTrueNorth: number;
+    siteOrientation: {
+      coordinateSystemId: 'SITE-XY';
+      positiveXAxisBearingFromTrueNorth: number;
+      positiveXAxisDirection: 'pool-remote-to-service-core';
+      status: 'confirmed';
+      sourceIds: string[];
+    };
     worldOriginEntityId: string;
     worldTransform: {
       localOrigin: number[];
       worldOrigin: number[];
-      rotationFromTrueNorth: number;
     };
     siteLocation: {
       latitude: NumericMeasure;

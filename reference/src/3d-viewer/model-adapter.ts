@@ -1,4 +1,4 @@
-import { deriveViewerOrientation, type NorthPlanDirection } from './orientation';
+import { deriveViewerOrientation } from './orientation';
 
 export type DesignStatus = 'confirmed' | 'working' | 'deferred';
 
@@ -43,7 +43,7 @@ export interface ViewerZone {
 }
 
 export interface ViewerModel {
-  schemaVersion: '1.4.0';
+  schemaVersion: '1.5.0';
   modelVersion: string;
   revision: string;
   activeGeometryRevisionId: string;
@@ -63,11 +63,13 @@ export interface ViewerModel {
   referenceSystem: {
     unit: 'm';
     angleUnit: 'degree';
-    localLongAxisBearingFromTrueNorth: number;
-    worldTransform: {
-      rotationFromTrueNorth: number;
+    siteOrientation: {
+      coordinateSystemId: 'SITE-XY';
+      positiveXAxisBearingFromTrueNorth: number;
+      positiveXAxisDirection: 'pool-remote-to-service-core';
+      status: 'confirmed';
+      sourceIds: string[];
     };
-    northArrowPlanDirection: NorthPlanDirection;
     axes: { x: string; y: string; z: string };
     coordinateAdapter: {
       siteX: 'threeX';
@@ -373,7 +375,7 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
 } {
   const model = modelInput as ViewerModel;
   const content = contentInput as ConceptContent;
-  if (model?.schemaVersion !== '1.4.0') throw new TypeError('Viewer model schema 不受支援。');
+  if (model?.schemaVersion !== '1.5.0') throw new TypeError('Viewer model schema 不受支援。');
   if (content?.schemaVersion !== '1.0.0') throw new TypeError('理念內容 schema 不受支援。');
   if (!/^[a-f0-9]{64}$/.test(model.modelHash) || content.modelHash !== model.modelHash) {
     throw new TypeError('Viewer 模型與理念內容版本不同步。');
@@ -391,19 +393,7 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     || adapter.siteZ !== 'threeY') {
     throw new TypeError('Viewer 必須使用右手座標 SITE-XYZ-TO-THREE-RH adapter。');
   }
-  const orientationBearing = finite(
-    model.referenceSystem.localLongAxisBearingFromTrueNorth,
-    'referenceSystem.localLongAxisBearingFromTrueNorth',
-  );
-  const worldBearing = finite(
-    model.referenceSystem.worldTransform?.rotationFromTrueNorth,
-    'referenceSystem.worldTransform.rotationFromTrueNorth',
-  );
-  const orientation = deriveViewerOrientation(orientationBearing);
-  if (worldBearing !== orientationBearing
-    || model.referenceSystem.northArrowPlanDirection !== orientation.northPlanDirection) {
-    throw new TypeError('Viewer 世界方位、建築長軸方位與真北圖面方向必須由同一 transform 推導。');
-  }
+  deriveViewerOrientation(model.referenceSystem);
   const stairBounds = model.geometry.stair.bounds;
   const canonicalStairBounds = model.entityBounds[model.geometry.stair.entityId]?.bounds;
   if (!canonicalStairBounds || !sameBounds(stairBounds, canonicalStairBounds)) {

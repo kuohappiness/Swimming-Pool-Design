@@ -251,7 +251,7 @@ body {
     margin-top: 1rem;
   }
 
-  .solar-study-view .mobile-live-preview {
+  .solar-study-view .live-preview {
     top: calc(var(--site-header-height) + 8px);
     border-color: var(--site-line);
     border-radius: var(--site-radius);

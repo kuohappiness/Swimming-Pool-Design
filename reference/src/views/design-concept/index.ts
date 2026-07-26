@@ -63,19 +63,9 @@ const surveyImages: OriginImage[] = [
     width: 1920,
     height: 1080,
     label: 'SITE NOTE 01',
-    caption: '從球場側回看舊有量體，先記住尺度、入口與校園日常的距離。',
+    caption: '從球場側回看，紀錄原始入口的寬度。',
     alt: '校園場勘二：球場旁的既有泳池建物、樹木與入口',
     primary: true,
-  },
-  {
-    sourceId: 'SRC-CONCEPT-016',
-    smallUrl: campus05Small,
-    largeUrl: campus05Large,
-    width: 1920,
-    height: 1080,
-    label: 'SITE NOTE 02',
-    caption: '樹冠、鋪面與既有建物共同界定了場地；更新不能只看建築本身。',
-    alt: '校園場勘五：既有建物、戶外樓梯、老樹與前方鋪面',
   },
   {
     sourceId: 'SRC-CONCEPT-017',
@@ -83,9 +73,19 @@ const surveyImages: OriginImage[] = [
     largeUrl: campus06Large,
     width: 1920,
     height: 1080,
-    label: 'SITE NOTE 03',
-    caption: '老樹與長向立面形成最強的現場記憶，也成為新舊關係的起點。',
+    label: 'SITE NOTE 02',
+    caption: '紀錄泳池本體的寬度',
     alt: '校園場勘六：老樹遮蔭下的既有泳池長向立面',
+  },
+  {
+    sourceId: 'SRC-CONCEPT-016',
+    smallUrl: campus05Small,
+    largeUrl: campus05Large,
+    width: 1920,
+    height: 1080,
+    label: 'SITE NOTE 03',
+    caption: '老樹是泳池的天然邊界，評估泳池新的入口夠不夠寬。',
+    alt: '校園場勘五：既有建物、戶外樓梯、老樹與前方鋪面',
   },
 ];
 const sketchImages: OriginImage[] = [
@@ -96,9 +96,19 @@ const sketchImages: OriginImage[] = [
     width: 1920,
     height: 1340,
     label: 'SKETCH 01',
-    caption: '先在紙上辨認東西南北與季節日照，讓量體的轉動有一個最初理由。',
+    caption: '先討論確認東西南北與季節日照。',
     alt: '粉紅色紙張上的手繪日照研究，包含方位、季節與光線方向註記',
     primary: true,
+  },
+  {
+    sourceId: 'SRC-CONCEPT-021',
+    smallUrl: solarReflectionSmall,
+    largeUrl: solarReflectionLarge,
+    width: 1920,
+    height: 1351,
+    label: 'SKETCH 02',
+    caption: '練習光線反射，確認冬季導光與夏季遮陽能否同時成立。',
+    alt: '手繪日照反射剖面，標示冬季與夏季陽光、鏡面與水面',
   },
   {
     sourceId: 'SRC-CONCEPT-018',
@@ -106,8 +116,8 @@ const sketchImages: OriginImage[] = [
     largeUrl: overheadPlanLarge,
     width: 1920,
     height: 1055,
-    label: 'SKETCH 02',
-    caption: '俯視圖把泳池、服務空間、戶外區與樓梯放進同一個關係裡。',
+    label: 'SKETCH 03',
+    caption: '最初設計的1F俯視圖。',
     alt: '手繪俯視圖，標示泳池、服務空間、戶外區與樓梯',
   },
   {
@@ -116,8 +126,8 @@ const sketchImages: OriginImage[] = [
     largeUrl: sectionLarge,
     width: 1920,
     height: 1373,
-    label: 'SKETCH 03',
-    caption: '剖面開始追問：玻璃屋頂、鏡牆、雨水與人在不同高度如何相遇。',
+    label: 'SKETCH 04',
+    caption: '最初設計的剖面圖，我們可以在不同的高度相遇囉！',
     alt: '手繪剖面圖，標示玻璃屋頂、鏡牆、泳池、雨水回收與服務空間',
   },
   {
@@ -126,19 +136,9 @@ const sketchImages: OriginImage[] = [
     largeUrl: early3dLarge,
     width: 1920,
     height: 1352,
-    label: 'SKETCH 04',
-    caption: '與哥哥一起把平面的線轉成立體，第一次看見量體、泳池與入口的整體關係。',
-    alt: '早期手繪三維示意，呈現泳池、入口、服務中心與傾斜屋頂',
-  },
-  {
-    sourceId: 'SRC-CONCEPT-021',
-    smallUrl: solarReflectionSmall,
-    largeUrl: solarReflectionLarge,
-    width: 1920,
-    height: 1351,
     label: 'SKETCH 05',
-    caption: '最後用最簡單的光線，反覆確認冬季導光與夏季遮陽能否同時成立。',
-    alt: '手繪日照反射剖面，標示冬季與夏季陽光、鏡面與水面',
+    caption: '哥哥一起幫我把平面圖轉成立體圖，我第一次看見游泳池的立體結構。',
+    alt: '早期手繪三維示意，呈現泳池、入口、服務中心與傾斜屋頂',
   },
 ];
 
@@ -239,8 +239,8 @@ export function mount(container: HTMLElement): MountedView {
           <header class="concept-origin-stage-heading">
             <span>00A</span>
             <div>
-              <h3 id="concept-origin-site-title">先看見，才開始畫</h3>
-              <p>設計不是從形狀開始，而是先回到現場：看見既有建物、老樹、球場與每天經過這裡的人。</p>
+              <h3 id="concept-origin-site-title">從校園場勘開始</h3>
+              <p>我們先回到現場，看見老建物、老樹、球場與每天經過這裡的人，原來還有那麼多平時沒注意到的細節。</p>
             </div>
           </header>
           <div class="concept-origin-gallery concept-origin-gallery--survey" aria-label="校園場勘二、五、六">
@@ -251,7 +251,7 @@ export function mount(container: HTMLElement): MountedView {
           <header class="concept-origin-stage-heading">
             <span>00B</span>
             <div>
-              <h3 id="concept-origin-sketch-title">讓每一條線，回答一個問題</h3>
+              <h3 id="concept-origin-sketch-title">在紙上，讓靈感變成線條</h3>
               <p>從方位到平面、從剖面到立體，再回到光線；方案不是一次完成，而是在一張張紙上逐漸清楚。</p>
             </div>
           </header>

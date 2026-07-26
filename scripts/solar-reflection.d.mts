@@ -26,6 +26,8 @@ export interface ReflectionInput {
 
 export interface SolarReflection {
   frontLit: boolean;
+  reflectedFrontSide: boolean;
+  frontHalfSpaceDot: number;
   facingFactor: number;
   incidenceAngle: number;
   reflectedAzimuth: number;
@@ -63,7 +65,7 @@ export interface Rectangle2D {
 
 export interface MirrorFootprintInput {
   reflection: SolarReflection;
-  localLongAxisBearingFromTrueNorth: number;
+  positiveXAxisBearingFromTrueNorth: number;
   baseCenter: Point2D;
   pivot: Point2D;
   width: number;
@@ -83,9 +85,10 @@ export interface MirrorFootprintResult {
 }
 
 export interface SolarPlanReferenceSystem {
-  localLongAxisBearingFromTrueNorth: number;
-  worldTransform: {
-    rotationFromTrueNorth: number;
+  siteOrientation: {
+    coordinateSystemId: 'SITE-XY';
+    positiveXAxisBearingFromTrueNorth: number;
+    positiveXAxisDirection: 'pool-remote-to-service-core';
   };
 }
 
@@ -104,11 +107,11 @@ export function evaluatePoolReflection(
 ): PoolReflectionEvaluation;
 export function reflectionDirectionInLocalCoordinates(
   reflection: SolarReflection,
-  localLongAxisBearingFromTrueNorth: number,
+  positiveXAxisBearingFromTrueNorth: number,
 ): Vector3D;
 export function solarDirectionInLocalCoordinates(
   solar: Pick<SolarPosition, 'altitude' | 'azimuth'>,
-  localLongAxisBearingFromTrueNorth: number,
+  positiveXAxisBearingFromTrueNorth: number,
 ): Vector3D;
 export function rotatePlanPoint(
   point: Point2D,

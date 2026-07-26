@@ -95,7 +95,7 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
     ]);
     const viewerModel = buildViewerModel(sourceModel, registry);
     const model = adaptViewerData(viewerModel, content).model;
-    const orientation = deriveViewerOrientation(307);
+    const orientation = deriveViewerOrientation(model.referenceSystem);
     assert.equal(orientation.threeWorldRotationDegrees, 143);
     assert.equal(orientation.northPlanDirection, 'lower-right');
     assert.ok(orientation.northInSite.x > 0);
@@ -105,7 +105,7 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
     graph.scene.updateMatrixWorld(true);
     assert.ok(Math.abs(THREE.MathUtils.radToDeg(graph.worldRoot.rotation.y) - 143) < 1e-9);
 
-    const localAxis = graph.scene.getObjectByName('LOCAL-X-TO-NORTHWEST-307');
+    const localAxis = graph.scene.getObjectByName('LOCAL-X-BEARING-307');
     const trueNorth = graph.scene.getObjectByName('TRUE-NORTH');
     const northLabel = graph.scene.getObjectByName('TRUE-NORTH-LABEL-N');
     assert.ok(localAxis);
@@ -128,7 +128,7 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
     brokenDirection.referenceSystem.northArrowPlanDirection = 'upper-right';
     assert.throws(
       () => adaptViewerData(brokenDirection, content),
-      /真北圖面方向必須由同一 transform 推導/,
+      /northArrowPlanDirection is forbidden/,
     );
   } finally {
     await vite.close();

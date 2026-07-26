@@ -1,6 +1,8 @@
-# 3D Viewer 資訊完整度與同步準備度
+# 3D Viewer 資訊完整度與同步準備度（v0.4.0 歷史封存）
 
-本文件是 3D Viewer 建模準備度、公開理念內容同步風險與後續補強順序的分析 owner。公開敘事以[理念文字正本](../public/swimming-pool-renovation-design-concept.md)為準；有效數值、決策與未決事項仍由 03～05 及個別分析 owner 管理。
+> 本文件是 `TASK-017` 完成時的歷史快照，已不再是現行分析 owner。文內 0.4.0 尺寸、角度、runtime 準備度與缺口不得回寫 active model。現行資料以 `docs/03_DESIGN_BASIS.md`、`docs/05_MODEL_CONTRACT.md` 與各 output contract 為準。
+
+本文件記錄 3D Viewer 建模準備度、公開理念內容同步風險與後續補強順序。公開敘事當時以[理念文字正本](../../public/swimming-pool-renovation-design-concept.md)為準；有效數值、決策與未決事項仍由當時的 03～05 及個別分析 owner 管理。
 
 ## 1. 結論
 
@@ -16,7 +18,7 @@ Viewer 第一版必須把資訊分為三類：
 
 | 子系統 | 概念 Viewer | 施工級模型 | 現況與限制 |
 | --- | --- | --- | --- |
-| 基地與真北 | 可用 | 未完成 | 本地 +X 307° 可作工作方位；精密測量仍由 `OPEN-006` 管理 |
+| 基地與真北 | 可用 | 方位契約完成 | 本地 +X 307°／−X 127°為 confirmed canonical data；Viewer transform 與真北提示由同一來源推導 |
 | 1F 建築與泳池 | 可用，含工作值 | 未完成 | 35.0 × 13.5 m 建築、20.5 × 7.5 m 泳池及三水道可建模；建築與池體平面尺寸多為 working |
 | L1 廁所、開口及乾式通道 | 可表達拓撲 | 未完成 | 出入口關係已確認；室內隔間、開口及通道精確尺寸仍由 `OPEN-008` 管理 |
 | L2 更衣量體 | 可用，含工作值 | 未完成 | 16.0 × 13.5 m 外框及 5.0 m 擴建值可建模；結構、機電與法規由 `OPEN-009` 管理 |

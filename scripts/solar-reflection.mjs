@@ -1,3 +1,5 @@
+import { deriveSiteOrientation } from './site-orientation.mjs';
+
 const RADIANS = Math.PI / 180;
 const DEGREES = 180 / Math.PI;
 
@@ -20,21 +22,11 @@ export function circularAngleDelta(first, second) {
 }
 
 export function deriveSolarPlanOrientation(referenceSystem) {
-  const localLongAxisBearing = normalizeAzimuth(finite(
-    referenceSystem?.localLongAxisBearingFromTrueNorth,
-    'referenceSystem.localLongAxisBearingFromTrueNorth',
-  ));
-  const buildingAzimuth = normalizeAzimuth(finite(
-    referenceSystem?.worldTransform?.rotationFromTrueNorth,
-    'referenceSystem.worldTransform.rotationFromTrueNorth',
-  ));
-  if (buildingAzimuth !== localLongAxisBearing) {
-    throw new RangeError('solar plan orientation fields must match.');
-  }
+  const orientation = deriveSiteOrientation(referenceSystem);
   return {
-    buildingAzimuth,
-    poolFacingAzimuth: normalizeAzimuth(buildingAzimuth + 180),
-    svgRotationFromLocalX: normalizeAzimuth(buildingAzimuth - 90),
+    buildingAzimuth: orientation.positiveXAxisBearingFromTrueNorth,
+    poolFacingAzimuth: orientation.poolFacingAzimuth,
+    svgRotationFromLocalX: orientation.svgRotationFromLocalX,
   };
 }
 
@@ -148,10 +140,16 @@ export function reflectSolarRay(input) {
   ];
   const facingDot = sun[0] * normal[0] + sun[1] * normal[1] + sun[2] * normal[2];
   const reflected = sun.map((component, index) => -component + 2 * facingDot * normal[index]);
+  const frontHalfSpaceDot = reflected.reduce(
+    (sum, component, index) => sum + component * normal[index],
+    0,
+  );
   const horizontal = Math.hypot(reflected[0], reflected[1]);
 
   return {
     frontLit: facingDot > 0,
+    reflectedFrontSide: frontHalfSpaceDot > 1e-10,
+    frontHalfSpaceDot,
     facingFactor: Math.max(0, facingDot),
     incidenceAngle: Math.acos(clamp(facingDot, -1, 1)) * DEGREES,
     reflectedAzimuth: normalizeAzimuth(Math.atan2(reflected[0], reflected[1]) * DEGREES),
@@ -161,8 +159,8 @@ export function reflectSolarRay(input) {
 
 export function evaluatePoolReflection(reflection, target) {
   const poolTargetAzimuth = normalizeAzimuth(target?.poolTargetAzimuth);
-  const azimuthTolerance = finite(target?.azimuthTolerance ?? 28, 'azimuthTolerance');
-  const minimumDownwardAngle = finite(target?.minimumDownwardAngle ?? 8, 'minimumDownwardAngle');
+  const azimuthTolerance = finite(target?.azimuthTolerance, 'azimuthTolerance');
+  const minimumDownwardAngle = finite(target?.minimumDownwardAngle, 'minimumDownwardAngle');
   const azimuthDelta = circularAngleDelta(reflection?.reflectedAzimuth, poolTargetAzimuth);
   const planPass = azimuthDelta <= azimuthTolerance;
   const sectionPass = reflection?.reflectedDownwardAngle >= minimumDownwardAngle;
@@ -170,13 +168,16 @@ export function evaluatePoolReflection(reflection, target) {
     azimuthDelta,
     planPass,
     sectionPass,
-    hitsPool: reflection?.frontLit === true && planPass && sectionPass,
+    hitsPool: reflection?.frontLit === true
+      && reflection?.reflectedFrontSide === true
+      && planPass
+      && sectionPass,
   };
 }
 
 export function reflectionDirectionInLocalCoordinates(
   reflection,
-  localLongAxisBearingFromTrueNorth,
+  positiveXAxisBearingFromTrueNorth,
 ) {
   const downwardAngle = finite(
     reflection?.reflectedDownwardAngle,
@@ -184,7 +185,7 @@ export function reflectionDirectionInLocalCoordinates(
   );
   const relativeAzimuth = (
     normalizeAzimuth(reflection?.reflectedAzimuth)
-      - normalizeAzimuth(localLongAxisBearingFromTrueNorth)
+      - normalizeAzimuth(positiveXAxisBearingFromTrueNorth)
   ) * RADIANS;
   const downwardRadians = downwardAngle * RADIANS;
   const horizontal = Math.cos(downwardRadians);
@@ -197,12 +198,12 @@ export function reflectionDirectionInLocalCoordinates(
 
 export function solarDirectionInLocalCoordinates(
   solar,
-  localLongAxisBearingFromTrueNorth,
+  positiveXAxisBearingFromTrueNorth,
 ) {
   const altitude = finite(solar?.altitude, 'solar.altitude') * RADIANS;
   const relativeAzimuth = (
     normalizeAzimuth(solar?.azimuth)
-      - normalizeAzimuth(localLongAxisBearingFromTrueNorth)
+      - normalizeAzimuth(positiveXAxisBearingFromTrueNorth)
   ) * RADIANS;
   const horizontal = Math.cos(altitude);
   return {
@@ -441,9 +442,13 @@ export function projectMirrorReflectionFootprint(input) {
 
   const direction = reflectionDirectionInLocalCoordinates(
     input?.reflection,
-    input?.localLongAxisBearingFromTrueNorth,
+    input?.positiveXAxisBearingFromTrueNorth,
   );
-  if (input?.reflection?.frontLit !== true || direction.z >= -1e-9) {
+  if (
+    input?.reflection?.frontLit !== true
+    || input?.reflection?.reflectedFrontSide !== true
+    || direction.z >= -1e-9
+  ) {
     return { reachesPoolPlane: false, footprint: [], hitsPool: false };
   }
 

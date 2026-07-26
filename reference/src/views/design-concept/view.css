@@ -192,6 +192,14 @@
   align-items: start;
 }
 
+.concept-origin-gallery--survey {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.concept-origin-gallery--sketch {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .concept-origin-figure {
   min-width: 0;
   margin: 0;
@@ -209,7 +217,7 @@
 }
 
 .concept-origin-gallery--survey .concept-origin-media {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
 }
 
 .concept-origin-gallery--survey .concept-origin-figure--primary .concept-origin-media {

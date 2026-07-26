@@ -3,7 +3,13 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildPvgisWeatherSamples, evaluateEnergySensitivity, evaluateMirrorEnergy } from '../scripts/solar-energy-analysis.mjs';
+import {
+  buildPvgisWeatherSamples,
+  evaluateEnergySensitivity,
+  evaluateMirrorEnergy,
+  mirrorReceiverFractions,
+} from '../scripts/solar-energy-analysis.mjs';
+import { deriveSolarPlanOrientation, reflectSolarRay } from '../scripts/solar-reflection.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
@@ -21,6 +27,10 @@ test('v0.6.7 carried-forward working optimum keeps X35 warm-season pool gain at 
   const result = evaluateMirrorEnergy(model, weather);
   assert.equal(result.input.planRotation, 25.5);
   assert.equal(result.input.mirrorLeanFromVertical, 23);
+  assert.equal(result.input.mirrorReflectance, 0.75);
+  assert.equal(result.input.glazingSolarTransmittance, 0.6);
+  assert.equal(result.input.daylightStartHour, 7);
+  assert.equal(result.input.daylightEndHour, 17);
   assert.equal(result.input.mirrorHeight, 3.6);
   assert.equal(result.input.pivotX, 35);
   assert.equal(result.mirrorSurfaceArea, 52.797);
@@ -32,6 +42,53 @@ test('v0.6.7 carried-forward working optimum keeps X35 warm-season pool gain at 
   assert.equal(result.cool.poolIncreasePercent, 0.962);
   assert.equal(result.cool.roofRedirectedKWh, 4857.203);
   assert.equal(result.selectivity.strictWarmZero, true);
+});
+
+test('receiver geometry and optical factors stay within physical energy bounds', () => {
+  const result = evaluateMirrorEnergy(model, weather);
+  for (const season of [result.warm, result.cool]) {
+    assert.ok(
+      season.roofRedirectedKWh
+        <= season.mirrorInterceptedKWh * result.input.mirrorReflectance + 0.002,
+    );
+    assert.ok(
+      season.poolAddedKWh
+        <= season.mirrorInterceptedKWh
+          * result.input.mirrorReflectance
+          * result.input.glazingSolarTransmittance
+          + 0.002,
+    );
+  }
+
+  const orientation = deriveSolarPlanOrientation(model.referenceSystem);
+  const wallNormalAzimuth = (
+    orientation.poolFacingAzimuth + result.input.planRotation
+  ) % 360;
+  let checkedReflections = 0;
+  for (const sample of weather) {
+    if (sample.dni <= 0 || sample.solar.altitude <= 0) continue;
+    const reflection = reflectSolarRay({
+      solarAltitude: sample.solar.altitude,
+      solarAzimuth: sample.solar.azimuth,
+      wallNormalAzimuth,
+      wallLeanFromVertical: result.input.mirrorLeanFromVertical,
+    });
+    if (
+      !reflection.frontLit
+      || !reflection.reflectedFrontSide
+      || reflection.reflectedDownwardAngle <= 0
+    ) continue;
+    const fractions = mirrorReceiverFractions(model, result.input, reflection);
+    checkedReflections += 1;
+    for (const fraction of Object.values(fractions)) {
+      assert.ok(fraction >= 0 && fraction <= 1);
+    }
+    assert.ok(
+      fractions.rawPoolFraction <= fractions.roofFraction + 1e-9,
+      'Every ray bundle reaching the pool plane must first lie within the fixed glass-roof receiver.',
+    );
+  }
+  assert.equal(checkedReflections, 1791);
 });
 
 test('superseded v0.5.0 angles are rejected on the v0.6.7 pool', () => {

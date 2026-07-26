@@ -51,7 +51,7 @@
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-017 | 盤點 3D Viewer 資訊完整度並確認 Markdown／模型雙 owner 同步架構 | done | 0.4.0 | [資訊完整度分析](analysis/3d-viewer-information-readiness.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md) | TASK-016 | confirmed／working／deferred 範圍、現有硬編碼、缺少的 3D 工作幾何、分析失效規則與後續任務邊界已記錄；文件檢查及 diff 檢查通過 |
+| TASK-017 | 盤點 3D Viewer 資訊完整度並確認 Markdown／模型雙 owner 同步架構 | done | 0.4.0 | [歷史資訊完整度分析](archive/analysis/3d-viewer-information-readiness-v0.4.0.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md) | TASK-016 | confirmed／working／deferred 範圍、現有硬編碼、缺少的 3D 工作幾何、分析失效規則與後續任務邊界已記錄；該準備度文件已隨 TASK-017 完成封存，不代表現行 Viewer／幾何狀態 |
 | TASK-018 | 建立模型單一來源補強與 3D Viewer MVP | done | 0.4.0 | [completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md)、[Release 0.4.0](releases/0.4.0.md) | TASK-017 | `/3d-viewer/` 由統一模型及 Markdown 編譯內容建立，五組場景、狀態圖例、WebGL fallback、桌機／手機操作與同步測試通過 |
 | TASK-021 | 修正 `ST-01` 樓梯側位，並依剖面 V2.0 建立 0.5.0 工作幾何 | done | 0.5.0 | [DEC-046／DEC-056／DEC-060／OPEN-017](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、DEC-044、DEC-047 | Viewer 已將樓梯移到長邊玻璃牆旁的獨立乾式透明廊，池畔 +0.30 m 至 L2 +3.30 m 總升高 3.00 m，採 1.50 m 工作淨寬、20 級高／18 踏面、兩跑各 2.70 m、1.80 m 平台及 7.20 m 總長；樓梯與玻璃牆、屋頂荷重分離。法定淨寬、逐點淨高、頂端接點及材料仍由 `OPEN-017` 專業驗證，不把概念模型冒充施工定案 |
 | TASK-022 | 依 L1 V2.0 重建戶外區、廁所雙向開口與入口動線 | done | 0.5.0 | [DEC-043／DEC-044](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計基準](03_DESIGN_BASIS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、DEC-043 | 0.5.0 active Viewer／V2.3 圖面表達 8.0 × 7.0 m 戶外區且不連接泳池大廳、7.0 m 廁所帶、泳池側乾式走道及雙向開口；分拆為對外／對池兩套獨立廁所仍保留 `OPEN-008`，未擅自畫入現行方案 |
@@ -370,11 +370,49 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-094`～`TASK-095` 已完成並收斂為 [Release 0.9.4](releases/0.9.4.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 23. 未排程設計問題
+## 23. 0.9.5 設計理念起點段落精修
+
+0.9.5 收錄使用者在 localhost 逐項核准的 ORIGIN 場勘與手稿段落調整。本版只修改設計理念頁的可見文案、圖片順序與單欄排列，不改 active geometry、日照研究、V067 圖面本體或 3D／漫遊行為。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-096 | 精修 ORIGIN 場勘／手稿文案、圖片順序與單欄版面 | done | 0.9.5 | [網站文字快照](public/website-copy-v1.0.md)、設計理念 view | TASK-095 | 場勘標題與導語採核准文字；三張場勘照改為單欄並按入口／泳池寬度／老樹邊界敘事排列；手稿標題與說明採核准文字，日照反射、1F 俯視、剖面、立體圖四張改為指定順序及單欄排列；localhost 已逐項確認文案、圖片與說明配對 |
+| TASK-097 | 同步 0.9.5 版本、文件與完整驗證 | done | 0.9.5 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[Release 0.9.5](releases/0.9.5.md) | TASK-096 | package／lockfile／model／generated data／README／release 同步；84 份 Markdown、97 個任務、50 個實體、5 張圖面、16 個來源、93 tests、typecheck、production build、公開頁 4 views × 5 viewports、Viewer／solar／atlas E2E、文字快照及 diff 檢查通過 |
+
+依使用者指示，工作歷史與現行執行範圍截止於 `TASK-097`。
+
+`TASK-096`～`TASK-097` 已收斂為 [Release 0.9.5](releases/0.9.5.md)。
+
+## 24. 0.9.6 基地方位單一真相來源
+
+0.9.6 依使用者確認，把基地長軸方向收斂為單一 canonical data。SITE +X 固定由泳池遠端指向服務核心、真北方位 307°；−X 127°及所有 world／SVG／Viewer 方位均由同一來源推導。鏡牆法線保持日照研究衍生值，不固定在基地方位資料內。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-098 | 建立 canonical 基地方位 schema、共用推導函式與 fail-closed 遷移 | done | 0.9.6 | [DEC-141](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[Solar Study 契約](contracts/solar-study.md) | TASK-097 | `referenceSystem.siteOrientation` 是唯一可寫入方位；舊 world／site／north 欄位全數移除並禁止重建；127°、143°、北箭頭與鏡牆法線由共用函式推導；水平旋轉變更時法線同步更新 |
+| TASK-099 | 同步 0.9.6 版本、文件、generated data 與完整驗證 | done | 0.9.6 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[Release 0.9.6](releases/0.9.6.md) | TASK-098 | package／lockfile／model／README／contracts／generated data 同步；solar inputHash 維持 current；tests、typecheck、production build、E2E 與 diff 檢查通過 |
+
+`TASK-098`～`TASK-099` 的基地方位工作已納入 [Release 0.9.6](releases/0.9.6.md)，並由後續 `TASK-100`～`TASK-105` 完成同版日照研究治理與展示封版。
+
+## 25. 0.9.6 日照分析治理與展示封版
+
+本輪先完成模型、分析程式、測試與 owner 文件，再依使用者逐項確認同步 HTML、CSS、公開文字快照與響應式展示，最後整體封版為 0.9.6。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-100 | 移除現行日照分析對 legacy 門檻與程式內建假設的依賴，補足方法版本、來源追溯與獨立科學回歸 | done | 0.9.6 audit correction | [DEC-142](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[日照分析](analysis/solar-analysis.md) | TASK-099 | active `solar` 已成為門檻、能量假設、氣象來源與方法修訂版的唯一 owner；legacy 僅供歷史重現；經緯度可追溯到本地保存的 PVGIS 原始檔；solar hash 對方法與假設變動 fail closed。NREL 基準近似容差、反射解析解、接收面包含與能量上限測試已納入，registry、generated data 與 owner 文件同步；103 tests、typecheck、production build、4 views × 5 viewports 與 Viewer／Solar／Atlas desktop、mobile、WebGL fallback E2E 通過，未修改 HTML／CSS／公開文字快照或部署 |
+| TASK-101 | 依核准五項、方向門檻與光線符號同步 Solar Study HTML 與 runtime 顯示 | done | 0.9.6 local HTML pass | [DEC-143](04_DECISIONS_AND_OPEN_ITEMS.md)、[DEC-144](04_DECISIONS_AND_OPEN_ITEMS.md)、[DEC-145](04_DECISIONS_AND_OPEN_ITEMS.md)、[Solar Study 契約](contracts/solar-study.md) | TASK-100 | 摘要正確區分 v0.6.7 研究基線與 Model 0.9.6 驗證；active 方法、門檻、能量假設及 current 狀態可見；HTML 不硬編碼互動初始角度；07:00～18:00 方向診斷與 07:00～17:00 能量時段不混淆；鏡牆讀值標成法線方位。平面圖已依 active model 顯示以池向為中心的方位容許扇形，剖面圖已顯示 active 最低下射角參考線；兩者只說明方向代理。平面圖已補反射光；入射光與反射光同色，入射光採實線、反射光採虛線，兩者皆有方向箭頭；鏡牆法線維持不同色相與標示。公開文字快照、103 tests、typecheck、production build、4 views × 5 viewports 與 Viewer／Solar／Atlas desktop、mobile、WebGL fallback E2E 通過；研究結果、滑桿範圍與分析方法未變 |
+| TASK-102 | 提高剖面圖未命中池面反射光的辨識度 | done | independent Solar Study readability pass | [DEC-145](04_DECISIONS_AND_OPEN_ITEMS.md)、[Solar Study 契約](contracts/solar-study.md) | TASK-100 | 未命中池面的反射光維持與入射光同色及反射光虛線規則，不再降為低對比灰線；以足夠線寬、不透明度、清楚箭頭及「未命中池面」文字讓桌面與行動版均可辨識，且不能只靠顏色區分狀態。通過 desktop／mobile／fallback E2E；本任務不改動反射幾何、判讀門檻或研究結果 |
+| TASK-103 | 將平面光線交點對齊鏡牆中心並統一縮細光線符號 | done | independent Solar Study geometry-symbol pass | [Solar Study 契約](contracts/solar-study.md) | TASK-101 | 鏡牆法線起點、代表性入射光終點與反射光起點共同追蹤旋轉後的鏡牆中心點；平面入射／反射線寬由 6 降為 4.8、鏡牆法線由 5 降為 4，剖面入射／反射線寬由 5 降為 4，均精確減少 20%。箭頭仍在線段末端，線型、顏色、判讀門檻與研究結果不變；desktop／mobile／fallback E2E 通過 |
+| TASK-104 | 桌面版即時預覽同時呈現平面與剖面 | done | independent Solar Study responsive-preview pass | [Solar Study 契約](contracts/solar-study.md) | TASK-102、TASK-103 | 桌面版與平板寬度利用既有雙欄空間，同時顯示置左的平面即時預覽與置右的剖面即時預覽，不顯示平面／剖面切換按鈕；兩圖均隨日期、時間、L3 水平旋轉與鏡牆外傾控制器同步更新。只有 640 px 以下窄螢幕保留單圖切換方式，且不得產生水平溢出。通過 desktop、tablet、mobile 與 reduced-motion E2E，且不改動日照幾何、判讀門檻或研究結果 |
+| TASK-105 | 釐清平面圖中 3D 反射投影穿越鏡牆的視覺歧義 | done | 0.9.6 final Solar Study pass | [DEC-145／DEC-146](04_DECISIONS_AND_OPEN_ITEMS.md)、[Solar Study 契約](contracts/solar-study.md) | TASK-103、TASK-104 | 保留既有平面圖標題；平面虛線標成「反射方位投影＋下射角」，鏡牆覆蓋光線、代表性入射點與牆線兩側 10 px 投影間隙均已實作。完整 3D 反射向量正面半空間檢查已納入 runtime、池面命中及有限接收面投影並 fail closed；同色、虛線、末端箭頭規則不變。105 tests、typecheck、production build、desktop／tablet／mobile／fallback E2E、實際瀏覽器與截圖視覺檢查通過；公開文字快照同步，納入 0.9.6 封版 |
+
+`TASK-098`～`TASK-105` 已完整收斂為 [Release 0.9.6](releases/0.9.6.md)；不建立 tag，release commit 推送 `main` 後由既有 GitHub Pages workflow 部署。
+
+## 26. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
-- [OPEN-006](04_DECISIONS_AND_OPEN_ITEMS.md)：基地精確旋轉角與像素校準。
 - [OPEN-008](04_DECISIONS_AND_OPEN_ITEMS.md)：四間獨立廁所的隔間、門位、管道、實際淨空與主入口／到達路徑對應。
 - [OPEN-009](04_DECISIONS_AND_OPEN_ITEMS.md)：逃生、無障礙、結構與機電。
 - [OPEN-011](04_DECISIONS_AND_OPEN_ITEMS.md)：0.6.0 工作值為 L3 水平 +25.5°、鏡牆外傾 +23.0°、X=35 m；23°幅度大，實際質心／剛心、轉換構造、固定、材料、維修、眩光與最終性能仍待專業完成。

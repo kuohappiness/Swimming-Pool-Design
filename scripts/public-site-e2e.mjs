@@ -209,16 +209,23 @@ try {
     ),
     [
       'SRC-CONCEPT-013',
-      'SRC-CONCEPT-016',
       'SRC-CONCEPT-017',
+      'SRC-CONCEPT-016',
       'SRC-CONCEPT-022',
+      'SRC-CONCEPT-021',
       'SRC-CONCEPT-018',
       'SRC-CONCEPT-019',
       'SRC-CONCEPT-020',
-      'SRC-CONCEPT-021',
     ],
   );
-  await concept.locator('.concept-origin-figure').last().scrollIntoViewIfNeeded();
+  const originFigures = concept.locator('.concept-origin-figure');
+  for (let index = 0; index < await originFigures.count(); index += 1) {
+    const figure = originFigures.nth(index);
+    await figure.scrollIntoViewIfNeeded();
+    await figure.locator('img').evaluate((image) => {
+      image.loading = 'eager';
+    });
+  }
   await concept.waitForFunction(() =>
     [...document.querySelectorAll('.concept-origin-figure img')]
       .every((image) => image.complete && image.naturalWidth > 0),

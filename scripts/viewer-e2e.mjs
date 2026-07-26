@@ -4,6 +4,10 @@ import { constants } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright-core';
+import {
+  deriveMirrorNormalAzimuth,
+  deriveSiteOrientation,
+} from './site-orientation.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const port = 4173;
@@ -16,6 +20,13 @@ const expectedModelVersion = projectModel.modelVersion;
 const expectedGeometryRevision = projectModel.geometryRevisions
   .find(({ id }) => id === projectModel.activeGeometryRevisionId)?.revision;
 assert.ok(expectedGeometryRevision, 'Active geometry revision must resolve for browser tests.');
+const expectedActiveGeometry = projectModel.geometryRevisions
+  .find(({ id }) => id === projectModel.activeGeometryRevisionId);
+const expectedMirrorNormal = deriveMirrorNormalAzimuth(
+  projectModel.referenceSystem,
+  expectedActiveGeometry.solar.planRotation.value,
+);
+const expectedSiteOrientation = deriveSiteOrientation(projectModel.referenceSystem);
 const chromeCandidates = [
   process.env.CHROME_PATH,
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -516,23 +527,272 @@ try {
   );
   assert.equal(await solarDesktop.locator('#confirmed-plan').innerText(), '+25.5°');
   assert.equal(await solarDesktop.locator('#confirmed-lean').innerText(), '+23.0°');
-  assert.equal(await solarDesktop.locator('#confirmed-normal').innerText(), '152.5°');
-  assert.match(await solarDesktop.locator('.decision-summary').innerText(), /冷季新增 \+1,036\.829 kWh/);
+  assert.equal(
+    await solarDesktop.locator('#confirmed-normal').innerText(),
+    `${expectedMirrorNormal.toFixed(1)}°`,
+  );
+  assert.equal(
+    await solarDesktop.locator('#study-baseline-label').innerText(),
+    `v0.6.7 研究基線 · Model ${expectedModelVersion} 已驗證`,
+  );
+  assert.equal(
+    await solarDesktop.locator('#study-method').innerText(),
+    expectedActiveGeometry.solar.analysisMethodRevision,
+  );
+  assert.equal(
+    await solarDesktop.locator('#study-thresholds').innerText(),
+    `方位 ±${expectedActiveGeometry.solar.azimuthTolerance.value.toFixed(0)}° · 下射 ≥${
+      expectedActiveGeometry.solar.minimumDownwardAngle.value.toFixed(0)
+    }°`,
+  );
+  assert.equal(
+    await solarDesktop.locator('#study-energy-assumptions').innerText(),
+    'ρ 0.75 · τ 0.60 · 07:00–17:00',
+  );
+  assert.equal(await solarDesktop.locator('#study-analysis-status').innerText(), 'current／已驗證');
+  assert.match(
+    await solarDesktop.locator('.decision-summary').innerText(),
+    /冷季新增仍為 \+1,036\.829 kWh/,
+  );
+  assert.match(await solarDesktop.locator('#azimuthToleranceFan').getAttribute('d'), /^M 280 235 L /);
+  assert.equal(
+    await solarDesktop.locator('#azimuthToleranceLabel').textContent(),
+    `池向方位容許 ±${expectedActiveGeometry.solar.azimuthTolerance.value.toFixed(0)}°`,
+  );
+  assert.equal(
+    await solarDesktop.locator('#minimumDownwardLabel').textContent(),
+    `最低下射 ${expectedActiveGeometry.solar.minimumDownwardAngle.value.toFixed(0)}°（方向代理）`,
+  );
+  assert.equal(await solarDesktop.locator('.live-preview').isVisible(), true);
+  assert.equal(await solarDesktop.locator('.desktop-preview-grid').isVisible(), true);
+  assert.equal(await solarDesktop.locator('#desktopPlanPreviewViewport svg').count(), 1);
+  assert.equal(await solarDesktop.locator('#desktopSectionPreviewViewport svg').count(), 1);
+  assert.equal(await solarDesktop.locator('.mobile-preview-tabs').isVisible(), false);
+  assert.equal(await solarDesktop.locator('#mobilePreviewViewport').isVisible(), false);
   assert.equal(await solarDesktop.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  await solarDesktop.locator('#date').evaluate((input) => {
+    input.value = '7';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await solarDesktop.locator('#time').evaluate((input) => {
+    input.value = '7';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  assert.equal(await solarDesktop.locator('#selectedSun').getAttribute('data-reflection-state'), 'front-lit');
+  assert.ok(Number(await solarDesktop.locator('#selectedSun').getAttribute('data-front-half-space-dot')) > 0);
+  assert.equal(await solarDesktop.locator('#selectedSun .selected-sun-ray').count(), 1);
+  assert.equal(await solarDesktop.locator('#selectedSun .selected-reflected-ray').count(), 1);
+  assert.match(
+    await solarDesktop.locator('#selectedSun .selected-reflection-label').textContent(),
+    /^反射方位投影 \d+\.\d° · 下射角 -?\d+\.\d°$/,
+  );
+  assert.match(
+    await solarDesktop.locator('#selectedSun .selected-reflected-ray').getAttribute('aria-label'),
+    /^3D 反射光水平投影，方位 .*下射角 .*度$/,
+  );
+  assert.equal(
+    await solarDesktop.locator('#selectedSun .selected-sun-ray').getAttribute('stroke'),
+    await solarDesktop.locator('#selectedSun .selected-reflected-ray').getAttribute('stroke'),
+  );
+  assert.equal(
+    await solarDesktop.locator('#selectedSun .selected-sun-ray').getAttribute('marker-end'),
+    'url(#plan-arrow-incoming)',
+  );
+  assert.equal(
+    await solarDesktop.locator('#selectedSun .selected-reflected-ray').getAttribute('marker-end'),
+    'url(#plan-arrow-reflected)',
+  );
+  assert.equal(
+    await solarDesktop.locator('#incoming').getAttribute('marker-end'),
+    'url(#arrow-sun)',
+  );
+  assert.equal(
+    await solarDesktop.locator('#reflected').getAttribute('marker-end'),
+    'url(#arrow-reflected)',
+  );
+  const rayGeometry = await solarDesktop.evaluate(() => {
+    const required = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) throw new Error(`Missing solar study element: ${selector}`);
+      return element;
+    };
+    const mirrorEdge = required('.mirror-edge');
+    const upperBoxPlan = required('#upperBoxPlan');
+    const buildingPlan = required('#buildingPlan');
+    const wallNormal = required('#wallNormal');
+    const incidentPoint = required('#planIncidentPoint');
+    const selectedSun = required('#selectedSun');
+    const incomingPlanRay = required('#selectedSun .selected-sun-ray');
+    const reflectedPlanRay = required('#selectedSun .selected-reflected-ray');
+    const sectionIncomingRay = required('#incoming');
+    const sectionReflectedRay = required('#reflected');
+    const applyMatrix = (point, matrix) => ({
+      x: point.x * matrix.a + point.y * matrix.c + matrix.e,
+      y: point.x * matrix.b + point.y * matrix.d + matrix.f,
+    });
+    const midpoint = {
+      x: (Number(mirrorEdge.getAttribute('x1')) + Number(mirrorEdge.getAttribute('x2'))) / 2,
+      y: (Number(mirrorEdge.getAttribute('y1')) + Number(mirrorEdge.getAttribute('y2'))) / 2,
+    };
+    const upperMatrix = upperBoxPlan.transform.baseVal.consolidate().matrix;
+    const buildingMatrix = buildingPlan.transform.baseVal.consolidate().matrix;
+    const wallCenter = applyMatrix(applyMatrix(midpoint, upperMatrix), buildingMatrix);
+    const normalStart = {
+      x: Number(wallNormal.getAttribute('x1')),
+      y: Number(wallNormal.getAttribute('y1')),
+    };
+    const incomingEnd = incomingPlanRay.points.getItem(incomingPlanRay.points.numberOfItems - 1);
+    const reflectedStart = reflectedPlanRay.points.getItem(0);
+    const distance = (first, second) => Math.hypot(first.x - second.x, first.y - second.y);
+    return {
+      wallCenter,
+      normalStart,
+      normalDistance: distance(normalStart, wallCenter),
+      incidentDistance: distance({
+        x: Number(incidentPoint.getAttribute('cx')),
+        y: Number(incidentPoint.getAttribute('cy')),
+      }, wallCenter),
+      incomingDistance: distance(incomingEnd, wallCenter),
+      reflectedDistance: distance(reflectedStart, wallCenter),
+      wallOverlaysRays: Boolean(
+        selectedSun.compareDocumentPosition(buildingPlan) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+      planIncomingWidth: Number.parseFloat(getComputedStyle(incomingPlanRay).strokeWidth),
+      planReflectedWidth: Number.parseFloat(getComputedStyle(reflectedPlanRay).strokeWidth),
+      normalWidth: Number.parseFloat(getComputedStyle(wallNormal).strokeWidth),
+      sectionIncomingWidth: Number.parseFloat(getComputedStyle(sectionIncomingRay).strokeWidth),
+      sectionReflectedWidth: Number.parseFloat(getComputedStyle(sectionReflectedRay).strokeWidth),
+    };
+  });
+  assert.ok(rayGeometry.normalDistance < 0.15);
+  assert.ok(rayGeometry.incidentDistance < 0.15);
+  assert.ok(Math.abs(rayGeometry.incomingDistance - 10) < 0.15);
+  assert.ok(Math.abs(rayGeometry.reflectedDistance - 10) < 0.15);
+  assert.equal(rayGeometry.wallOverlaysRays, true);
+  assert.ok(Math.hypot(
+    rayGeometry.normalStart.x - 280,
+    rayGeometry.normalStart.y - 235,
+  ) > 1);
+  assert.equal(rayGeometry.planIncomingWidth, 4.8);
+  assert.equal(rayGeometry.planReflectedWidth, 4.8);
+  assert.equal(rayGeometry.normalWidth, 4);
+  assert.equal(rayGeometry.sectionIncomingWidth, 4);
+  assert.equal(rayGeometry.sectionReflectedWidth, 4);
+  assert.equal(await solarDesktop.locator('#reflected').getAttribute('data-reflection-state'), 'misses-pool');
+  assert.equal(
+    await solarDesktop.locator('#incoming').getAttribute('stroke'),
+    await solarDesktop.locator('#reflected').getAttribute('stroke'),
+  );
+  assert.equal(
+    await solarDesktop.locator('#reflected').evaluate(
+      (line) => Number.parseFloat(getComputedStyle(line).opacity),
+    ),
+    1,
+  );
+  assert.notEqual(
+    await solarDesktop.locator('#reflected').evaluate(
+      (line) => getComputedStyle(line).strokeDasharray,
+    ),
+    'none',
+  );
+  assert.equal(await solarDesktop.locator('#rayLabel').textContent(), '反射光（未命中池面）');
+  assert.equal(await solarDesktop.locator('#reflected').getAttribute('aria-label'), '反射光，未命中池面');
+  assert.equal(
+    await solarDesktop.locator('#desktop-preview-section-reflected').getAttribute('data-reflection-state'),
+    'misses-pool',
+  );
+  assert.equal(
+    await solarDesktop.locator('#desktop-preview-section-incoming').getAttribute('stroke'),
+    await solarDesktop.locator('#desktop-preview-section-reflected').getAttribute('stroke'),
+  );
+  assert.equal(
+    await solarDesktop.locator('#desktop-preview-section-reflected').getAttribute('marker-end'),
+    'url(#desktop-preview-section-arrow-reflected)',
+  );
+  assert.notEqual(
+    await solarDesktop.locator('#selectedSun .selected-reflected-ray').evaluate(
+      (line) => getComputedStyle(line).strokeDasharray,
+    ),
+    'none',
+  );
+  assert.match(await solarDesktop.locator('#resultDetail').innerText(), /實際方位偏差 .*門檻/);
+  await solarDesktop.locator('#time').evaluate((input) => {
+    input.value = '18';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  assert.match(
+    await solarDesktop.locator('#timeScope').innerText(),
+    /方向診斷 07:00–18:00 · 年度能量 07:00–17:00 · 本時刻僅供方向診斷/,
+  );
   await solarDesktop.locator('#planRotation').evaluate((input) => {
     input.value = '27';
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
   assert.equal(await solarDesktop.locator('#planValue').innerText(), '+27.0°');
+  assert.equal(
+    await solarDesktop.locator('#mirrorAz').innerText(),
+    `${deriveMirrorNormalAzimuth(projectModel.referenceSystem, 27).toFixed(1)}°`,
+  );
+  assert.equal(
+    await solarDesktop.locator('#desktop-preview-plan-wallNormal').getAttribute('x1'),
+    await solarDesktop.locator('#wallNormal').getAttribute('x1'),
+  );
+  assert.equal(
+    await solarDesktop.locator('#desktop-preview-plan-wallNormal').getAttribute('y1'),
+    await solarDesktop.locator('#wallNormal').getAttribute('y1'),
+  );
   await solarDesktop.screenshot({ path: resolve(outputDirectory, 'solar-study-desktop.png'), fullPage: true });
+
+  const solarTablet = await browser.newPage({ viewport: { width: 768, height: 900 }, deviceScaleFactor: 1 });
+  trackErrors(solarTablet);
+  await solarTablet.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
+  assert.equal(await solarTablet.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  assert.equal(await solarTablet.locator('.live-preview').isVisible(), true);
+  assert.equal(await solarTablet.locator('.desktop-preview-grid').isVisible(), true);
+  assert.equal(await solarTablet.locator('#desktopPlanPreviewViewport svg').count(), 1);
+  assert.equal(await solarTablet.locator('#desktopSectionPreviewViewport svg').count(), 1);
+  assert.equal(await solarTablet.locator('.mobile-preview-tabs').isVisible(), false);
+  assert.equal(await solarTablet.locator('#mobilePreviewViewport').isVisible(), false);
+  await solarTablet.screenshot({ path: resolve(outputDirectory, 'solar-study-tablet.png'), fullPage: true });
 
   const solarMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(solarMobile);
   await solarMobile.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
   assert.equal(await solarMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
-  assert.equal(await solarMobile.locator('.mobile-live-preview').isVisible(), true);
+  assert.equal(await solarMobile.locator('.live-preview').isVisible(), true);
+  assert.equal(await solarMobile.locator('.desktop-preview-grid').isVisible(), false);
+  assert.equal(await solarMobile.locator('#desktopPlanPreviewViewport svg').count(), 0);
+  assert.equal(await solarMobile.locator('#desktopSectionPreviewViewport svg').count(), 0);
+  assert.equal(await solarMobile.locator('.mobile-preview-tabs').isVisible(), true);
+  assert.equal(await solarMobile.locator('#mobilePreviewViewport').isVisible(), true);
+  await solarMobile.locator('#date').evaluate((input) => {
+    input.value = '7';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await solarMobile.locator('#time').evaluate((input) => {
+    input.value = '7';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await solarMobile.locator('#previewSection').click();
+  assert.equal(
+    await solarMobile.locator('#mobile-preview-section-reflected').getAttribute('data-reflection-state'),
+    'misses-pool',
+  );
+  assert.equal(
+    await solarMobile.locator('#mobile-preview-section-incoming').getAttribute('stroke'),
+    await solarMobile.locator('#mobile-preview-section-reflected').getAttribute('stroke'),
+  );
+  assert.equal(
+    await solarMobile.locator('#mobile-preview-section-reflected').getAttribute('marker-end'),
+    'url(#mobile-preview-section-arrow-reflected)',
+  );
+  assert.equal(
+    await solarMobile.locator('#mobile-preview-section-rayLabel').textContent(),
+    '反射光（未命中池面）',
+  );
   await solarMobile.screenshot({ path: resolve(outputDirectory, 'solar-study-mobile.png'), fullPage: true });
   await solarDesktop.close();
+  await solarTablet.close();
   await solarMobile.close();
 
   const atlasDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
@@ -559,6 +819,16 @@ try {
     assert.equal(await atlasDesktop.locator(`.review-drawing[data-sheet-id="${sheetId}"]`).count(), 1);
     assert.equal(await atlasDesktop.locator('.review-drawing image').count(), 0);
     assert.equal(await atlasDesktop.locator(`.review-drawing [data-entity="${entityId}"]`).count(), 1);
+    if (sheetId !== 'V067-SECTION') {
+      assert.equal(
+        await atlasDesktop.locator('.review-drawing [data-north-plan-direction]').getAttribute('data-north-plan-direction'),
+        expectedSiteOrientation.northPlanDirection,
+      );
+      assert.equal(
+        await atlasDesktop.locator('.review-drawing [data-north-rotation]').getAttribute('data-north-rotation'),
+        `${expectedSiteOrientation.svgNorthArrowRotation}`,
+      );
+    }
     if (sheetId === 'V067-L3') {
       assert.equal(await atlasDesktop.locator('#toggle-pv').isChecked(), true);
       await atlasDesktop.locator('#toggle-pv').uncheck();

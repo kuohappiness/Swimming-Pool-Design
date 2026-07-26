@@ -1,7 +1,10 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { deriveSiteOrientation } from './site-orientation.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
+const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
+const siteOrientation = deriveSiteOrientation(model.referenceSystem);
 const baseModelVersion = '0.6.2';
 const baseGeometryRevisionId = 'GEO-0.6.2';
 
@@ -246,7 +249,7 @@ ${planBody()}
     <text x="748" y="39" class="tiny">立面層次意圖；仍須以後續剖面／Viewer 驗證。</text>
   </g>
 
-  <g data-north-plan-direction="lower-right"><g transform="translate(1800 65) rotate(127)"><line x1="0" y1="28" x2="0" y2="-26" class="north"/><path d="M0 -40L-8 -22H8Z" fill="#c4553f"/></g><text x="1822" y="95" text-anchor="middle" class="label">N</text></g>
+  <g data-north-plan-direction="${siteOrientation.northPlanDirection}"><g transform="translate(1800 65) rotate(${siteOrientation.svgNorthArrowRotation})"><line x1="0" y1="28" x2="0" y2="-26" class="north"/><path d="M0 -40L-8 -22H8Z" fill="#c4553f"/></g><text x="1822" y="95" text-anchor="middle" class="label">N</text></g>
 
   <g transform="translate(60 958)">
     <rect width="1800" height="82" class="footer"/>

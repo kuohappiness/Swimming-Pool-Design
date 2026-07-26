@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { geometryEntities, resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
+import { deriveSiteOrientation } from './site-orientation.mjs';
 
 const TOLERANCE = 0.002;
 const closeTo = (actual, expected, tolerance = TOLERANCE) => Number.isFinite(actual)
@@ -24,6 +25,17 @@ function check(errors, condition, message) {
   if (!condition) errors.push(message);
 }
 
+function pathsContainingKey(value, targetKey, path = 'model') {
+  if (!value || typeof value !== 'object') return [];
+  const matches = [];
+  for (const [key, entry] of Object.entries(value)) {
+    const nextPath = `${path}.${key}`;
+    if (key === targetKey) matches.push(nextPath);
+    matches.push(...pathsContainingKey(entry, targetKey, nextPath));
+  }
+  return matches;
+}
+
 export function validateModel(model) {
   const errors = [];
   let active;
@@ -33,7 +45,7 @@ export function validateModel(model) {
     return [error instanceof Error ? error.message : String(error)];
   }
 
-  check(errors, model.schemaVersion === '1.4.0', 'schemaVersion must be 1.4.0.');
+  check(errors, model.schemaVersion === '1.5.0', 'schemaVersion must be 1.5.0.');
   check(errors, /^\d+\.\d+\.\d+$/.test(model.modelVersion), 'modelVersion must be semantic x.y.z.');
   check(errors, model.designTargetVersion === model.modelVersion, 'designTargetVersion must equal modelVersion.');
   check(
@@ -51,6 +63,55 @@ export function validateModel(model) {
     errors,
     coordinateSystem?.renderAdapters?.three === 'x-to-x-y-to-negative-z-z-to-y-right-handed',
     'Three.js adapter must preserve handedness: SITE X->Three X, SITE Y->Three -Z, SITE Z->Three Y.',
+  );
+  for (const forbiddenKey of [
+    'localLongAxisBearingFromTrueNorth',
+    'rotationFromTrueNorth',
+    'rightwardBearingFromTrueNorth',
+    'northArrowPlanDirection',
+  ]) {
+    check(
+      errors,
+      pathsContainingKey(model, forbiddenKey).length === 0,
+      `${forbiddenKey} must not duplicate referenceSystem.siteOrientation.`,
+    );
+  }
+  let siteOrientation;
+  try {
+    siteOrientation = deriveSiteOrientation(model.referenceSystem);
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
+  }
+  check(
+    errors,
+    siteOrientation?.positiveXAxisBearingFromTrueNorth === 307
+      && siteOrientation?.negativeXAxisBearingFromTrueNorth === 127,
+    'Canonical SITE-XY long axis must remain +X 307 degrees and -X 127 degrees.',
+  );
+  check(
+    errors,
+    model.referenceSystem?.siteOrientation?.status === 'confirmed'
+      && model.referenceSystem?.siteOrientation?.positiveXAxisDirection
+        === 'pool-remote-to-service-core'
+      && JSON.stringify(model.referenceSystem?.siteOrientation?.sourceIds)
+        === JSON.stringify(['SRC-SITE-001', 'SRC-SITE-002']),
+    'Canonical site orientation must be confirmed from pool remote end to service core and cite both site sources.',
+  );
+  const latitude = model.referenceSystem?.siteLocation?.latitude;
+  const longitude = model.referenceSystem?.siteLocation?.longitude;
+  check(
+    errors,
+    closeTo(latitude?.value, 24.14434, 1e-6)
+      && closeTo(longitude?.value, 120.67341, 1e-6),
+    'Site coordinates must match the preserved PVGIS source location.',
+  );
+  check(
+    errors,
+    latitude?.sourceIds?.includes('SRC-SITE-001')
+      && latitude?.sourceIds?.includes('SRC-SITE-003')
+      && longitude?.sourceIds?.includes('SRC-SITE-001')
+      && longitude?.sourceIds?.includes('SRC-SITE-003'),
+    'Site coordinates must cite both the site-location source and the preserved PVGIS machine source.',
   );
 
   const requiredBounds = {
@@ -237,6 +298,25 @@ export function validateModel(model) {
 
   check(errors, closeTo(active.solar.planRotation.value, active.l3.planRotation), 'Solar and L3 plan rotations must share one value.');
   check(errors, closeTo(active.solar.mirrorLeanFromVertical.value, active.l3.mirror.leanFromVertical), 'Solar and mirror-wall lean values must share one value.');
+  check(errors, closeTo(active.solar.azimuthTolerance?.value, 28), 'Solar azimuth tolerance must remain the active 28-degree working criterion.');
+  check(errors, closeTo(active.solar.minimumDownwardAngle?.value, 8), 'Solar minimum downward angle must remain the active 8-degree working criterion.');
+  check(errors, active.solar.analysisMethodRevision === 'SOLAR-METHOD-1.0.0', 'Solar analysis method revision must be SOLAR-METHOD-1.0.0.');
+  check(
+    errors,
+    closeTo(active.solar.energyAssumptions?.mirrorReflectance, 0.75)
+      && closeTo(active.solar.energyAssumptions?.glazingSolarTransmittance, 0.6)
+      && closeTo(active.solar.energyAssumptions?.daylightStartHour, 7)
+      && closeTo(active.solar.energyAssumptions?.daylightEndHour, 17),
+    'Solar energy assumptions must be owned by the active solar contract.',
+  );
+  check(errors, active.solar.weatherSourceId === 'SRC-SITE-003', 'Solar weather source must be SRC-SITE-003.');
+  check(
+    errors,
+    model.geometry?.solarReflection
+      && Object.keys(model.geometry.solarReflection).length === 1
+      && model.geometry.solarReflection.legacyV050Study?.status === 'legacy',
+    'geometry.solarReflection must contain only the legacyV050Study historical record.',
+  );
   check(errors, active.solar.workingResult?.warmPoolAddedKWh === 0, 'The X35 working result must keep warm-season added pool energy at zero.');
   check(errors, closeTo(active.solar.workingResult?.coolPoolAddedKWh, 1036.829), 'The X35 cool-season pool result must be +1,036.829 kWh.');
   check(errors, active.solar.analysisStatus === 'working-optimized-requires-professional-validation', 'Solar status must require professional validation.');

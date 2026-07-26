@@ -5,6 +5,7 @@ import {
   resolveGeometryEntity,
   THREE_SITE_ADAPTER_ID,
 } from './active-geometry.mjs';
+import { deriveSiteOrientation } from './site-orientation.mjs';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -18,13 +19,15 @@ export function hashData(value) {
 
 export function solarAnalysisInput(model) {
   const active = resolveActiveGeometry(model);
+  const orientation = deriveSiteOrientation(model.referenceSystem);
   const pool = resolveGeometryEntity(active, 'POOL-01');
   const l3 = resolveGeometryEntity(active, 'L3-PLATE-01');
   const roof = resolveGeometryEntity(active, 'RF-GL-01');
   return {
-    schemaVersion: '1.0.0',
+    schemaVersion: '1.1.0',
+    analysisMethodRevision: active.solar.analysisMethodRevision,
     siteLocation: structuredClone(model.referenceSystem.siteLocation),
-    localLongAxisBearingFromTrueNorth: model.referenceSystem.localLongAxisBearingFromTrueNorth,
+    positiveXAxisBearingFromTrueNorth: orientation.positiveXAxisBearingFromTrueNorth,
     poolBounds: structuredClone(pool.bounds),
     l3FloorBounds: structuredClone(l3.bounds),
     l3PlanPivot: structuredClone(active.l3.planPivot),
@@ -34,19 +37,18 @@ export function solarAnalysisInput(model) {
       planRotation: active.solar.planRotation.value,
       leanFromVertical: active.solar.mirrorLeanFromVertical.value,
     },
+    reflectionCriteria: {
+      azimuthTolerance: active.solar.azimuthTolerance.value,
+      minimumDownwardAngle: active.solar.minimumDownwardAngle.value,
+    },
     pivotSensitivityX: structuredClone(active.solar.pivotSensitivityX),
     fixedRoof: {
       bounds: structuredClone(roof.bounds),
       highElevation: active.roof.highElevation,
       pitch: active.roof.pitch,
     },
-    energyAssumptions: {
-      mirrorReflectance: 0.75,
-      glazingSolarTransmittance: 0.60,
-      daylightStartHour: 7,
-      daylightEndHour: 17,
-    },
-    weatherSourceIds: ['SRC-SITE-003'],
+    energyAssumptions: structuredClone(active.solar.energyAssumptions),
+    weatherSourceIds: [active.solar.weatherSourceId],
   };
 }
 
@@ -85,11 +87,10 @@ export function buildViewerModel(model, analysisRegistry = {}) {
   const analysisStatus = recordedAnalysisInputHash === null
     ? 'unavailable'
     : recordedAnalysisInputHash === currentAnalysisInputHash ? 'current' : 'stale';
-  const orientationBearing = model.referenceSystem.localLongAxisBearingFromTrueNorth;
-  if (!Number.isFinite(orientationBearing)
-    || model.referenceSystem.worldTransform?.rotationFromTrueNorth !== orientationBearing
-    || active.site.rightwardBearingFromTrueNorth !== orientationBearing) {
-    throw new RangeError('Viewer orientation fields must share one finite bearing from true north.');
+  deriveSiteOrientation(model.referenceSystem);
+  if ('rightwardBearingFromTrueNorth' in active.site
+    || 'northArrowPlanDirection' in active.site) {
+    throw new RangeError('Active site must not duplicate canonical orientation data.');
   }
   const poolSize = size(pool.bounds);
   const l2Size = size(l2.bounds);
@@ -99,7 +100,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
   const stairData = active.stair;
 
   const viewerModel = {
-    schemaVersion: '1.4.0',
+    schemaVersion: '1.5.0',
     modelVersion: model.modelVersion,
     revision: model.revision,
     activeGeometryRevisionId: active.id,
@@ -111,11 +112,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
     referenceSystem: {
       unit: model.referenceSystem.unit,
       angleUnit: model.referenceSystem.angleUnit,
-      localLongAxisBearingFromTrueNorth: orientationBearing,
-      worldTransform: {
-        rotationFromTrueNorth: model.referenceSystem.worldTransform.rotationFromTrueNorth,
-      },
-      northArrowPlanDirection: active.site.northArrowPlanDirection,
+      siteOrientation: structuredClone(model.referenceSystem.siteOrientation),
       axes: structuredClone(model.referenceSystem.axes),
       coordinateAdapter: {
         siteX: 'threeX', siteY: 'negativeThreeZ', siteZ: 'threeY', adapterId: THREE_SITE_ADAPTER_ID,

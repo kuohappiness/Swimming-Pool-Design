@@ -1,9 +1,9 @@
 {
-  "schemaVersion": "1.4.0",
-  "modelVersion": "0.9.4",
-  "revision": "2026-07-25",
+  "schemaVersion": "1.5.0",
+  "modelVersion": "0.9.6",
+  "revision": "2026-07-26",
   "activeGeometryRevisionId": "GEO-0.8.2",
-  "designTargetVersion": "0.9.4",
+  "designTargetVersion": "0.9.6",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -14,12 +14,17 @@
     "unit": "m",
     "angleUnit": "degree",
     "axes": { "x": "east", "y": "north", "z": "up" },
-    "localLongAxisBearingFromTrueNorth": 307,
+    "siteOrientation": {
+      "coordinateSystemId": "SITE-XY",
+      "positiveXAxisBearingFromTrueNorth": 307,
+      "positiveXAxisDirection": "pool-remote-to-service-core",
+      "status": "confirmed",
+      "sourceIds": ["SRC-SITE-001", "SRC-SITE-002"]
+    },
     "worldOriginEntityId": "O-SITE-01",
     "worldTransform": {
       "localOrigin": [27, 0, 0],
-      "worldOrigin": [0, 0, 0],
-      "rotationFromTrueNorth": 307
+      "worldOrigin": [0, 0, 0]
     },
     "coordinateSystems": [
       {
@@ -32,8 +37,8 @@
       }
     ],
     "siteLocation": {
-      "latitude": { "value": 24.14434, "status": "working", "sourceIds": ["SRC-SITE-001"] },
-      "longitude": { "value": 120.67341, "status": "working", "sourceIds": ["SRC-SITE-001"] },
+      "latitude": { "value": 24.14434, "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-SITE-003"] },
+      "longitude": { "value": 120.67341, "status": "working", "sourceIds": ["SRC-SITE-001", "SRC-SITE-003"] },
       "timeZone": "Asia/Taipei",
       "utcOffsetHours": 8
     },
@@ -78,9 +83,7 @@
       "site": {
         "entityId": "SITE-01",
         "coordinateSystemId": "SITE-XY",
-        "bounds": { "x1": 0, "x2": 41, "y1": 0, "y2": 14 },
-        "rightwardBearingFromTrueNorth": 307,
-        "northArrowPlanDirection": "lower-right"
+        "bounds": { "x1": 0, "x2": 41, "y1": 0, "y2": 14 }
       },
       "levels": {
         "l1BaseElevation": 0,
@@ -691,6 +694,13 @@
         "mirrorLeanFromVertical": { "value": 23, "status": "working", "sourceIds": ["SRC-SITE-003"] },
         "azimuthTolerance": { "value": 28, "status": "working", "sourceIds": [] },
         "minimumDownwardAngle": { "value": 8, "status": "working", "sourceIds": [] },
+        "analysisMethodRevision": "SOLAR-METHOD-1.0.0",
+        "energyAssumptions": {
+          "mirrorReflectance": 0.75,
+          "glazingSolarTransmittance": 0.6,
+          "daylightStartHour": 7,
+          "daylightEndHour": 17
+        },
         "analysisStatus": "working-optimized-requires-professional-validation",
         "weatherSourceId": "SRC-SITE-003",
         "pivotSensitivityX": [33, 35, 37, 39, 41],
@@ -861,24 +871,6 @@
       "cabinet": { "width": 0.45, "depth": 0.35, "height": 0.45, "bottomElevation": 0.9 }
     },
     "solarReflection": {
-      "planRotation": { "value": 9.5, "status": "confirmed", "sourceIds": [] },
-      "mirrorLeanFromVertical": { "value": 8.5, "status": "confirmed", "sourceIds": [] },
-      "rotationDirection": "clockwise-from-above",
-      "mirrorLeanDirection": "toward-pool",
-      "azimuthTolerance": { "value": 28, "status": "working", "sourceIds": [] },
-      "minimumDownwardAngle": { "value": 8, "status": "working", "sourceIds": [] },
-      "planPivot": {
-        "strategy": "l2-start-width-center",
-        "status": "working",
-        "sourceIds": [],
-        "openItemId": "OPEN-011"
-      },
-      "mirrorVisualWallHeight": {
-        "value": 3.6,
-        "status": "working",
-        "sourceIds": ["SRC-CONCEPT-009"],
-        "openItemId": "OPEN-011"
-      },
       "legacyV050Study": {
         "revision": "0.5.0",
         "status": "legacy",
@@ -892,9 +884,7 @@
           "upperFloorWidth": 13.5,
           "poolHallLength": 33,
           "serviceWingLength": 8,
-          "leftSetback": 2,
-          "rightwardBearingFromTrueNorth": 307,
-          "northArrowPlanDirection": "lower-right"
+          "leftSetback": 2
         },
         "l1": {
           "poolOrigin": [6, 3],
@@ -1022,8 +1012,7 @@
             "coolPoolAddedKWhRange": [673.31, 1151.973]
           }
         }
-      },
-      "openItemId": "OPEN-011"
+      }
     }
   },
   "program": {

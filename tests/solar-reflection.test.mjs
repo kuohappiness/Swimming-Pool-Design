@@ -21,10 +21,13 @@ test('azimuth helpers normalize wraparound without changing angular distance', (
   assert.equal(circularAngleDelta(10, 190), 180);
 });
 
-test('solar plan orientation requires one consistent world bearing', () => {
+test('solar plan orientation derives from the canonical SITE-XY orientation', () => {
   const reference = {
-    localLongAxisBearingFromTrueNorth: 307,
-    worldTransform: { rotationFromTrueNorth: 307 },
+    siteOrientation: {
+      coordinateSystemId: 'SITE-XY',
+      positiveXAxisBearingFromTrueNorth: 307,
+      positiveXAxisDirection: 'pool-remote-to-service-core',
+    },
   };
   assert.deepEqual(deriveSolarPlanOrientation(reference), {
     buildingAzimuth: 307,
@@ -32,8 +35,8 @@ test('solar plan orientation requires one consistent world bearing', () => {
     svgRotationFromLocalX: 217,
   });
   assert.throws(
-    () => deriveSolarPlanOrientation({ ...reference, worldTransform: { rotationFromTrueNorth: 308 } }),
-    /orientation fields must match/,
+    () => deriveSolarPlanOrientation({ ...reference, localLongAxisBearingFromTrueNorth: 308 }),
+    /localLongAxisBearingFromTrueNorth is forbidden/,
   );
 });
 
@@ -49,6 +52,39 @@ test('Taiwan summer-noon solar position is finite and above the horizon', () => 
   }), /solar date must be valid/);
 });
 
+test('solar position stays within the published NREL SPA benchmark tolerance', () => {
+  // NREL SPA report example: 2003-10-17 12:30:30, zenith 50.11162°, azimuth 194.34024°.
+  // This implementation is the documented NOAA approximation, so the tolerance includes
+  // the benchmark pressure, temperature, refraction, and 30-second input differences.
+  const solar = calculateSolarPosition({
+    year: 2003,
+    month: 10,
+    day: 17,
+    hour: 12,
+    minute: 30,
+    latitude: 39.742476,
+    longitude: -105.1786,
+    utcOffsetHours: -7,
+  });
+  assert.ok(Math.abs((90 - solar.altitude) - 50.11162) <= 0.4);
+  assert.ok(Math.abs(solar.azimuth - 194.34024) <= 0.2);
+});
+
+test('vertical mirror obeys the analytic equal-incidence reflection case', () => {
+  const reflection = reflectSolarRay({
+    solarAltitude: 30,
+    solarAzimuth: 180,
+    wallNormalAzimuth: 180,
+    wallLeanFromVertical: 0,
+  });
+  assert.equal(reflection.frontLit, true);
+  assert.equal(reflection.reflectedFrontSide, true);
+  assert.ok(reflection.frontHalfSpaceDot > 0);
+  assert.ok(Math.abs(reflection.incidenceAngle - 30) < 1e-9);
+  assert.ok(Math.abs(reflection.reflectedAzimuth - 180) < 1e-9);
+  assert.ok(Math.abs(reflection.reflectedDownwardAngle - 30) < 1e-9);
+});
+
 test('ray reflection classifies front lighting, plan tolerance, and downward angle', () => {
   const reflection = reflectSolarRay({
     solarAltitude: 30,
@@ -57,6 +93,7 @@ test('ray reflection classifies front lighting, plan tolerance, and downward ang
     wallLeanFromVertical: 23,
   });
   assert.equal(reflection.frontLit, true);
+  assert.equal(reflection.reflectedFrontSide, true);
   assert.ok(reflection.reflectedDownwardAngle > 0);
   const target = evaluatePoolReflection(reflection, {
     poolTargetAzimuth: reflection.reflectedAzimuth,
@@ -64,6 +101,43 @@ test('ray reflection classifies front lighting, plan tolerance, and downward ang
     minimumDownwardAngle: 0,
   });
   assert.equal(target.hitsPool, true);
+  assert.throws(
+    () => evaluatePoolReflection(reflection, { poolTargetAzimuth: 150 }),
+    /azimuthTolerance must be finite/,
+  );
+});
+
+test('tilted mirror keeps a plan-backward downward ray in the 3D front half-space', () => {
+  const reflection = reflectSolarRay({
+    solarAltitude: 20.166866045343966,
+    solarAzimuth: 77.05256883331447,
+    wallNormalAzimuth: 152.5,
+    wallLeanFromVertical: 23,
+  });
+
+  assert.equal(reflection.frontLit, true);
+  assert.equal(reflection.reflectedFrontSide, true);
+  assert.ok(reflection.frontHalfSpaceDot > 0);
+  assert.ok(reflection.reflectedDownwardAngle > 0);
+});
+
+test('pool evaluation fails closed when an outgoing ray is not on the mirror front side', () => {
+  const reflection = {
+    ...reflectSolarRay({
+      solarAltitude: 30,
+      solarAzimuth: 150,
+      wallNormalAzimuth: 150,
+      wallLeanFromVertical: 23,
+    }),
+    reflectedFrontSide: false,
+  };
+
+  const target = evaluatePoolReflection(reflection, {
+    poolTargetAzimuth: reflection.reflectedAzimuth,
+    azimuthTolerance: 1,
+    minimumDownwardAngle: 0,
+  });
+  assert.equal(target.hitsPool, false);
 });
 
 test('plan rotation preserves distance to the pivot', () => {

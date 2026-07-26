@@ -4,6 +4,7 @@ import rawViewerModel from '../../generated/viewer-model.json';
 import rawConceptContent from '../../generated/concept-content.json';
 import { adaptViewerData, formatDegrees, formatElevation } from './model-adapter';
 import { createViewerScene, type SelectableInfo } from './scene-factory';
+import { deriveViewerOrientation } from './orientation';
 import { setupSelection } from './interactions';
 import { createBaselineRenderingRuntime, type ViewerRenderingRuntime } from './rendering';
 import { getViewerScene, viewerScenes } from './scenes';
@@ -93,9 +94,26 @@ async function bootstrap() {
 const bootstrapStartedAt = performance.now();
 try {
   const { model } = adaptViewerData(rawViewerModel, rawConceptContent);
-  const northPlanDirection = model.referenceSystem.northArrowPlanDirection;
+  const orientation = deriveViewerOrientation(model.referenceSystem);
+  const northPlanDirection = orientation.northPlanDirection;
+  const northGlyph = {
+    'upper-left': '↖',
+    'upper-right': '↗',
+    'lower-left': '↙',
+    'lower-right': '↘',
+  }[northPlanDirection];
+  const northDirectionLabel = {
+    'upper-left': '畫面左上',
+    'upper-right': '畫面右上',
+    'lower-left': '畫面左下',
+    'lower-right': '畫面右下',
+  }[northPlanDirection];
   orientationCue.setAttribute('data-north-direction', northPlanDirection);
-  orientationCue.setAttribute('aria-label', `真北 N 指向畫面右下角；建築本地長軸方位 ${model.referenceSystem.localLongAxisBearingFromTrueNorth} 度`);
+  orientationCue.setAttribute(
+    'aria-label',
+    `真北 N 指向${northDirectionLabel}；基地 +X 方位 ${orientation.bearingFromTrueNorth} 度`,
+  );
+  required<HTMLElement>('[data-orientation-arrow]').textContent = northGlyph;
 
   if (!supportsWebGL()) {
     walkthroughEntry.hidden = true;

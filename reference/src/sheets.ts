@@ -1,4 +1,5 @@
 import type { ProjectModel, SheetRender } from './types';
+import { deriveSiteOrientation } from '../../scripts/site-orientation.mjs';
 
 const siteImage = new URL('../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
 import l1Svg from '../drafts/v0.6.7/DRAW-L1-PLAN-v0.6.7.svg?raw';
@@ -7,7 +8,37 @@ import l3Svg from '../drafts/v0.6.7/DRAW-L3-PLAN-v0.6.7.svg?raw';
 import sectionSvg from '../drafts/v0.6.7/DRAW-LONGITUDINAL-SECTION-v0.6.7.svg?raw';
 
 function reviewDrawing(id: string, title: string, svgSource: string, note: string, model: ProjectModel): SheetRender {
-  const inlineSvg = svgSource
+  const orientation = deriveSiteOrientation(model.referenceSystem);
+  const northDirectionLabel = {
+    'upper-left': '圖面左上',
+    'upper-right': '圖面右上',
+    'lower-left': '圖面左下',
+    'lower-right': '圖面右下',
+  }[orientation.northPlanDirection];
+  const orientationBoundSvg = svgSource
+    .replace(
+      /data-north-plan-direction="[^"]+"/g,
+      `data-north-plan-direction="${orientation.northPlanDirection}"`,
+    )
+    .replace(
+      /data-north-rotation="[^"]+"/g,
+      `data-north-rotation="${orientation.svgNorthArrowRotation}"`,
+    )
+    .replace(
+      /transform="translate\(1690 190\) rotate\([^)]+\)"/g,
+      `transform="translate(1690 190) rotate(${orientation.svgNorthArrowRotation})"`,
+    )
+    .replace(
+      /真北＝圖面[^；<]+；圖面右＝\+X＝[^<]+/g,
+      `真北＝${northDirectionLabel}；圖面右＝+X＝${orientation.positiveXAxisBearingFromTrueNorth}°`,
+    );
+  if (svgSource.includes('data-north-rotation=')
+    && !orientationBoundSvg.includes(
+      `data-north-rotation="${orientation.svgNorthArrowRotation}"`,
+    )) {
+    throw new TypeError(`${id} 的真北箭頭無法綁定 canonical 基地方位。`);
+  }
+  const inlineSvg = orientationBoundSvg
     .replace('<svg ', `<svg class="drawing review-drawing" data-sheet-id="${id}" `)
     .replace('</svg>', `<metadata data-sheet-id="${id}" data-model-version="${model.modelVersion}" data-active-geometry="${model.activeGeometryRevisionId}" data-coordinate-system="SITE-XY" /></svg>`);
   return {
@@ -19,6 +50,7 @@ function reviewDrawing(id: string, title: string, svgSource: string, note: strin
 }
 
 function siteDrawing(model: ProjectModel): SheetRender {
+  const orientation = deriveSiteOrientation(model.referenceSystem);
   const note = `基地現況來源圖；MODEL ${model.modelVersion} · ACTIVE ${model.activeGeometryRevisionId}。衛星影像不是地籍或測量成果。`;
   return {
     id: 'REF-001',
@@ -32,7 +64,7 @@ function siteDrawing(model: ProjectModel): SheetRender {
       <g transform="translate(936 92)" font-family="system-ui, sans-serif" fill="#263746">
         <text font-size="16" font-weight="700">MODEL ${model.modelVersion}</text>
         <text y="30" font-size="13">ACTIVE ${model.activeGeometryRevisionId}</text>
-        <text y="56" font-size="13">SITE-XY · +X 方位 307°</text>
+        <text y="56" font-size="13">SITE-XY · +X 方位 ${orientation.positiveXAxisBearingFromTrueNorth}°</text>
         <path d="M92 180L120 102L148 180L120 160Z" fill="#c4553f" />
         <text x="120" y="94" text-anchor="middle" font-size="14" font-weight="700">N</text>
         <text y="232" font-size="12">概念設計／非施工圖</text>

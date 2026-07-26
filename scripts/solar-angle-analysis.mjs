@@ -28,6 +28,21 @@ const finite = (value, label) => {
   return value;
 };
 
+const bounded = (value, minimum, maximum, label) => {
+  const result = finite(value, label);
+  if (result < minimum || result > maximum) {
+    throw new RangeError(`${label} must be within ${minimum}..${maximum}.`);
+  }
+  return result;
+};
+
+const nonEmptyString = (value, label) => {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new TypeError(`${label} must be a non-empty string.`);
+  }
+  return value;
+};
+
 const round = (value, digits = 1) => Number(value.toFixed(digits));
 const pad = (value) => String(value).padStart(2, '0');
 const formatDateTime = (year, month, day, minute) => (
@@ -116,6 +131,7 @@ function continuousInput(options) {
 }
 
 function evaluateWindow(model, input) {
+  const study = activeSolarStudyGeometry(model);
   const location = model.referenceSystem.siteLocation;
   const poolAzimuth = normalizeAzimuth(
     deriveSolarPlanOrientation(model.referenceSystem).poolFacingAzimuth + input.bearingOffset,
@@ -145,8 +161,8 @@ function evaluateWindow(model, input) {
       });
       const evaluation = evaluatePoolReflection(reflection, {
         poolTargetAzimuth: poolAzimuth,
-        azimuthTolerance: model.geometry.solarReflection.azimuthTolerance.value,
-        minimumDownwardAngle: model.geometry.solarReflection.minimumDownwardAngle.value,
+        azimuthTolerance: study.azimuthTolerance,
+        minimumDownwardAngle: study.minimumDownwardAngle,
       });
 
       total += 1;
@@ -288,7 +304,6 @@ export function evaluateMirrorEnvelope(model, options = {}) {
 }
 
 export function evaluateContinuousWarmSeason(model, options = {}) {
-  const solarGeometry = model?.geometry?.solarReflection;
   const study = activeSolarStudyGeometry(model);
   const planRotation = finite(
     options.planRotation ?? study.planRotation,
@@ -314,8 +329,8 @@ export function evaluateContinuousWarmSeason(model, options = {}) {
       });
       return evaluatePoolReflection(reflection, {
         poolTargetAzimuth: poolAzimuth,
-        azimuthTolerance: solarGeometry.azimuthTolerance.value,
-        minimumDownwardAngle: solarGeometry.minimumDownwardAngle.value,
+        azimuthTolerance: study.azimuthTolerance,
+        minimumDownwardAngle: study.minimumDownwardAngle,
       }).hitsPool;
     },
   });
@@ -377,11 +392,50 @@ export function activeSolarStudyGeometry(model) {
   const active = resolveActiveGeometry(model);
   const floor = resolveGeometryEntity(active, 'L3-PLATE-01');
   const roof = resolveGeometryEntity(active, 'RF-GL-01');
+  const energyAssumptions = active.solar.energyAssumptions;
+  const daylightStartHour = bounded(
+    energyAssumptions?.daylightStartHour,
+    0,
+    24,
+    'active.solar.energyAssumptions.daylightStartHour',
+  );
+  const daylightEndHour = bounded(
+    energyAssumptions?.daylightEndHour,
+    0,
+    24,
+    'active.solar.energyAssumptions.daylightEndHour',
+  );
+  if (daylightEndHour <= daylightStartHour) {
+    throw new RangeError('active.solar.energyAssumptions daylight interval must be increasing.');
+  }
   return {
     revision: active.revision,
     rotatingLevel: active.solar.rotatingLevel,
     planRotation: finite(active.solar.planRotation?.value, 'active.solar.planRotation'),
     mirrorLeanFromVertical: finite(active.solar.mirrorLeanFromVertical?.value, 'active.solar.mirrorLeanFromVertical'),
+    azimuthTolerance: bounded(active.solar.azimuthTolerance?.value, 0, 180, 'active.solar.azimuthTolerance'),
+    minimumDownwardAngle: bounded(active.solar.minimumDownwardAngle?.value, 0, 90, 'active.solar.minimumDownwardAngle'),
+    analysisMethodRevision: nonEmptyString(
+      active.solar.analysisMethodRevision,
+      'active.solar.analysisMethodRevision',
+    ),
+    energyAssumptions: {
+      mirrorReflectance: bounded(
+        energyAssumptions?.mirrorReflectance,
+        0,
+        1,
+        'active.solar.energyAssumptions.mirrorReflectance',
+      ),
+      glazingSolarTransmittance: bounded(
+        energyAssumptions?.glazingSolarTransmittance,
+        0,
+        1,
+        'active.solar.energyAssumptions.glazingSolarTransmittance',
+      ),
+      daylightStartHour,
+      daylightEndHour,
+    },
+    weatherSourceId: nonEmptyString(active.solar.weatherSourceId, 'active.solar.weatherSourceId'),
     startX: finite(floor.bounds.x1, 'L3-PLATE-01.bounds.x1'),
     endX: finite(floor.bounds.x2, 'L3-PLATE-01.bounds.x2'),
     width: finite(floor.bounds.y2 - floor.bounds.y1, 'L3-PLATE-01 width'),
@@ -431,7 +485,6 @@ export function buildReflectingVolumeCorners(model, input) {
 export const buildL2VolumeCorners = buildReflectingVolumeCorners;
 
 export function evaluatePoolSurfaceScenario(model, options = {}) {
-  const solarGeometry = model?.geometry?.solarReflection;
   const study = activeSolarStudyGeometry(model);
   const planRotation = finite(
     options.planRotation ?? study.planRotation,
@@ -445,14 +498,14 @@ export function evaluatePoolSurfaceScenario(model, options = {}) {
   const pivotX = finite(options.pivotX ?? study.pivotX, 'pivotX');
   const bearingOffset = finite(options.bearingOffset ?? 0, 'bearingOffset');
   const interval = continuousInput(options);
-  const localBearing = normalizeAzimuth(
-    model.referenceSystem.localLongAxisBearingFromTrueNorth + bearingOffset,
-  );
   const orientation = deriveSolarPlanOrientation(model.referenceSystem);
+  const localBearing = normalizeAzimuth(
+    orientation.buildingAzimuth + bearingOffset,
+  );
   const poolAzimuth = normalizeAzimuth(orientation.poolFacingAzimuth + bearingOffset);
   const wallAzimuth = normalizeAzimuth(poolAzimuth + planRotation);
   const geometryInput = {
-    localLongAxisBearingFromTrueNorth: localBearing,
+    positiveXAxisBearingFromTrueNorth: localBearing,
     baseCenter: { x: study.startX, y: study.width / 2 },
     pivot: { x: pivotX, y: study.pivotY },
     width: study.width,

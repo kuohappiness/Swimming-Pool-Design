@@ -146,12 +146,17 @@
 | DEC-138 | 0.9.2 的 3D 展示採聚焦模式 | 場景敘事導覽及右側構件資訊暫不顯示但不刪除；圖層狀態以顏色圓點表示，攝影機控制縮短，第一人稱入口移至頁首並命名「實境漫遊」，整體配色改為低對比的圖紙白與泳池綠 | confirmed focused Viewer presentation |
 | DEC-139 | 0.9.3 是只作用於手機斷點的閱讀與圖面操作 PATCH | 720 px 以下理念索引與章節標題避免換行／重複、引言字體跟隨內文；820 px 以下圖面目錄以端點感知漸層提示水平滑動，工作區滿版。桌機／平板展示、active `GEO-0.8.2`、solar inputHash、V067 圖面本體及 3D／漫遊行為全部不變 | confirmed mobile-only presentation boundary |
 | DEC-140 | 0.9.4 將公開敘事改為較精簡、易讀的成果展文字，並把面向使用者的「服務量體」統一稱為「服務中心」 | 修改範圍限公開理念、相關替代文字／場景摘要、引言樣式與文件用詞。active `GEO-0.8.2`、solar inputHash、V067 圖面本體、3D 幾何與漫遊行為均不變 | confirmed copy-only release boundary |
+| DEC-141 | 0.9.6 將 `referenceSystem.siteOrientation` 定為全專案唯一可寫入的基地方位：SITE +X 由泳池遠端指向服務核心、真北方位 307°；SITE −X 127°、Three root 143°、圖面真北與所有方向讀值均由它推導 | 使用者確認 127°／307°為本專案唯一正確基地方位。刪除 `localLongAxisBearingFromTrueNorth`、`worldTransform.rotationFromTrueNorth`、active／legacy site bearing 與預存北箭頭象限，任何重新出現都由 schema／validator fail closed。鏡牆法線不納入固定基地方位；它必須由 `127° + 當下 L3 水平旋轉角` 即時計算，因此可隨後續日照研究結論調整 | confirmed canonical orientation contract; closes OPEN-006 for project use and supersedes all parallel orientation fields |
+| DEC-142 | 日照分析的判讀門檻、能量假設、氣象來源與方法修訂版只由 active geometry 的 `solar` 子樹管理；現行分析不得再讀取 `geometry.solarReflection` 或程式內建預設 | `GEO-0.8.2.solar` 明列方位容差、最低向下角、反射率、玻璃太陽透射率、日照時段與 `analysisMethodRevision`；solar `inputHash` 必須涵蓋這些欄位，任何方法修訂或假設變更都會使 registry 失效並要求重新驗證。`geometry.solarReflection.legacyV050Study` 只保留歷史重現用途，不參與現行運算。本輪不改 HTML、CSS、公開文字快照或部署，展示層待最後階段另行同步 | confirmed active-only solar-analysis contract |
+| DEC-143 | Solar Study HTML 下一輪同步採五項已核准修正：研究摘要改標 v0.6.7 研究基線／Model 0.9.6 已驗證、研究資料列顯示 active 方法與假設、互動初始值移除 HTML 硬編碼、區分 07:00～18:00 方向診斷與 07:00～17:00 能量時段、把「鏡牆朝向」改為「鏡牆法線方位」 | 所有新增讀值由 active solar contract 或 current registry/runtime 填入，不建立第二套 HTML 預設；+25.5°、+23.0°、暖季 0 與冷季 +1,036.829 kWh 研究結果不變。使用者要求先登錄、稍後與其他 HTML 工作一併實作；研究方法／限制 footer 的文字更新不包含在本次五項核准範圍 | implemented in TASK-101 |
+| DEC-144 | Solar Study 的方向代理門檻需直接呈現在互動圖上 | 平面圖以池向為中心，依 active model 顯示方位容許範圍（目前為 ±28°）淡色扇形；剖面圖依 active model 顯示最低下射角門檻（目前為 8°）參考線或淡色區。這些圖示只用來解釋方向代理是否通過，不得呈現成精確池面落點、反射能量或完整 3D 光線追蹤結果 | implemented in TASK-101 |
+| DEC-145 | Solar Study 的入射光與反射光採同色、不同線型的統一符號 | 平面圖補上目前缺少的反射光；入射光與反射光使用相同色相，入射光為實線、反射光為虛線，兩者皆加上箭頭表示傳播方向。鏡牆法線維持不同色相與清楚標示，避免再被誤認為反射光。剖面圖未命中池面的反射光不得降為難以辨識的低對比灰線，相關可讀性修正另列獨立任務追蹤 | plan ray symbols implemented in TASK-101; section miss readability pending TASK-102 |
+| DEC-146 | Solar Study 保留既有平面圖標題，並以投影標註與遮罩釐清反射光沒有穿透鏡牆 | 平面虛線明列為 3D 反射光的水平投影，並同時標示反射方位與向下角；鏡牆覆蓋光線，代表性入射點清楚可見，牆線兩側保留極短視覺間隙。runtime 另以完整 3D 反射向量位於鏡面正面半空間為有效反射條件；未通過時不得繪出反射光。平面圖原標題不改，入射／反射同色、實／虛線及末端箭頭規則不變 | confirmed by user for TASK-105 |
 
 ## 2. 尚待精化
 
 | ID | 問題 | 目前處理 | 未來輸入 |
 | --- | --- | --- | --- |
-| OPEN-006 | 衛星圖精確像素校準與基地旋轉角 | 修正本地 +X 為 307°；精確角度仍可由測量更新 | 更高解析地圖或測量資料 |
 | OPEN-008 | 0.6.0 L1 四間獨立廁所的施工級隔間、門位與管道配置 | `DEC-073` 的四個工作矩形、器具數、X31／X39 獨立入口與互不連通已寫入 `GEO-0.6.0`、圖面與 Viewer。這是概念毛面積，牆柱、管道間及門洞尚未等比例扣除 | 建築師依實際服務人數核算法定器具及無障礙廁所；完成實牆厚、結構柱、管道牆、門有效淨寬、隱私、地排、清潔櫃與器具前淨空驗證 |
 | OPEN-009 | 三層服務中心的連續逃生、安全梯與無障礙適用範圍 | 空間最省的 working recommendation 是把固定結構核心做成封閉折返式安全梯，連續通達 L1～L3；不能只做 L3→L2。使用者希望 L2／L3 不設無障礙垂直動線，但本案屬校園泳池，新建／增建原則及直通樓梯至少一座為無障礙樓梯的規定尚不能逕行排除；此偏好不作可施工定案 | 使用用途與各層面積、人數、步行距離、樓梯座數／有效淨寬／防火區劃、直達地面出口；由建築師、消防及當地主管機關確認是否存在部分豁免 |
 | OPEN-011 | L3 水平旋轉、23° 外傾鏡牆及固定建築表皮的結構、構造與性能驗證 | `DEC-076` 已把 v0.6.0 工作值更新為 +25.5°／+23.0°、X35；暖季池面新增 0、冷季 +1,036.829 kWh，樓板投影重疊率 85.55%。X33 有 +0.125 kWh 暖季新增，故不屬嚴格零候選。23° 外傾幅度大，模型與 HTML 均只標為需專業驗證 | 以實際載重求質心／剛心及正式支點；驗證轉換構造、水平推力、風震、撓度、鏡牆分格固定、防水排水、墜落物、維修、戶外級鏡面實測反射率、框架遮蔭、氯胺耐久、觀察點眩光、全年 3D 光線追蹤、熱負荷與鄰地反射 |

@@ -37,6 +37,28 @@ test('active revision is the only geometry source and uses SITE-XY', () => {
   assert.deepEqual(sitePointToThree([20.5, 0.5, 0.3]), [20.5, 0.3, -0.5]);
 });
 
+test('active solar contract and local coordinate evidence are fail-closed', () => {
+  const active = resolveActiveGeometry(model);
+  assert.equal(active.solar.analysisMethodRevision, 'SOLAR-METHOD-1.0.0');
+  assert.deepEqual(active.solar.energyAssumptions, {
+    mirrorReflectance: 0.75,
+    glazingSolarTransmittance: 0.6,
+    daylightStartHour: 7,
+    daylightEndHour: 17,
+  });
+  assert.deepEqual(Object.keys(model.geometry.solarReflection), ['legacyV050Study']);
+  assert.ok(model.referenceSystem.siteLocation.latitude.sourceIds.includes('SRC-SITE-003'));
+  assert.ok(model.referenceSystem.siteLocation.longitude.sourceIds.includes('SRC-SITE-003'));
+
+  const legacyLeak = structuredClone(model);
+  legacyLeak.geometry.solarReflection.azimuthTolerance = { value: 28 };
+  assert.match(validateModel(legacyLeak).join('\n'), /must contain only the legacyV050Study/);
+
+  const untrackedCoordinate = structuredClone(model);
+  untrackedCoordinate.referenceSystem.siteLocation.latitude.sourceIds = ['SRC-SITE-001'];
+  assert.match(validateModel(untrackedCoordinate).join('\n'), /preserved PVGIS machine source/);
+});
+
 test('active resolver fails closed when the selector is missing, unknown, duplicated, or version-drifted', () => {
   const missing = structuredClone(model);
   delete missing.activeGeometryRevisionId;
@@ -220,6 +242,9 @@ test('current sheet registry and atlas source contain only latest v0.6.7 inline 
   assert.doesNotMatch(sheetsSource, /V23-|v0\.5\.0\/DRAW/);
   assert.match(sheetsSource, /\.svg\?raw/);
   assert.doesNotMatch(sheetsSource, /DRAW-L[123].*\.png/);
+  assert.match(sheetsSource, /deriveSiteOrientation\(model\.referenceSystem\)/);
+  assert.match(sheetsSource, /data-north-rotation/);
+  assert.doesNotMatch(sheetsSource, /SITE-XY · \+X 方位 307°/);
 });
 
 test('all four reproducible drawings carry active revision and SITE-XY metadata', async () => {

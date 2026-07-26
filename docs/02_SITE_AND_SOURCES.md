@@ -12,11 +12,11 @@
 
 ## 2. 方位與比例
 
-`SRC-SITE-001` 保留 Google Maps 20 公尺比例尺；`SRC-SITE-002` 另保留指南針與 20 公尺／50 英尺比例尺。本地 +X 必須由泳池遠端指向 `SRC-SITE-002` 綠框所示的原廁所／服務核心基地，因此圖集採 307° 的有向工作值；127° 是同一長軸的反方向，不再驅動模型。精確角度仍保留未來重新校準參數。
+`SRC-SITE-001` 保留 Google Maps 20 公尺比例尺；`SRC-SITE-002` 另保留指南針與 20 公尺／50 英尺比例尺。本地 +X 必須由泳池遠端指向 `SRC-SITE-002` 綠框所示的原廁所／服務核心基地，真北方位角固定為 307°；127° 是同一長軸的反方向。這組方向已由使用者確認為本專案唯一正確的基地方位，只能由 `model/project-model.json` 的 `referenceSystem.siteOrientation` 取得；圖面、Viewer、Solar Study、分析與產生器不得另存方位值。
 
 世界座標為 `+X` 東、`+Y` 北、`+Z` 上，長度公尺、角度度數。建築本地座標經單一 `worldTransform` 轉為世界座標；Viewer 不得另寫第二套北向。
 
-太陽幾何研究使用校址的公開地圖中心工作值 `24.14434°N, 120.67341°E`，時區為 `Asia/Taipei`（UTC+8）。校名與地址由[學校官方英文頁](https://www.ntctcps.tc.edu.tw/english-version/)確認為國立臺中教育大學附設實驗國民小學、臺中市北區民權路 220 號；座標取自以 OpenStreetMap way 335710522 為基礎的[公開地圖位置](https://mapcarta.com/W335710522)。此座標只用於概念階段太陽位置計算，不是測量控制點。
+太陽幾何研究使用校址的公開地圖中心工作值 `24.14434°N, 120.67341°E`，時區為 `Asia/Taipei`（UTC+8）。校名與地址由[學校官方英文頁](https://www.ntctcps.tc.edu.tw/english-version/)確認為國立臺中教育大學附設實驗國民小學、臺中市北區民權路 220 號；座標起源記錄為以 OpenStreetMap way 335710522 為基礎的[公開地圖位置](https://mapcarta.com/W335710522)，機器可重現證據則由本地保存且 metadata 明列同一經緯度的 `SRC-SITE-003` PVGIS 原始檔補強。因此模型的 latitude／longitude 同時引用 `SRC-SITE-001` 與 `SRC-SITE-003`。此座標只用於概念階段太陽位置計算，不是測量控制點。
 
 ## 3. 來源登錄表
 
@@ -24,7 +24,7 @@
 | --- | --- | --- | --- | --- |
 | SRC-SITE-001 | `source-materials/site/SRC-SITE-001_google-maps-satellite.png` | 衛星截圖；基地、周邊道路與校園配置、地圖比例尺 | 1612 × 1430 | `39D1933CAEFB91020AF10E72ADFDBD04980DA36FEDBF36ED14209F469DA4029D` |
 | SRC-SITE-002 | `source-materials/site/SRC-SITE-002_entrance-location-annotated.png` | 衛星圖紅箭頭；確認 `EN-01` 位於兩基地交界的校園側 | 814 × 1146 | `7827DC99D33A1EF61470D19208EF58BF57C880420C94F903CC52BB63D5F2C327` |
-| SRC-SITE-003 | `source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json` | European Commission JRC PVGIS 5.3；基地座標標準氣象年，用於 `TASK-013` 鏡牆能量差分析 | JSON；1,270,483 bytes；8760 hourly records | `1F9E251234F0C5451A77BC20A31C4E83545EC1BAE472CEB65566524E0E451633` |
+| SRC-SITE-003 | `source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json` | European Commission JRC PVGIS 5.3；metadata 保存 `24.14434°N, 120.67341°E`，並提供基地座標標準氣象年，用於校址機器追溯及鏡牆能量差分析 | JSON；1,270,483 bytes；8760 hourly records | `1F9E251234F0C5451A77BC20A31C4E83545EC1BAE472CEB65566524E0E451633` |
 | SRC-SITE-004 | `source-materials/site/SRC-SITE-004_current-pool-and-changing-rooms-annotated.png` | 現況衛星圖；紅框為泳池本體，上方綠框為廁所＋女生更衣室，下方綠框為男生更衣室 | 1612 × 1430 | `3DC23D224551E2DB9C6B267A479A3BE169589BA17B9AA3732EF917D9F9ACD9A8` |
 | SRC-SITE-005 | `source-materials/site/SRC-SITE-005_school-emblem-transparent.png` | 校徽透明圖；頁首品牌識別來源 | 1315 × 1197 | `56D34494386D6FAFD35BF5C6BFAD2596E01A39E6A8432D19711E440FEF1B6CBE` |
 | SRC-CONCEPT-001 | `source-materials/concepts/SRC-CONCEPT-001_side-section.jpeg` | 手繪側視／剖面；泳池大廳、男女空間與廁所關係 | 864 × 1536 | `525F52A2A166EBD056A1FAB0E2ED04515A591E5700C312B5F9CDE25659D869BA` |
@@ -89,7 +89,7 @@
 
 - 沒有正式地籍邊界、現況測量、CAD、結構或機電圖。
 - 樹木、屋簷及影像透視影響邊界判讀。
-- 307° 有向方位與基地外輪廓是工作值，未來可依新證據修訂；修訂不得再次交換泳池遠端與服務核心端。
+- 307° 有向方位是本專案 confirmed canonical data；+X 永遠由泳池遠端指向服務核心，−X 127°、真北圖面方向及各 runtime transform 均由它推導。任何未來變更都必須先形成新決策並只修改 canonical 欄位，不得建立 consumer override。
 - 新資料應新增修訂紀錄，再由單一模型切換至新值，不覆寫來源歷史。
 - 校址中心座標不是泳池局部測量點；正式日照分析可用測量座標取代，但不得在頁面另寫第二套位置資料。
 

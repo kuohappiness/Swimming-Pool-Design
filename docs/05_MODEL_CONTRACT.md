@@ -6,8 +6,8 @@
 
 現行版本契約：
 
-- `schemaVersion = 1.4.0`
-- `modelVersion = designTargetVersion = 0.9.3`
+- `schemaVersion = 1.5.0`
+- `modelVersion = designTargetVersion = 0.9.6`
 - `activeGeometryRevisionId = GEO-0.8.2`
 - active revision 的 `id` 必須只出現一次，且其 `id = GEO-${revision}`、幾何 `modelVersion = revision = 0.8.2`；頂層 `modelVersion` 是發布版號，可在不改幾何的展示層 release 高於 active geometry，但不得選取比發布版更新的幾何。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
@@ -31,7 +31,37 @@ type SiteBoundsEntity = {
 3. `referenceSystem.coordinateSystems` 必須恰有一個 `SITE-XY`。
 4. 圖面、Viewer、分析與驗證均由同一 bounds 推導，不得另存第二套 `originY`。
 5. Three.js 只在右手座標 `SITE-XYZ-TO-THREE-RH` adapter 轉成 SITE X→Three X、SITE Y→Three −Z、SITE Z→Three Y；不得使用會鏡射 Y0／Y14 的 `SITE Y→Three +Z`。
-6. 世界方位 307°只在 Viewer 最上層 root 套用一次；此值是從真北順時針量到 SITE +X 的羅盤方位角，在 SITE Y→Three −Z adapter 下必須換算為 Three.js Y 軸旋轉 `90°−307°=143°`，不得直接使用 `−307°`。L3 +25.5°是獨立局部 transform。
+6. 世界方位只在 Viewer 最上層 root 套用一次；canonical 307°是從真北順時針量到 SITE +X 的羅盤方位角，在 SITE Y→Three −Z adapter 下推導為 Three.js Y 軸旋轉 `90°−307°=143°`。L3 水平旋轉是獨立、可調整的局部 transform。
+
+### 2.1 基地方位唯一來源
+
+基地方位唯一可寫入的機器資料是：
+
+```json
+{
+  "referenceSystem": {
+    "siteOrientation": {
+      "coordinateSystemId": "SITE-XY",
+      "positiveXAxisBearingFromTrueNorth": 307,
+      "positiveXAxisDirection": "pool-remote-to-service-core",
+      "status": "confirmed",
+      "sourceIds": ["SRC-SITE-001", "SRC-SITE-002"]
+    }
+  }
+}
+```
+
+所有 consumer 必須呼叫 `scripts/site-orientation.mjs` 推導其餘方向：
+
+- 基地長軸：127°／307°。
+- SITE −X／面池基準：127°。
+- Three.js 世界 root：143°。
+- 圖面真北：右下；精確 SVG 旋轉由 canonical bearing 計算。
+- 鏡牆法線：`normalize(127° + 當下 L3 水平旋轉角)`。
+
+`localLongAxisBearingFromTrueNorth`、`worldTransform.rotationFromTrueNorth`、`site.rightwardBearingFromTrueNorth`、`northArrowPlanDirection` 均為禁止重新建立的舊平行來源。驗證器必須 fail closed。鏡牆法線不屬於基地方位 canonical data，不得寫成固定欄位或靜態預設；日照研究調整 L3 水平角時，法線、平面箭頭、診斷與讀值必須同步重算。
+
+`reference/generated/viewer-model.json` 若攜帶 `siteOrientation`，只視為由上述 canonical model 與 `modelHash` 建出的唯讀發布投影，不是第二個可編輯來源；不得手改，也不得由 consumer 回寫。
 
 Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`、`width` 等可由 bounds 重建的欄位不得再輸出。Viewer adapter 必須逐次驗證 stair bounds 等於 `entityBounds.ST-01.bounds`，且 `ST-01.y2 <= POOL-01.y1`，否則 fail closed。
 
@@ -82,7 +112,9 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 - `scripts/generate-current-drawings.mjs`：產生三張平面與一張縱剖 SVG，之後轉為 PNG。
 - 日照角度與能量分析：由 active L3、鏡牆、屋頂與池體 bounds 推導，不得持有第二套池體或舊角度預設。
 
-每次模型改動都會改變 canonical SHA-256 `modelHash`，用來確認 Viewer 與公開內容同源。日照分析另以 solar `inputHash` 管理，只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源；只有這些輸入不符時 Viewer 才標成 `stale`，完成重算與測試後才能更新為 current。非日照輸入的模型修正不得觸發不必要的完整最佳化。
+active `solar` 子樹是現行日照判讀與能量分析的唯一 owner，必須明列 `azimuthTolerance`、`minimumDownwardAngle`、`analysisMethodRevision`、`energyAssumptions` 及 `weatherSourceId`。`scripts/solar-angle-analysis.mjs`、`scripts/solar-energy-analysis.mjs` 與 hash 產生器不得讀取 `geometry.solarReflection` 或使用程式內建假設；缺值、非有限值、非法範圍或無法辨識的方法版號必須 fail closed。`geometry.solarReflection.legacyV050Study` 只供歷史重現，外層不得再出現現行角度、門檻或假設。
+
+每次模型改動都會改變 canonical SHA-256 `modelHash`，用來確認 Viewer 與公開內容同源。日照分析另以 solar `inputHash` 管理，涵蓋 hash schema、方法修訂版、校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、方位／向下判讀門檻、固定屋頂接收面、能量假設及氣象來源。任何上述輸入不符時 Viewer 都必須標成 `stale`，完成重算與測試後才能更新為 current；只改非日照輸入則不得觸發不必要的完整最佳化。
 
 ## 5. 現行硬性規則
 
@@ -91,7 +123,7 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 - L1 西端外牆退至 X0.5，`EN-01` 平移到 X1～X3；L1 Y0 的 X0.5～X31 為泳池端安全玻璃，只有 X31～X39 服務本體採自然灰清水模。L2 Y0 外牆 X29～X41 全寬採安全玻璃，不混入不透明牆段。
 - Viewer 的 L2 Y0 外牆必須和其他安全玻璃外牆共用同一材質／高光／框線系統，不得以只存在於資料層的 `materialIntent` 代替視覺驗收；後方 Y2.5 清水模牆仍保持獨立。
 - Viewer 構件選取只更新下拉選單與右側資訊面板，3D 畫布不得建立、保留或穿透顯示任何 `BoxHelper` 外接選取框。
-- Viewer 場景真北箭頭須由 `localLongAxisBearingFromTrueNorth`、`worldTransform.rotationFromTrueNorth` 與 active `site.rightwardBearingFromTrueNorth` 的同一有限值推導；三者不一致時 fail closed。307° 時 SITE 平面真北必須為右下，箭頭尖端須有可讀的 `N` 標記。
+- Viewer 場景 world root、真北箭頭、固定螢幕提示與漫遊 reference frame 只可由 `referenceSystem.siteOrientation` 推導。307° 時 SITE 平面真北必須為右下，箭頭尖端須有可讀的 `N` 標記；Viewer data 不得攜帶第二份 world bearing 或預存 `northArrowPlanDirection`。
 - X0～X0.5 為傾斜玻璃突出屋簷並由 `RW-WEST-01` 接入雨水回收；X31～X39／Y13.5～Y14.5 為服務中心後側透明玻璃屋簷。SITE-XY 仍為 Y0～Y14，Y14～Y14.5 只標示突出建築邊線。
 - 服務區 L1～L3 所有不透明量體採清水模材質意圖；玻璃屋頂與 L3 鏡牆不得被清水模材質覆蓋。
 - 藥劑分間 `publicAccess=false` 且 `separateVentilation=true`。
@@ -132,8 +164,9 @@ v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Vie
 5. current sheet 清單與 entity／sheet／source ID 唯一。
 6. 所有來源檔存在且 SHA-256、byteSize（若登錄）一致。
 7. 概念整合狀態不得冒充任何專業核定。
+8. 校址經緯度引用本地保存的 `SRC-SITE-003`，active solar 擁有完整門檻、方法版號、能量假設與氣象來源，legacy 容器不得洩漏回現行欄位。
 
-`npm test` 另須以破壞性 clone 回歸 active ID 缺失、unknown、duplicate、version drift、SITE-XY 缺失、entity duplicate 與 coordinate frame 缺失；不得只做成功快照。
+`npm test` 另須以破壞性 clone 回歸 active ID 缺失、unknown、duplicate、version drift、SITE-XY 缺失、entity duplicate、coordinate frame 缺失、方法版號／能量假設缺失與 legacy 欄位洩漏；並以獨立太陽位置基準、鏡面反射解析解、接收面包含及能量上限檢查科學不變條件，不得只做成功快照。
 
 相關輸出契約：
 

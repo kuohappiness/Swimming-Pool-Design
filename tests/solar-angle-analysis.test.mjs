@@ -22,6 +22,16 @@ test('reads solar geometry only from the active SITE-XY revision', () => {
     rotatingLevel: 'L3',
     planRotation: 25.5,
     mirrorLeanFromVertical: 23,
+    azimuthTolerance: 28,
+    minimumDownwardAngle: 8,
+    analysisMethodRevision: 'SOLAR-METHOD-1.0.0',
+    energyAssumptions: {
+      mirrorReflectance: 0.75,
+      glazingSolarTransmittance: 0.6,
+      daylightStartHour: 7,
+      daylightEndHour: 17,
+    },
+    weatherSourceId: 'SRC-SITE-003',
     startX: 29,
     endX: 41,
     width: 13.5,
@@ -53,6 +63,35 @@ test('direction-only warm-season screen stays separate from finite-surface energ
   assert.equal(result.hitRatePercent, 0);
   assert.equal(result.firstHit, null);
   assert.equal(result.lastHit, null);
+});
+
+test('active reflection criteria drive current analysis while legacy decoys are ignored', () => {
+  const strict = structuredClone(model);
+  const strictActive = resolveActiveGeometry(strict);
+  strictActive.solar.azimuthTolerance.value = 0;
+  strictActive.solar.minimumDownwardAngle.value = 90;
+  assert.equal(evaluateSolarCandidate(strict).winter.hits, 0);
+
+  const permissive = structuredClone(model);
+  const permissiveActive = resolveActiveGeometry(permissive);
+  permissiveActive.solar.azimuthTolerance.value = 180;
+  permissiveActive.solar.minimumDownwardAngle.value = 0;
+  assert.ok(evaluateContinuousWarmSeason(permissive, { stepMinutes: 60 }).hits > 0);
+
+  const legacyDecoy = structuredClone(model);
+  legacyDecoy.geometry.solarReflection.azimuthTolerance = { value: 0 };
+  legacyDecoy.geometry.solarReflection.minimumDownwardAngle = { value: 90 };
+  assert.deepEqual(evaluateSolarCandidate(legacyDecoy), evaluateSolarCandidate(model));
+});
+
+test('active solar contract fails closed when assumptions or method identity are missing', () => {
+  const noMethod = structuredClone(model);
+  delete resolveActiveGeometry(noMethod).solar.analysisMethodRevision;
+  assert.throws(() => activeSolarStudyGeometry(noMethod), /analysisMethodRevision must be a non-empty string/);
+
+  const invalidOptics = structuredClone(model);
+  resolveActiveGeometry(invalidOptics).solar.energyAssumptions.mirrorReflectance = 1.1;
+  assert.throws(() => activeSolarStudyGeometry(invalidOptics), /mirrorReflectance must be within 0\.\.1/);
 });
 
 test('horizontal direction scan remains reproducible at the new mirror lean', () => {

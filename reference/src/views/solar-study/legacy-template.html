@@ -34,26 +34,40 @@
 
       <section class="decision-summary" aria-labelledby="decision-title">
         <div class="decision-summary-copy">
-          <p class="eyebrow">V0.6.7 CURRENT SOLAR BASE · PVGIS TMY ENERGY SCREEN</p>
+          <p id="study-baseline-label" class="eyebrow">研究基線與驗證狀態載入中</p>
           <h2 id="decision-title">L3 新高度讓固定鏡面得到暖季零增量候選</h2>
-          <p>v0.6.7 只修正 Viewer L2 <code>splitAxisY</code> 資料投影、錯置牆面與玻璃材質回復；25 × 8.5 m 池體、L3 +6.88 m、鏡高 3.60 m、12 × 13.5 m 旋轉主體與 X=35 m 工作支點皆未改變。solar inputHash 與 v0.6.6／v0.6.5／v0.6.4／v0.6.3 相同，因此沿用既有驗證結果，不重新執行完整最佳化。裸露固定鏡面的工作角度仍為水平 <strong>+25.5°</strong>、外傾 <strong>+23.0°</strong>。在等效鏡面反射率 0.75、玻璃太陽透射率 0.60 下，暖季池面新增為 0，冷季新增 +1,036.829 kWh（+0.962%）。非接收面玻璃屋簷、完整 3F 屋頂與高覆蓋率太陽能排布尚未納入遮蔭、反射、眩光或發電模擬；23° 外傾幅度大，兩者都必須再經結構、構造、眩光與維修專業驗證。</p>
+          <p>本頁沿用 v0.6.7 的研究幾何與工作結果；Model 0.9.6 將方法、門檻、能量假設與來源納入 active contract 並完成重驗，不代表重新執行角度最佳化。25 × 8.5 m 池體、L3 +6.88 m、鏡高 3.60 m、12 × 13.5 m 旋轉主體與 X=35 m 工作支點皆未改變；暖季池面新增仍為 0，冷季新增仍為 +1,036.829 kWh（+0.962%）。非接收面玻璃屋簷、完整 3F 屋頂與高覆蓋率太陽能排布尚未納入遮蔭、反射、眩光或發電模擬；23° 外傾幅度大，兩者都必須再經結構、構造、眩光與維修專業驗證。</p>
+          <div class="study-contract" aria-label="Active 日照研究方法與假設">
+            <span><small>Active 方法</small><strong id="study-method">—</strong></span>
+            <span><small>方向代理門檻</small><strong id="study-thresholds">—</strong></span>
+            <span><small>能量假設</small><strong id="study-energy-assumptions">—</strong></span>
+            <span><small>分析狀態</small><strong id="study-analysis-status">—</strong></span>
+          </div>
         </div>
         <dl>
-          <div><dt>L3 水平旋轉</dt><dd><strong id="confirmed-plan">+25.5°</strong></dd></div>
-          <div><dt>鏡牆外傾</dt><dd><strong id="confirmed-lean">+23.0°</strong></dd></div>
-          <div><dt>鏡牆法線</dt><dd><strong id="confirmed-normal">152.5°</strong></dd></div>
-          <div><dt>冷季收益</dt><dd><strong>+1,036.8 kWh</strong></dd></div>
+          <div><dt>L3 水平旋轉</dt><dd><strong id="confirmed-plan">—</strong></dd></div>
+          <div><dt>鏡牆外傾</dt><dd><strong id="confirmed-lean">—</strong></dd></div>
+          <div><dt>鏡牆法線</dt><dd><strong id="confirmed-normal">—</strong></dd></div>
+          <div><dt>冷季收益</dt><dd><strong id="confirmed-cool-gain">—</strong></dd></div>
         </dl>
         <a href="https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/analysis/solar-analysis.md">日照分析完整方法</a>
       </section>
 
       <section class="stage" aria-label="平面與剖面互動研究">
         <article class="panel">
-          <h2>平面：L3 旋轉改變鏡牆朝向</h2>
-          <p class="sub">綠色 L1／L2 永遠不動；紅色 L3 整體旋轉。藍色短邊是面向泳池的鏡牆。中央圓點採 X=35 m、Y=6.75 m 的 L3 幾何中心工作位置；它降低幾何偏心但不等於已求得實際質心或剛心，最終仍須依載重、柱網與轉換構造驗證。</p>
+          <h2>平面：L3 旋轉改變鏡牆法線方位</h2>
+          <p class="sub">綠色 L1／L2 永遠不動；紅色 L3 整體旋轉。藍色短邊是面向泳池的鏡牆。淡色扇形只表示 active 方位代理門檻；鏡牆法線、入射光與反射光在鏡牆中心的代表性入射點彙交，不代表精確池面落點。平面虛線只顯示向下 3D 反射光的水平投影，不代表光線穿透鏡牆；完整下射角請與右側剖面一起閱讀。中央圓點採 X=35 m、Y=6.75 m 的 L3 幾何中心工作位置；它降低幾何偏心但不等於已求得實際質心或剛心，最終仍須依載重、柱網與轉換構造驗證。</p>
           <svg id="plan" viewBox="0 0 560 470" role="img" aria-labelledby="plan-title plan-desc">
             <title id="plan-title">基地平面、太陽方位與三樓水平旋轉示意</title>
-            <desc id="plan-desc">固定的一、二樓服務中心上方，有一個水平旋轉的三樓服務中心與面池鏡牆。羅盤顯示目前日期 7 點至 18 點的太陽路徑，光線長度依高度角縮放。</desc>
+            <desc id="plan-desc">固定的一、二樓服務中心上方，有一個水平旋轉的三樓服務中心與面池鏡牆。羅盤顯示目前日期 7 點至 18 點的太陽路徑，以及在鏡牆代表性入射點彙交的法線、入射光與向下三維反射光的水平投影；鏡牆遮住光線並在兩側留有短間隙，表示光線沒有穿透牆體。</desc>
+            <defs>
+              <marker id="plan-arrow-incoming" markerWidth="24" markerHeight="18" refX="20" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                <path id="planIncomingArrow" d="M0,0 L0,12 L20,6 z" />
+              </marker>
+              <marker id="plan-arrow-reflected" markerWidth="24" markerHeight="18" refX="20" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                <path id="planReflectedArrow" d="M0,0 L0,12 L20,6 z" />
+              </marker>
+            </defs>
             <circle cx="280" cy="235" r="190" class="compass-disc" />
             <circle cx="280" cy="235" r="108" class="compass-inner" />
             <line x1="280" y1="30" x2="280" y2="440" class="compass-axis" />
@@ -62,7 +76,14 @@
             <text x="280" y="462" text-anchor="middle" class="cardinal">S</text>
             <text x="506" y="240" class="cardinal">E</text>
             <text x="48" y="240" class="cardinal">W</text>
+            <g class="azimuth-tolerance-visual" aria-label="池向方位代理門檻">
+              <path id="azimuthToleranceFan" class="azimuth-tolerance-fan" />
+              <line id="azimuthToleranceStart" class="azimuth-tolerance-bound" />
+              <line id="azimuthToleranceEnd" class="azimuth-tolerance-bound" />
+              <text id="azimuthToleranceLabel" class="azimuth-tolerance-label"></text>
+            </g>
             <g id="planRays"></g>
+            <g id="selectedSun"></g>
 
             <g id="buildingPlan" transform="translate(280 235)">
               <rect x="-110" y="-43" width="220" height="86" rx="8" class="fixed-footprint" />
@@ -71,32 +92,33 @@
               <text x="-35" y="5" text-anchor="middle" class="building-label">固定 L1 泳池</text>
               <text x="75" y="5" text-anchor="middle" class="small-building-label">固定 L1／L2</text>
 
-              <g id="upperBoxPlan" transform="rotate(25.5 60 0)">
+              <g id="upperBoxPlan" transform="rotate(0 60 0)">
                 <rect x="9" y="-39" width="101" height="78" rx="8" class="upper-plan" />
                 <line x1="9" y1="-39" x2="9" y2="39" class="mirror-edge" />
                 <text x="60" y="-5" text-anchor="middle" class="building-label">旋轉 L3</text>
                 <text x="60" y="14" text-anchor="middle" class="small-building-label">12 × 13.5 m 服務中心</text>
               </g>
               <circle cx="60" cy="0" r="6" class="study-pivot" />
-              <text x="60" y="60" text-anchor="middle" class="pivot-label">角度示意中心</text>
             </g>
 
             <line id="wallNormal" x1="280" y1="235" x2="411" y2="373" class="wall-normal" />
             <text id="wallAzLabel" x="366" y="380" class="wall-label">鏡牆法線</text>
-            <g id="selectedSun"></g>
+            <circle id="planIncidentPoint" cx="280" cy="235" r="5" class="plan-incident-point" aria-label="鏡牆代表性入射點" />
           </svg>
           <div class="legend" aria-label="平面圖例">
             <span><i class="swatch fixed"></i>固定 L1／L2</span>
             <span><i class="swatch upper"></i>旋轉 L3</span>
             <span><i class="swatch wall"></i>鏡牆法線</span>
+            <span><i class="swatch tolerance"></i>方位代理門檻</span>
             <span><i class="swatch current-path"></i>所選日期 07–18 時路徑</span>
-            <span><i class="swatch selected-time"></i>目前整點</span>
+            <span><i class="swatch incoming"></i>入射光（實線）</span>
+            <span><i class="swatch reflected"></i>3D 反射光水平投影（虛線）</span>
           </div>
         </article>
 
         <article class="panel">
           <h2>剖面：外傾角改變反射下射角</h2>
-          <p class="sub">此剖面沿鏡牆法線切取，因此水平旋轉本身在右圖不會看起來旋轉；它的作用會反映在最下方的 3D 方位判讀。</p>
+          <p class="sub">此剖面沿鏡牆法線切取，因此水平旋轉本身在右圖不會看起來旋轉；它的作用會反映在最下方的 3D 方位判讀。反射光固定採與入射光同色的虛線；未命中池面時仍維持完整對比、末端箭頭與文字標示。</p>
           <svg id="section" viewBox="0 0 720 430" role="img" aria-labelledby="section-title section-desc">
             <title id="section-title">三樓鏡牆反射日光的建築剖面示意</title>
             <desc id="section-desc">日光射向三樓外傾承載牆上的共面鏡面，再反射到一樓泳池水面或避開泳池。</desc>
@@ -104,36 +126,49 @@
             <rect x="42" y="332" width="448" height="30" rx="6" class="water-section" />
             <text x="58" y="353" class="building-label">固定 L1 泳池水面</text>
             <line x1="28" y1="363" x2="690" y2="363" class="ground-line" />
-            <polygon id="upperSection" points="495,363 690,363 690,105 456.4,105" class="upper-section" />
+            <polygon id="upperSection" points="495,363 690,363 690,105 495,105" class="upper-section" />
             <text x="592" y="292" text-anchor="middle" class="building-label">旋轉 L3 服務中心</text>
-            <line id="wall" x1="495" y1="363" x2="456.4" y2="105" class="mirror-wall" />
-            <line id="incoming" x1="175" y1="70" x2="470" y2="230" class="incoming-ray" marker-end="url(#arrow-sun)" />
-            <line id="reflected" x1="470" y1="230" x2="310" y2="332" class="reflected-ray" marker-end="url(#arrow-reflected)" />
+            <line id="wall" x1="495" y1="363" x2="495" y2="105" class="mirror-wall" />
+            <line id="minimumDownwardLine" class="minimum-downward-line" />
+            <text id="minimumDownwardLabel" class="minimum-downward-label"></text>
+            <polyline id="incoming" points="175,70 322.5,150 470,230" class="incoming-ray" marker-end="url(#arrow-sun)" />
+            <polyline id="reflected" points="470,230 390,281 310,332" class="reflected-ray" marker-end="url(#arrow-reflected)" aria-label="反射光" />
             <defs>
-              <marker id="arrow-sun" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                <path id="sunArrow" d="M0,0 L0,6 L9,3 z" />
+              <marker id="arrow-sun" markerWidth="24" markerHeight="18" refX="20" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                <path id="sunArrow" d="M0,0 L0,12 L20,6 z" />
               </marker>
-              <marker id="arrow-reflected" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                <path id="reflectedArrow" d="M0,0 L0,6 L9,3 z" />
+              <marker id="arrow-reflected" markerWidth="24" markerHeight="18" refX="20" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                <path id="reflectedArrow" d="M0,0 L0,12 L20,6 z" />
               </marker>
             </defs>
             <text id="sunLabel" x="56" y="48" class="sun-label">冬至 09:00</text>
-            <text id="rayLabel" x="185" y="298" class="ray-label">反射朝向池面</text>
+            <text id="rayLabel" x="185" y="298" class="ray-label">反射光狀態</text>
             <text id="sideLabel" x="38" y="401" class="side-label">平面方向與剖面落點同時通過</text>
           </svg>
 
           <div class="controls">
             <p class="controls-intro">以下保留為研究控制器；載入時會回到上方已確認角度，調整滑桿只用於比較情境，不會改寫正式設計值。</p>
-            <div class="mobile-live-preview" aria-label="手機版滑桿即時預覽">
-              <div class="mobile-preview-toolbar">
+            <div class="live-preview" aria-label="滑桿即時預覽">
+              <div class="live-preview-toolbar">
                 <strong>即時預覽</strong>
                 <div class="mobile-preview-tabs" role="group" aria-label="切換即時預覽圖示">
                   <button id="previewPlan" type="button" aria-pressed="true">平面</button>
                   <button id="previewSection" type="button" aria-pressed="false">剖面</button>
                 </div>
               </div>
+              <div class="desktop-preview-grid" aria-label="桌面版平面與剖面即時預覽">
+                <figure>
+                  <figcaption>平面</figcaption>
+                  <div id="desktopPlanPreviewViewport" class="desktop-preview-viewport" aria-hidden="true"></div>
+                </figure>
+                <figure>
+                  <figcaption>剖面</figcaption>
+                  <div id="desktopSectionPreviewViewport" class="desktop-preview-viewport" aria-hidden="true"></div>
+                </figure>
+              </div>
               <div id="mobilePreviewViewport" class="mobile-preview-viewport" aria-hidden="true"></div>
-              <small>年份、日期、時間與水平旋轉顯示平面；外傾角顯示剖面，也可手動切換。</small>
+              <small class="desktop-preview-help">左側平面與右側剖面會隨所有控制器同步更新。</small>
+              <small class="mobile-preview-help">年份、日期、時間與水平旋轉顯示平面；外傾角顯示剖面，也可手動切換。</small>
             </div>
             <div class="control control-year">
               <label for="year">觀察年份 <b id="yearValue">自動 · 今年</b></label>
@@ -144,8 +179,8 @@
               <small id="yearHelp">預設跟隨台北目前年份；也可輸入其他年份比較。太陽位置由瀏覽器即時計算，不需等待外部資料更新。</small>
             </div>
             <div class="control control-date">
-              <label for="date">觀察日期 <b id="dateValue">冷季 · 12月21日（冬至）</b></label>
-              <input id="date" type="range" min="0" max="13" value="13" step="1" list="monthTicks" aria-describedby="dateHelp" />
+              <label for="date">觀察日期 <b id="dateValue">—</b></label>
+              <input id="date" type="range" min="0" max="13" step="1" list="monthTicks" aria-describedby="dateHelp" />
               <datalist id="monthTicks">
                 <option value="0"></option><option value="1"></option><option value="2"></option>
                 <option value="3"></option><option value="4"></option><option value="5"></option>
@@ -157,8 +192,8 @@
               <small id="dateHelp">共 14 格：每月 1 日，加上 6 月 21 日夏至與 12 月 21 日冬至；只有拉到至日時才在圖中標示冬至／夏至。</small>
             </div>
             <div class="control control-time">
-              <label for="time">觀察時間 <b id="timeValue">09:00</b></label>
-              <input id="time" type="range" min="7" max="18" value="9" step="1" list="hourTicks" aria-describedby="timeHelp" />
+              <label for="time">觀察時間 <b id="timeValue">—</b></label>
+              <input id="time" type="range" min="7" max="18" step="1" list="hourTicks" aria-describedby="timeHelp" />
               <datalist id="hourTicks">
                 <option value="7"></option>
                 <option value="8"></option>
@@ -174,11 +209,11 @@
                 <option value="18"></option>
               </datalist>
               <div class="time-scale" aria-hidden="true"><span>07</span><span>09</span><span>12</span><span>15</span><span>18</span></div>
-              <small id="timeHelp">07:00–18:00，每格一個整點；拖曳時即時重算。太陽在地平線下時，圖面停止繪製入射與反射光。</small>
+              <small id="timeHelp">方向診斷可選 07:00–18:00，每格一個整點；年度能量時段另由 active model 定義。太陽在地平線下時，圖面停止繪製入射與反射光。</small>
             </div>
             <div class="control control-rotation">
-              <label for="planRotation">L3 水平旋轉 <b id="planValue">+25.5°</b></label>
-              <input id="planRotation" type="range" min="-20" max="40" value="25.5" step="0.1" list="rotationTicks" aria-describedby="planRotationHelp" />
+              <label for="planRotation">L3 水平旋轉 <b id="planValue">—</b></label>
+              <input id="planRotation" type="range" min="-20" max="40" step="0.1" list="rotationTicks" aria-describedby="planRotationHelp" />
               <datalist id="rotationTicks">
                 <option value="-20"></option>
                 <option value="-10"></option>
@@ -191,30 +226,31 @@
               <div class="rotation-scale" aria-hidden="true">
                 <span>−20°</span><span>−10°</span><span>0°</span><span>+10°</span><span>+20°</span><span>+30°</span><span>+40°</span>
               </div>
-              <small id="planRotationHelp">−20°～+40°，每格 0.1°；拖曳時平面、鏡牆朝向、剖面反射與手機即時預覽同步重算。初始 +25.5° 是 v0.6.7 沿用的工作最佳值，尚待專業驗證。</small>
+              <small id="planRotationHelp">−20°～+40°，每格 0.1°；拖曳時平面、鏡牆法線方位、剖面反射與即時預覽同步重算。載入值由 active model 提供，且仍屬待專業驗證的工作值。</small>
             </div>
             <label class="control" for="lean">
-              <span>鏡牆外傾角（相對垂直） <b id="leanValue">23.0°</b></span>
-              <input id="lean" type="range" min="0" max="30" value="23" step="0.1" />
+              <span>鏡牆外傾角（相對垂直） <b id="leanValue">—</b></span>
+              <input id="lean" type="range" min="0" max="30" step="0.1" />
             </label>
           </div>
 
+          <p id="timeScope" class="time-scope"></p>
           <div class="readout" aria-label="即時幾何讀值">
-            <div class="metric"><b id="altitude">26.2°</b><span>太陽高度角</span></div>
-            <div class="metric"><b id="azimuth">135.0°</b><span>太陽方位角</span></div>
-            <div class="metric"><b id="mirrorAz">136.5°</b><span>鏡牆朝向</span></div>
-            <div class="metric"><b id="downAngle">43.2°</b><span>反射向下角</span></div>
+            <div class="metric"><b id="altitude">—</b><span>太陽高度角</span></div>
+            <div class="metric"><b id="azimuth">—</b><span>太陽方位角</span></div>
+            <div class="metric"><b id="mirrorAz">—</b><span>鏡牆法線方位</span></div>
+            <div class="metric"><b id="downAngle">—</b><span>反射向下角</span></div>
           </div>
           <div id="result" class="result" aria-live="polite">
-            <strong id="resultTitle">冬季上午：導向泳池</strong>
-            <span id="resultDetail">平面方位與剖面下射角同時通過概念判讀。</span>
+            <strong id="resultTitle">正在載入方向診斷</strong>
+            <span id="resultDetail">讀取 active model 門檻中。</span>
           </div>
         </article>
       </section>
 
       <section class="panel season-table-panel">
         <h2>冬至與夏至代表時刻</h2>
-        <p class="sub">高度角是太陽離地平線的角度；方位角由真北順時針計。所有數值由同一基地座標及太陽位置函式產生。</p>
+        <p class="sub">高度角是太陽離地平線的角度；方位角由真北順時針計。表格與互動方向診斷涵蓋 07:00–18:00，年度能量則只採 active model 定義的 07:00–17:00 時段。所有數值由同一基地座標及太陽位置函式產生。</p>
         <div class="table-scroll">
           <table>
             <thead>

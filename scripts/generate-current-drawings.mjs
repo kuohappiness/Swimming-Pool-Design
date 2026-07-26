@@ -1,10 +1,12 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { resolveActiveGeometry } from './active-geometry.mjs';
+import { deriveSiteOrientation } from './site-orientation.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const active = resolveActiveGeometry(model);
+const siteOrientation = deriveSiteOrientation(model.referenceSystem);
 const versionSlug = `v${model.modelVersion}`;
 const outputRoot = resolve(repoRoot, 'reference/drafts', versionSlug);
 const scale = 36;
@@ -50,7 +52,7 @@ function rect(entity, className, label = '') {
 }
 
 function northArrow() {
-  return `<g data-north-plan-direction="lower-right" data-north-rotation="127" transform="translate(1690 190) rotate(127)"><line x1="0" y1="52" x2="0" y2="-38" stroke="#c4553f" stroke-width="4"/><path d="M0 -58L-10 -34H10Z" fill="#c4553f"/><text x="0" y="-70" text-anchor="middle" class="label">N</text></g><text x="1540" y="286" class="tiny">真北＝圖面右下；圖面右＝+X＝西北 307°</text>`;
+  return `<g data-north-plan-direction="${siteOrientation.northPlanDirection}" data-north-rotation="${siteOrientation.svgNorthArrowRotation}" transform="translate(1690 190) rotate(${siteOrientation.svgNorthArrowRotation})"><line x1="0" y1="52" x2="0" y2="-38" stroke="#c4553f" stroke-width="4"/><path d="M0 -58L-10 -34H10Z" fill="#c4553f"/><text x="0" y="-70" text-anchor="middle" class="label">N</text></g><text x="1540" y="286" class="tiny">真北＝${siteOrientation.northPlanDirection}；圖面右＝+X＝${siteOrientation.positiveXAxisBearingFromTrueNorth}°</text>`;
 }
 
 function sectionGrid(sx, sz) {
