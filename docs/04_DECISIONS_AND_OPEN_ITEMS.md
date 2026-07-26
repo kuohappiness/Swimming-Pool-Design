@@ -144,6 +144,7 @@
 | DEC-136 | 0.9.2 定位為四個公開分頁的文字、版面與操作介面細修 | 允許修正文案、斷行、字級、留白、對齊、可見性與按鈕名稱；active `GEO-0.8.2`、solar inputHash、V067 圖面、3D 幾何、相機、圖層、選取、碰撞、移動與游泳語意均不得變更 | confirmed 0.9.2 presentation-only boundary |
 | DEC-137 | 0.9.2 完成後，以實際瀏覽器渲染結果建立 `docs/public/website-copy-v1.0.md` | 快照覆蓋設計理念、日照研究、圖面設計與 3D 展示，保留可見斷行並附各頁 SHA-256；隱藏內容不列入快照但必須保留於來源程式，後續文字改版前可重新擷取比對 | confirmed rendered-copy archive |
 | DEC-138 | 0.9.2 的 3D 展示採聚焦模式 | 場景敘事導覽及右側構件資訊暫不顯示但不刪除；圖層狀態以顏色圓點表示，攝影機控制縮短，第一人稱入口移至頁首並命名「實境漫遊」，整體配色改為低對比的圖紙白與泳池綠 | confirmed focused Viewer presentation |
+| DEC-139 | 0.9.3 是只作用於手機斷點的閱讀與圖面操作 PATCH | 720 px 以下理念索引與章節標題避免換行／重複、引言字體跟隨內文；820 px 以下圖面目錄以端點感知漸層提示水平滑動，工作區滿版。桌機／平板展示、active `GEO-0.8.2`、solar inputHash、V067 圖面本體及 3D／漫遊行為全部不變 | confirmed mobile-only presentation boundary |
 
 ## 2. 尚待精化
 

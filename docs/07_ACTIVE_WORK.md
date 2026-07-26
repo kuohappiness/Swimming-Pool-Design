@@ -348,7 +348,18 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-088`～`TASK-091` 已完成並收斂為 [Release 0.9.2](releases/0.9.2.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 21. 未排程設計問題
+## 21. 0.9.3 手機閱讀與圖面操作修正
+
+0.9.3 收斂使用者以 390 × 844 實際檢視提出的手機展示問題，只調整設計理念與圖面頁的響應式呈現，不改桌機／平板、建築模型、日照研究、V067 圖面本體或 3D／漫遊行為。
+
+| ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-092 | 修正手機理念頁與圖面頁的閱讀及操作提示 | done | 0.9.3 | [DEC-139](04_DECISIONS_AND_OPEN_ITEMS.md)、[圖集契約](contracts/reference-atlas.md) | TASK-091 | 理念索引標題單行；四章以完整標題取代短側標並隱藏重複標題；引言與內文字體一致且大 10%；圖面目錄依端點顯示左右漸層；REF-001 與 V067 工作區、工具列、資訊及圖面滿版且無整頁水平溢出 |
+| TASK-093 | 同步 0.9.3 版本、文件、完整驗證並 commit／push | done | 0.9.3 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[Release 0.9.3](releases/0.9.3.md) | TASK-092 | package／lockfile／model／generated data／README／contracts／release 同步；完整 build、tests、typecheck、desktop／mobile／fallback E2E、immutable baseline 與 diff 檢查通過後建立單一 release commit 並 push `main` |
+
+`TASK-092`～`TASK-093` 已完成並收斂為 [Release 0.9.3](releases/0.9.3.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
+
+## 22. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

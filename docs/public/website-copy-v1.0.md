@@ -1,10 +1,10 @@
 # 網站文字快照 v1.0
 
-> 這是發布版 0.9.2 四個公開分頁在桌面版實際渲染後的可見文字備份，供後續文字修訂與改版比對。此文件不取代各功能資料與模型來源；隱藏、暫不顯示或僅存在於程式內的備用內容不列入本快照。
+> 這是發布版 0.9.3 四個公開分頁在桌面版實際渲染後的可見文字備份，供後續文字修訂與改版比對。此文件不取代各功能資料與模型來源；隱藏、暫不顯示或僅存在於程式內的備用內容不列入本快照。
 
 - 快照版本：`v1.0`
-- 對應網站版本：`0.9.2`
-- 擷取時間：`2026-07-26T04:49:48+08:00`
+- 對應網站版本：`0.9.3`
+- 擷取時間：`2026-07-26T09:50:01+08:00`
 - 擷取方式：以 Chromium 開啟各公開路徑，等待分頁掛載完成後讀取 `document.body.innerText`
 - 行文保真：保留實際斷行與可見標點；連續空白行僅正規化為一個空白段落
 
@@ -12,10 +12,10 @@
 
 | 分頁 | 路徑 | 可見文字 SHA-256 |
 |---|---|---|
-| 設計理念 | `/` | `9FC624498245EA3F60C9ADACB312BBBC0CB8A83AB1017D1F2DED74FAC5F57B4E` |
-| 日照研究 | `/?view=solar-study` | `5CC3B213DFD591985FB6CFA7CBEE85E0BD29B66835365C7803041319AA78CCEB` |
-| 圖面設計 | `/?view=drawings` | `55B5F4E57257D12203630F26930AB281338BB5AE6EDBFCE3AEE176BA01FE757B` |
-| 3D 展示與實境漫遊 | `/?view=3d-viewer&quality=low&adaptive=off` | `08E243FC481F236710980BE491FEA197842AACCC118BFF86C155B02757F82F6F` |
+| 設計理念 | `/` | `8B2F90F4D79859A951BEBE2CAF676CE09FFEC09709A207D3B741235AA2DF637C` |
+| 日照研究 | `/?view=solar-study` | `0FABACF85F410C16AE6F3BFE4972C86ACD7A68489EDE3A150CB4EB92319383E2` |
+| 圖面設計 | `/?view=drawings` | `4E75829C09F6E9337D60FE588F15F98F9F84D46EF6D6AC9D0F720D583EDACFDD` |
+| 3D 展示與實境漫遊 | `/?view=3d-viewer&quality=low&adaptive=off` | `A886A832DB22885FA6A88C88CADA86CDE1A073215466043F21421AB28257843A` |
 
 ## 設計理念
 
@@ -29,7 +29,7 @@
 圖面設計
 3D 展示
 MODEL
-0.9.2
+0.9.3
 
 DESIGN NARRATIVE
 
@@ -282,7 +282,7 @@ EPILOGUE ／ FROM LINE TO SPACE
 國立臺中教育大學附設實驗國民小學
 游泳池改建設計
 
-MODEL 0.9.2 · GEO-0.8.2 · SITE-XY · 單位 M
+MODEL 0.9.3 · GEO-0.8.2 · SITE-XY · 單位 M
 ```
 
 ## 日照研究
@@ -297,7 +297,7 @@ MODEL 0.9.2 · GEO-0.8.2 · SITE-XY · 單位 M
 圖面設計
 3D 展示
 MODEL
-0.9.2
+0.9.3
 
 SOLAR STUDY
 
@@ -400,7 +400,7 @@ L3 水平旋轉
 泳池方向 −X 127°
 Asia/Taipei · UTC+8
 國立臺中教育大學附設實驗國民小學游泳池改善概念設計
-STUDY 0.8.2 · MODEL 0.9.2
+STUDY 0.8.2 · MODEL 0.9.3
 
 V0.6.7 CURRENT SOLAR BASE · PVGIS TMY ENERGY SCREEN
 
@@ -434,7 +434,7 @@ OPEN-011／OPEN-022：正式支點與結構核心、L3 旋轉後的外挑／退�
 國立臺中教育大學附設實驗國民小學
 游泳池改建設計
 
-MODEL 0.9.2 · GEO-0.8.2 · SITE-XY · 單位 M
+MODEL 0.9.3 · GEO-0.8.2 · SITE-XY · 單位 M
 ```
 
 ## 圖面設計
@@ -449,7 +449,7 @@ MODEL 0.9.2 · GEO-0.8.2 · SITE-XY · 單位 M
 圖面設計
 3D 展示
 MODEL
-0.9.2
+0.9.3
 
 DRAWING ATLAS
 
@@ -475,21 +475,21 @@ REF-001
 工作值
 符合畫面
 
-MODEL 0.9.2 · ACTIVE GEO-0.8.2
+MODEL 0.9.3 · ACTIVE GEO-0.8.2
 
-MODEL 0.9.2
+MODEL 0.9.3
 ACTIVE GEO-0.8.2
 SITE-XY · +X 方位 307°
 N
 概念設計／非施工圖
 國立臺中教育大學附設實驗國民小學游泳池改善概念設計
-MODEL 0.9.2
+MODEL 0.9.3
 概念設計，非施工、結構、消防或法規核定圖說
 
 國立臺中教育大學附設實驗國民小學
 游泳池改建設計
 
-MODEL 0.9.2 · GEO-0.8.2 · SITE-XY · 單位 M
+MODEL 0.9.3 · GEO-0.8.2 · SITE-XY · 單位 M
 ```
 
 ## 3D 展示與實境漫遊
@@ -504,7 +504,7 @@ MODEL 0.9.2 · GEO-0.8.2 · SITE-XY · 單位 M
 圖面設計
 3D 展示
 MODEL
-0.9.2
+0.9.3
 
 SPATIAL EXPERIENCE
 
@@ -557,5 +557,5 @@ deferred 待專業精化
 國立臺中教育大學附設實驗國民小學
 游泳池改建設計
 
-MODEL 0.9.2 · GEO-0.8.2 · SITE-XY · 單位 M
+MODEL 0.9.3 · GEO-0.8.2 · SITE-XY · 單位 M
 ```

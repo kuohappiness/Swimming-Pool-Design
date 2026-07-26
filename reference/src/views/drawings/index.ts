@@ -17,7 +17,9 @@ export async function mount(container: HTMLElement): Promise<MountedView> {
       <p>五張現行圖面從基地與方位開始，逐層閱讀空間、旋轉、屋頂與剖面關係。</p>
     </section>
     <section class="drawings-catalogue" aria-label="現行圖面">
-      <nav id="sheet-tabs" class="sheet-tabs" aria-label="圖面目錄"></nav>
+      <div class="sheet-tabs-shell">
+        <nav id="sheet-tabs" class="sheet-tabs" aria-label="圖面目錄"></nav>
+      </div>
       <div class="workspace">
         <div id="sheet-stage" class="sheet-stage" tabindex="-1" aria-live="polite"></div>
       </div>

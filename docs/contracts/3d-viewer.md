@@ -1,7 +1,7 @@
 # 3D Viewer 契約
 
 - 類型：output-contract
-- 狀態：active／v0.9.2
+- 狀態：active／v0.9.3
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 入口：`/?view=3d-viewer`
 
@@ -12,7 +12,7 @@ Viewer 只接受：
 - `reference/generated/viewer-model.json`：由 active `GEO-0.8.2` 產生。
 - `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.9.2` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，0.9.1 精簡 Viewer 周邊資訊，0.9.2 再調整公開文字與操作介面；三版都不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.9.3` 與 `modelHash`。viewer model 另須包含 `activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY` 及每個 bounded entity 的 canonical `entityBounds`。0.9.0 將 0.8.2 Viewer 動態整合進共用 App Shell，0.9.1 精簡 Viewer 周邊資訊，0.9.2 再調整公開文字與操作介面，0.9.3 只修正其他分頁的手機展示；各版都不改其建築幾何、碰撞、場景或 visual-only 細節。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 

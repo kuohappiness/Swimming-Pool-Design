@@ -190,8 +190,16 @@ try {
   await waitForView(concept, 'design-concept');
   assert.equal(await concept.locator('.concept-chapter').count(), 4);
   assert.deepEqual(
-    await concept.locator('.concept-chapter-heading h2').allTextContents(),
-    ['向光', '向雨', '向人', '向時間', '設計細節', '結語'],
+    await concept.locator('.concept-chapter-heading h2').evaluateAll((headings) =>
+      headings.map((heading) => heading.getAttribute('aria-label') ?? heading.textContent?.trim()),
+    ),
+    ['向光而轉', '向雨而生', '向人而開', '向時間延續', '設計細節', '結語'],
+  );
+  assert.deepEqual(
+    await concept.locator('.concept-side-title--desktop').evaluateAll((titles) =>
+      titles.filter((title) => getComputedStyle(title).display !== 'none').map((title) => title.textContent),
+    ),
+    ['向光', '向雨', '向人', '向時間'],
   );
   assert.match(await concept.locator('.concept-overview').innerText(), /不是替舊游泳池換上一張新的臉/);
   assert.equal(await concept.locator('.concept-origin-figure').count(), 8);
@@ -228,6 +236,36 @@ try {
     path: resolve(outputDirectory, 'public-origin-sketches-desktop.png'),
   });
   await concept.setViewportSize({ width: 390, height: 844 });
+  assert.deepEqual(
+    await concept.locator('.concept-side-title--mobile').evaluateAll((titles) =>
+      titles.filter((title) => getComputedStyle(title).display !== 'none').map((title) => title.textContent),
+    ),
+    ['向光而轉', '向雨而生', '向人而開', '向時間延續'],
+  );
+  assert.equal(
+    await concept.locator('.concept-chapter-copy > h2:first-child').evaluateAll((titles) =>
+      titles.every((title) => getComputedStyle(title).display === 'none'),
+    ),
+    true,
+  );
+  assert.equal(
+    await concept.locator('.concept-index strong').evaluateAll((titles) =>
+      titles.every((title) => getComputedStyle(title).whiteSpace === 'nowrap'),
+    ),
+    true,
+  );
+  assert.equal(
+    await concept.locator('#concept-people .concept-chapter-copy').evaluate((copy) => {
+      const paragraph = copy.querySelector('p');
+      const quote = copy.querySelector('blockquote');
+      if (!paragraph || !quote) return false;
+      const paragraphStyle = getComputedStyle(paragraph);
+      const quoteStyle = getComputedStyle(quote);
+      return quoteStyle.fontFamily === paragraphStyle.fontFamily
+        && Math.abs(Number.parseFloat(quoteStyle.fontSize) / Number.parseFloat(paragraphStyle.fontSize) - 1.1) < 0.001;
+    }),
+    true,
+  );
   await concept.locator('.concept-origin-stage').nth(0).screenshot({
     path: resolve(outputDirectory, 'public-origin-survey-mobile.png'),
   });
@@ -243,6 +281,43 @@ try {
   await concept.keyboard.press('Tab');
   assert.equal(await concept.locator('.site-skip-link').evaluate((link) => link === document.activeElement), true);
   await concept.close();
+
+  const drawings = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  trackErrors(drawings, errors);
+  await drawings.goto(`${origin}/?view=drawings#REF-001`, { waitUntil: 'networkidle' });
+  await waitForView(drawings, 'drawings');
+  await drawings.waitForFunction(() =>
+    document.querySelector('.sheet-tabs-shell')?.classList.contains('can-scroll-right'),
+  );
+  assert.equal(
+    await drawings.locator('.sheet-stage').evaluate((stage) => {
+      const catalogue = document.querySelector('.drawings-catalogue');
+      return catalogue !== null
+        && Math.abs(stage.getBoundingClientRect().width - catalogue.getBoundingClientRect().width) <= 1;
+    }),
+    true,
+  );
+  assert.equal(
+    await drawings.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    true,
+  );
+  await drawings.locator('.sheet-tabs').evaluate((tabs) => {
+    tabs.scrollLeft = Math.round((tabs.scrollWidth - tabs.clientWidth) / 2);
+    tabs.dispatchEvent(new Event('scroll'));
+  });
+  await drawings.waitForFunction(() => {
+    const shell = document.querySelector('.sheet-tabs-shell');
+    return shell?.classList.contains('can-scroll-left') && shell.classList.contains('can-scroll-right');
+  });
+  await drawings.locator('.sheet-tabs').evaluate((tabs) => {
+    tabs.scrollLeft = tabs.scrollWidth;
+    tabs.dispatchEvent(new Event('scroll'));
+  });
+  await drawings.waitForFunction(() => {
+    const shell = document.querySelector('.sheet-tabs-shell');
+    return shell?.classList.contains('can-scroll-left') && !shell.classList.contains('can-scroll-right');
+  });
+  await drawings.close();
 
   const reentry = await browser.newPage({ viewport: { width: 390, height: 844 } });
   trackErrors(reentry, errors);

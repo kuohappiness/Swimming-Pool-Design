@@ -104,6 +104,16 @@ try {
     await page.locator(`[data-view-root][data-view-mounted="${route.id}"]`).waitFor({
       state: 'attached',
     });
+    if (route.id === 'solar-study') {
+      await page.locator('#date').evaluate((control) => {
+        control.value = '7';
+        control.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      await page.locator('#time').evaluate((control) => {
+        control.value = '7';
+        control.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
     if (route.id === '3d-viewer') {
       await page.waitForFunction(
         () =>

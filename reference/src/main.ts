@@ -14,9 +14,12 @@ const required = <T extends Element>(selector: string): T => {
 
 export function destroyAtlas(): void {
   window.removeEventListener('hashchange', handleHashChange);
+  window.removeEventListener('resize', updateSheetTabOverflow);
+  tabs.removeEventListener('scroll', updateSheetTabOverflow);
 }
 
 const tabs = required<HTMLElement>('#sheet-tabs');
+const tabsShell = required<HTMLElement>('.sheet-tabs-shell');
 const stage = required<HTMLElement>('#sheet-stage');
 const modelVersion = required<HTMLElement>('#model-version');
 const projectName = required<HTMLElement>('#project-name');
@@ -86,6 +89,17 @@ function renderTabs(): void {
   tabs.querySelectorAll<HTMLButtonElement>('[data-sheet]').forEach((button) => {
     button.addEventListener('click', () => setActiveSheet(button.dataset.sheet ?? sheets[0].id));
   });
+  updateSheetTabOverflow();
+  requestAnimationFrame(updateSheetTabOverflow);
+}
+
+function updateSheetTabOverflow(): void {
+  const overflowTolerance = 2;
+  tabsShell.classList.toggle('can-scroll-left', tabs.scrollLeft > overflowTolerance);
+  tabsShell.classList.toggle(
+    'can-scroll-right',
+    tabs.scrollLeft + tabs.clientWidth < tabs.scrollWidth - overflowTolerance,
+  );
 }
 
 function setActiveSheet(id: string): void {
@@ -132,5 +146,7 @@ function handleHashChange(): void {
 }
 
 window.addEventListener('hashchange', handleHashChange);
+window.addEventListener('resize', updateSheetTabOverflow);
+tabs.addEventListener('scroll', updateSheetTabOverflow, { passive: true });
 
 setActiveSheet(activeSheetId);

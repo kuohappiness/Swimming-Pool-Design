@@ -166,9 +166,42 @@ body {
     padding-inline: 14px;
   }
 
+  .sheet-tabs-shell {
+    position: relative;
+  }
+
+  .sheet-tabs-shell::before,
+  .sheet-tabs-shell::after {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    bottom: 0;
+    width: 2rem;
+    pointer-events: none;
+    content: "";
+    opacity: 0;
+    transition: opacity 160ms ease;
+  }
+
+  .sheet-tabs-shell::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--site-paper) 10%, transparent);
+  }
+
+  .sheet-tabs-shell::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--site-paper) 10%, transparent);
+  }
+
+  .sheet-tabs-shell.can-scroll-left::before,
+  .sheet-tabs-shell.can-scroll-right::after {
+    opacity: .94;
+  }
+
   .workspace {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     border-inline: 0;
   }
 

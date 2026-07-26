@@ -301,7 +301,10 @@ export function mount(container: HTMLElement): MountedView {
           >
             <header class="concept-chapter-heading">
               <span>${chapter.number}</span>
-              <h2 id="concept-${chapter.sceneId}-title">${chapter.sideTitle}</h2>
+              <h2 id="concept-${chapter.sceneId}-title" aria-label="${chapter.title}">
+                <span class="concept-side-title--desktop">${chapter.sideTitle}</span>
+                <span class="concept-side-title--mobile" aria-hidden="true">${chapter.title}</span>
+              </h2>
             </header>
             <div class="concept-chapter-copy">${chapterHtml}</div>
             <div class="concept-motif" aria-hidden="true">

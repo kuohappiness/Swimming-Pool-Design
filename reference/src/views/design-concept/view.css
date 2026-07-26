@@ -361,6 +361,10 @@
   letter-spacing: -.05em;
 }
 
+.concept-side-title--mobile {
+  display: none;
+}
+
 .concept-detail-side-heading h2 {
   margin-top: 0;
   font-size: clamp(2.6rem, 5vw, 5rem);
@@ -702,6 +706,11 @@
     margin: 0;
   }
 
+  .concept-index strong {
+    font-size: 1.15rem;
+    white-space: nowrap;
+  }
+
   .concept-chapter,
   .concept-chapter--reverse,
   .concept-detail-section,
@@ -716,13 +725,27 @@
     margin-bottom: 3rem;
   }
 
+  .concept-side-title--desktop {
+    display: none;
+  }
+
+  .concept-side-title--mobile {
+    display: inline;
+  }
+
   .concept-chapter-copy > h2:first-child {
-    margin-top: 0;
+    display: none;
   }
 
   .concept-chapter-copy p,
   .concept-chapter-copy li {
     font-size: .97rem;
+    line-height: 1.95;
+  }
+
+  .concept-chapter-copy blockquote {
+    font-family: inherit;
+    font-size: 1.067rem;
     line-height: 1.95;
   }
 
