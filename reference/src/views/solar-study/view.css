@@ -84,7 +84,8 @@ body {
   border-bottom: 0;
 }
 
-.solar-model > h2 {
+.solar-model > h2,
+.research-conclusion-heading h2 {
   margin: 0;
   color: var(--site-ink);
   font-family: var(--site-sans);
@@ -94,7 +95,8 @@ body {
   letter-spacing: 0;
 }
 
-.solar-model > h2 span {
+.solar-model > h2 span,
+.research-conclusion-heading h2 span {
   color: var(--site-water);
 }
 
@@ -111,6 +113,7 @@ body {
 }
 
 .solar-study-view.solar-meta .facts {
+  justify-content: flex-end;
   margin: 0;
   border-bottom: 0;
 }
@@ -147,31 +150,80 @@ body {
   background: transparent;
 }
 
-.solar-study-view .decision-summary {
-  grid-template-columns: minmax(0, 1.4fr) minmax(360px, .8fr);
-  gap: 3rem;
-  padding: 2rem 0;
-  border: 0;
-  border-bottom: 1px solid var(--site-line);
-  border-radius: 0;
-  background: transparent;
+.research-conclusion {
+  margin: 0;
+  padding: 0 0 clamp(2.4rem, 6vw, 3.6rem);
 }
 
-.solar-study-view .decision-summary dl {
-  grid-template-columns: 1fr 1fr;
-  border-top: 1px solid var(--site-line-strong);
+.research-conclusion-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-.solar-study-view .decision-summary dl div {
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--site-line);
-  border-radius: 0;
-  background: transparent;
-}
-
-.solar-study-view .decision-summary a {
-  justify-self: end;
+.research-conclusion-heading a {
   color: var(--site-water);
+  font-size: .78rem;
+  font-weight: 700;
+  text-decoration-color: color-mix(in srgb, var(--site-water) 35%, transparent);
+  text-underline-offset: .25rem;
+}
+
+.research-conclusion-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-block: 1px solid var(--site-line-strong);
+}
+
+.research-conclusion-metrics > div {
+  min-width: 0;
+  padding: 1.15rem 1.4rem 1.35rem;
+  border-right: 1px solid var(--site-line);
+}
+
+.research-conclusion-metrics > div:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.research-conclusion-metrics dt {
+  color: var(--site-muted);
+  font-size: .76rem;
+  letter-spacing: .02em;
+}
+
+.research-conclusion-metrics dd {
+  margin: .45rem 0 0;
+  color: var(--site-ink);
+  font-family: var(--site-mono);
+  font-size: clamp(1.55rem, 2.5vw, 2.35rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -.045em;
+  white-space: nowrap;
+}
+
+.research-conclusion-metrics dd strong {
+  font: inherit;
+}
+
+.research-conclusion-metrics dd small {
+  display: block;
+  margin-top: .45rem;
+  color: var(--site-water);
+  font-size: .72rem;
+  letter-spacing: .02em;
+}
+
+.research-conclusion-note {
+  max-width: var(--site-reading);
+  margin: .8rem 0 0;
+  color: var(--site-muted);
+  font-size: .72rem;
+  line-height: 1.65;
 }
 
 .solar-study-view .stage {
@@ -206,17 +258,51 @@ body {
 }
 
 .solar-method {
-  width: min(var(--site-reading), calc(100% - 40px));
-  margin: 0 auto var(--site-space-5);
-  border-block: 1px solid var(--site-line);
+  width: 100%;
+  margin: 0;
+  border: 0;
 }
 
 .solar-method summary {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-family: var(--site-serif);
-  font-size: 1.15rem;
+  color: var(--site-ink);
+  font-family: var(--site-sans);
+  font-size: clamp(1.68rem, 2.88vw, 2.16rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.solar-method summary::before {
+  content: "|";
+  margin-right: .3rem;
+  color: var(--site-water);
+}
+
+.solar-method summary::after {
+  content: "";
+  width: .5rem;
+  height: .5rem;
+  margin-left: auto;
+  margin-right: .2rem;
+  border-right: 1.5px solid color-mix(in srgb, var(--site-water) 78%, transparent);
+  border-bottom: 1.5px solid color-mix(in srgb, var(--site-water) 78%, transparent);
+  transform: rotate(45deg);
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.solar-method[open] summary::after {
+  transform: rotate(225deg);
+}
+
+.solar-study-view.solar-study-details {
+  padding-bottom: clamp(2.4rem, 6vw, 3.6rem);
+}
+
+.site-view--solar-study + .site-footer {
+  margin-top: 0;
 }
 
 .solar-method > div {
@@ -228,6 +314,18 @@ body {
 
 .solar-method p {
   margin: .5rem 0;
+}
+
+@media (hover: hover) {
+  .solar-method summary:hover::after {
+    border-color: var(--site-water);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .solar-method summary::after {
+    transition: none;
+  }
 }
 
 @media (max-width: 920px) {
@@ -258,17 +356,25 @@ body {
     box-shadow: none;
   }
 
-  .solar-study-view .decision-summary {
-    display: block;
+  .research-conclusion-metrics {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .solar-study-view .decision-summary dl {
-    margin-top: 2rem;
+  .research-conclusion-metrics > div {
+    border-bottom: 1px solid var(--site-line);
+  }
+
+  .research-conclusion-metrics > div:nth-child(even) {
+    border-right: 0;
+  }
+
+  .research-conclusion-metrics > div:nth-child(3),
+  .research-conclusion-metrics > div:nth-child(4) {
+    border-bottom: 0;
   }
 }
 
 @media (max-width: 520px) {
-  .solar-study-view .decision-summary dl,
   .solar-signature {
     grid-template-columns: 1fr;
   }
@@ -281,5 +387,34 @@ body {
 
   .solar-study-view .panel {
     padding: 14px;
+  }
+
+  .research-conclusion-heading {
+    display: block;
+  }
+
+  .research-conclusion-heading a {
+    display: inline-block;
+    margin-top: .8rem;
+  }
+
+  .research-conclusion-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .research-conclusion-metrics > div,
+  .research-conclusion-metrics > div:first-child,
+  .research-conclusion-metrics > div:last-child {
+    padding: 1rem 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--site-line);
+  }
+
+  .research-conclusion-metrics > div:last-child {
+    border-bottom: 0;
+  }
+
+  .research-conclusion-metrics > div:nth-child(3) {
+    border-bottom: 1px solid var(--site-line);
   }
 }

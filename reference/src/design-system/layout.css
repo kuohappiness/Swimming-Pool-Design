@@ -180,6 +180,15 @@ a {
   color: var(--site-ink);
 }
 
+.site-author {
+  display: block;
+  margin-top: .45rem;
+  color: var(--site-muted);
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+}
+
 @media (max-width: 900px) {
   .site-masthead {
     grid-template-columns: 1fr auto;

@@ -38,7 +38,9 @@ const activeStudy = resolveActiveGeometry(model) as unknown as {
       daylightEndHour: number;
     };
     workingResult: {
+      warmPoolAddedKWh: number;
       coolPoolAddedKWh: number;
+      coolPoolIncreasePercent: number;
     };
   };
 };
@@ -212,42 +214,13 @@ function setMobilePreview(mode: MobilePreviewMode): void {
   renderLivePreview();
 }
 
-function bindMobilePreview(control: HTMLElement, mode: MobilePreviewMode): void {
-  control.addEventListener('pointerdown', () => setMobilePreview(mode));
-  control.addEventListener('focus', () => setMobilePreview(mode));
-  control.addEventListener('input', () => {
-    mobilePreviewMode = mode;
-  });
-}
-
-required<HTMLElement>('#project-name').textContent = model.project.name;
-required<HTMLElement>('#model-version').textContent =
-  'STUDY ' + activeStudy.revision + ' · MODEL ' + model.modelVersion;
+required<HTMLElement>('#tableStudyVersion').textContent = 'STUDY ' + activeStudy.revision;
 if (
   generatedViewerModel.modelVersion !== model.modelVersion
   || generatedViewerModel.activeGeometryRevisionId !== activeStudy.id
 ) {
   throw new Error('Generated solar analysis status does not match the active model.');
 }
-const analysisStatus = generatedViewerModel.analysis.solar.status;
-const analysisStatusText = analysisStatus === 'current'
-  ? 'current／已驗證'
-  : analysisStatus === 'stale' ? 'stale／需重驗' : 'unavailable／無可用驗證';
-const analysisStatusElement = required<HTMLElement>('#study-analysis-status');
-analysisStatusElement.textContent = analysisStatusText;
-analysisStatusElement.classList.add('is-' + analysisStatus);
-required<HTMLElement>('#study-baseline-label').textContent =
-  'v0.6.7 研究基線 · Model ' + model.modelVersion
-  + (analysisStatus === 'current' ? ' 已驗證' : ' 尚待重驗');
-required<HTMLElement>('#study-method').textContent = study.analysisMethodRevision;
-required<HTMLElement>('#study-thresholds').textContent =
-  '方位 ±' + study.azimuthTolerance.value.toFixed(0)
-  + '° · 下射 ≥' + study.minimumDownwardAngle.value.toFixed(0) + '°';
-required<HTMLElement>('#study-energy-assumptions').textContent =
-  'ρ ' + study.energyAssumptions.mirrorReflectance.toFixed(2)
-  + ' · τ ' + study.energyAssumptions.glazingSolarTransmittance.toFixed(2)
-  + ' · ' + String(study.energyAssumptions.daylightStartHour).padStart(2, '0')
-  + ':00–' + String(study.energyAssumptions.daylightEndHour).padStart(2, '0') + ':00';
 required<HTMLElement>('#coord-fact').textContent =
   '基地 ' + location.latitude.value.toFixed(5) + '°N · ' + location.longitude.value.toFixed(5) + '°E';
 required<HTMLElement>('#axis-fact').textContent =
@@ -255,15 +228,18 @@ required<HTMLElement>('#axis-fact').textContent =
 required<HTMLElement>('#pool-fact').textContent = '泳池方向 −X ' + poolAzimuth.toFixed(0) + '°';
 required<HTMLElement>('#timezone-fact').textContent =
   location.timeZone + ' · UTC+' + location.utcOffsetHours;
-required<HTMLElement>('#confirmed-plan').textContent = signed(defaultPlanRotation);
-required<HTMLElement>('#confirmed-lean').textContent = signed(defaultWallLean);
-required<HTMLElement>('#confirmed-normal').textContent =
-  deriveMirrorNormalAzimuth(model.referenceSystem, defaultPlanRotation).toFixed(1) + '°';
-required<HTMLElement>('#confirmed-cool-gain').textContent =
-  '+' + new Intl.NumberFormat('zh-TW', {
+const energyFormatter = new Intl.NumberFormat('zh-TW', {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
-  }).format(study.workingResult.coolPoolAddedKWh) + ' kWh';
+});
+required<HTMLElement>('#conclusion-plan-rotation').textContent = signed(defaultPlanRotation);
+required<HTMLElement>('#conclusion-wall-lean').textContent = signed(defaultWallLean);
+required<HTMLElement>('#conclusion-cool-gain').textContent =
+  '+' + energyFormatter.format(study.workingResult.coolPoolAddedKWh) + ' kWh';
+required<HTMLElement>('#conclusion-cool-percent').textContent =
+  '+' + study.workingResult.coolPoolIncreasePercent.toFixed(3) + '%';
+required<HTMLElement>('#conclusion-warm-gain').textContent =
+  energyFormatter.format(study.workingResult.warmPoolAddedKWh) + ' kWh';
 
 rotationControl.value = String(defaultPlanRotation);
 leanControl.value = String(defaultWallLean);
@@ -617,8 +593,8 @@ function update(): void {
     '方向診斷 ' + String(diagnosticStartHour).padStart(2, '0') + ':00–'
       + String(diagnosticEndHour).padStart(2, '0') + ':00 · 年度能量 '
       + String(energyStart).padStart(2, '0') + ':00–'
-      + String(energyEnd).padStart(2, '0') + ':00 · '
-      + (inEnergyWindow ? '本時刻位於能量取樣時段' : '本時刻僅供方向診斷，不納入年度能量時段');
+      + String(energyEnd).padStart(2, '0') + ':00'
+      + (inEnergyWindow ? '' : ' · 本時刻僅供方向診斷，不納入年度能量時段');
 
   buildingPlan.setAttribute(
     'transform',
@@ -779,14 +755,16 @@ function update(): void {
       ? thresholdReadout + ' 原本已有直射仍須計入鏡面疊加能量；這是單點方向代理，不是整季 kWh 或熱效益結論。'
       : thresholdReadout + ' 平面方位與剖面下射角同時通過方向代理門檻；這不是 kWh、照度或熱效益定量。';
   } else {
-    resultTitle.textContent = evaluation.planPass
-      ? diagnosticPrefix + '：未形成有效下射'
-      : diagnosticPrefix + '：偏離池心';
-    resultDetail.textContent = period.key === 'warm'
-      ? thresholdReadout + ' 此時刻未通過方向代理門檻，但不能直接推論整個暖季零增量；仍須看年度能量分析。'
-      : thresholdReadout + (evaluation.planPass
+    const diagnosticResult = evaluation.planPass ? '未形成有效下射' : '偏離池心';
+    resultTitle.innerHTML = diagnosticPrefix + '：<br>' + diagnosticResult;
+    if (period.key === 'warm') {
+      resultDetail.innerHTML = thresholdReadout
+        + '<br>此時刻未通過方向代理門檻，但不能直接推論整個暖季零增量；仍須看年度能量分析。';
+    } else {
+      resultDetail.textContent = thresholdReadout + (evaluation.planPass
         ? ' 平面方向通過，但剖面反射沒有達到最低下射門檻。'
         : ' 平面反射方向超出泳池方位容許範圍。');
+    }
   }
   renderLivePreview();
 }
@@ -794,11 +772,6 @@ function update(): void {
 renderPlanTolerance();
 renderSolarTable();
 update();
-bindMobilePreview(yearControl, 'plan');
-bindMobilePreview(dateControl, 'plan');
-bindMobilePreview(timeControl, 'plan');
-bindMobilePreview(rotationControl, 'plan');
-bindMobilePreview(leanControl, 'section');
 previewPlanButton.addEventListener('click', () => setMobilePreview('plan'));
 previewSectionButton.addEventListener('click', () => setMobilePreview('section'));
 mobilePreviewMedia.addEventListener('change', renderLivePreview);
@@ -815,7 +788,6 @@ yearControl.addEventListener('input', () => {
   update();
 });
 currentYearButton.addEventListener('click', () => {
-  setMobilePreview('plan');
   studyYear = taipeiNow().year;
   followsCurrentYear = true;
   yearControl.value = String(studyYear);

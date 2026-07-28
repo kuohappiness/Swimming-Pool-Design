@@ -14,14 +14,16 @@ function studyMarkup(): string {
   const modelStage = study.querySelector<HTMLElement>('section.stage');
   const seasonTable = study.querySelector<HTMLElement>('section.season-table-panel');
   const studyFacts = study.querySelector<HTMLElement>('.facts');
-  if (!modelStage || !seasonTable || !studyFacts) {
-    throw new TypeError('Solar study template is missing its model stage, seasonal table, or site facts.');
+  const principles = study.querySelector<HTMLElement>('section.principles');
+  if (!modelStage || !seasonTable || !studyFacts || !principles) {
+    throw new TypeError('Solar study template is missing its model stage, seasonal table, site facts, or design principles.');
   }
   const modelMarkup = `${modelStage.outerHTML}${seasonTable.outerHTML}`;
   const factsMarkup = studyFacts.outerHTML;
   modelStage.remove();
   seasonTable.remove();
   studyFacts.remove();
+  principles.remove();
   return `
     <section class="view-intro view-intro--solar" aria-labelledby="solar-view-title">
       <p class="site-kicker">SOLAR STUDY</p>
@@ -33,18 +35,16 @@ function studyMarkup(): string {
       <h2 id="solar-model-title"><span aria-hidden="true">|</span> 日照研究模型</h2>
       <div class="solar-study-view solar-model-content wrap">${modelMarkup}</div>
     </section>
-    <section class="solar-meta solar-study-view" aria-label="基地與研究版本">
+    <section class="solar-meta solar-study-view" aria-label="基地資訊">
       ${factsMarkup}
-      <div class="solar-trust-line">
-        <span id="project-name"></span>
-        <span id="model-version"></span>
-      </div>
     </section>
-    <div class="solar-study-view wrap">${study.innerHTML}</div>
-    <details class="solar-method">
-      <summary>研究方法、來源與專業限制</summary>
-      <div>${footer?.innerHTML ?? ''}</div>
-    </details>
+    <div class="solar-study-view solar-study-details wrap">
+      ${study.innerHTML}
+      <details class="solar-method">
+        <summary>研究方法、來源與專業限制</summary>
+        <div>${footer?.innerHTML ?? ''}</div>
+      </details>
+    </div>
   `;
 }
 

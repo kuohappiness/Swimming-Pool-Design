@@ -440,10 +440,30 @@ svg text { font-family: inherit; }
   background: #edf4ef;
 }
 .result strong { font-size: 16px; }
-.result span { color: var(--muted); font-size: 13px; line-height: 1.45; text-align: right; }
+.result span { color: var(--muted); font-size: 13px; line-height: 1.45; text-align: left; }
 .result.is-warn { border-color: #ecc8b0; background: #fff1e8; }
 
 .season-table-panel, .principles { margin-top: 18px; }
+.table-notes-toggle {
+  margin: 12px 0 0;
+  border-block: 1px solid #d7d1c6;
+}
+.table-notes-toggle summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.table-notes-toggle ul {
+  margin: 0;
+  padding: 0 0 12px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
 .table-scroll { overflow-x: auto; }
 table { width: 100%; min-width: 1040px; border-collapse: collapse; font-size: 13px; }
 th, td { padding: 9px; border-bottom: 1px solid #e3ded4; text-align: right; }

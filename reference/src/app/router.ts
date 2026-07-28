@@ -23,7 +23,7 @@ export const viewDefinitions: readonly ViewDefinition[] = [
     label: '日照研究',
     eyebrow: 'SOLAR STUDY',
     title: '向光而轉',
-    description: '旋轉L3鏡牆的季節性光線研究',
+    description: '日照角度的季節性研究',
   },
   {
     id: 'drawings',

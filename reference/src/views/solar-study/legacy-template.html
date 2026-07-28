@@ -32,31 +32,36 @@
         <span id="timezone-fact" class="pill"></span>
       </div>
 
-      <section class="decision-summary" aria-labelledby="decision-title">
-        <div class="decision-summary-copy">
-          <p id="study-baseline-label" class="eyebrow">研究基線與驗證狀態載入中</p>
-          <h2 id="decision-title">L3 新高度讓固定鏡面得到暖季零增量候選</h2>
-          <p>本頁沿用 v0.6.7 的研究幾何與工作結果；Model 0.9.6 將方法、門檻、能量假設與來源納入 active contract 並完成重驗，不代表重新執行角度最佳化。25 × 8.5 m 池體、L3 +6.88 m、鏡高 3.60 m、12 × 13.5 m 旋轉主體與 X=35 m 工作支點皆未改變；暖季池面新增仍為 0，冷季新增仍為 +1,036.829 kWh（+0.962%）。非接收面玻璃屋簷、完整 3F 屋頂與高覆蓋率太陽能排布尚未納入遮蔭、反射、眩光或發電模擬；23° 外傾幅度大，兩者都必須再經結構、構造、眩光與維修專業驗證。</p>
-          <div class="study-contract" aria-label="Active 日照研究方法與假設">
-            <span><small>Active 方法</small><strong id="study-method">—</strong></span>
-            <span><small>方向代理門檻</small><strong id="study-thresholds">—</strong></span>
-            <span><small>能量假設</small><strong id="study-energy-assumptions">—</strong></span>
-            <span><small>分析狀態</small><strong id="study-analysis-status">—</strong></span>
-          </div>
+      <section class="research-conclusion" aria-labelledby="research-conclusion-title">
+        <div class="research-conclusion-heading">
+          <h2 id="research-conclusion-title"><span aria-hidden="true">|</span> 研究結論</h2>
+          <a href="https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/analysis/solar-analysis.md">完整研究方法</a>
         </div>
-        <dl>
-          <div><dt>L3 水平旋轉</dt><dd><strong id="confirmed-plan">—</strong></dd></div>
-          <div><dt>鏡牆外傾</dt><dd><strong id="confirmed-lean">—</strong></dd></div>
-          <div><dt>鏡牆法線</dt><dd><strong id="confirmed-normal">—</strong></dd></div>
-          <div><dt>冷季收益</dt><dd><strong id="confirmed-cool-gain">—</strong></dd></div>
+        <dl class="research-conclusion-metrics">
+          <div>
+            <dt>最佳 L3 水平旋轉</dt>
+            <dd id="conclusion-plan-rotation">—</dd>
+          </div>
+          <div>
+            <dt>最佳鏡牆外傾</dt>
+            <dd id="conclusion-wall-lean">—</dd>
+          </div>
+          <div>
+            <dt>冷季池面能量增量</dt>
+            <dd><strong id="conclusion-cool-gain">—</strong><small id="conclusion-cool-percent">—</small></dd>
+          </div>
+          <div>
+            <dt>暖季池面能量增量</dt>
+            <dd><strong id="conclusion-warm-gain">—</strong><small>0.000%</small></dd>
+          </div>
         </dl>
-        <a href="https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/analysis/solar-analysis.md">日照分析完整方法</a>
+        <p class="research-conclusion-note">池面能量增量為入射太陽能量差，不等同於泳池水的實際吸收熱量或水溫增幅。</p>
       </section>
 
       <section class="stage" aria-label="平面與剖面互動研究">
         <article class="panel">
           <h2>平面：L3 旋轉改變鏡牆法線方位</h2>
-          <p class="sub">綠色 L1／L2 永遠不動；紅色 L3 整體旋轉。藍色短邊是面向泳池的鏡牆。淡色扇形只表示 active 方位代理門檻；鏡牆法線、入射光與反射光在鏡牆中心的代表性入射點彙交，不代表精確池面落點。平面虛線只顯示向下 3D 反射光的水平投影，不代表光線穿透鏡牆；完整下射角請與右側剖面一起閱讀。中央圓點採 X=35 m、Y=6.75 m 的 L3 幾何中心工作位置；它降低幾何偏心但不等於已求得實際質心或剛心，最終仍須依載重、柱網與轉換構造驗證。</p>
+          <p class="sub">- 藍色短邊是面向泳池的鏡牆。<br>- 平面虛線只顯示向下 3D 反射光的水平投影，不代表光線穿透鏡牆；完整下射角請與右側剖面一起閱讀。</p>
           <svg id="plan" viewBox="0 0 560 470" role="img" aria-labelledby="plan-title plan-desc">
             <title id="plan-title">基地平面、太陽方位與三樓水平旋轉示意</title>
             <desc id="plan-desc">固定的一、二樓服務中心上方，有一個水平旋轉的三樓服務中心與面池鏡牆。羅盤顯示目前日期 7 點至 18 點的太陽路徑，以及在鏡牆代表性入射點彙交的法線、入射光與向下三維反射光的水平投影；鏡牆遮住光線並在兩側留有短間隙，表示光線沒有穿透牆體。</desc>
@@ -82,8 +87,6 @@
               <line id="azimuthToleranceEnd" class="azimuth-tolerance-bound" />
               <text id="azimuthToleranceLabel" class="azimuth-tolerance-label"></text>
             </g>
-            <g id="planRays"></g>
-            <g id="selectedSun"></g>
 
             <g id="buildingPlan" transform="translate(280 235)">
               <rect x="-110" y="-43" width="220" height="86" rx="8" class="fixed-footprint" />
@@ -104,6 +107,8 @@
             <line id="wallNormal" x1="280" y1="235" x2="411" y2="373" class="wall-normal" />
             <text id="wallAzLabel" x="366" y="380" class="wall-label">鏡牆法線</text>
             <circle id="planIncidentPoint" cx="280" cy="235" r="5" class="plan-incident-point" aria-label="鏡牆代表性入射點" />
+            <g id="planRays"></g>
+            <g id="selectedSun"></g>
           </svg>
           <div class="legend" aria-label="平面圖例">
             <span><i class="swatch fixed"></i>固定 L1／L2</span>
@@ -168,7 +173,7 @@
               </div>
               <div id="mobilePreviewViewport" class="mobile-preview-viewport" aria-hidden="true"></div>
               <small class="desktop-preview-help">左側平面與右側剖面會隨所有控制器同步更新。</small>
-              <small class="mobile-preview-help">年份、日期、時間與水平旋轉顯示平面；外傾角顯示剖面，也可手動切換。</small>
+              <small class="mobile-preview-help">可手動切換平面與剖面；調整年份、日期、時間與角度時，會保留目前檢視。</small>
             </div>
             <div class="control control-year">
               <label for="year">觀察年份 <b id="yearValue">自動 · 今年</b></label>
@@ -189,7 +194,7 @@
                 <option value="12"></option><option value="13"></option>
               </datalist>
               <div class="range-ends" aria-hidden="true"><span>1月1日</span><span>6月21日<br />夏至</span><span>12月21日<br />冬至</span></div>
-              <small id="dateHelp">共 14 格：每月 1 日，加上 6 月 21 日夏至與 12 月 21 日冬至；只有拉到至日時才在圖中標示冬至／夏至。</small>
+              <small id="dateHelp">共 14 格：每月 1 日，加上 6 月 21 日夏至與 12 月 21 日冬至。</small>
             </div>
             <div class="control control-time">
               <label for="time">觀察時間 <b id="timeValue">—</b></label>
@@ -209,7 +214,7 @@
                 <option value="18"></option>
               </datalist>
               <div class="time-scale" aria-hidden="true"><span>07</span><span>09</span><span>12</span><span>15</span><span>18</span></div>
-              <small id="timeHelp">方向診斷可選 07:00–18:00，每格一個整點；年度能量時段另由 active model 定義。太陽在地平線下時，圖面停止繪製入射與反射光。</small>
+              <small id="timeHelp">方向診斷可選 07:00–18:00，每格一個整點。太陽在地平線下時，圖面停止繪製入射與反射光。</small>
             </div>
             <div class="control control-rotation">
               <label for="planRotation">L3 水平旋轉 <b id="planValue">—</b></label>
@@ -226,7 +231,7 @@
               <div class="rotation-scale" aria-hidden="true">
                 <span>−20°</span><span>−10°</span><span>0°</span><span>+10°</span><span>+20°</span><span>+30°</span><span>+40°</span>
               </div>
-              <small id="planRotationHelp">−20°～+40°，每格 0.1°；拖曳時平面、鏡牆法線方位、剖面反射與即時預覽同步重算。載入值由 active model 提供，且仍屬待專業驗證的工作值。</small>
+              <small id="planRotationHelp">−20°～+40°，每格 0.1°；拖曳時平面、鏡牆法線方位、剖面反射與即時預覽同步重算。</small>
             </div>
             <label class="control" for="lean">
               <span>鏡牆外傾角（相對垂直） <b id="leanValue">—</b></span>
@@ -250,7 +255,6 @@
 
       <section class="panel season-table-panel">
         <h2>冬至與夏至代表時刻</h2>
-        <p class="sub">高度角是太陽離地平線的角度；方位角由真北順時針計。表格與互動方向診斷涵蓋 07:00–18:00，年度能量則只採 active model 定義的 07:00–17:00 時段。所有數值由同一基地座標及太陽位置函式產生。</p>
         <div class="table-scroll">
           <table>
             <thead>
@@ -259,7 +263,16 @@
             <tbody id="solar-table-body"></tbody>
           </table>
         </div>
-        <p class="table-note">夏至接近中午時太陽幾乎位於天頂，方位角可在一小時內跨越很大角度；平面圖以高度角縮短近天頂光線，避免固定半徑造成視覺誇大。負高度角代表太陽在地平線下。</p>
+        <details class="table-notes-toggle">
+          <summary>表格說明</summary>
+          <ul>
+            <li id="tableStudyVersion">STUDY —</li>
+            <li>高度角是太陽離地平線的角度；方位角由真北順時針計。</li>
+            <li>表格與互動方向診斷涵蓋 07:00–18:00。</li>
+            <li>所有數值由同一基地座標及太陽位置函式產生。</li>
+            <li>夏至接近中午時太陽幾乎位於天頂，方位角可在一小時內跨越很大角度；平面圖以高度角縮短近天頂光線，避免固定半徑造成視覺誇大。負高度角代表太陽在地平線下。</li>
+          </ul>
+        </details>
       </section>
 
       <section class="panel principles">

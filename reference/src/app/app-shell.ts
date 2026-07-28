@@ -44,7 +44,10 @@ export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
         <div data-view-root aria-live="polite"></div>
       </main>
       <footer class="site-footer">
-        <p><strong>國立臺中教育大學附設實驗國民小學<br>游泳池改建設計</strong></p>
+        <p>
+          <strong>國立臺中教育大學附設實驗國民小學<br>游泳池改建設計</strong>
+          <span class="site-author">作者｜郭鼎佑　日期｜2026.07.29</span>
+        </p>
         <p class="site-footer-meta">MODEL ${model.modelVersion} · ${model.activeGeometryRevisionId} · SITE-XY · 單位 m</p>
       </footer>
     </div>
