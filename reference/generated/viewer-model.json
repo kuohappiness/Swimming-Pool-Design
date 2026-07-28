@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.5.0",
-  "modelVersion": "0.9.6",
+  "modelVersion": "0.9.7",
   "revision": "2026-07-26",
   "activeGeometryRevisionId": "GEO-0.8.2",
   "geometryRevision": "0.8.2",
   "coordinateSystemId": "SITE-XY",
-  "modelHash": "bec89e2ab0b31b8ca7a204b9d00090371ed4ac803b0fe5dd1910b90b0dd7c48e",
+  "modelHash": "80b970b597e02b7736efa547d631802a834dd05beb75212345fc66444fa24fce",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",
@@ -2321,7 +2321,7 @@
       "sourceIds": [
         "SRC-SITE-003"
       ],
-      "disclaimer": "0.9.6 概念模型已同步；本版以剛完工且已投入使用的建築外觀、室內、泳池與衛浴擬真為優先，加入 4 座坐式／4 座蹲式 WC、較完整洗手槽與小便斗、建築接縫、泳池溢流排水、照明與可降級動態水面。這些新增項目均為 visual-only 或經驗證的衛浴工作配置，不改 walkthrough collision、鏡牆角度或 solar inputHash，因此沿用既有日照分析。器具法定數量、無障礙、實際材料、防水、排水、結構、消防與機電仍須專業驗證。"
+      "disclaimer": "0.9.7 概念模型已同步；本版以剛完工且已投入使用的建築外觀、室內、泳池與衛浴擬真為優先，加入 4 座坐式／4 座蹲式 WC、較完整洗手槽與小便斗、建築接縫、泳池溢流排水、照明與可降級動態水面。這些新增項目均為 visual-only 或經驗證的衛浴工作配置，不改 walkthrough collision、鏡牆角度或 solar inputHash，因此沿用既有日照分析。器具法定數量、無障礙、實際材料、防水、排水、結構、消防與機電仍須專業驗證。"
     }
   }
 }

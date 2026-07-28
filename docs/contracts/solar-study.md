@@ -1,7 +1,7 @@
 # 太陽研究契約
 
 - 類型：output-contract
-- 狀態：active／v0.9.6（v0.6.7 研究基線不變）
+- 狀態：active／v0.9.7（v0.6.7 研究基線不變）
 - Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
 - 分析依據：[日照分析](../analysis/solar-analysis.md)
 - 入口：`/?view=solar-study`

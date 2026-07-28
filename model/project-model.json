@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.5.0",
-  "modelVersion": "0.9.6",
+  "modelVersion": "0.9.7",
   "revision": "2026-07-26",
   "activeGeometryRevisionId": "GEO-0.8.2",
-  "designTargetVersion": "0.9.6",
+  "designTargetVersion": "0.9.7",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改善概念設計",
     "shortName": "Swimming Pool Design",

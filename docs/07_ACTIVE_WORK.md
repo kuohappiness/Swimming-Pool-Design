@@ -409,7 +409,17 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-098`～`TASK-105` 已完整收斂為 [Release 0.9.6](releases/0.9.6.md)；不建立 tag，release commit 推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 26. 未排程設計問題
+## 26. 0.9.7 日照研究展示精修
+
+本輪不更動幾何或日照分析輸入，只整理 Solar Study 的結論、圖層、互動狀態、說明文字、響應式版面與發布署名。
+
+| ID | 任務 | 狀態 | 目標版本 | 依據 | 前置 | 驗收 |
+|---|---|---|---|---|---|---|
+| TASK-106 | 完成日照研究結論、互動圖層、手機預覽、表格說明、研究方法折疊與頁尾署名精修 | done | 0.9.7 | 使用者逐項瀏覽器標註、[Solar Study 契約](contracts/solar-study.md) | TASK-105 | 保留 v0.6.7 研究基線及現行能量結果；桌面／手機顯示、互動狀態、可展開研究方法與頁尾資訊一致；版本、模型、generated data、文件及 release 記錄同步 |
+
+`TASK-106` 已收斂為 [Release 0.9.7](releases/0.9.7.md)；不建立 tag，release commit 推送 `main` 後由既有 GitHub Pages workflow 部署。
+
+## 27. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 

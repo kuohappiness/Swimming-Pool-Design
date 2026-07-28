@@ -15,7 +15,7 @@
 
 | 項目 | 現行值 | 狀態 |
 | --- | --- | --- |
-| 模型版本 | `0.9.6` | active |
+| 模型版本 | `0.9.7` | active |
 | Active revision | `GEO-0.8.2` | active |
 | 對外座標系 | `SITE-XY`；X0～X41、Y0～Y14、圖面 Y 向上 | active canonical |
 | Three.js adapter | SITE X→Three X、SITE Y→Three −Z、SITE Z→Three Y | derived |
