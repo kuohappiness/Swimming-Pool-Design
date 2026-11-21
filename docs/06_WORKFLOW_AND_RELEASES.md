@@ -42,14 +42,18 @@ validator + tests + build
 ```powershell
 npm install
 npm run dev
+npm run lint
 npm run check:docs
 npm run validate:reference
 npm test
 npm run build
+npm run test:e2e
 git diff --check
 ```
 
-`npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/reference/`。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
+`npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/reference/`。`npm run dev` 只聽本機；要用手機連線測試時改用 `npm run dev:lan`。`npm run test:e2e` 需要本機的 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定瀏覽器路徑。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
+
+每個 PR 由 `.github/workflows/ci.yml` 自動執行上列檢查與金鑰掃描，彙總檢查「全部檢查通過」是合併前的必要條件（[DEC-148](04_DECISIONS_AND_OPEN_ITEMS.md)）。
 
 ## 5. GitHub Pages
 
