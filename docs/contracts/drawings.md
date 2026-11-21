@@ -31,7 +31,7 @@
 ## 驗收
 
 - model sheet registry 恰為 `REF-001`、`V067-L1`、`V067-L2`、`V067-L3`、`V067-SECTION`。
-- 四張 SVG／PNG 均存在，SVG metadata 與 active model 一致。
+- 四張 SVG 均入庫，metadata 與 active model 一致；PNG 由 `npm run build:drawings` 轉出，不入庫。
 - Viewer 與 solar-study 最新圖面連結都指向 `#V067-L1`。
 - 320 px 以上可操作；圖片以 `preserveAspectRatio` 顯示且不裁掉圖框。
 - 手機預設符合畫面顯示完整圖框，可切回原圖尺寸水平檢視；目錄、圖層控制與構件詳情仍可依序操作。

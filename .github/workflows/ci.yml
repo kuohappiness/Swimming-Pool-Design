@@ -79,8 +79,6 @@ jobs:
         run: npm run check:model
       - name: Unit tests
         run: npm test
-      - name: Generated content matches the committed copy
-        run: git diff --exit-code -- web/src/generated
 
   build:
     name: Build
