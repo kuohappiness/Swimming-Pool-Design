@@ -7,6 +7,7 @@
     "node": ">=22.13"
   },
   "scripts": {
+    "prepare": "npm run build:content",
     "predev": "npm run build:content",
     "dev": "vite",
     "dev:lan": "npm run dev -- --host",
@@ -18,6 +19,7 @@
     "check:model": "node tools/check/check-model.mjs",
     "pretest": "npm run build:content",
     "test": "node --test \"tests/unit/**/*.test.mjs\"",
+    "pretypecheck": "npm run build:content",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:e2e": "node tests/e2e/web.e2e.mjs && node tests/e2e/3d-viewer.e2e.mjs",

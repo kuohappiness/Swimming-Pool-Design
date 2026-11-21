@@ -56,12 +56,6 @@ export default tseslint.config(
     },
   },
   {
-    // Temporary exception until TASK-109 moves the satellite base map into a
-    // derived file under web/src/views/drawings/assets/.
-    files: ['web/src/views/drawings/sheets.ts'],
-    rules: { 'no-restricted-syntax': 'off' },
-  },
-  {
     files: ['core/**/*.mjs', 'tools/**/*.mjs', 'tests/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },

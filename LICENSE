@@ -18,11 +18,13 @@ This repository uses two licenses by content type. Third-party material is exclu
 
 3. 不在上述授權範圍內的第三方素材 / Third-party material not covered above
    - source-materials/site/SRC-SITE-001_google-maps-satellite.png 及以它為底的
-     標註圖 SRC-SITE-002、SRC-SITE-004，與網站圖面頁使用的同一衛星底圖：
+     標註圖 SRC-SITE-002、SRC-SITE-004，與網站圖面頁使用的衍生檔
+     web/src/views/drawings/assets/site-satellite.jpg：
      地圖資料與影像權利屬 Google 及其資料提供者，僅作為概念設計的來源證據保存。
      The Google Maps satellite image and the annotated images based on it
-     (SRC-SITE-001, SRC-SITE-002, SRC-SITE-004, and the same base map shown on the
-     drawings page). Map data and imagery belong to Google and its data providers.
+     (SRC-SITE-001, SRC-SITE-002, SRC-SITE-004), and its derivative
+     web/src/views/drawings/assets/site-satellite.jpg shown on the drawings page.
+     Map data and imagery belong to Google and its data providers.
    - source-materials/site/SRC-SITE-005_school-emblem-transparent.png 及其衍生的
      web/src/shared/assets/brand/school-emblem-header.png：校徽屬學校所有。
      The school emblem and its derived header image belong to the school.

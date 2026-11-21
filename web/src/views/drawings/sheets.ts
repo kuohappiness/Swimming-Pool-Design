@@ -1,7 +1,6 @@
 import type { ProjectModel, SheetRender } from '../../shared/types';
 import { deriveSiteOrientation } from '../../../../core/geometry/site-orientation.mjs';
-
-const siteImage = new URL('../../../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
+import siteImage from './assets/site-satellite.jpg';
 import l1Svg from '../../../../drawings/current/DRAW-L1-PLAN.svg?raw';
 import l2Svg from '../../../../drawings/current/DRAW-L2-PLAN.svg?raw';
 import l3Svg from '../../../../drawings/current/DRAW-L3-PLAN.svg?raw';

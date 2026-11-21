@@ -4,3 +4,8 @@ dist/
 *.log
 test-results/
 .claude/settings.local.json
+
+# Produced by npm scripts, not tracked (TASK-109):
+# build:content (run by prepare, predev, pretest and build) and build:drawings.
+web/src/generated/
+drawings/current/*.png
