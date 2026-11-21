@@ -1,10 +1,37 @@
 # 進度與任務
 
-本文件只管理「目前做什麼、狀態、依賴與驗收」。設計答案留在各 owner 文件（見 [架構](architecture.md) 第 2 節），流程留在 [工作流程與發布](agents/workflow.md)，詳細作法留在 `docs/tasks/` 的任務說明。
+本文件只回答「現在在做什麼」。每件工作的狀態寫在它入口（任務說明）標題下的狀態行，這裡的〈現在在哪裡〉是把狀態行抄成一列的狀態板，`npm run check:docs` 會比對兩邊是否一致。寫法見 [工作流程與發布](agents/workflow.md)；設計答案在各 owner 文件（見 [架構](architecture.md) 第 2 節）。
 
-允許狀態：`queued`、`ready`、`in_progress`、`blocked`、`done`。同一時間最多一項 `in_progress`；任務延期只修改目標版本，不更換 TASK ID。
+開工只讀〈現在在哪裡〉：`node tools/section.mjs docs/roadmap.md 現在在哪裡`。
 
-## 1. 0.2.0 任務
+## 現在在哪裡
+
+開工時在這裡加一列：「工作」寫 `TASK-<下一個編號> <一句話>`，「入口」連到有狀態行的任務說明；狀態、下一步、等誰照抄入口的狀態行。工作結束時把這一列移到〈已完成〉。
+
+| 工作 | 狀態 | 下一步 | 等誰 | 入口 |
+| --- | --- | --- | --- | --- |
+
+## 等觸發點
+
+觸發點到了才動的工作。入口的狀態是「等觸發點」時，列在這裡，「觸發點」照抄入口狀態行的下一步；入口只有 DEC 編號的列手寫。
+
+| 工作 | 觸發點 | 入口 |
+| --- | --- | --- |
+| 評估自動產生 roadmap 各列的工具（比照 Essence 的 `roadmap-sync`） | 新格式實際用過三件以上任務，手抄狀態行確實常出錯時 | DEC-147 |
+
+## 已完成
+
+入口的狀態變成「已合併」或「已結案」時，把那一列從〈現在在哪裡〉移到這張表最上面：「工作」欄寫粗體的工作名稱、全形冒號、狀態行的完成那一句，最後在全形括號裡寫狀態值、全形逗號與入口連結；日期是合併那天。
+
+| 日期 | 工作 |
+| --- | --- |
+| 2026-11-22 | **3D 頁點選與漫遊輸入修正（TASK-112）**：3D 頁七個點選與漫遊輸入錯誤已修正，每項都有修正前失敗、修正後通過的測試（已合併，[入口](tasks/2026-11-22-viewer-input-fixes.md)） |
+| 2026-11-22 | **資料夾架構與命名統一（TASK-107～TASK-110）**：程式與文件搬到新結構、瘦身與資產、工作流程對齊 Essence，四個任務都已合併（已合併，[入口](tasks/2026-11-21-folder-structure-migration-design.md)） |
+| 2026-11-22 | **資料夾搬移逐檔清單（TASK-107～TASK-109）**：逐檔搬移、刪除與引用更新都已照表完成（已合併，[入口](tasks/2026-11-21-folder-structure-migration-inventory.md)） |
+
+以下是 2026-11-22 工作流程改版前的任務表與紀錄，原文保留、只把標題降一級。舊表的狀態欄只用 `queued`、`ready`、`in_progress`、`blocked`、`done`，仍由 `npm run check:docs` 檢查；新工作不再寫進舊表。
+
+### 1. 0.2.0 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -17,7 +44,7 @@
 
 0.2.0 的 `TASK-001`～`TASK-005` 與 `TASK-006` 均已完成；後續工作由 0.3.0 任務接續。
 
-## 2. 0.3.0 任務
+### 2. 0.3.0 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -26,7 +53,7 @@
 | TASK-009 | `ST-01` 樓梯幾何、S1 鋼梯、B 弦幕主案與 A 玻璃備案定案 | done | 0.3.0 | [completed design](archive/specs/2026-07-16-stair-finalization-design.md)、[DEC-035](decisions.md)、[OPEN-013](backlog.md) | DEC-017～DEC-019 | 書面規格與示意圖已由使用者核准；30 級高／28 踏面、10.2 m 總長、S1、封閉踢面但梯下開放、深色懸浮切線、2.4 m B 弦幕主案、1.35 m A 玻璃備案及隱藏集力梁均有明確 owner，專業驗證仍保持 open |
 | TASK-010 | 將核准的 `ST-01` 設計同步至單一模型、REF-101／401／501 與驗證 | done | 0.3.0 | [completed design](archive/specs/2026-07-16-stair-finalization-design.md)、[completed implementation plan](archive/specs/2026-07-16-stair-finalization-implementation-plan.md)、[DEC-035](decisions.md) | TASK-008、TASK-009 | 模型正確區分級高與踏面並推導 4.20＋1.80＋4.20 m；圖集表達 S1、B 主案／A 備案與隱藏集力梁且不虛構材料定案；schema、validator、58 項測試、build、desktop／526px smoke 與文件檢查通過；320px 實機 smoke 仍保留為已知限制 |
 
-## 3. 0.3.1 任務
+### 3. 0.3.1 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -35,19 +62,19 @@
 | TASK-013 | 依修正後目標建立有鏡／無鏡能量差、暖冷季選擇性與天花板採光分析 | done | 0.3.1 | [日照分析](analysis/solar-analysis.md)、[completed implementation plan](archive/specs/2026-07-16-mirror-energy-and-daylight-analysis-plan.md)、[DEC-039／OPEN-011](decisions.md) | TASK-012 | 8,760 筆 PVGIS TMY 逐時資料與 3,111 組固定角度掃描可重現；含閏年日數修正後，現行裸露鏡面暖季／冷季增量為 +786.673／+3,445.526 kWh，工作遮罩降為 0／+597.502 kWh，並分列上部採光潛力；現行 owner、HTML、測試、完整 build 與 diff 檢查一致，舊新增受光面積不再作現行性能結論 |
 | TASK-014 | 完成太陽研究互動控制、版本同步與 0.3.1 發布 | done | 0.3.1 | [solar contract](contracts/solar-study.md)、[Release 0.3.1](releases/0.3.1.md) | TASK-011～TASK-013 | 年份自動跟隨台北今年且可手動比較；日期採每月 1 日加冬夏至共 14 點，時間採 07～18 整點；目前日期路徑依高度縮放，地平線下不畫反射；平／閏年、2026/6/1 近天頂轉向與行動版來源回歸皆有測試，套件、模型、README 與發布記錄同步為 0.3.1 |
 
-## 4. 0.3.2 任務
+### 4. 0.3.2 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-015 | 修正手機滑桿與互動圖距離過遠，完成 0.3.2 發布 | done | 0.3.2 | [solar contract](contracts/solar-study.md)、[Release 0.3.2](releases/0.3.2.md) | TASK-014 | 920 px 以下控制區提供 sticky 即時預覽；年份、日期、時間與水平旋轉顯示平面，外傾角顯示剖面並可手動切換；390 × 844 Chrome smoke、73 項測試、完整 build 與 diff 檢查通過 |
 
-## 5. 0.3.3 任務
+### 5. 0.3.3 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-016 | 擴充 2F 水平旋轉互動範圍並完成 0.3.3 發布 | done | 0.3.3 | [solar contract](contracts/solar-study.md)、[Release 0.3.3](releases/0.3.3.md) | TASK-015 | 水平旋轉可於 −20°～+40° 以 0.5° 拖曳；平面量體、鏡牆法線、反射診斷、即時讀值及手機 sticky 預覽同步更新；初始與 confirmed 模型仍為 +9.5°；測試、build、手機 smoke 與 diff 檢查通過 |
 
-## 6. 0.4.0～0.5.0 任務
+### 6. 0.4.0～0.5.0 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -78,7 +105,7 @@ V2.0 專業重繪記錄（2026-07-20）：依 `SRC-CONCEPT-010`／`011` 與當�
 
 V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TASK-019`、`TASK-021`～`TASK-024` 及 `TASK-028` 已完成。V2.3 修正真北箭頭至圖面右下；0.5.0 active Viewer、最新衛星圖、平／剖面、日照研究與三個 HTML 入口已同步。早期「不修改 0.4.0」及「queued」文字只描述當時的收集階段，不是目前狀態；0.4.0 成果仍保留作歷史比較。
 
-## 7. 0.6.0 任務
+### 7. 0.6.0 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -92,7 +119,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 0.6.0 圖面啟動記錄（2026-07-21，歷史）：當時先完成拆圖與版本標示，模型仍為 0.5.0；該暫態已由 2026-07-22 的 0.6.0 整批實作取代。
 
-### 0.6.0 修正討論批次 A（2026-07-21）
+#### 0.6.0 修正討論批次 A（2026-07-21）
 
 本節保存實作前的討論脈絡；使用者已於 2026-07-22 啟動整批實作，`TASK-031`～`TASK-035` 現已完成，不再是執行限制。
 
@@ -107,7 +134,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 批次 A 座標更正（2026-07-21）：使用者確認 ST-01 位於圖面 Y0.5～Y2.0，並將泳池右界由 X28.5 退至 X28，使其與 X31 廁所牆保持 3 m；本次只修正討論紀錄，尚未改圖或模型。
 
-### 批次 A 第二輪確認與樓梯比較（2026-07-21）
+#### 批次 A 第二輪確認與樓梯比較（2026-07-21）
 
 - 儲藏室：使用者同意 X31 泳池側與 X39 操場側兩個出口的規劃。
 - 泳池：使用者已明確確認 25 m 方案 X3～X28／Y4～Y12.5＝25 × 8.5 m，不再保留 23 m 方案歧義。
@@ -129,7 +156,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 第四輪定案（2026-07-21）：使用者正式核准樓梯方案 E，由 `DEC-066` 管理；其他 A～D 只保留為比較歷史，不再驅動 0.6.0。使用者並再次確認 `DEC-067` 的「結構生成空間」理念：結構規劃必須同步考慮空間，讓真正的結構構件成為隔間或立面秩序的一部分，避免為結構目的事後插入突兀孤柱。將柱融入 Y0 玻璃牆實體分格、讓樓梯平台受力與柱線結合僅為說明理念的例子，不代表指定構造或固定座標。
 
-### 批次 A 第五輪：1F 機房、廁所、入口與水道（2026-07-21）
+#### 批次 A 第五輪：1F 機房、廁所、入口與水道（2026-07-21）
 
 1. 水處理規模：泳池 X3～X28／Y4～Y12.5 的池面為 212.5 m²；平均深度暫按 1.35 m，水量約 286.9 m³。依 [Sport England 泳池建築服務設計指南](https://sportengland-production-files.s3.eu-west-2.amazonaws.com/s3fs-public/swimming-pools-2013-appendix-2-servicing-the-building.pdf?VersionId=E7Icoi3F4WCodG39.Vpt5zBGp9UjJun1)，一般游泳池概念換水週期為 2.5～4 小時，循環量約 72～115 m³/h；水處理機房通常以池面積 15～30% 初估，本案約 31.9～63.8 m²。現有 24 m² 儲藏帶全部使用仍低於概念下限，左右對分後的 12 m² 更不能稱為完整水處理機房。
 2. 機房工作首選：保留「左側乾式雜物儲藏、右側由 X39 獨立維修進出」的水平分區意圖，但右側 L1 只先作受管制的藥劑／維修入口；主要過濾器、泵浦及平衡槽另在鄰池且接近池底標高的 32～40 m² 下層或擴大機房處理。藥劑須和雜物分間、獨立通風、止液堤／排水並防止學生進入。若不接受下層機房，下一輪必須挪用廁所或其他服務面積，不能硬塞進 12 m²。
@@ -140,7 +167,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 7. 水道：8.5 m 池寬的首選是 3 條 2.5 m 標準水道，兩側各留 0.5 m 緩衝，剛好 8.5 m。這與[教育部體育署學校游泳池規劃資料](https://www.sa.gov.tw/Resource/Attachment/f1425280791177.pdf)所列 2.5 m 標準水道及最外側至少 0.5 m 緩衝一致。30 人同時下水約為每道 10 人，適合分組教學；四道只能縮成非標準約 2.0 m，較不建議。
 8. 結構與設備整合的整體檢核已新增為 `TASK-035`，涵蓋柱牆／核心、樓梯平台、水處理／平衡槽／藥劑間、空調除濕、雨水回用、四間廁所管道、設備搬運、標高銜接、排水、防水、避難與無障礙衝突；須在唯一 active 模型與 0.6.0 幾何更新後執行。
 
-### 批次 A 第六輪：機房樓層分工、廁所面積與混合水道（2026-07-21）
+#### 批次 A 第六輪：機房樓層分工、廁所面積與混合水道（2026-07-21）
 
 1. 整套水處理設備移到 3F 在空間上做得到，但在水力與維修上不是首選。Sport England 指南建議循環泵接近最深池底標高並維持淹沒吸水；把泵、過濾器、平衡槽與反沖洗系統抬至 3F，會增加揚程、吸水風險、長立管、噪振、漏水影響與樓板集中水重。酸／氯藥劑也須獨立通風、受管制並避免與空調、電氣及人員動線混合；[CDC 2024 MAHC](https://www.cdc.gov/model-aquatic-health-code/media/pdfs/2024/11/5th-Ed-MAHC-Code-508.pdf)另要求化學儲藏專用空間、阻止未授權進入、控制逸散並和設備房分開。
 2. 3F 建議只承擔「適合高層」的設備：水塔／生活或雨水回用儲水、泳池大廳空調除濕與熱回收、熱泵室外機／冷凝端及 BMS 控制。水塔每 1 m³ 水即約 1 t，所有水塔、機組與維修通道須集中在固定結構核心或直落柱線上，避開 L3 旋轉懸挑、鏡牆與薄弱出挑端；進排風與藥劑排氣不得互相短路。
@@ -150,7 +177,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 第七輪確認（2026-07-21）：水處理設備仍以 L1 鄰池配置為主，3F 配置水塔與適合高層的空調／熱回收／熱泵／控制設備；無障礙廁所延後專題規劃，兩標準水道＋3.0 m 混合教學區維持定案。舊廁所面積與高差提案已依使用者要求刪除，不再作文件、模型或圖面依據。
 
-### 批次 A 第八輪：四間獨立廁所與六區塊彈性分割（2026-07-22）
+#### 批次 A 第八輪：四間獨立廁所與六區塊彈性分割（2026-07-22）
 
 1. L1 服務翼 X31～X39／Y0～Y14 改由六個功能區組成：儲物間、水處理機房、泳池男廁、泳池女廁、操場男廁、操場女廁。泳池組與操場組完全不互通，不設共用內部走道或借道門；泳池組只朝 X31 進出，操場組只朝 X39 進出。
 2. 已確認器具與標高：泳池男廁 +0.30 m，2 WC＋2 小便斗＋2 洗面盆；泳池女廁 +0.30 m，3 WC＋2 洗面盆；操場男廁 +0.10 m，1 WC＋1 小便斗＋1 洗面盆；操場女廁 +0.10 m，2 WC＋1 洗面盆。泳池大廳、池畔與泳池側廁所連續同高，不在廁所內設主要高差轉換。
@@ -159,7 +186,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 5. L2 +3.30 m、既有屋頂與天花標高維持不變。泳池廁所由 +0.30 m至 L2 為 3.00 m幾何層高，操場廁所由 +0.10 m至 L2 為 3.20 m；實際淨高須扣除樓板、梁、風管與排水管。X39～X41 的 2 m 退縮優先檢討由 +0.00 緩升到 +0.10 m的 1:20 外部整坡，避免操場廁所門口產生 10 cm階差。
 6. 本輪只更新 owner 文件與 Active Task；舊廁所提案及其專用示意已刪除。在使用者確認面積工作值且 `TASK-034` 完成前，不修改正式 SVG／PNG、模型、Viewer 或分析成果。
 
-### 座標誤判事件與防再犯門檻（2026-07-21）
+#### 座標誤判事件與防再犯門檻（2026-07-21）
 
 - 事件：先前檢核直接把 `geometry.solarReflection.v050Study.stairFromRaisedPoolDeck.originY=11.875` 當成使用者圖面 Y 座標，錯誤判定樓梯位於上側並與泳池衝突；使用者指出 ST-01 正確圖面範圍為 Y0.5～Y2.0。先前衝突結論已撤銷，不得再引用。
 - 根因：同一 `ST-01` 同時存在 `geometry.stair.originY=0.5` 與 v0.5.0 工作幾何 `originY=11.875`，欄位同名但座標方向／原點語意不同；`viewer-data.mjs` 直接轉送後者，測試也只做數值快照，沒有驗證圖面 bounds。這違反單一來源原則，現行模型在此項應視為不安全。
@@ -168,7 +195,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 - 強制驗證：斷言 ST-01＝X20.5～X29／Y0.5～Y2.0、泳池／服務區／L2 邊界的 SITE-XY bounds，並逐一比對單一模型、產生資料、SVG 與 Viewer。任何 frame 缺失、同 ID 多套 bounds 或跨輸出不一致都使 build／test 失敗。
 - 執行結果：`TASK-034` 的 resolver、adapter 與破壞性回歸測試已先完成，之後才實作 `TASK-031`～`TASK-033`；此閘門現已通過。
 
-## 8. 0.6.1 任務
+### 8. 0.6.1 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -178,7 +205,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 0.6.1 樓梯回歸根因（2026-07-22）：0.6.0 完成了「資料選 active」但沒有完成「渲染座標保持同一手性」。`SITE X→Three X／SITE Y→Three +Z／SITE Z→Three Y` 交換 Y、Z 後的行列式為負，俯視時必然鏡射 Y 軸；測試當時只確認 JSON 中 ST-01 的 X 值與部分尺寸，沒有驗證 Three scene 的 Y 方向。加上 Viewer payload 仍複製 `originY`，因此文件聲稱單一 bounds，consumer 卻仍保有第二套語意。本輪將資料選取、adapter 手性、scene root 與實際 Y0 關係拆成四層回歸門檻，後續不得只用「JSON 值正確」替代渲染驗證。
 
-## 9. 0.6.2 任務
+### 9. 0.6.2 任務
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -190,7 +217,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 本批修正於 2026-07-23 依使用者指示先完整記錄，尚未修改模型、圖面、Viewer 或版本號。Y3.5 集中管線牆與 X31 小便斗為概念上可行的配置，實作仍不得省略隔間淨寬、入口淨空、檢修管道及無障礙檢核。
 
-## 10. 0.6.3 任務
+### 10. 0.6.3 任務
 
 0.6.3 已於 2026-07-23 完成修訂收集並由使用者明確啟動整批實作。`TASK-044`～`TASK-047` 依核准設計同步至單一模型、current 圖面、Viewer、HTML 與驗證；發布整合另由 `TASK-048` 管理。
 
@@ -208,7 +235,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-044`～`TASK-048` 已完成並收斂為 [Release 0.6.3](releases/0.6.3.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 11. 0.6.4 任務
+### 11. 0.6.4 任務
 
 0.6.4 依 2026-07-24 使用者審閱，集中修正圖面座標可讀性、L2／L3 封閉性、3F 屋頂與光電覆蓋、鏡牆端部收邊、2F 動線分隔及 Y0 外牆材質。既有泳池、樓層標高、L3 +25.5°、鏡牆 +23.0°、樓梯、廁所及更衣淋浴配置不變。
 
@@ -218,7 +245,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-049` 已完成並收斂為 [Release 0.6.4](releases/0.6.4.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 12. 0.6.5 任務
+### 12. 0.6.5 任務
 
 0.6.5 依 2026-07-24 使用者核准內容，修正 L1 分段立面與西端退縮、兩處透明玻璃屋簷、L2 Y0 玻璃視覺辨識、L3 圖面旋轉／透明光電圖層、縱剖遺漏牆面及 3D 泳池深度剖視。既有日照分析輸入不變，不重新執行日照最佳化。
 
@@ -228,7 +255,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-050` 已完成並收斂為 [Release 0.6.5](releases/0.6.5.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 13. 0.6.6 任務
+### 13. 0.6.6 任務
 
 0.6.6 依 2026-07-24 使用者檢視公開 Viewer 後核准兩項視覺修正：取消干擾性的黃色選取外接框，並讓 L2 Y0 全寬玻璃與其他安全玻璃外牆採相同顯示方式。幾何與日照分析輸入均不變，不重新執行日照最佳化。
 
@@ -238,7 +265,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-051` 已完成並收斂為 [Release 0.6.6](releases/0.6.6.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 14. 0.6.7 任務
+### 14. 0.6.7 任務
 
 使用者以 0.6.6 公開手機版截圖指出 L2 服務中心 Y0 仍是實際水泥牆。射線命中診斷證實 0.6.5／0.6.6 的材質判斷錯誤：generated viewer model 漏掉 canonical `l2.splitAxisY=8`，使男女更衣分隔牆以未定義座標建立在 Y0。0.6.7 只修正資料投影與 Viewer 牆位，不變更建築設計或日照分析輸入。
 
@@ -248,7 +275,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-052` 已完成並收斂為 [Release 0.6.7](releases/0.6.7.md)；不建立 tag，推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 15. 0.7.0／0.8.0 整合執行順序
+### 15. 0.7.0／0.8.0 整合執行順序
 
 `TASK-053` 已完成。其餘工作依下列階段執行；同一階段內的任務可在隔離工作區平行進行，各任務仍以「依賴」欄為實際啟動門檻。0.7.0 負責 Walkthrough、碰撞與游泳核心，0.8.0 只建立 enhanced rendering；正式發布順序固定為 0.7.0 → 0.8.0。
 
@@ -281,13 +308,13 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | TASK-064 | 完成桌機／手機效能階級與視覺回歸 | done | 0.8.0 | [視覺擬真設計](archive/specs/2026-07-24-3d-visual-fidelity-design.md)、[implementation plan](archive/specs/2026-07-24-3d-visual-fidelity-implementation-plan.md) | TASK-057、TASK-061、TASK-062、TASK-063 | 1440 × 900 high／medium／low 與 390 × 844 adaptive 均以獨立頁逐級量測 214,109-byte transfer、平均 FPS、p95、draw calls、triangles、shader programs／compile 與 drawing buffer；所有 tier 低於 24／12／6 MiB，SwiftShader 結果均高於同機 0.6.7 baseline 的 80%，硬體 50／30 FPS 保留為裝置端目標而不虛假宣稱。low 將 draw calls 1,678→638、triangles 59,416→27,118、programs 38→22；兩個持續超標窗後才單向 high→medium→low。真實 context loss／restore 保留 scene、cutaway、selection 與 layers；optional environment failure、reduced motion、fallback 均可用。14 張 before／after hash 與人工抽查涵蓋五場景、兩側、俯視、剖視、L1／L2／L3、人眼、水下與 mobile；無新增 UV、透明排序、陰影閃爍、z-fighting、過曝或 controls 遮擋。自我優化依 1.35 FPS 證據取消正式 high 全畫面 SSAO，保留 PBR／PMREM／ACES／PCF shadow 與可選 AO pipeline。 |
 | TASK-065 | 合併已發布 0.7.0、完成 0.8.0 契約、版本與發布驗證 | done | 0.8.0 | [完成設計](archive/specs/2026-07-24-3d-visual-fidelity-design.md)、[完成計畫](archive/specs/2026-07-24-3d-visual-fidelity-implementation-plan.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.8.0](releases/0.8.0.md) | TASK-058、TASK-060、TASK-061、TASK-062、TASK-063、TASK-064 | enhanced 已成正式預設；software renderer low、窄螢幕硬體 medium、desktop hardware high，再以雙觀測窗單向降級。package／model／`GEO-0.8.0`／generated data 同步；model diff 只含 metadata，solar inputHash 不變。82 項測試與 production build 通過；53 秒 E2E 涵蓋 enhanced desktop／390 × 844、Inspect、六區、物理入水、水下、touch、snapshot restore、explicit baseline、necessary material→baseline、WebGL static fallback、solar-study 與 V067 atlas。自我檢查修正放開下潛後 movement／overlay race；最終截圖確認 desktop／mobile 水下、HUD、safe-area 與 controls。Viewer contract、0.8 release 與兩份 completed specs 已同步封存；依使用者指示，最終全套驗證後一次 commit 並 push。 |
 
-## 16. 0.8.0 後續修正
+### 16. 0.8.0 後續修正
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-066 | 修正 3D Viewer 真北箭頭根本方位換算並加入 N 標記 | done | 0.8.0 correction | [DEC-121](decisions.md)、[模型契約](contracts/model.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-065 | 已把 307° 羅盤方位以 `90°−bearing` 轉成 Three Y 軸 143°；SITE +X 世界方位為西北 307°、真北在 SITE 平面為右下，場景箭頭尖端顯示 N。Viewer data 現在攜帶並驗證同一 world transform／plan direction，任何漂移 fail closed；固定鏡位同步校正 90°而維持既有構圖。84 項測試、文件與 reference validation、typecheck、production build、desktop／mobile／fallback E2E、俯視／透視人工抽查及 `git diff --check` 全數通過 |
 
-## 17. 0.8.2 建築本體擬真修訂
+### 17. 0.8.2 建築本體擬真修訂
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -300,7 +327,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | TASK-073 | 分階段自我檢查、視覺回歸與效能優化 | done | 0.8.2 | [完成計畫](archive/specs/2026-07-25-building-first-realism-implementation-plan.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-068～TASK-072 | 資料分布、detail contract、建築細節、衛浴、動畫、desktop high、390 × 844 adaptive／low、fallback 與碰撞不變均有自動測試或 14 張截圖證據；自我檢查以 explicit caster 保留主要器具陰影、low 關閉細節陰影，衛浴 mesh 由 272 批次化為 160 並鎖定 180 上限，靜態陰影改為場景／圖層／剖視／畫質／context 變動時按需更新。SwiftShader high／medium／low 為 0.86／0.86／8.55 FPS，390 × 844 自動 low 為 18.2 FPS，均通過相對門檻；長時間量測與快速視覺快照分離，避免常駐預覽程序 |
 | TASK-074 | 同步 0.8.2 版本、文件、完整驗證並 commit／push | done | 0.8.2 | [Release 0.8.2](releases/0.8.2.md)、[發布流程](agents/workflow.md) | TASK-067～TASK-073 | package／model／`GEO-0.8.2`／schema 1.4.0／generated data／README／contracts 同步；完整測試、typecheck、production build、desktop／mobile E2E、品質證據與 diff 檢查通過後建立一次 release commit 並 push `main` |
 
-## 18. 0.9.0 統一公開成果展
+### 18. 0.9.0 統一公開成果展
 
 0.9.0 將現行三個 HTML 整合為單一公開成果網站，主導覽固定為「設計理念、日照研究、圖面設計、3D 展示」。本版只改入口、版面、字型、視覺層級與響應式體驗；active geometry、日照 inputHash、V067 完稿圖及 3D／漫遊實際資料與行為不變。
 
@@ -319,7 +346,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-075`～`TASK-082` 已完成並收斂為 [Release 0.9.0](releases/0.9.0.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 19. 0.9.1 敘事與閱讀體驗精修
+### 19. 0.9.1 敘事與閱讀體驗精修
 
 0.9.1 將作品閱讀旅程補成「手稿起點→設計方向→專業驗證→圖面→空間體驗」，並修正 0.9.0 把完整設計理念重複帶入 3D 頁的架構問題。本版延續克制的建築刊物語彙，不改 active geometry、日照、V067 圖面或 3D／漫遊行為。
 
@@ -335,7 +362,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-083`～`TASK-087` 已完成並收斂為 [Release 0.9.1](releases/0.9.1.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 20. 0.9.2 地端文字與版面細修
+### 20. 0.9.2 地端文字與版面細修
 
 0.9.2 彙整使用者在四個公開分頁完成的文字、斷行、比例、留白、對齊、3D 控制與低對比配色調整。本版不改 active geometry、日照計算、V067 圖面或 3D／漫遊行為，並建立可重現的 v1.0 網站可見文字快照。
 
@@ -348,7 +375,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-088`～`TASK-091` 已完成並收斂為 [Release 0.9.2](releases/0.9.2.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 21. 0.9.3 手機閱讀與圖面操作修正
+### 21. 0.9.3 手機閱讀與圖面操作修正
 
 0.9.3 收斂使用者以 390 × 844 實際檢視提出的手機展示問題，只調整設計理念與圖面頁的響應式呈現，不改桌機／平板、建築模型、日照研究、V067 圖面本體或 3D／漫遊行為。
 
@@ -359,7 +386,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-092`～`TASK-093` 已完成並收斂為 [Release 0.9.3](releases/0.9.3.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 22. 0.9.4 理念文案與用詞精修
+### 22. 0.9.4 理念文案與用詞精修
 
 0.9.4 依前一輪核准內容，精簡四個理念章節與設計細節，統一「服務中心」稱呼並改善引言閱讀樣式。
 
@@ -370,7 +397,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-094`～`TASK-095` 已完成並收斂為 [Release 0.9.4](releases/0.9.4.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
 
-## 23. 0.9.5 設計理念起點段落精修
+### 23. 0.9.5 設計理念起點段落精修
 
 0.9.5 收錄使用者在 localhost 逐項核准的 ORIGIN 場勘與手稿段落調整。本版只修改設計理念頁的可見文案、圖片順序與單欄排列，不改 active geometry、日照研究、V067 圖面本體或 3D／漫遊行為。
 
@@ -383,7 +410,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-096`～`TASK-097` 已收斂為 [Release 0.9.5](releases/0.9.5.md)。
 
-## 24. 0.9.6 基地方位單一真相來源
+### 24. 0.9.6 基地方位單一真相來源
 
 0.9.6 依使用者確認，把基地長軸方向收斂為單一 canonical data。SITE +X 固定由泳池遠端指向服務核心、真北方位 307°；−X 127°及所有 world／SVG／Viewer 方位均由同一來源推導。鏡牆法線保持日照研究衍生值，不固定在基地方位資料內。
 
@@ -394,7 +421,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-098`～`TASK-099` 的基地方位工作已納入 [Release 0.9.6](releases/0.9.6.md)，並由後續 `TASK-100`～`TASK-105` 完成同版日照研究治理與展示封版。
 
-## 25. 0.9.6 日照分析治理與展示封版
+### 25. 0.9.6 日照分析治理與展示封版
 
 本輪先完成模型、分析程式、測試與 owner 文件，再依使用者逐項確認同步 HTML、CSS、公開文字快照與響應式展示，最後整體封版為 0.9.6。
 
@@ -409,7 +436,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-098`～`TASK-105` 已完整收斂為 [Release 0.9.6](releases/0.9.6.md)；不建立 tag，release commit 推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 26. 0.9.7 日照研究展示精修
+### 26. 0.9.7 日照研究展示精修
 
 本輪不更動幾何或日照分析輸入，只整理 Solar Study 的結論、圖層、互動狀態、說明文字、響應式版面與發布署名。
 
@@ -419,7 +446,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-106` 已收斂為 [Release 0.9.7](releases/0.9.7.md)；不建立 tag，release commit 推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 27. 資料夾架構與命名統一
+### 27. 資料夾架構與命名統一
 
 依 [DEC-147](decisions.md) 調整資料夾、檔名與文件結構，不改設計、模型數值、公開網址或任何編號。四項任務各一個 PR，依序合併；`TASK-107` 須等 PR 自動檢查（`TASK-111`）先合併到 `main`。合併前，其他工作不對現有檔案開大型 PR。
 
@@ -427,14 +454,18 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-107 | 搬移 A：程式搬到 `web/`、`core/`、`tools/`、`tests/unit/`、`tests/e2e/`、`content/`、`drawings/current/`，只搬不改 | done | repository structure | [DEC-147](decisions.md)、[設計](tasks/2026-11-21-folder-structure-migration-design.md)、[清單](tasks/2026-11-21-folder-structure-migration-inventory.md) | TASK-111（PR 自動檢查）已合併 | `npm run build` 通過且測試數不變；Git 認出每個搬移為改名；`dist/web` 與原 `dist/reference` 檔案數相同；四個分頁桌機與手機截圖與搬移前逐像素相同；部署後四個網址正常 |
 | TASK-108 | 搬移 B：01～07 與文件所有權依功能改名、新增 `architecture.md`、舊成果移入 `docs/archive/`、刪除舊版圖面、入口與設定檔整理 | done | repository structure | [DEC-147](decisions.md)、[設計](tasks/2026-11-21-folder-structure-migration-design.md) | TASK-107 | `npm run build` 通過；現行文件與程式內沒有舊路徑；兩份 skill 一致；`docs/archive/README.md` 列出舊路徑對照與已刪除清單 |
-| TASK-109 | 瘦身與資產：刪除舊視覺基準圖與一次性守門指令、產生檔改為不入庫、圖面底圖改用衍生檔 | in_progress | repository structure | [DEC-147](decisions.md)、[設計](tasks/2026-11-21-folder-structure-migration-design.md) | TASK-108 | `npm run build` 與 e2e 通過；網站產出 5 MB 以下；網站不再直接讀取 `source-materials/`；圖面底圖經使用者目視確認 |
-| TASK-110 | 工作流程對齊 Essence：狀態行、roadmap 三節、backlog 兩節、`section` 工具、決策索引 | queued | repository structure | [DEC-147](decisions.md)、[設計](tasks/2026-11-21-folder-structure-migration-design.md) | TASK-108 | `check:docs` 檢查狀態行格式與 roadmap、backlog 的分節；`section` 工具可印出單一節 |
+| TASK-109 | 瘦身與資產：刪除舊視覺基準圖與一次性守門指令、產生檔改為不入庫、圖面底圖改用衍生檔 | done | repository structure | [DEC-147](decisions.md)、[設計](tasks/2026-11-21-folder-structure-migration-design.md) | TASK-108 | `npm run build` 與 e2e 通過；網站產出 5 MB 以下；網站不再直接讀取 `source-materials/`；圖面底圖經使用者目視確認 |
+| TASK-110 | 工作流程對齊 Essence：狀態行、roadmap 三節、backlog 兩節、`section` 工具、決策索引 | done | repository structure | [DEC-147](decisions.md)、[設計](tasks/2026-11-21-folder-structure-migration-design.md) | TASK-108 | `check:docs` 檢查狀態行格式與 roadmap、backlog 的分節；`section` 工具可印出單一節 |
 
 TASK-107 驗收記錄（2026-11-22）：167 個檔案以 `git mv` 搬移，Git 全部認為改名；搬移前後在同一環境比對，`npm run build` 通過且單元測試同為 105 項、lint 與 `test:e2e` 通過；`dist/web` 與原 `dist/reference` 同為 38 個檔案，產生的 Viewer 資料與內容雜湊不變；設計理念、日照研究、圖面、3D 四個分頁在桌機 1440 × 900 與手機 390 × 844 的截圖與搬移前逐像素相同。指令改名：`validate:reference` 改 `check:model`、`drawings:v067` 改 `build:drawings`、`analyze:solar:v067` 改 `build:analysis`、`capture:copy` 改 `build:copy`、`clean:reference` 改 `clean:dist`，`test:public` 併入 `test:e2e`。依賴方向由 `eslint.config.js` 把關，圖面衛星底圖是唯一暫時例外，TASK-109 移除。部署後四個網址於合併後確認。
 
 TASK-108 驗收記錄（2026-11-22）：01～07 依功能改名（`product.md`、`site-and-sources.md`、`design-basis.md`、`decisions.md`、`contracts/model.md`、`agents/workflow.md`、`roadmap.md`），OPEN 與未排程設計問題原文移到 `backlog.md`，文件所有權併入新的 `architecture.md`（分層與路由兩節由設計架構工作撰寫），`specs/` 改為 `tasks/`；`versions/`、`deliverables/`、`subprojects/` 移入 `docs/archive/`，場勘照片 `SRC-CONCEPT-012`～`017` 移到 `source-materials/site/photos/`，雜湊不變；刪除舊版圖面 v0.5.0～v0.6.6（82 檔）、一次性腳本與 `.nojekyll`，舊路徑對照與已刪除清單在 `docs/archive/README.md`。新增 `LICENSE`、`CLAUDE.md`、`.editorconfig`、`.gitattributes`、`.ignore`、PR 範本與 `.claude/settings.json`，skill 改放 `.claude/skills/` 與 `.agents/skills/` 兩份。`check:docs` 改讀新路徑，並檢查 OPEN 只在 `backlog.md`、兩份 skill 逐位元組相同；新增名詞對照與路由登錄表的比對測試。`npm run build` 通過（單元測試 107 項，比 TASK-107 多 2 項名詞對照測試）、lint 通過；現行文件與程式內的舊路徑只剩 DEC 與已完成 TASK 的歷史紀錄、指向舊版本的永久連結，以及 TASK-109 要刪除的 v0.9.0 基準報告。
 
-## 28. PR 自動檢查
+TASK-109 驗收記錄（2026-11-22）：分兩個 PR 完成。[PR #6](https://github.com/kuohappiness/Swimming-Pool-Design/pull/6) 讓 `web/src/generated/` 與 `drawings/current/*.png` 不再入庫（新增 `prepare`、`pretypecheck`，全新 clone 經 `npm ci` 即自動產生網站資料），圖面頁 `REF-001` 底圖改用 `SRC-SITE-001` 的同尺寸 JPEG 衍生檔 `web/src/views/drawings/assets/site-satellite.jpg`（3,833,443 → 467,853 bytes），網站不再讀取 `source-materials/`，ESLint 的暫時例外移除；使用者 2026-11-22 看過底圖對照圖後同意。[PR #5](https://github.com/kuohappiness/Swimming-Pool-Design/pull/5) 刪除 v0.6.7 與 v0.9.0 兩組舊視覺基準（21 檔）、`verify:v090-baseline`、`verify:v091-baseline`、`capture:viewer-baseline` 與對應工具，以及只比對舊截圖雜湊的一個測試，報告搬到 `tests/fixtures/`。兩個 PR 的 `npm run lint`、`npm run build`、`npm run test:e2e` 與 CI 全部通過；設計理念、日照研究、3D 三頁截圖與改前逐像素相同，圖面頁只有底圖範圍內有壓縮差異。`dist/web` 由 8,531,369 降到 5,165,729 bytes（8.14 → 4.93 MiB，十進位 5.17 MB）；其餘主要是設計理念頁照片與 three.js，不在本任務範圍。刪除與搬移記在 [封存區](archive/README.md)。
+
+TASK-110 驗收記錄（2026-11-22）：工作流程比照 Essence 上線。任務說明的標題下寫狀態行（`tools/check/status-line.mjs` 解析）；roadmap 改成〈現在在哪裡〉、〈等觸發點〉、〈已完成〉三節，舊任務表原文留在〈已完成〉下方、標題降一級；backlog 改成〈待處理〉、〈已轉出〉兩節；`check:docs` 比對狀態板與狀態行、檢查三節與兩節、backlog 的「→」與日期，並把 `docs/archive/specs/` 的 36 份舊規格列入凍結清單 `tools/check/legacy-status-docs.json`。新增 `tools/section.mjs` 只印一節或一列；`docs/agents/workflow.md` 改寫成路線、每類文件、狀態行、連結、只讀需要的那一段，再接本機操作、Pages、版本與發布門檻；架構第 8 節、`AGENTS.md` 與兩份 skill 同步。和規格第 5.4 節的差異（決策表本身就是索引、roadmap 各列用比對不用產生、TASK 編號照用、新格式不限一項進行中）記在 [設計](tasks/2026-11-21-folder-structure-migration-design.md) 第 8 節。新增 12 項單元測試，`npm run lint`、`npm run build` 通過。
+
+### 28. PR 自動檢查
 
 依 [DEC-148](decisions.md) 在每個 PR 執行自動檢查，作為 `TASK-107` 起各項搬移與後續程式碼品質工作的安全網。只新增檢查與修正既有失敗，不搬動或改名檔案。
 
@@ -444,17 +475,7 @@ TASK-108 驗收記錄（2026-11-22）：01～07 依功能改名（`product.md`�
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-111 | PR 自動檢查：新增 `ci.yml` 與彙總檢查「全部檢查通過」、修正 `main` 上失敗的 viewer e2e、修補套件弱點、最小 ESLint、`.node-version`、開發伺服器預設只聽本機 | done | repository tooling | [DEC-148](decisions.md)、[設計](archive/specs/2026-11-21-pr-checks-design.md) | 無 | 本 PR 上七項檢查全部通過；本機 `npm run lint`、`npm run build`、`npm run test:e2e` 通過；`npm audit` 為 0；`git diff --check` 通過 |
 
-## 29. 程式碼品質：使用者看得到的錯誤
-
-程式碼品質方案階段 2，修正公開網站上已確認的錯誤，每項附一個修正前失敗、修正後通過的測試。不改設計、模型數值或公開網址。
-
-| ID | 任務 | 狀態 | 目標版本 | 依據 | 前置 | 驗收 |
-| --- | --- | --- | --- | --- | --- | --- |
-| TASK-112 | 3D 頁點選與漫遊輸入：畫面中央點不到構件、拖曳旋轉後誤選、隱藏圖層仍可點選、待決連結指向不存在的頁面、漫遊時下拉選單與按鈕的按鍵被攔截、Ctrl 下潛觸發瀏覽器快捷鍵、高更新率螢幕丟失視角輸入 | done | repository tooling | [DEC-149](decisions.md)、[3D 契約](contracts/3d-viewer.md) | TASK-111 | 新增的單元測試與 `test:e2e` 斷言在修正前失敗、修正後通過；`npm run lint`、`npm run build`、`npm run test:e2e` 通過 |
-
-TASK-112 驗收記錄（2026-11-22）：修正前，桌機 1440 × 900 總覽畫面 25 個取樣點只有 10 個點得到構件，畫面正中央點不到，原因是射線先命中屋頂上隱藏的邊線（`visual-only:frame-edge`），它沒有所屬構件，舊邏輯又不排除隱藏物件；修正後 21 個點得到構件，其餘 4 點是天空或地面。拖曳放開不再選取；全部圖層關閉時點選不到任何構件。e2e 在修正前停在「中央點選」斷言，修正後全數通過。
-
-## 30. 未排程設計問題
+### 29. 未排程設計問題
 
 尚無答案的 OPEN 清單已於 2026-11-22 移到 [待決事項](backlog.md)。以下保留各版本收斂紀錄。
 

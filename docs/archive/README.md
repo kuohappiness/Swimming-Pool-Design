@@ -51,6 +51,13 @@
 | `.codex/skill/` | `.claude/skills/swimming-pool-design/`，另有相同的一份在 `.agents/skills/swimming-pool-design/` |
 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-012`～`017`（校園場勘照片） | `source-materials/site/photos/`，編號、檔名與雜湊不變 |
 
+瘦身與資產（TASK-109），搬移前的版本是 [cb20ea8](https://github.com/kuohappiness/Swimming-Pool-Design/tree/cb20ea8d2d2db8754e83efb322669db1ab84a5b5)：
+
+| 舊路徑 | 新路徑 |
+| --- | --- |
+| `tests/visual-baselines/v0.6.7/baseline-report.json` | `tests/fixtures/v0.6.7-viewer-baseline-report.json` |
+| 圖面頁底圖直接讀 `source-materials/site/SRC-SITE-001_google-maps-satellite.png` | 衍生檔 `web/src/views/drawings/assets/site-satellite.jpg`，原始檔不動 |
+
 ## 2. 已刪除清單
 
 下列檔案已從現行版本刪除，Git 歷史仍完整保存；連結指向刪除前最後一個含有它們的版本。
@@ -69,3 +76,7 @@
 | `.nojekyll` | 1 | 網站改由 GitHub Actions 部署，不需要 | [c614023](https://github.com/kuohappiness/Swimming-Pool-Design/blob/c614023f662c8309f07ec9521cab7036aec67dde/.nojekyll) |
 | `web/src/generated/` | 2 | 改為不入庫，由 `build:content` 在安裝、開發、測試、型別檢查與建置前自動產生 | [d30c049](https://github.com/kuohappiness/Swimming-Pool-Design/tree/d30c049ca7cd04a2605266d95f88c51972b847e1/web/src/generated) |
 | `drawings/current/*.png` | 4 | 改為不入庫，由 `build:drawings` 自同名 SVG 轉出 | [d30c049](https://github.com/kuohappiness/Swimming-Pool-Design/tree/d30c049ca7cd04a2605266d95f88c51972b847e1/drawings/current) |
+| `tests/visual-baselines/v0.6.7/` 的截圖 | 14 | 0.6.7 加強渲染前的 3D 截圖，只由一個測試比對雜湊，不檢查現行網站；該測試一併移除，現行畫面由 `test:e2e` 檢查 | [cb20ea8](https://github.com/kuohappiness/Swimming-Pool-Design/tree/cb20ea8d2d2db8754e83efb322669db1ab84a5b5/tests/visual-baselines/v0.6.7) |
+| `tests/visual-baselines/v0.9.0-pre-unification/` | 7 | 0.9.0 單一入口改版前的截圖與幾何、日照雜湊，只能手動比對、不在 CI；之後由程式碼品質工作的鏡面與日照不變量測試取代 | [cb20ea8](https://github.com/kuohappiness/Swimming-Pool-Design/tree/cb20ea8d2d2db8754e83efb322669db1ab84a5b5/tests/visual-baselines/v0.9.0-pre-unification) |
+| `tools/check/verify-v090-baseline.mjs` 與 `verify:v090-baseline`、`verify:v091-baseline` | 1 | 上一列基準的比對指令，隨基準退場 | [cb20ea8](https://github.com/kuohappiness/Swimming-Pool-Design/blob/cb20ea8d2d2db8754e83efb322669db1ab84a5b5/tools/check/verify-v090-baseline.mjs) |
+| `tools/capture/capture-viewer-baseline.mjs` 與 `capture:viewer-baseline` | 1 | 重產 v0.6.7 基準的工具；基準已刪除，重跑會把現行畫面寫成舊版基準 | [cb20ea8](https://github.com/kuohappiness/Swimming-Pool-Design/blob/cb20ea8d2d2db8754e83efb322669db1ab84a5b5/tools/capture/capture-viewer-baseline.mjs) |

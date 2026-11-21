@@ -18,7 +18,7 @@ Use this skill as the repository working procedure. Do not copy project facts in
    - unresolved questions (OPEN): `docs/backlog.md`
    - model and cross-output invariants: `docs/contracts/model.md`
    - workflow and releases: `docs/agents/workflow.md`
-   - current task state and acceptance: `docs/roadmap.md`
+   - what is in progress now: the 〈現在在哪裡〉 section of `docs/roadmap.md` (read it with `node tools/section.mjs docs/roadmap.md 現在在哪裡`); each task's state is the status line under the title of its `docs/tasks/` document
    - individual output behavior: `docs/contracts/`
 3. Inspect `git status` and preserve unrelated user changes.
 4. Classify the request as source intake, design decision, document change, model change, Viewer/DXF implementation, or validation.
@@ -40,7 +40,7 @@ Read [references/source-intake.md](references/source-intake.md). Preserve the or
 
 ### Change or decide the design
 
-Read [references/document-ownership.md](references/document-ownership.md) and the formal [document ownership contract](../../../docs/architecture.md). Update the DEC/OPEN state first, then the design basis, TASK state, model data and outputs. Preserve superseded decisions instead of silently rewriting history.
+Read [references/document-ownership.md](references/document-ownership.md) and the formal [document ownership contract](../../../docs/architecture.md). Update the DEC/OPEN state first, then the design basis, the task document's status line and its roadmap row, model data and outputs. Preserve superseded decisions instead of silently rewriting history.
 
 ### Build or modify the model, Viewer, or DXF
 

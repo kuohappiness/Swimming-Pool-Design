@@ -1,6 +1,7 @@
 import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { entryStatus, validateBacklog, validateRoadmap } from './workflow-docs.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const errors = [];
@@ -204,6 +205,7 @@ const taskContent = contents.get(taskPath);
 
 ensureUnique(tableDeclarations(decisionContent, 'DEC'), 'DEC', decisionPath);
 ensureUnique(tableDeclarations(backlogContent, 'OPEN'), 'OPEN', backlogPath);
+errors.push(...validateBacklog({ text: backlogContent, source: backlogPath }));
 for (const id of tableDeclarations(decisionContent, 'OPEN')) {
   errors.push(`${decisionPath}: ${id} belongs in ${backlogPath}`);
 }
@@ -214,7 +216,21 @@ const taskRows = taskContent
   .filter((line) => /^\|\s*TASK-\d{3}\s*\|/.test(line))
   .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()));
 const taskIds = taskRows.map((row) => row[0]);
-ensureUnique(taskIds, 'TASK', taskPath);
+
+// roadmap 的三節與狀態板（TASK-110）：每一列的狀態對得上入口的狀態行。
+const roadmap = validateRoadmap({
+  text: taskContent,
+  source: taskPath,
+  resolveEntry(href) {
+    const resolved = resolveLocalLink(taskPath, href);
+    if (!resolved) return undefined;
+    const relativePath = path.relative(repoRoot, resolved);
+    if (!contents.has(relativePath)) return undefined;
+    return { path: relativePath, ...entryStatus(contents.get(relativePath)) };
+  },
+});
+errors.push(...roadmap.errors);
+ensureUnique([...taskIds, ...roadmap.taskIds], 'TASK', taskPath);
 
 const allowedTaskStates = new Set(['queued', 'ready', 'in_progress', 'blocked', 'done']);
 const taskIdSet = new Set(taskIds);
@@ -237,15 +253,40 @@ for (const row of taskRows) {
   }
 }
 
+// 2026-11-22 以前的任務說明照舊格式（欄位清單）檢查，只限凍結清單裡的檔；新的任務說明寫狀態行（TASK-110）。
+const legacyStatusDocs = new Set(
+  JSON.parse(await readFile(path.join(repoRoot, 'tools', 'check', 'legacy-status-docs.json'), 'utf8'))
+    .map((file) => path.normalize(file)),
+);
+for (const file of legacyStatusDocs) {
+  if (!contents.has(file)) errors.push(`tools/check/legacy-status-docs.json: ${file} does not exist`);
+}
 const requiredSpecFields = ['日期', '類型', '狀態', '任務', '目標版本'];
 const activeStatus = new Set(['draft', 'approved', 'in_progress']);
 const archiveStatus = new Set(['completed', 'superseded']);
-const activeSpecs = markdownFiles.filter((file) =>
+const taskDocs = markdownFiles.filter((file) =>
   path.dirname(file) === path.join('docs', 'tasks')
 );
 const archiveSpecs = markdownFiles.filter((file) =>
   path.dirname(file) === path.join('docs', 'archive', 'specs')
 );
+for (const file of archiveSpecs) {
+  if (!legacyStatusDocs.has(file)) {
+    errors.push(`${file}: 完成的任務說明留在 docs/tasks/，只改狀態行，不再搬到 docs/archive/specs/`);
+  }
+}
+const activeSpecs = [];
+for (const file of taskDocs) {
+  const status = entryStatus(contents.get(file));
+  if (status.missing) {
+    if (legacyStatusDocs.has(file)) activeSpecs.push(file);
+    else errors.push(`${file}: 標題下第一行要寫狀態行（狀態：<狀態值>｜下一步：<一句>｜等誰：<值>），見 docs/agents/workflow.md`);
+  } else if (status.error) {
+    errors.push(`${file}: ${status.error}`);
+  } else if (!roadmap.entries.has(file)) {
+    errors.push(`${file}: 有狀態行的任務說明要在 ${taskPath} 的〈現在在哪裡〉、〈等觸發點〉或〈已完成〉有一列`);
+  }
+}
 
 errors.push(...validateTaskConcurrency({
   taskRows,
@@ -316,7 +357,7 @@ if (errors.length > 0) {
 } else {
   console.log(
     `Documentation checks passed: ${markdownFiles.length} Markdown files, `
-    + `${taskRows.length} tasks, ${activeSpecs.length} active task specs, `
-    + `${archiveSpecs.length} archived specs.`,
+    + `${taskRows.length} legacy tasks, ${roadmap.entries.size} roadmap entries, `
+    + `${taskDocs.length} task docs, ${archiveSpecs.length} archived specs.`,
   );
 }

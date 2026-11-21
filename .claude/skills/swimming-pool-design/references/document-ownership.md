@@ -8,9 +8,9 @@ The formal and current ownership contract is [docs/architecture.md](../../../../
 2. Change the formal owner first.
 3. Replace duplicated details elsewhere with an ID and link.
 4. Preserve a superseded DEC when it explains an existing artifact.
-5. Use OPEN only when the answer still needs material input; use TASK when the answer or fix is known.
-6. Put implementation progress only in `docs/roadmap.md`.
-7. Move completed or superseded task specs from `docs/tasks/` to `docs/archive/specs/`; never append active work to an archived plan.
+5. Use OPEN only when the answer still needs material input; write a task document when the answer or fix is known. When an OPEN is answered, move it to 〈已轉出〉 in `docs/backlog.md` with a `→` line to where it went.
+6. Put a task's state only in the status line under the title of its `docs/tasks/` document, and copy it into its `docs/roadmap.md` row in the same commit; `npm run check:docs` compares the two.
+7. Keep finished task documents in `docs/tasks/` and only change their status line; never add new files to `docs/archive/specs/` or append active work to an archived plan.
 
 ## Conflict Handling
 
