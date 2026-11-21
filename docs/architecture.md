@@ -18,8 +18,8 @@ Swimming-Pool-Design/
 ├─ .agents/                  skills/swimming-pool-design/（與 .claude 版本逐位元組相同）
 ├─ model/                    唯一的設計模型與分析登錄
 ├─ core/                     純邏輯，網站與工具共用
-│  ├─ geometry/              active-geometry、drawing-geometry、site-orientation
-│  ├─ solar/                 solar-reflection、solar-angle-analysis、solar-energy-analysis
+│  ├─ geometry/              active-geometry、drawing-geometry、site-orientation、mirror-geometry
+│  ├─ solar/                 solar-reflection、pool-footprint、solar-angle-analysis、solar-energy-analysis
 │  ├─ viewer/                viewer-data
 │  └─ validation/            model-validation
 ├─ content/                  網站文案原始檔 design-concept.md、公開文字快照 website-copy.md

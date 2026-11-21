@@ -300,7 +300,7 @@ export function validateModel(model) {
   check(errors, closeTo(active.solar.mirrorLeanFromVertical.value, active.l3.mirror.leanFromVertical), 'Solar and mirror-wall lean values must share one value.');
   check(errors, closeTo(active.solar.azimuthTolerance?.value, 28), 'Solar azimuth tolerance must remain the active 28-degree working criterion.');
   check(errors, closeTo(active.solar.minimumDownwardAngle?.value, 8), 'Solar minimum downward angle must remain the active 8-degree working criterion.');
-  check(errors, active.solar.analysisMethodRevision === 'SOLAR-METHOD-1.0.0', 'Solar analysis method revision must be SOLAR-METHOD-1.0.0.');
+  check(errors, active.solar.analysisMethodRevision === 'SOLAR-METHOD-1.1.0', 'Solar analysis method revision must be SOLAR-METHOD-1.1.0 (right-handed SITE-XY, DEC-150).');
   check(
     errors,
     closeTo(active.solar.energyAssumptions?.mirrorReflectance, 0.75)
@@ -317,8 +317,8 @@ export function validateModel(model) {
       && model.geometry.solarReflection.legacyV050Study?.status === 'legacy',
     'geometry.solarReflection must contain only the legacyV050Study historical record.',
   );
-  check(errors, active.solar.workingResult?.warmPoolAddedKWh === 0, 'The X35 working result must keep warm-season added pool energy at zero.');
-  check(errors, closeTo(active.solar.workingResult?.coolPoolAddedKWh, 1036.829), 'The X35 cool-season pool result must be +1,036.829 kWh.');
+  check(errors, closeTo(active.solar.workingResult?.warmPoolAddedKWh, 0.002), 'The X35 warm-season pool result must be the SOLAR-METHOD-1.1.0 value +0.002 kWh.');
+  check(errors, closeTo(active.solar.workingResult?.coolPoolAddedKWh, 1224.692), 'The X35 cool-season pool result must be the SOLAR-METHOD-1.1.0 value +1,224.692 kWh.');
   check(errors, active.solar.analysisStatus === 'working-optimized-requires-professional-validation', 'Solar status must require professional validation.');
   check(errors, active.integrationReview?.status === 'conceptual-coordination-complete-professional-approvals-outstanding', 'Integration review must not claim professional approval.');
   check(errors, Object.values(active.integrationReview?.professionalApprovals ?? {}).every((value) => value === false), 'No professional approval may be implied by the conceptual model.');

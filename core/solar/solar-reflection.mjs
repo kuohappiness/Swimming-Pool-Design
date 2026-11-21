@@ -1,4 +1,5 @@
-import { deriveSiteOrientation } from '../geometry/site-orientation.mjs';
+import { deriveMirrorGeometry } from '../geometry/mirror-geometry.mjs';
+import { deriveSiteOrientation, siteVectorFromAzimuth } from '../geometry/site-orientation.mjs';
 
 const RADIANS = Math.PI / 180;
 const DEGREES = 180 / Math.PI;
@@ -183,15 +184,15 @@ export function reflectionDirectionInLocalCoordinates(
     reflection?.reflectedDownwardAngle,
     'reflection.reflectedDownwardAngle',
   );
-  const relativeAzimuth = (
-    normalizeAzimuth(reflection?.reflectedAzimuth)
-      - normalizeAzimuth(positiveXAxisBearingFromTrueNorth)
-  ) * RADIANS;
+  const plan = siteVectorFromAzimuth(
+    normalizeAzimuth(reflection?.reflectedAzimuth),
+    positiveXAxisBearingFromTrueNorth,
+  );
   const downwardRadians = downwardAngle * RADIANS;
   const horizontal = Math.cos(downwardRadians);
   return {
-    x: horizontal * Math.cos(relativeAzimuth),
-    y: horizontal * Math.sin(relativeAzimuth),
+    x: horizontal * plan.x,
+    y: horizontal * plan.y,
     z: -Math.sin(downwardRadians),
   };
 }
@@ -201,14 +202,14 @@ export function solarDirectionInLocalCoordinates(
   positiveXAxisBearingFromTrueNorth,
 ) {
   const altitude = finite(solar?.altitude, 'solar.altitude') * RADIANS;
-  const relativeAzimuth = (
-    normalizeAzimuth(solar?.azimuth)
-      - normalizeAzimuth(positiveXAxisBearingFromTrueNorth)
-  ) * RADIANS;
+  const plan = siteVectorFromAzimuth(
+    normalizeAzimuth(solar?.azimuth),
+    positiveXAxisBearingFromTrueNorth,
+  );
   const horizontal = Math.cos(altitude);
   return {
-    x: horizontal * Math.cos(relativeAzimuth),
-    y: horizontal * Math.sin(relativeAzimuth),
+    x: horizontal * plan.x,
+    y: horizontal * plan.y,
     z: Math.sin(altitude),
   };
 }
@@ -423,23 +424,10 @@ export function polygonIntersectsRectangle(polygon, rectangle) {
 }
 
 export function projectMirrorReflectionFootprint(input) {
-  const baseCenter = {
-    x: finite(input?.baseCenter?.x, 'baseCenter.x'),
-    y: finite(input?.baseCenter?.y, 'baseCenter.y'),
-  };
-  const pivot = {
-    x: finite(input?.pivot?.x, 'pivot.x'),
-    y: finite(input?.pivot?.y, 'pivot.y'),
-  };
-  const width = finite(input?.width, 'width');
-  const verticalHeight = finite(input?.verticalHeight, 'verticalHeight');
-  const baseElevation = finite(input?.baseElevation, 'baseElevation');
-  const planRotation = finite(input?.planRotation, 'planRotation');
-  const leanFromVertical = finite(input?.leanFromVertical, 'leanFromVertical');
-  if (width <= 0 || verticalHeight <= 0 || baseElevation <= 0) {
-    throw new RangeError('mirror dimensions and baseElevation must be greater than zero.');
+  const mirror = deriveMirrorGeometry(input);
+  if (finite(input?.baseElevation, 'baseElevation') <= 0) {
+    throw new RangeError('mirror baseElevation must be greater than zero.');
   }
-
   const direction = reflectionDirectionInLocalCoordinates(
     input?.reflection,
     input?.positiveXAxisBearingFromTrueNorth,
@@ -452,28 +440,7 @@ export function projectMirrorReflectionFootprint(input) {
     return { reachesPoolPlane: false, footprint: [], hitsPool: false };
   }
 
-  const rotationRadians = planRotation * RADIANS;
-  const rotatedBaseCenter = rotatePlanPoint(baseCenter, pivot, planRotation);
-  const normal = {
-    x: -Math.cos(rotationRadians),
-    y: -Math.sin(rotationRadians),
-  };
-  const tangent = { x: -normal.y, y: normal.x };
-  const topOffset = verticalHeight * Math.tan(leanFromVertical * RADIANS);
-  const mirrorCorners = [
-    { along: -width / 2, height: 0 },
-    { along: width / 2, height: 0 },
-    { along: width / 2, height: verticalHeight },
-    { along: -width / 2, height: verticalHeight },
-  ];
-  const sourceCorners = mirrorCorners.map((corner) => {
-    const leanOffset = corner.height === 0 ? 0 : topOffset;
-    return {
-      x: rotatedBaseCenter.x + tangent.x * corner.along + normal.x * leanOffset,
-      y: rotatedBaseCenter.y + tangent.y * corner.along + normal.y * leanOffset,
-      z: baseElevation + corner.height,
-    };
-  });
+  const sourceCorners = [mirror.lower[0], mirror.lower[1], mirror.upper[1], mirror.upper[0]];
   const footprint = sourceCorners.map((point) => {
     const rayScale = -point.z / direction.z;
     return {
@@ -486,7 +453,6 @@ export function projectMirrorReflectionFootprint(input) {
     : false;
   return {
     reachesPoolPlane: true,
-    rotatedBaseCenter,
     sourceCorners,
     footprint,
     hitsPool,

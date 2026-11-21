@@ -587,18 +587,21 @@ try {
     await solarDesktop.locator('#conclusion-cool-percent').innerText(),
     `+${expectedSolar.workingResult.coolPoolIncreasePercent.toFixed(3)}%`,
   );
+  // DEC-150: the corrected warm-season gain is tiny but not zero, so it is shown
+  // to three decimals instead of rounding to 0.0.
   assert.equal(
     await solarDesktop.locator('#conclusion-warm-gain').innerText(),
-    `${kilowattHours.format(expectedSolar.workingResult.warmPoolAddedKWh)} kWh`,
+    `+${expectedSolar.workingResult.warmPoolAddedKWh.toFixed(3)} kWh`,
   );
+  assert.equal(await solarDesktop.locator('#conclusion-warm-note').innerText(), '接近零，但不是零增量');
   assert.match(await solarDesktop.locator('#azimuthToleranceFan').getAttribute('d'), /^M 280 235 L /);
   assert.equal(
     await solarDesktop.locator('#azimuthToleranceLabel').textContent(),
-    `池向方位容許 ±${expectedActiveGeometry.solar.azimuthTolerance.value.toFixed(0)}°`,
+    `池向方位參考 ±${expectedActiveGeometry.solar.azimuthTolerance.value.toFixed(0)}°`,
   );
   assert.equal(
     await solarDesktop.locator('#minimumDownwardLabel').textContent(),
-    `最低下射 ${expectedActiveGeometry.solar.minimumDownwardAngle.value.toFixed(0)}°（方向代理）`,
+    `下射參考 ${expectedActiveGeometry.solar.minimumDownwardAngle.value.toFixed(0)}°`,
   );
   assert.equal(await solarDesktop.locator('.live-preview').isVisible(), true);
   assert.equal(await solarDesktop.locator('.desktop-preview-grid').isVisible(), true);
@@ -734,8 +737,8 @@ try {
     ),
     'none',
   );
-  assert.equal(await solarDesktop.locator('#rayLabel').textContent(), '反射光（未命中池面）');
-  assert.equal(await solarDesktop.locator('#reflected').getAttribute('aria-label'), '反射光，未命中池面');
+  assert.equal(await solarDesktop.locator('#rayLabel').textContent(), '反射光（未落在池面）');
+  assert.equal(await solarDesktop.locator('#reflected').getAttribute('aria-label'), '反射光，未落在池面');
   assert.equal(
     await solarDesktop.locator('#desktop-preview-section-reflected').getAttribute('data-reflection-state'),
     'misses-pool',
@@ -754,15 +757,29 @@ try {
     ),
     'none',
   );
-  assert.match(await solarDesktop.locator('#resultDetail').innerText(), /實際方位偏差 .*門檻/);
+  assert.match(await solarDesktop.locator('#resultDetail').innerText(), /方向參考：反射方位與池向差 .*參考範圍/);
   await solarDesktop.locator('#time').evaluate((input) => {
     input.value = '18';
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
   assert.match(
     await solarDesktop.locator('#timeScope').innerText(),
-    /方向診斷 07:00–18:00 · 年度能量 07:00–17:00 · 本時刻僅供方向診斷/,
+    /逐時診斷 07:00–18:00 · 年度能量逐時加總全天直射/,
   );
+  // DEC-151: the hit verdict is the footprint test the energy analysis uses. On the
+  // winter solstice at 10:00 the reflection lands on the pool; the retired
+  // direction proxy reported a miss at every one of the 168 selectable times.
+  await solarDesktop.locator('#date').evaluate((input) => {
+    input.value = '13';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await solarDesktop.locator('#time').evaluate((input) => {
+    input.value = '10';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  assert.equal(await solarDesktop.locator('#reflected').getAttribute('data-reflection-state'), 'hits-pool');
+  assert.equal(await solarDesktop.locator('#rayLabel').textContent(), '反射光（落在池面）');
+  assert.match(await solarDesktop.locator('#resultTitle').innerText(), /反射光落在池面/);
   await solarDesktop.locator('#planRotation').evaluate((input) => {
     input.value = '27';
     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -827,7 +844,7 @@ try {
   );
   assert.equal(
     await solarMobile.locator('#mobile-preview-section-rayLabel').textContent(),
-    '反射光（未命中池面）',
+    '反射光（未落在池面）',
   );
   await solarMobile.screenshot({ path: resolve(outputDirectory, 'solar-study-mobile.png'), fullPage: true });
   await solarDesktop.close();

@@ -694,7 +694,7 @@
         "mirrorLeanFromVertical": { "value": 23, "status": "working", "sourceIds": ["SRC-SITE-003"] },
         "azimuthTolerance": { "value": 28, "status": "working", "sourceIds": [] },
         "minimumDownwardAngle": { "value": 8, "status": "working", "sourceIds": [] },
-        "analysisMethodRevision": "SOLAR-METHOD-1.0.0",
+        "analysisMethodRevision": "SOLAR-METHOD-1.1.0",
         "energyAssumptions": {
           "mirrorReflectance": 0.75,
           "glazingSolarTransmittance": 0.6,
@@ -714,11 +714,11 @@
           "objective": "strict-warm-zero-then-maximize-cool-season-pool-gain"
         },
         "workingResult": {
-          "warmPoolAddedKWh": 0,
-          "coolPoolAddedKWh": 1036.829,
-          "coolPoolIncreasePercent": 0.962,
-          "warmRoofRedirectedKWh": 289.797,
-          "coolRoofRedirectedKWh": 4857.203,
+          "warmPoolAddedKWh": 0.002,
+          "coolPoolAddedKWh": 1224.692,
+          "coolPoolIncreasePercent": 1.13,
+          "warmRoofRedirectedKWh": 290.401,
+          "coolRoofRedirectedKWh": 4883.779,
           "overlapArea": 138.589,
           "overlapPercent": 85.55,
           "outsideFixedL2ProjectionArea": 23.411
@@ -726,16 +726,16 @@
         "supersededV050AngleOnV060Pool": {
           "planRotation": 26.5,
           "mirrorLeanFromVertical": 3.1,
-          "warmPoolAddedKWh": 200.722,
-          "coolPoolAddedKWh": 2116.651,
+          "warmPoolAddedKWh": 313.569,
+          "coolPoolAddedKWh": 2973.223,
           "status": "rejected-for-v0.6.0-warm-season-gain"
         },
         "pivotSensitivity": [
-          { "pivotX": 33, "warmPoolAddedKWh": 0.125, "coolPoolAddedKWh": 1199.844, "coolPoolIncreasePercent": 1.112 },
-          { "pivotX": 35, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 1036.829, "coolPoolIncreasePercent": 0.962 },
-          { "pivotX": 37, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 876.599, "coolPoolIncreasePercent": 0.815 },
-          { "pivotX": 39, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 732.206, "coolPoolIncreasePercent": 0.681 },
-          { "pivotX": 41, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 596.158, "coolPoolIncreasePercent": 0.555 }
+          { "pivotX": 33, "warmPoolAddedKWh": 0.206, "coolPoolAddedKWh": 1328.094, "coolPoolIncreasePercent": 1.225 },
+          { "pivotX": 35, "warmPoolAddedKWh": 0.002, "coolPoolAddedKWh": 1224.692, "coolPoolIncreasePercent": 1.13 },
+          { "pivotX": 37, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 1103.37, "coolPoolIncreasePercent": 1.019 },
+          { "pivotX": 39, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 970.156, "coolPoolIncreasePercent": 0.897 },
+          { "pivotX": 41, "warmPoolAddedKWh": 0, "coolPoolAddedKWh": 835.171, "coolPoolIncreasePercent": 0.773 }
         ],
         "openItemId": "OPEN-011"
       },

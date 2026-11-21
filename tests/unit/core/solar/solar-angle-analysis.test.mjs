@@ -24,7 +24,7 @@ test('reads solar geometry only from the active SITE-XY revision', () => {
     mirrorLeanFromVertical: 23,
     azimuthTolerance: 28,
     minimumDownwardAngle: 8,
-    analysisMethodRevision: 'SOLAR-METHOD-1.0.0',
+    analysisMethodRevision: 'SOLAR-METHOD-1.1.0',
     energyAssumptions: {
       mirrorReflectance: 0.75,
       glazingSolarTransmittance: 0.6,
@@ -109,7 +109,7 @@ test('finite-surface proxy still reports all five pivot scenarios', () => {
   assert.deepEqual(sensitivity.pivotScenarios, [33, 35, 37, 39, 41]);
   assert.deepEqual(sensitivity.heightScenarios, [3.6]);
   assert.equal(sensitivity.minimumHits, 0);
-  assert.equal(sensitivity.maximumHits, 95);
+  assert.equal(sensitivity.maximumHits, 114);
   assert.equal(sensitivity.zeroHitScenarioCount, 3);
 });
 
