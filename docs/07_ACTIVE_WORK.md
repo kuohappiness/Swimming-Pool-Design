@@ -434,9 +434,11 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 依 [DEC-148](04_DECISIONS_AND_OPEN_ITEMS.md) 在每個 PR 執行自動檢查，作為 `TASK-107` 起各項搬移與後續程式碼品質工作的安全網。只新增檢查與修正既有失敗，不搬動或改名檔案。
 
+驗收記錄（2026-11-21）：[PR #2](https://github.com/kuohappiness/Swimming-Pool-Design/pull/2) 上七項檢查全部通過；本機從 `npm ci` 起 lint、typecheck、check:docs、validate:reference、105 項單元測試、build、test:e2e 皆通過，`npm audit` 為 0，gitleaks 掃完整歷史無發現。
+
 | ID | 任務 | 狀態 | 目標版本 | 依據 | 前置 | 驗收 |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-111 | PR 自動檢查：新增 `ci.yml` 與彙總檢查「全部檢查通過」、修正 `main` 上失敗的 viewer e2e、修補套件弱點、最小 ESLint、`.node-version`、開發伺服器預設只聽本機 | in_progress | repository tooling | [DEC-148](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計](specs/2026-11-21-pr-checks-design.md) | 無 | 本 PR 上七項檢查全部通過；本機 `npm run lint`、`npm run build`、`npm run test:e2e` 通過；`npm audit` 為 0；`git diff --check` 通過 |
+| TASK-111 | PR 自動檢查：新增 `ci.yml` 與彙總檢查「全部檢查通過」、修正 `main` 上失敗的 viewer e2e、修補套件弱點、最小 ESLint、`.node-version`、開發伺服器預設只聽本機 | done | repository tooling | [DEC-148](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計](archive/specs/2026-11-21-pr-checks-design.md) | 無 | 本 PR 上七項檢查全部通過；本機 `npm run lint`、`npm run build`、`npm run test:e2e` 通過；`npm audit` 為 0；`git diff --check` 通過 |
 
 ## 29. 未排程設計問題
 
