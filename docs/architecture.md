@@ -180,20 +180,36 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 頁名與 view id 以 `web/src/app/router.ts` 為準；`tests/unit/web/app/glossary.test.mjs` 會比對下表與路由登錄表。停用舊稱不再用於新文件、介面與程式。
 
+頁名指路由登錄表的 `label`。`title` 是瀏覽器分頁的主標（例如重新定向、向光而轉、建築圖冊、走入建築），不是頁名，文件與介面不得用它指稱頁面。
+
 | 中文頁名 | 英文小標 | view id | 資料夾 | 停用舊稱 |
 | --- | --- | --- | --- | --- |
 | 設計理念 | DESIGN NARRATIVE | `design-concept` | `web/src/views/design-concept/` | — |
 | 日照研究 | SOLAR STUDY | `solar-study` | `web/src/views/solar-study/` | 冬夏日照互動研究、日照互動研究 |
-| 圖面設計 | DRAWING ATLAS | `drawings` | `web/src/views/drawings/` | 空間參照圖集、Reference Atlas、reference atlas |
-| 3D 展示 | SPATIAL EXPERIENCE | `3d-viewer` | `web/src/views/3d-viewer/` | 3D Viewer |
+| 圖面設計 | DRAWING ATLAS | `drawings` | `web/src/views/drawings/` | 空間參照圖集、Reference Atlas、reference atlas、圖集、建築圖集 |
+| 3D 展示 | SPATIAL EXPERIENCE | `3d-viewer` | `web/src/views/3d-viewer/` | 3D Viewer（僅指頁名；view id 與 `contracts/3d-viewer.md` 檔名不變） |
 
 設計狀態用語：
 
 | 介面與文件用語 | 模型與程式值 | 意思 |
 | --- | --- | --- |
-| 已確認 | `confirmed` | 使用者已確認，可作為現行設計 |
-| 設計中 | `working` | 目前採用的工作值，可能再修改 |
-| 待專業確認 | `deferred` | 尚缺專業輸入，連到 backlog.md 的 OPEN |
+| 已確認 | `confirmed` | 使用者已確認的概念輸入，不代表已測量或經專業簽證 |
+| 設計中 | `working` | 現行協調值，可供圖面與模型一致表達，仍可能修改 |
+| 待專業確認 | `deferred` | 仍須取得法規、結構、機電、消防、無障礙或材料的專業答案，連到 backlog.md 的 OPEN |
+| 歷史 | `legacy` | 只供版本比較，不得驅動現行輸出 |
+
+定義以 [設計基準](design-basis.md) 第 1 節為準。
+
+四個設計方向：
+
+| 方向 | 設計理念頁錨點 | 3D 場景 id |
+| --- | --- | --- |
+| 向光而轉 | `concept-light` | `light` |
+| 向雨而生 | `concept-rain` | `rain` |
+| 向人而開 | `concept-people` | `people` |
+| 向時間延續 | `concept-time` | `time` |
+
+另有總覽場景 `overview`，對應錨點 `concept-title`。
 
 同一功能只用一個名字的對照（網站、檢查與產生指令、檔名等）見 [資料夾架構規格](tasks/2026-11-21-folder-structure-migration-design.md) 第 4.1 節。
 
