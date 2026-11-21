@@ -11,6 +11,7 @@ import { getViewerScene, viewerScenes } from './scenes';
 import {
   AdaptiveFrameTimeMonitor,
   adaptRenderQualityProfile,
+  advancePlayerFrame,
   adaptWalkthroughSource,
   CameraModeManager,
   CollisionWorld,
@@ -28,6 +29,9 @@ import {
   WALKTHROUGH_CONFIG,
   type InputAdapter,
 } from './walkthrough';
+// The public site ships no Markdown, so open items link to the repository copy.
+const BACKLOG_URL = 'https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/backlog.md';
+
 let viewerCleanup: (() => void | Promise<void>) | null = null;
 
 export async function destroyViewer(): Promise<void> {
@@ -353,7 +357,7 @@ try {
         <div class="selection-heading"><span class="status-dot" data-status="${selection.status}"></span><strong>${selection.entityId}</strong></div>
         <h3>${selection.label}</h3>
         <p>${selection.description}</p>
-        ${selection.openItemId ? `<a href="../../docs/backlog.md#${selection.openItemId.toLowerCase()}">${selection.openItemId} · 尚待確認</a>` : ''}`;
+        ${selection.openItemId ? `<a href="${BACKLOG_URL}" target="_blank" rel="noopener">${selection.openItemId} · 尚待確認</a>` : ''}`;
     };
     const selectionController = setupSelection({
       canvas: renderer.domElement, camera, controls,
@@ -775,15 +779,7 @@ try {
         if (intent.exitRequested) {
           void cameraModeManager.exit();
         } else {
-          let firstStep = true;
-          fixedStepLoop.advance(frameDelta, (stepSeconds) => {
-            playerController.step({
-              ...intent,
-              lookYaw: firstStep ? intent.lookYaw : 0,
-              lookPitch: firstStep ? intent.lookPitch : 0,
-            }, stepSeconds);
-            firstStep = false;
-          });
+          advancePlayerFrame(playerController, fixedStepLoop, intent, frameDelta);
           const player = playerController.state;
           camera.position.set(player.position.x, player.position.y, player.position.z);
           camera.rotation.set(player.pitch, player.yaw, 0, 'YXZ');

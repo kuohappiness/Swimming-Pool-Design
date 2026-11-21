@@ -15,6 +15,7 @@ export { DesktopInput } from './input/desktop-input.js';
 export type { InputAdapter } from './input/input-adapter.js';
 export { TouchInput } from './input/touch-input.js';
 export {
+  advancePlayerFrame,
   PlayerController,
   STATIONARY_MOVEMENT_STRATEGY,
 } from './player-controller.js';

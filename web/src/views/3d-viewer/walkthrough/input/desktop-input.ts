@@ -5,6 +5,26 @@ import {
   type InputAdapter,
 } from './input-adapter.js';
 
+const WALKTHROUGH_KEYS = new Set([
+  'KeyW', 'KeyA', 'KeyS', 'KeyD',
+  'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+  'Space', 'KeyC', 'ShiftLeft', 'ShiftRight',
+]);
+
+const TEXT_ENTRY = 'input, select, textarea, [contenteditable]:not([contenteditable="false"])';
+const ACTIVATES_ON_KEY = 'button, a[href], summary, [role="button"], [role="link"]';
+
+/**
+ * Whether a focused on-screen control should handle this key itself: form fields
+ * keep every key, buttons and links keep Space and Enter.
+ */
+export function keyBelongsToControl(event: Pick<KeyboardEvent, 'code' | 'target'>): boolean {
+  const target = event.target as { closest?: (selector: string) => unknown } | null;
+  if (typeof target?.closest !== 'function') return false;
+  if (target.closest(TEXT_ENTRY)) return true;
+  return (event.code === 'Space' || event.code === 'Enter') && Boolean(target.closest(ACTIVATES_ON_KEY));
+}
+
 export interface DesktopInputOptions {
   canvas: HTMLElement;
   document?: Document;
@@ -81,7 +101,7 @@ export class DesktopInput implements InputAdapter {
       lookYaw: this.lookYaw,
       lookPitch: this.lookPitch,
       ascend: this.keys.has('Space') ? 1 : 0,
-      descend: this.keys.has('ControlLeft') || this.keys.has('ControlRight') || this.keys.has('KeyC') ? 1 : 0,
+      descend: this.keys.has('KeyC') ? 1 : 0,
       fast: this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
       exitRequested: this.exitRequested,
     };
@@ -110,14 +130,11 @@ export class DesktopInput implements InputAdapter {
       this.exitRequested = true;
       return;
     }
-    if ([
-      'KeyW', 'KeyA', 'KeyS', 'KeyD',
-      'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-      'Space', 'ControlLeft', 'ControlRight', 'KeyC', 'ShiftLeft', 'ShiftRight',
-    ].includes(event.code)) {
-      event.preventDefault();
-      this.keys.add(event.code);
-    }
+    // Browser shortcuts (Ctrl+W, Ctrl+S, Cmd+D...) must keep working.
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (!WALKTHROUGH_KEYS.has(event.code) || keyBelongsToControl(event)) return;
+    event.preventDefault();
+    this.keys.add(event.code);
   };
 
   private readonly onKeyUp = (event: KeyboardEvent) => {

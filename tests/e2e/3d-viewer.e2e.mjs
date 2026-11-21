@@ -179,6 +179,40 @@ try {
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-roof-continuous'), 'true');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-mirror-end-gaps-filled'), 'true');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-interior-battery-objects'), 'false');
+  // Canvas picking: a plain click selects, an orbit drag does not, hidden layers cannot be picked.
+  const objectSelect = desktop.locator('[data-object-select]');
+  const clearSelection = () => objectSelect.evaluate((select) => { select.value = ''; });
+  const desktopCanvasBox = await desktop.locator('canvas').boundingBox();
+  assert.ok(desktopCanvasBox);
+  const centre = {
+    x: desktopCanvasBox.x + desktopCanvasBox.width / 2,
+    y: desktopCanvasBox.y + desktopCanvasBox.height / 2,
+  };
+  await clearSelection();
+  await desktop.mouse.click(centre.x, centre.y);
+  assert.notEqual(await objectSelect.inputValue(), '', 'clicking the building at the centre must select it');
+  await clearSelection();
+  await desktop.mouse.move(centre.x - 240, centre.y + 160);
+  await desktop.mouse.down();
+  await desktop.mouse.move(centre.x, centre.y, { steps: 8 });
+  await desktop.mouse.up();
+  assert.equal(await objectSelect.inputValue(), '', 'releasing an orbit drag must not select');
+  await activateScene(desktop, '總覽');
+  const checkedLayers = await desktop.locator('[data-layer-list] input:checked').evaluateAll(
+    (inputs) => inputs.map((input) => input.value),
+  );
+  for (const layer of checkedLayers) await desktop.locator(`[data-layer-list] input[value="${layer}"]`).uncheck();
+  await clearSelection();
+  await desktop.mouse.click(centre.x, centre.y);
+  assert.equal(await objectSelect.inputValue(), '', 'hidden layers must not be selectable');
+  for (const layer of checkedLayers) await desktop.locator(`[data-layer-list] input[value="${layer}"]`).check();
+  await selectObject(desktop, objectSelect.locator('option').filter({ hasText: /^ST-02 ·/ }));
+  assert.equal(
+    await desktop.locator('[data-selection-info] a').getAttribute('href'),
+    'https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/backlog.md',
+    'open items must link to a page that exists on the public site',
+  );
+
   await activateScene(desktop, '向雨');
   await desktop.locator('input[value="energy"]').uncheck();
   const poolBeforeWalkthrough = desktop.locator('[data-object-select] option').filter({
@@ -212,7 +246,14 @@ try {
     );
     assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-player-grounded'), 'true');
   }
+  // The area picker keeps its arrow keys while walkthrough listens for movement.
+  await areaSelect.focus();
+  await desktop.keyboard.press('ArrowUp');
+  await desktop.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-walkthrough-area') === 'l3-terrace',
+  );
   await areaSelect.selectOption('entrance');
+  await desktop.locator('canvas').focus();
   const walkthroughStart = await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position');
   await desktop.keyboard.down('w');
   await desktop.evaluate(async () => {
@@ -277,7 +318,9 @@ try {
       ?.getAttribute('data-walkthrough-area') === 'l1-pool-deck',
   );
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'), 'false');
-  await desktop.locator('[data-exit-walkthrough]').click();
+  // The exit button must answer the Space key even though Space also means "rise".
+  await desktop.locator('[data-exit-walkthrough]').focus();
+  await desktop.keyboard.press('Space');
   await desktop.waitForFunction(
     () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'inspect',
   );

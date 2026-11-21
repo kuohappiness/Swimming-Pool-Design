@@ -14,9 +14,9 @@ const vite = await createServer({
 const [
   { CameraModeManager },
   { FixedStepLoop },
-  { DesktopInput },
+  { DesktopInput, keyBelongsToControl },
   { TouchInput },
-  { PlayerController },
+  { PlayerController, advancePlayerFrame },
   { WALKTHROUGH_CONFIG },
   {
     AdaptiveFrameTimeMonitor,
@@ -261,6 +261,87 @@ test('fixed-step movement is stable across render deltas and caps delayed frames
   assert.equal(steps, 8);
   assert.ok(result.droppedTimeSeconds > 1.9);
   assert.ok(result.alpha >= 0 && result.alpha < 1);
+});
+
+const idleIntent = Object.freeze({
+  moveX: 0,
+  moveZ: 0,
+  lookYaw: 0,
+  lookPitch: 0,
+  ascend: 0,
+  descend: 0,
+  fast: false,
+  exitRequested: false,
+});
+
+test('view turns every rendered frame, including frames that run no physics step', () => {
+  // A 240 Hz display renders twice per 1/120 s physics step, so half of its
+  // frames advance zero steps. Mouse movement on those frames must still count.
+  const player = new PlayerController(WALKTHROUGH_CONFIG);
+  const loop = new FixedStepLoop(1 / 120, 0.1, 8);
+  let framesWithoutStep = 0;
+  for (let frame = 0; frame < 240; frame += 1) {
+    const result = advancePlayerFrame(player, loop, { ...idleIntent, lookYaw: 0.001, lookPitch: 0.0005 }, 1 / 240);
+    if (result.steps === 0) framesWithoutStep += 1;
+  }
+  assert.ok(framesWithoutStep > 0, 'the scenario must include frames with no physics step');
+  assert.ok(Math.abs(player.state.yaw - 0.24) < 1e-9);
+  assert.ok(Math.abs(player.state.pitch - 0.12) < 1e-9);
+
+  const limit = WALKTHROUGH_CONFIG.player.maxPitchDegrees * Math.PI / 180;
+  player.look(0, 10);
+  assert.equal(player.state.pitch, limit);
+  player.look(Number.NaN, Number.POSITIVE_INFINITY);
+  assert.ok(Math.abs(player.state.yaw - 0.24) < 1e-9);
+  assert.equal(player.state.pitch, limit);
+});
+
+test('walkthrough keys leave browser shortcuts and focused controls alone', () => {
+  const fakeWindow = new TrackingTarget();
+  const desktop = new DesktopInput({
+    canvas: new FakeCanvas(),
+    window: fakeWindow,
+    document: new FakeDocument(),
+  });
+  desktop.start();
+
+  // Ctrl+W closes the tab and Ctrl+S / Ctrl+D open dialogs, so Ctrl is not a dive key.
+  for (const code of ['ControlLeft', 'ControlRight']) {
+    fakeWindow.dispatchEvent(inputEvent('keydown', { code, ctrlKey: true }));
+  }
+  assert.equal(desktop.readIntent().descend, 0);
+  for (const [code, modifier] of [['KeyW', 'ctrlKey'], ['KeyS', 'metaKey'], ['KeyD', 'altKey']]) {
+    const shortcut = inputEvent('keydown', { code, [modifier]: true });
+    fakeWindow.dispatchEvent(shortcut);
+    assert.equal(shortcut.defaultPrevented, false, `${modifier}+${code} must reach the browser`);
+  }
+  assert.deepEqual(desktop.readIntent(), idleIntent);
+  const dive = inputEvent('keydown', { code: 'KeyC' });
+  fakeWindow.dispatchEvent(dive);
+  assert.equal(dive.defaultPrevented, true);
+  assert.equal(desktop.readIntent().descend, 1);
+  fakeWindow.dispatchEvent(inputEvent('keyup', { code: 'KeyC' }));
+
+  // A focused area picker keeps its arrow keys; a focused exit button keeps Space.
+  const focused = (matches) => ({ closest: (selector) => (matches(selector) ? {} : null) });
+  const select = focused((selector) => selector.startsWith('input, select'));
+  const button = focused((selector) => selector.startsWith('button'));
+  const arrowOnSelect = inputEvent('keydown', { code: 'ArrowDown', target: select });
+  fakeWindow.dispatchEvent(arrowOnSelect);
+  assert.equal(arrowOnSelect.defaultPrevented, false);
+  const spaceOnButton = inputEvent('keydown', { code: 'Space', target: button });
+  fakeWindow.dispatchEvent(spaceOnButton);
+  assert.equal(spaceOnButton.defaultPrevented, false);
+  assert.deepEqual(desktop.readIntent(), idleIntent);
+  const walkWithButtonFocused = inputEvent('keydown', { code: 'KeyW', target: button });
+  fakeWindow.dispatchEvent(walkWithButtonFocused);
+  assert.equal(walkWithButtonFocused.defaultPrevented, true);
+  assert.equal(desktop.readIntent().moveZ, -1);
+
+  assert.equal(keyBelongsToControl({ code: 'Space', target: null }), false);
+  assert.equal(keyBelongsToControl({ code: 'Enter', target: button }), true);
+  assert.equal(keyBelongsToControl({ code: 'KeyW', target: select }), true);
+  desktop.dispose();
 });
 
 test('frame-time adaptation only degrades rendering capabilities and preserves simulation inputs', () => {

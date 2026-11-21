@@ -70,7 +70,7 @@ Viewer 上須有固定螢幕方位提示，以清楚的 `N ↘` 箭頭表示真�
 - player 使用固定 1/120 秒步進、1.65 m 人眼與 0.28 m capsule；桌機與 touch input 只產生共同 `MovementIntent`。frame-time 或 quality 改變不得修改 movement／collision state。
 - solid world 包含建築邊界、池壁、池底與 ST-01／ST-02 連續坡面；`EN-01` 保持可通行。七個 area jump 只可使用 `entrance`、`l1-pool-deck`、`l1-sanitary`、`l2-arrival`、`l3-arrival`、`l3-terrace`、`roof-inspection` 的 clear＋supported semantic spawn，不得硬編碼 world 座標；`l1-sanitary` 必須位於泳池側男廁入口內的清楚、受支承位置，讓桌機與手機可直接檢查衛浴細節。
 - `POOL-01` 可見水面、WaterVolume、X3 1.20 m→X28 1.50 m 斜底與碰撞共用同一 surface elevation。walking／falling／surface／underwater transition 須有 hysteresis；支援浮力、下潛、上浮、池壁／池底、clearance 上岸與「返回池畔」。
-- 桌機使用 WASD／方向鍵、滑鼠拖曳或 pointer lock、Shift、Space、C／Ctrl 與 Esc；pointer lock 拒絕時保留 drag-look。390 × 844 使用雙觸控面、44 CSS px 上浮／下潛、區域、返回與退出控制，並遵守 safe-area inset、ARIA、鍵盤路徑與 reduced motion。
+- 桌機使用 WASD／方向鍵、滑鼠拖曳或 pointer lock、Shift、Space、C 與 Esc；帶 Ctrl、Cmd 或 Alt 的按鍵交給瀏覽器，焦點在畫面控制項時由控制項處理自己的按鍵（[DEC-149](../decisions.md)）；pointer lock 拒絕時保留 drag-look。390 × 844 使用雙觸控面、44 CSS px 上浮／下潛、區域、返回與退出控制，並遵守 safe-area inset、ARIA、鍵盤路徑與 reduced motion。
 - capability profile 只可單向 high→medium→low；至少兩個持續超標觀測窗才降級 pixel ratio、shadow、水下效果與 camera motion，本 session 不反覆升級。平均與 p95 frame time 應保留為 diagnostic。
 - `InputAdapter`、`MovementStrategy`、`VisualAssetAdapter`、`AreaRegistry` 與 `EnvironmentEffect` 保持窄介面；不得對 SketchUp／GLB 或未採用的未來格式硬編碼。
 
