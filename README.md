@@ -1,16 +1,39 @@
 # Swimming Pool Design
 
-國立臺中教育大學附設實驗國民小學游泳池翻修的概念設計、空間參照圖集與互動研究專案。現有衛星圖、手繪概念、使用者標註與明確設計值共同形成可追溯、可修訂的單一規劃模型。
+國立臺中教育大學附設實驗國民小學游泳池翻修的概念設計、圖面與互動研究專案。現有衛星圖、手繪概念、使用者標註與明確設計值共同形成可追溯、可修訂的單一規劃模型。
 
 本專案為概念設計用途，不是施工、發包、結構、消防或法規簽證文件。
 
-## 目前版本
+## 現行版本
 
 - 套件版本：`0.9.7`
 - 模型版本：`0.9.7`
-- 已整合版本：`0.7.0` 第一人稱 Walkthrough＋`0.8.2` 建築優先擬真細節＋`0.9.0` 統一公開成果展＋`0.9.1` 敘事與閱讀精修＋`0.9.2` 地端版面與文案細修＋`0.9.3` 手機閱讀與圖面操作修正＋`0.9.4` 理念文案與服務中心用詞精修＋`0.9.5` ORIGIN 場勘／手稿敘事精修＋`0.9.6` 基地方位單一真相來源與日照研究封版＋`0.9.7` 日照研究結論與互動展示精修
-- 下一個目標版本：尚未排程；待 Active Work 由 OPEN 建立新設計與任務
-- 當前工作與待修順序：[07｜Active Work](docs/07_ACTIVE_WORK.md)
+
+## 公開網站
+
+- [設計理念](https://kuohappiness.github.io/Swimming-Pool-Design/)
+- [日照研究](https://kuohappiness.github.io/Swimming-Pool-Design/?view=solar-study)
+- [圖面設計](https://kuohappiness.github.io/Swimming-Pool-Design/?view=drawings)
+- [3D 展示](https://kuohappiness.github.io/Swimming-Pool-Design/?view=3d-viewer)
+
+`main` 有新的合併後，GitHub Actions 會重新建置並更新網站。
+
+## 想知道什麼、讀哪一份
+
+| 想知道 | 讀這份 |
+| --- | --- |
+| 為什麼做、範圍與成功條件 | [專案簡報](docs/product.md) |
+| 基地、方位與來源登錄 | [基地與來源](docs/site-and-sources.md) |
+| 目前有效的設計數值 | [設計基準](docs/design-basis.md) |
+| 已確認的決策與設計風險 | [決策](docs/decisions.md) |
+| 還沒有答案的問題 | [待決事項](docs/backlog.md) |
+| 現在在做什麼、下一步 | [進度與任務](docs/roadmap.md) |
+| 模型規則與各輸出的契約 | [模型契約](docs/contracts/model.md)，其他在 `docs/contracts/` |
+| 工作流程、檢查與發布 | [工作流程與發布](docs/agents/workflow.md) |
+| 檔案放哪裡、資料夾結構、名詞對照 | [架構](docs/architecture.md) |
+| 各版本做了什麼 | [發布紀錄](docs/releases/README.md) |
+| 舊成果與舊路徑 | [封存區](docs/archive/README.md) |
+| 給 AI 工具的規則 | [AGENTS.md](AGENTS.md) |
 
 ## 本機使用
 
@@ -19,34 +42,8 @@ npm install
 npm run dev
 ```
 
-Vite 顯示的 Network URL 可由同一 Wi-Fi 的手機開啟。提交前完整驗證：
+`npm run dev` 只聽本機；要用同一個 Wi-Fi 的手機測試時改用 `npm run dev:lan`。提交前執行 `npm run build`，完整的檢查清單見 [工作流程與發布](docs/agents/workflow.md)。
 
-- 設計理念：`/`
-- 日照互動研究：`/?view=solar-study`
-- 空間參照圖集：`/?view=drawings`
-- 3D Viewer：`/?view=3d-viewer`
+## 授權
 
-```powershell
-npm run build
-```
-
-## 公開成果
-
-- [設計理念](https://kuohappiness.github.io/Swimming-Pool-Design/)
-- [冬夏日照互動研究](https://kuohappiness.github.io/Swimming-Pool-Design/?view=solar-study)
-- [空間參照圖集](https://kuohappiness.github.io/Swimming-Pool-Design/?view=drawings)
-- [3D Viewer](https://kuohappiness.github.io/Swimming-Pool-Design/?view=3d-viewer)
-
-每次 `main` 通過驗證並推送後，GitHub Actions 會重新建置及更新公開網站；本機尚未 push 的變更不會上線。
-
-## 權威文件
-
-1. [專案簡報](docs/01_PROJECT_BRIEF.md)
-2. [基地與來源](docs/02_SITE_AND_SOURCES.md)
-3. [設計基準](docs/03_DESIGN_BASIS.md)
-4. [決策與待決事項](docs/04_DECISIONS_AND_OPEN_ITEMS.md)
-5. [模型契約](docs/05_MODEL_CONTRACT.md)
-6. [工作流程與發布](docs/06_WORKFLOW_AND_RELEASES.md)
-7. [Active Work](docs/07_ACTIVE_WORK.md)
-
-文件責任與生命週期見 [DOCUMENT_OWNERSHIP](docs/governance/DOCUMENT_OWNERSHIP.md)。已完成規格保存在 `docs/archive/specs/`，歷史成果集中於 [versions](versions/README.md)；兩者都不是現行設計真相。
+程式採 MIT；文件、圖面與照片採 CC BY 4.0；Google 衛星圖與以它為底的標註圖、校徽與 PVGIS 氣象資料屬第三方，不在授權範圍內。詳見 [LICENSE](LICENSE)。

@@ -1,46 +1,228 @@
-# 文件所有權與生命週期
+# 架構
 
-## 1. 原則
+本文件說明 repo 的資料夾結構、每類檔案放哪裡、分層與路由、名詞對照與文件生命週期。資料夾或檔案位置有變動時，在同一個 PR 更新本文件（[DEC-147](decisions.md)）。
 
-每一類資訊只有一個 owner。其他文件可以摘要，但必須連回 owner，且不得另設可漂移的狀態或完整答案。`07_ACTIVE_WORK.md` 是 TASK 狀態唯一來源，不是設計知識庫。
+原 `docs/governance/DOCUMENT_OWNERSHIP.md` 的內容已於 2026-11-22 併入本文件第 2、8 節。
 
-## 2. Owner 對照
+## 1. 資料夾結構
+
+```text
+Swimming-Pool-Design/
+├─ README.md                 入口與「想知道什麼、讀哪一份」導覽表
+├─ LICENSE                   程式 MIT；文件、圖面與照片 CC BY 4.0；第三方素材除外
+├─ AGENTS.md                 給所有 AI 工具的規則；CLAUDE.md 只有一行 @AGENTS.md
+├─ package.json、package-lock.json、tsconfig.json、vite.config.ts、eslint.config.js
+├─ .editorconfig、.gitattributes、.gitignore、.ignore、.node-version
+├─ .github/                  workflows/（ci.yml、deploy-pages.yml）、pull_request_template.md
+├─ .claude/                  settings.json、skills/swimming-pool-design/
+├─ .agents/                  skills/swimming-pool-design/（與 .claude 版本逐位元組相同）
+├─ model/                    唯一的設計模型與分析登錄
+├─ core/                     純邏輯，網站與工具共用
+│  ├─ geometry/              active-geometry、drawing-geometry、site-orientation
+│  ├─ solar/                 solar-reflection、solar-angle-analysis、solar-energy-analysis
+│  ├─ viewer/                viewer-data
+│  └─ validation/            model-validation
+├─ content/                  網站文案原始檔 design-concept.md、公開文字快照 website-copy.md
+├─ drawings/
+│  └─ current/               現行圖面 DRAW-*.svg 與 PNG，檔名不帶版號
+├─ web/                      網站（Vite root），產出到 dist/web/
+│  ├─ index.html             唯一的 HTML 入口
+│  └─ src/
+│     ├─ app/                bootstrap、app-shell、router、view-contract
+│     ├─ design-system/      共用樣式
+│     ├─ shared/             types.ts、assets/brand/
+│     ├─ generated/          build:content 的產物
+│     └─ views/<view id>/    每個分頁一個資料夾
+├─ tools/                    命令列工具，不被網站匯入
+│  ├─ build/                 build-content、build-drawings、render-drawing-png、build-copy、clean-dist
+│  ├─ check/                 check-docs、check-model、verify-v090-baseline
+│  ├─ analysis/              solar-optimize
+│  └─ capture/               capture-viewer-baseline、capture-viewer-quality
+├─ tests/
+│  ├─ unit/                  core/、web/ 底下對應原始碼位置的子資料夾
+│  ├─ e2e/                   web.e2e.mjs、3d-viewer.e2e.mjs
+│  └─ visual-baselines/      舊視覺基準（TASK-109 清理）
+├─ source-materials/         原始來源，只增不改
+│  ├─ site/                  衛星圖、標註圖、氣象資料、校徽；photos/ 校園場勘照片
+│  └─ concepts/              概念圖與標註；hand-sketches/ 只放手繪稿
+└─ docs/
+   ├─ product.md             為什麼做、為誰做、範圍
+   ├─ site-and-sources.md    基地與來源登錄
+   ├─ design-basis.md        設計基準
+   ├─ decisions.md           DEC、已關閉的舊 OPEN、設計風險
+   ├─ backlog.md             尚無答案的 OPEN
+   ├─ roadmap.md             TASK 狀態、依賴與驗收
+   ├─ architecture.md        本文件
+   ├─ agents/                workflow.md（工作流程與發布）
+   ├─ contracts/             model.md、drawings.md、solar-study.md、3d-viewer.md
+   ├─ analysis/              專題分析
+   ├─ tasks/                 進行中的任務說明（設計與實作計畫）
+   ├─ releases/              發布紀錄
+   └─ archive/               封存區：README.md（舊路徑對照、已刪除清單）、specs/、alternatives/、
+                             analysis/、subprojects/、legacy-models/、deliverables/
+```
+
+`tests/fixtures/`、`docs/agents/quality.md`、`web/public/`、`source-materials/data/` 等資料夾在第一個檔案出現時才建立，屆時更新本節。
+
+## 2. 每類資訊放哪裡
+
+每一類資訊只有一個 owner。其他文件可以摘要，但必須連回 owner，且不得另設可漂移的狀態或完整答案。`roadmap.md` 是 TASK 狀態唯一來源，不是設計知識庫。
 
 | 資訊 | 唯一 owner |
 | --- | --- |
-| 專案目的、範圍、成功條件 | `01_PROJECT_BRIEF.md` |
-| 基地、方位證據、來源、像素、雜湊 | `02_SITE_AND_SOURCES.md` |
-| 當前有效數值與空間意圖 | `03_DESIGN_BASIS.md` |
-| DEC、真正 OPEN、取代歷史與設計風險 | `04_DECISIONS_AND_OPEN_ITEMS.md` |
-| 模型 schema、座標、溯源與跨輸出不變條件 | `05_MODEL_CONTRACT.md` |
-| 收件、變更、驗證、部署、版本與發布流程 | `06_WORKFLOW_AND_RELEASES.md` |
-| TASK 狀態、依賴、目標版本與驗收入口 | `07_ACTIVE_WORK.md` |
+| 專案目的、範圍、成功條件 | [product.md](product.md) |
+| 基地、方位證據、來源、像素、雜湊 | [site-and-sources.md](site-and-sources.md) |
+| 當前有效數值與空間意圖 | [design-basis.md](design-basis.md) |
+| DEC、取代歷史、已關閉的舊 OPEN 與設計風險 | [decisions.md](decisions.md) |
+| 尚無答案的 OPEN | [backlog.md](backlog.md) |
+| 模型 schema、座標、溯源與跨輸出不變條件 | [contracts/model.md](contracts/model.md) |
+| 收件、變更、驗證、部署、版本與發布流程 | [agents/workflow.md](agents/workflow.md) |
+| TASK 狀態、依賴、目標版本與驗收入口 | [roadmap.md](roadmap.md) |
+| 資料夾結構、檔案位置、分層、路由、名詞與文件生命週期 | 本文件 |
 | 專題分析的輸入、方法、比較表與限制 | `docs/analysis/<topic>.md` |
 | 個別現行輸出行為 | `docs/contracts/<output>.md` |
-| 子專案範圍索引、owner 導航與目前階段 | `docs/subprojects/<id>/README.md`；只作索引，不重複 DEC、TASK、SPEC 或契約內容 |
-| 核准設計及實作步驟 | `docs/specs/` |
+| 核准設計及實作步驟 | `docs/tasks/` |
 | 已完成／被取代規格 | `docs/archive/specs/` |
 | 已發布版本證據 | `docs/releases/<version>.md` |
 | 公開設計理念的敘事文字 | `content/design-concept.md` |
 | 公開網站四分頁的可見文字版本快照 | `content/website-copy.md`；屬衍生備份，不取代各頁資料 owner |
+| 唯一的設計模型 | `model/project-model.json` |
+| 原始來源檔 | `source-materials/`，登錄在 site-and-sources.md |
+| 舊成果、過時索引與舊交付物 | `docs/archive/`，對照見 [archive/README.md](archive/README.md) |
 
-README 只保留定位、quickstart、URL、版本與 01～07 導航。repo-local skill 只保存工作程序並引用本文件，不複製 owner 規則表。
+README 只放定位、入口網址、現行版號與導覽表。repo 內的 skill 只保存工作程序並引用本文件，不複製 owner 對照表。
 
 `content/website-copy.md` 由 `npm run build:copy` 讀取實際渲染頁面後產生；任何公開文字或可見性調整後都應重新擷取，不得手動維護第二份可漂移的內容。
 
-子專案 README 也只保留入口、固定邊界、預定檔案位置與 owner 連結。設計答案仍進 DEC／design spec，執行狀態仍只進 `07_ACTIVE_WORK.md`，已發布行為仍由 output contract 管理。
+## 3. 新檔案放哪裡
 
-## 3. 分類
+| 新增的東西 | 放在 |
+| --- | --- |
+| 網站與工具都會用到的運算 | `core/<領域>/` |
+| 命令列工具 | `tools/build/`、`tools/check/`、`tools/analysis/` 或 `tools/capture/` |
+| 新分頁 | `web/src/views/<view id>/`，步驟見第 5 節 |
+| 分頁專用的影像 | `web/src/views/<view id>/assets/`，由 `source-materials/` 衍生 |
+| 共用的品牌素材 | `web/src/shared/assets/brand/` |
+| 網站文案 | `content/<view id>.md` |
+| 單元測試 | `tests/unit/` 下對應原始碼位置的子資料夾，檔名是受測模組名加 `.test.mjs` |
+| 瀏覽器測試 | `tests/e2e/<對象>.e2e.mjs` |
+| 使用者提供的原始來源 | `source-materials/site/` 或 `source-materials/concepts/`，命名與登錄見 [agents/workflow.md](agents/workflow.md) 第 2 節 |
+| 任務說明 | `docs/tasks/<日期>-<主題>-<design 或 implementation-plan>.md` |
+| 專題分析 | `docs/analysis/<主題>.md` |
 
-- `DEC`：已確認或已被取代的設計答案。
-- `OPEN`：尚缺關鍵輸入，無法形成唯一答案的問題。
-- `TASK`：答案或修法已知，等待執行與驗證的工作。
-- `SPEC`：核准的設計或實作計畫。
-- `RELEASE`：已發布版本的不可變證據。
+## 4. 分層與依賴方向
+
+本專案分四層，依賴方向固定為 model → core → tools 與 web，上游不得反向引用下游。
+
+| 層 | 資料夾 | 放什麼 | 可以引用 | 不得引用 |
+| --- | --- | --- | --- | --- |
+| 資料 | `model/` | 唯一機器可讀真相：`project-model.json`、`analysis-registry.json` | 無 | 任何程式 |
+| 純邏輯 | `core/` | 幾何、日照、驗證、3D 資料等領域運算，不碰 DOM | `model/` | `web/`、`tools/`、`tests/` |
+| 工具 | `tools/` | 命令列入口：build、check、analysis、capture | `core/`、`model/` | `web/`、`tests/` |
+| 網站 | `web/` | 公開網站，Vite root，產出 `dist/web` | `core/`、`model/`、`drawings/current/`、`web/src/generated/` | `tools/`、`tests/`、`source-materials/` |
+
+三個輸入與衍生資料夾：
+
+- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`，網站只讀編譯結果。
+- `drawings/current/`：現行圖面，由 `npm run build:drawings` 自模型產生，網站以原始 SVG 內嵌。
+- `source-materials/`：原始來源，只有 `tools/` 可讀。網站需要的影像必須先成為 `web/` 內的衍生檔。
+
+規則：
+
+1. 網站與工具都會用到的運算放 `core/`；只要用到 DOM 就不屬於 `core/`。
+2. 會被 `web/` 引用的 `core/` 模組不得使用 Node 專屬 API。
+3. 公開頁面上的數字一律由 `model/` 經 `core/` 或文案 token 取得，不在 `web/` 內手寫。
+4. 依賴方向由 `eslint.config.js` 的 `no-restricted-imports` 把關，`npm run lint` 與 CI 會擋下違規。
+
+現存例外：
+
+- `web/src/views/drawings/sheets.ts` 仍直接讀取 `source-materials/` 的基地衛星圖，待 TASK-109 改為衍生檔後移除。
+- `core/solar/solar-angle-analysis.mjs`、`core/solar/solar-energy-analysis.mjs`、`core/validation/model-validation.mjs` 內含讀檔程式，只供 `tools/` 與 `tests/` 使用，不得被 `web/` 引用。
+
+## 5. 路由與頁面
+
+- **單一入口：** `web/index.html` 是唯一 HTML，建置產出 `dist/web/index.html`。CI 與部署流程會檢查 `dist/web/` 下不得出現各分頁自己的 `index.html`（DEC-125）。
+- **網址：** `?view=<view id>`。首頁不帶參數；缺少或無效的 view 一律回到 `design-concept` 並移除無效參數。
+- **路由登錄表：** `web/src/app/router.ts` 的 `viewIds` 與 `viewDefinitions` 是 view id、導覽標籤、分頁標題與順序的唯一來源，主導覽與 `document.title` 都由它產生。
+- **殼層：** `web/src/app/app-shell.ts` 擁有頁首、主導覽、頁尾與主要內容容器。view 不得自行產生第二組導覽或頁尾。
+- **頁面模組契約：** 每個 view 在 `web/src/views/<view id>/index.ts` 匯出 `mount(container)` 並回傳 `destroy()`。`bootstrap.ts` 以動態 import 載入，一次只掛載一個 view；切換分頁是整頁重新載入。
+
+現行四個 view：
+
+| view id | 導覽標籤 | 網址 |
+| --- | --- | --- |
+| `design-concept` | 設計理念 | `./` |
+| `solar-study` | 日照研究 | `?view=solar-study` |
+| `drawings` | 圖面設計 | `?view=drawings` |
+| `3d-viewer` | 3D 展示 | `?view=3d-viewer` |
+
+頁內狀態目前放在 hash：
+
+- 設計理念：章節錨點，例如 `#concept-light`；載入後會扣掉頁首高度再捲動。
+- 圖面：圖號，例如 `#REF-001`、`#V067-L1`。
+- 3D：場景 id，`#overview`、`#light`、`#rain`、`#people`、`#time`。另接受診斷用參數 `quality`、`adaptive`、`rendering`、`forceFallback`。
+
+新增分頁的步驟：
+
+1. 在 `router.ts` 的 `viewIds` 與 `viewDefinitions` 登錄。
+2. 在 `bootstrap.ts` 的 `loaders` 加入動態 import。
+3. 建立 `web/src/views/<view id>/`，含 `index.ts` 與 `view.css`；頁面有大段靜態 HTML 時另放 `template.html`（目前 `solar-study`、`3d-viewer` 有）。
+4. 文案放 `content/<view id>.md`。
+5. 更新測試與本文件的名詞對照表。
+
+規則：
+
+1. view id 用語意化的 kebab-case、不含版號，發布後不改名。
+2. 站內連結一律用 `hrefForView()` 或相對的 `?view=` 連結，不寫死絕對網址。
+3. 同一頁在導覽、標題與文件中只用一個名稱，以路由登錄表為準。
+
+## 6. 名詞對照
+
+頁名與 view id 以 `web/src/app/router.ts` 為準；`tests/unit/web/app/glossary.test.mjs` 會比對下表與路由登錄表。停用舊稱不再用於新文件、介面與程式。
+
+| 中文頁名 | 英文小標 | view id | 資料夾 | 停用舊稱 |
+| --- | --- | --- | --- | --- |
+| 設計理念 | DESIGN NARRATIVE | `design-concept` | `web/src/views/design-concept/` | — |
+| 日照研究 | SOLAR STUDY | `solar-study` | `web/src/views/solar-study/` | 冬夏日照互動研究、日照互動研究 |
+| 圖面設計 | DRAWING ATLAS | `drawings` | `web/src/views/drawings/` | 空間參照圖集、Reference Atlas、reference atlas |
+| 3D 展示 | SPATIAL EXPERIENCE | `3d-viewer` | `web/src/views/3d-viewer/` | 3D Viewer |
+
+設計狀態用語：
+
+| 介面與文件用語 | 模型與程式值 | 意思 |
+| --- | --- | --- |
+| 已確認 | `confirmed` | 使用者已確認，可作為現行設計 |
+| 設計中 | `working` | 目前採用的工作值，可能再修改 |
+| 待專業確認 | `deferred` | 尚缺專業輸入，連到 backlog.md 的 OPEN |
+
+同一功能只用一個名字的對照（網站、檢查與產生指令、檔名等）見 [資料夾架構規格](tasks/2026-11-21-folder-structure-migration-design.md) 第 4.1 節。
+
+## 7. 命名規則
+
+| 對象 | 規則 |
+| --- | --- |
+| 資料夾與程式檔 | 英文小寫加連字號；同一個功能只用一個名字 |
+| 文件檔 | 英文小寫加連字號，內容用繁體中文 |
+| 現行檔案 | 檔名不帶版號；版號只出現在發布紀錄、封存與已刪除清單 |
+| 版號寫法 | 一律 `v0.6.7`（小寫 v 加三段數字） |
+| npm 指令 | `lint`、`typecheck`、`test`、`build` 不加前綴；檢查類一律 `check:`，產生類一律 `build:`，不帶版號 |
+| 原始來源 | `SRC-<類別>-<三位序號>_<英文描述>.<副檔名>`；既有檔不改名 |
+| 圖面 | `DRAW-<圖號>.svg`，不帶版號 |
+| 「site」一詞 | 只指基地（`SITE-XY`、`SRC-SITE-*`、`site-orientation`），不指網站 |
+
+## 8. 文件生命週期
+
+### 8.1 分類
+
+- `DEC`：已確認或已被取代的設計答案，在 decisions.md。
+- `OPEN`：尚缺關鍵輸入，無法形成唯一答案的問題，在 backlog.md。
+- `TASK`：答案或修法已知，等待執行與驗證的工作，在 roadmap.md。
+- `SPEC`：核准的設計或實作計畫，在 `docs/tasks/`。
+- `RELEASE`：已發布版本的不可變證據，在 `docs/releases/`。
 
 修法已知的缺陷不得長期留在 OPEN。設計答案進 DEC，執行進 TASK。
 
-## 4. Task 狀態
+### 8.2 Task 狀態
 
 允許 `queued`、`ready`、`in_progress`、`blocked`、`done`。預設同一時間最多一項 `in_progress`。
 
@@ -52,9 +234,9 @@ README 只保留定位、quickstart、URL、版本與 01～07 導航。repo-loca
 - `blocked`：已有明確阻塞證據。
 - `done`：驗收條件已通過；不得只因寫完規格而完成。
 
-## 5. Spec metadata 與封存
+### 8.3 任務說明與封存
 
-active spec 必須有固定欄位：
+`docs/tasks/` 的任務說明必須有固定欄位：
 
 ```text
 - 日期：YYYY-MM-DD
@@ -64,8 +246,8 @@ active spec 必須有固定欄位：
 - 目標版本：x.y.z
 ```
 
-archive spec 必須使用 `completed` 或 `superseded`，並增加 `完成日期`。任務完成後，design 與 implementation plan 一起封存；封存文件只允許修正斷鏈或明顯文字錯誤，不改寫當時決策。
+封存到 `docs/archive/specs/` 的規格使用 `completed` 或 `superseded`，並增加 `完成日期`。任務完成後，design 與 implementation plan 一起封存；封存文件只允許修正斷鏈或明顯文字錯誤，不改寫當時決策。
 
-## 6. 檢查
+### 8.4 檢查
 
-`npm run check:docs` 檢查本地 Markdown 連結、ID 宣告、TASK 狀態、spec metadata 與 active spec 引用。模型來源檔案與雜湊另由 `npm run check:model` 檢查。
+`npm run check:docs` 檢查本地 Markdown 連結、ID 宣告（OPEN 只能在 backlog.md）、TASK 狀態、任務說明欄位、任務說明是否被 TASK 引用，以及 `.claude/skills/` 與 `.agents/skills/` 兩份 skill 是否逐位元組相同。模型來源檔案與雜湊另由 `npm run check:model` 檢查。
