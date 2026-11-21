@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { deriveSiteOrientation } from './site-orientation.mjs';
+import { deriveSiteOrientation } from '../core/geometry/site-orientation.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));

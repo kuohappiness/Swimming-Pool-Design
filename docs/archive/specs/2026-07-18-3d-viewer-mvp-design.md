@@ -13,7 +13,7 @@
 
 0.4.0 的目標是建立概念設計級 3D Viewer MVP，並確立兩個不可混淆的 source of truth：
 
-- [公開理念 Markdown](../../public/swimming-pool-renovation-design-concept.md)：所有對外敘事文字的 owner。
+- [公開理念 Markdown](../../../content/design-concept.md)：所有對外敘事文字的 owner。
 - `model/project-model.json`、03～05及分析 owner：建築幾何、狀態、性能與限制的 owner。
 
 Viewer 同時讀取兩者；後續理念介紹 HTML 再整合 Markdown 內容、Viewer 場景與固定鏡位畫面。

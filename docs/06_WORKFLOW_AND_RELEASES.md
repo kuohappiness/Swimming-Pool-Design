@@ -44,14 +44,14 @@ npm install
 npm run dev
 npm run lint
 npm run check:docs
-npm run validate:reference
+npm run check:model
 npm test
 npm run build
 npm run test:e2e
 git diff --check
 ```
 
-`npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/reference/`。`npm run dev` 只聽本機；要用手機連線測試時改用 `npm run dev:lan`。`npm run test:e2e` 需要本機的 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定瀏覽器路徑。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
+`npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/web/`。`npm run dev` 只聽本機；要用手機連線測試時改用 `npm run dev:lan`。`npm run test:e2e` 需要本機的 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定瀏覽器路徑。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
 
 每個 PR 由 `.github/workflows/ci.yml` 自動執行上列檢查與金鑰掃描，彙總檢查「全部檢查通過」是合併前的必要條件（[DEC-148](04_DECISIONS_AND_OPEN_ITEMS.md)）。
 
@@ -60,7 +60,7 @@ git diff --check
 公開首頁是 `https://kuohappiness.github.io/Swimming-Pool-Design/`；設計理念使用根網址，日照研究、圖面設計與 3D 展示分別使用 `?view=solar-study`、`?view=drawings`、`?view=3d-viewer`。`.github/workflows/deploy-pages.yml` 在 `main` push 或人工觸發時：
 
 - 以 lockfile 安裝依賴並執行 `npm run build`。
-- 只上傳 `dist/reference/`；`dist/` 不納入 Git 歷史。
+- 只上傳 `dist/web/`；`dist/` 不納入 Git 歷史。
 - build 成功後才部署；失敗時保留上一個成功網站。
 
 ## 6. 版本語意

@@ -11,5 +11,5 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "skipLibCheck": true
   },
-  "include": ["reference/src/**/*.ts", "vite.config.ts"]
+  "include": ["web/src/**/*.ts", "vite.config.ts"]
 }

@@ -3,19 +3,19 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
 const repoRoot = fileURLToPath(new URL('.', import.meta.url));
-const referenceRoot = resolve(repoRoot, 'reference');
+const webRoot = resolve(repoRoot, 'web');
 
 export default defineConfig({
-  root: referenceRoot,
+  root: webRoot,
   base: './',
   server: {
     fs: { allow: [repoRoot] },
   },
   build: {
-    outDir: resolve(repoRoot, 'dist/reference'),
+    outDir: resolve(repoRoot, 'dist/web'),
     emptyOutDir: false,
     rollupOptions: {
-      input: resolve(referenceRoot, 'index.html'),
+      input: resolve(webRoot, 'index.html'),
     },
   },
 });

@@ -9,8 +9,8 @@
 
 Viewer 只接受：
 
-- `reference/generated/viewer-model.json`：由 active `GEO-0.8.2` 產生。
-- `reference/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
+- `web/src/generated/viewer-model.json`：由 active `GEO-0.8.2` 產生。
+- `web/src/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
 兩者必須有相同 `modelVersion=0.9.7` 與 `modelHash`。viewer model 另須包含 `schemaVersion=1.5.0`、`activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY`、唯一 `referenceSystem.siteOrientation` 及每個 bounded entity 的 canonical `entityBounds`。不得輸出第二份 world bearing 或 `northArrowPlanDirection`。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 

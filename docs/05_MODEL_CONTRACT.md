@@ -2,7 +2,7 @@
 
 ## 1. 單一來源
 
-`model/project-model.json` 是現行幾何、版本、程式需求、圖面與來源的唯一機器可讀模型。所有 consumer 必須先呼叫 `scripts/active-geometry.mjs` 的 `resolveActiveGeometry()`；不得直接讀取 `v050Study`／`v060Study`、依檔名或日期猜最新版，也不得在解析失敗時 fallback 到舊版。
+`model/project-model.json` 是現行幾何、版本、程式需求、圖面與來源的唯一機器可讀模型。所有 consumer 必須先呼叫 `core/geometry/active-geometry.mjs` 的 `resolveActiveGeometry()`；不得直接讀取 `v050Study`／`v060Study`、依檔名或日期猜最新版，也不得在解析失敗時 fallback 到舊版。
 
 現行版本契約：
 
@@ -51,7 +51,7 @@ type SiteBoundsEntity = {
 }
 ```
 
-所有 consumer 必須呼叫 `scripts/site-orientation.mjs` 推導其餘方向：
+所有 consumer 必須呼叫 `core/geometry/site-orientation.mjs` 推導其餘方向：
 
 - 基地長軸：127°／307°。
 - SITE −X／面池基準：127°。
@@ -61,7 +61,7 @@ type SiteBoundsEntity = {
 
 `localLongAxisBearingFromTrueNorth`、`worldTransform.rotationFromTrueNorth`、`site.rightwardBearingFromTrueNorth`、`northArrowPlanDirection` 均為禁止重新建立的舊平行來源。驗證器必須 fail closed。鏡牆法線不屬於基地方位 canonical data，不得寫成固定欄位或靜態預設；日照研究調整 L3 水平角時，法線、平面箭頭、診斷與讀值必須同步重算。
 
-`reference/generated/viewer-model.json` 若攜帶 `siteOrientation`，只視為由上述 canonical model 與 `modelHash` 建出的唯讀發布投影，不是第二個可編輯來源；不得手改，也不得由 consumer 回寫。
+`web/src/generated/viewer-model.json` 若攜帶 `siteOrientation`，只視為由上述 canonical model 與 `modelHash` 建出的唯讀發布投影，不是第二個可編輯來源；不得手改，也不得由 consumer 回寫。
 
 Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`、`width` 等可由 bounds 重建的欄位不得再輸出。Viewer adapter 必須逐次驗證 stair bounds 等於 `entityBounds.ST-01.bounds`，且 `ST-01.y2 <= POOL-01.y1`，否則 fail closed。
 
@@ -106,13 +106,13 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 
 ## 4. 衍生層與輸出
 
-- `scripts/reference-geometry.mjs`：從 active revision 衍生圖面與共用尺寸。
-- `scripts/viewer-data.mjs`：產生 `reference/generated/viewer-model.json`，包含 `modelVersion`、`activeGeometryRevisionId`、`coordinateSystemId`、`modelHash` 與 `entityBounds`。
-- `scripts/build-public-content.mjs`：只允許 `{{active:...}}` token 讀 active geometry；未解析 token 必須使 build 失敗。
-- `scripts/generate-current-drawings.mjs`：產生三張平面與一張縱剖 SVG，之後轉為 PNG。
+- `core/geometry/drawing-geometry.mjs`：從 active revision 衍生圖面與共用尺寸。
+- `core/viewer/viewer-data.mjs`：產生 `web/src/generated/viewer-model.json`，包含 `modelVersion`、`activeGeometryRevisionId`、`coordinateSystemId`、`modelHash` 與 `entityBounds`。
+- `tools/build/build-content.mjs`：只允許 `{{active:...}}` token 讀 active geometry；未解析 token 必須使 build 失敗。
+- `tools/build/build-drawings.mjs`：產生三張平面與一張縱剖 SVG，之後轉為 PNG。
 - 日照角度與能量分析：由 active L3、鏡牆、屋頂與池體 bounds 推導，不得持有第二套池體或舊角度預設。
 
-active `solar` 子樹是現行日照判讀與能量分析的唯一 owner，必須明列 `azimuthTolerance`、`minimumDownwardAngle`、`analysisMethodRevision`、`energyAssumptions` 及 `weatherSourceId`。`scripts/solar-angle-analysis.mjs`、`scripts/solar-energy-analysis.mjs` 與 hash 產生器不得讀取 `geometry.solarReflection` 或使用程式內建假設；缺值、非有限值、非法範圍或無法辨識的方法版號必須 fail closed。`geometry.solarReflection.legacyV050Study` 只供歷史重現，外層不得再出現現行角度、門檻或假設。
+active `solar` 子樹是現行日照判讀與能量分析的唯一 owner，必須明列 `azimuthTolerance`、`minimumDownwardAngle`、`analysisMethodRevision`、`energyAssumptions` 及 `weatherSourceId`。`core/solar/solar-angle-analysis.mjs`、`core/solar/solar-energy-analysis.mjs` 與 hash 產生器不得讀取 `geometry.solarReflection` 或使用程式內建假設；缺值、非有限值、非法範圍或無法辨識的方法版號必須 fail closed。`geometry.solarReflection.legacyV050Study` 只供歷史重現，外層不得再出現現行角度、門檻或假設。
 
 每次模型改動都會改變 canonical SHA-256 `modelHash`，用來確認 Viewer 與公開內容同源。日照分析另以 solar `inputHash` 管理，涵蓋 hash schema、方法修訂版、校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、方位／向下判讀門檻、固定屋頂接收面、能量假設及氣象來源。任何上述輸入不符時 Viewer 都必須標成 `stale`，完成重算與測試後才能更新為 current；只改非日照輸入則不得觸發不必要的完整最佳化。
 
@@ -155,7 +155,7 @@ v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Vie
 
 ## 7. 驗證門檻
 
-`npm run validate:reference` 至少檢查：
+`npm run check:model` 至少檢查：
 
 1. active selector、版本與 SITE-XY fail-closed 規則。
 2. canonical entity bounds、空間包含與碰撞。
