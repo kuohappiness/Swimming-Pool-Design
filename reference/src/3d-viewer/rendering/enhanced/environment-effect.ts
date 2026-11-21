@@ -133,7 +133,7 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     };
     const mapFactory = options.mapFactory ?? new PmremEnvironmentMapFactory(options.renderer);
     let sourceTexture: THREE.Texture | null = null;
-    let environmentMap: THREE.Texture | null = null;
+    let environmentMap: THREE.Texture | null;
     let diagnostic: string | null = null;
     try {
       sourceTexture = await textureLoader.load(ENVIRONMENT_URL);

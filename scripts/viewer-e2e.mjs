@@ -22,10 +22,6 @@ const expectedGeometryRevision = projectModel.geometryRevisions
 assert.ok(expectedGeometryRevision, 'Active geometry revision must resolve for browser tests.');
 const expectedActiveGeometry = projectModel.geometryRevisions
   .find(({ id }) => id === projectModel.activeGeometryRevisionId);
-const expectedMirrorNormal = deriveMirrorNormalAzimuth(
-  projectModel.referenceSystem,
-  expectedActiveGeometry.solar.planRotation.value,
-);
 const expectedSiteOrientation = deriveSiteOrientation(projectModel.referenceSystem);
 const chromeCandidates = [
   process.env.CHROME_PATH,
@@ -517,42 +513,40 @@ try {
   trackErrors(solarDesktop);
   await solarDesktop.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
   assert.match(await solarDesktop.locator('h1').innerText(), /讓建築轉向光/);
+  // The 0.9.7 solar layout (commit 19f091a) moved the study revision into the
+  // seasonal table, left the model version to the shared footer, and replaced
+  // the confirmed/baseline/method panel with the research conclusion metrics.
+  // The revision sits inside the collapsed table notes, so read textContent.
+  assert.equal(
+    await solarDesktop.locator('#tableStudyVersion').textContent(),
+    `STUDY ${expectedGeometryRevision}`,
+  );
   assert.match(
-    await solarDesktop.locator('#model-version').innerText(),
-    new RegExp(
-      `^STUDY ${expectedGeometryRevision.replaceAll('.', '\\.')} · MODEL ${
-        expectedModelVersion.replaceAll('.', '\\.')
-      }`,
-    ),
+    await solarDesktop.locator('.site-footer-meta').innerText(),
+    new RegExp(`^MODEL ${expectedModelVersion.replaceAll('.', '\\.')} · ${projectModel.activeGeometryRevisionId} · `),
   );
-  assert.equal(await solarDesktop.locator('#confirmed-plan').innerText(), '+25.5°');
-  assert.equal(await solarDesktop.locator('#confirmed-lean').innerText(), '+23.0°');
+  const signedDegrees = (value) => `${value > 0 ? '+' : ''}${value.toFixed(1)}°`;
+  const kilowattHours = new Intl.NumberFormat('zh-TW', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const expectedSolar = expectedActiveGeometry.solar;
   assert.equal(
-    await solarDesktop.locator('#confirmed-normal').innerText(),
-    `${expectedMirrorNormal.toFixed(1)}°`,
+    await solarDesktop.locator('#conclusion-plan-rotation').innerText(),
+    signedDegrees(expectedSolar.planRotation.value),
   );
   assert.equal(
-    await solarDesktop.locator('#study-baseline-label').innerText(),
-    `v0.6.7 研究基線 · Model ${expectedModelVersion} 已驗證`,
+    await solarDesktop.locator('#conclusion-wall-lean').innerText(),
+    signedDegrees(expectedSolar.mirrorLeanFromVertical.value),
   );
   assert.equal(
-    await solarDesktop.locator('#study-method').innerText(),
-    expectedActiveGeometry.solar.analysisMethodRevision,
+    await solarDesktop.locator('#conclusion-cool-gain').innerText(),
+    `+${kilowattHours.format(expectedSolar.workingResult.coolPoolAddedKWh)} kWh`,
   );
   assert.equal(
-    await solarDesktop.locator('#study-thresholds').innerText(),
-    `方位 ±${expectedActiveGeometry.solar.azimuthTolerance.value.toFixed(0)}° · 下射 ≥${
-      expectedActiveGeometry.solar.minimumDownwardAngle.value.toFixed(0)
-    }°`,
+    await solarDesktop.locator('#conclusion-cool-percent').innerText(),
+    `+${expectedSolar.workingResult.coolPoolIncreasePercent.toFixed(3)}%`,
   );
   assert.equal(
-    await solarDesktop.locator('#study-energy-assumptions').innerText(),
-    'ρ 0.75 · τ 0.60 · 07:00–17:00',
-  );
-  assert.equal(await solarDesktop.locator('#study-analysis-status').innerText(), 'current／已驗證');
-  assert.match(
-    await solarDesktop.locator('.decision-summary').innerText(),
-    /冷季新增仍為 \+1,036\.829 kWh/,
+    await solarDesktop.locator('#conclusion-warm-gain').innerText(),
+    `${kilowattHours.format(expectedSolar.workingResult.warmPoolAddedKWh)} kWh`,
   );
   assert.match(await solarDesktop.locator('#azimuthToleranceFan').getAttribute('d'), /^M 280 235 L /);
   assert.equal(
@@ -654,8 +648,8 @@ try {
       }, wallCenter),
       incomingDistance: distance(incomingEnd, wallCenter),
       reflectedDistance: distance(reflectedStart, wallCenter),
-      wallOverlaysRays: Boolean(
-        selectedSun.compareDocumentPosition(buildingPlan) & Node.DOCUMENT_POSITION_FOLLOWING,
+      raysAboveBuilding: Boolean(
+        buildingPlan.compareDocumentPosition(selectedSun) & Node.DOCUMENT_POSITION_FOLLOWING,
       ),
       planIncomingWidth: Number.parseFloat(getComputedStyle(incomingPlanRay).strokeWidth),
       planReflectedWidth: Number.parseFloat(getComputedStyle(reflectedPlanRay).strokeWidth),
@@ -668,7 +662,9 @@ try {
   assert.ok(rayGeometry.incidentDistance < 0.15);
   assert.ok(Math.abs(rayGeometry.incomingDistance - 10) < 0.15);
   assert.ok(Math.abs(rayGeometry.reflectedDistance - 10) < 0.15);
-  assert.equal(rayGeometry.wallOverlaysRays, true);
+  // Release 0.9.7 draws the sun path and rays above the building outline; the
+  // 10-unit gaps asserted above keep the rays from appearing to cross the wall.
+  assert.equal(rayGeometry.raysAboveBuilding, true);
   assert.ok(Math.hypot(
     rayGeometry.normalStart.x - 280,
     rayGeometry.normalStart.y - 235,

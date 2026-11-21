@@ -153,6 +153,7 @@
 | DEC-145 | Solar Study 的入射光與反射光採同色、不同線型的統一符號 | 平面圖補上目前缺少的反射光；入射光與反射光使用相同色相，入射光為實線、反射光為虛線，兩者皆加上箭頭表示傳播方向。鏡牆法線維持不同色相與清楚標示，避免再被誤認為反射光。剖面圖未命中池面的反射光不得降為難以辨識的低對比灰線，相關可讀性修正另列獨立任務追蹤 | plan ray symbols implemented in TASK-101; section miss readability pending TASK-102 |
 | DEC-146 | Solar Study 保留既有平面圖標題，並以投影標註與遮罩釐清反射光沒有穿透鏡牆 | 平面虛線明列為 3D 反射光的水平投影，並同時標示反射方位與向下角；鏡牆覆蓋光線，代表性入射點清楚可見，牆線兩側保留極短視覺間隙。runtime 另以完整 3D 反射向量位於鏡面正面半空間為有效反射條件；未通過時不得繪出反射光。平面圖原標題不改，入射／反射同色、實／虛線及末端箭頭規則不變 | confirmed by user for TASK-105 |
 | DEC-147 | 資料夾與文件結構、檔名全專案一致，同一功能只用一個名字，並比照 Essence 的工作流程 | 網站改放 `web/`（產出 `dist/web`）、命令列工具 `tools/`、純邏輯 `core/`、現行圖面 `drawings/current/`（檔名不帶版號）、網站文案 `content/`；「site」只指基地；檢查類指令一律 `check:`、產生類一律 `build:`。01～07 與文件所有權依功能改名為 product、site-and-sources、design-basis、decisions 與 backlog、contracts/model、agents/workflow、roadmap、architecture。DEC／OPEN／TASK／SRC 編號、模型數值、原始來源與雜湊、公開網址與 view id 不變；冗餘舊檔自現行版本刪除，不改寫 Git 歷史；6 張場勘原圖不縮小。使用者 2026-11-21 同意；執行見 [資料夾架構與命名統一設計](specs/2026-11-21-folder-structure-migration-design.md) | confirmed |
+| DEC-148 | 每個變更經 PR 自動檢查通過才合併到 `main` | 新增 `.github/workflows/ci.yml`，在每個 PR 與 `main` push 執行程式檢查（ESLint）、型別檢查、文件與模型檢查、單元測試、與部署相同的建置、瀏覽器測試與 gitleaks 金鑰掃描（完整歷史與目前檔案），最後由單一彙總檢查「全部檢查通過」判定；`main` 的分支保護只要求這一項。第三方 Actions 以 commit 編號鎖定。工具選擇與使用者另外兩個 repo 一致（ESLint 加 typescript-eslint、Node 內建測試、gitleaks）；瀏覽器測試是唯一額外項目，因為本站的 3D 與圖面必須在真實瀏覽器驗證。部署流程不變。使用者 2026-11-21 同意開工；執行見 [PR 自動檢查設計](archive/specs/2026-11-21-pr-checks-design.md) | implemented in TASK-111 |
 
 ## 2. 尚待精化
 

@@ -215,13 +215,6 @@ function l2Plan() {
     <rect x="60" y="845" width="1560" height="82" rx="9" class="note"/><text x="82" y="875" class="small">Review A：男區 Y2.5～8、女區 Y8～13.5；男女各 15 間含隔間 1.20 × 1.20 m 淋浴模組＋1 WC＋2 洗手槽，入口均為 X32 的 1.00 m 無門片開口。</text><text x="82" y="902" class="small">L 形走道沿 X29 觀景窗設懸空站立桌（無椅）、飲水機與盆栽；ST-02 採懸空雙梯梁語彙並於梯下配置 3 組可移除耐陰植栽。無障礙、排水、避難與結構仍待專業驗證。</text>`, 'DRAW-L2-PLAN');
 }
 
-function rotatePoint(x, y, angle, pivot) {
-  const radians = -angle * Math.PI / 180;
-  const dx = x - pivot.x;
-  const dy = y - pivot.y;
-  return { x: pivot.x + dx * Math.cos(radians) - dy * Math.sin(radians), y: pivot.y + dx * Math.sin(radians) + dy * Math.cos(radians) };
-}
-
 function l3Plan() {
   const b = active.l3.floorPlate.bounds;
   const pivot = active.l3.planPivot;
