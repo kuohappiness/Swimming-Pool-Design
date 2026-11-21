@@ -35,13 +35,13 @@ Swimming-Pool-Design/
 │     └─ views/<view id>/    每個分頁一個資料夾；影像衍生檔放該頁的 assets/
 ├─ tools/                    命令列工具，不被網站匯入
 │  ├─ build/                 build-content、build-drawings、render-drawing-png、build-copy、clean-dist
-│  ├─ check/                 check-docs、check-model、verify-v090-baseline
+│  ├─ check/                 check-docs、check-model
 │  ├─ analysis/              solar-optimize
-│  └─ capture/               capture-viewer-baseline、capture-viewer-quality
+│  └─ capture/               capture-viewer-quality
 ├─ tests/
 │  ├─ unit/                  core/、web/ 底下對應原始碼位置的子資料夾
 │  ├─ e2e/                   web.e2e.mjs、3d-viewer.e2e.mjs
-│  └─ visual-baselines/      舊視覺基準（TASK-109 清理）
+│  └─ fixtures/              測試與工具讀取的固定資料
 ├─ source-materials/         原始來源，只增不改
 │  ├─ site/                  衛星圖、標註圖、氣象資料、校徽；photos/ 校園場勘照片
 │  └─ concepts/              概念圖與標註；hand-sketches/ 只放手繪稿
