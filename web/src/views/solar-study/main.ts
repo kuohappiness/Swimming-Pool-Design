@@ -10,6 +10,7 @@ import {
   reflectSolarRay,
 } from '../../../../core/solar/solar-reflection.mjs';
 import { deriveMirrorNormalAzimuth } from '../../../../core/geometry/site-orientation.mjs';
+import { projectPoolFootprint } from '../../../../core/solar/pool-footprint.mjs';
 
 const model = rawModel as unknown as ProjectModel;
 
@@ -238,8 +239,12 @@ required<HTMLElement>('#conclusion-cool-gain').textContent =
   '+' + energyFormatter.format(study.workingResult.coolPoolAddedKWh) + ' kWh';
 required<HTMLElement>('#conclusion-cool-percent').textContent =
   '+' + study.workingResult.coolPoolIncreasePercent.toFixed(3) + '%';
+// The warm-season gain is tiny but not zero; one decimal would print it as 0.0.
+const warmGain = study.workingResult.warmPoolAddedKWh;
 required<HTMLElement>('#conclusion-warm-gain').textContent =
-  energyFormatter.format(study.workingResult.warmPoolAddedKWh) + ' kWh';
+  (warmGain > 0 ? '+' + warmGain.toFixed(3) : '0') + ' kWh';
+required<HTMLElement>('#conclusion-warm-note').textContent =
+  warmGain > 0 ? '接近零，但不是零增量' : '零增量';
 
 rotationControl.value = String(defaultPlanRotation);
 leanControl.value = String(defaultWallLean);
@@ -402,7 +407,7 @@ function renderPlanTolerance(): void {
   azimuthToleranceLabel.setAttribute('x', label[0].toFixed(1));
   azimuthToleranceLabel.setAttribute('y', label[1].toFixed(1));
   azimuthToleranceLabel.setAttribute('text-anchor', label[0] >= 280 ? 'start' : 'end');
-  azimuthToleranceLabel.textContent = '池向方位容許 ±' + tolerance.toFixed(0) + '°';
+  azimuthToleranceLabel.textContent = '池向方位參考 ±' + tolerance.toFixed(0) + '°';
 }
 
 function signed(value: number): string {
@@ -569,11 +574,16 @@ function update(): void {
     wallNormalAzimuth: wallAzimuth,
     wallLeanFromVertical: lean,
   });
+  // Direction reference only (DEC-144 fan and 8° line); it does not decide hits.
   const evaluation = evaluatePoolReflection(reflection, {
     poolTargetAzimuth: poolAzimuth,
     azimuthTolerance: study.azimuthTolerance.value,
     minimumDownwardAngle: study.minimumDownwardAngle.value,
   });
+  // Whether the reflected light lands on the pool: the same footprint test the
+  // annual energy analysis uses (DEC-151).
+  const hitsPool = solar.altitude > 0
+    && projectPoolFootprint(model, reflection, { planRotation: rotation, leanFromVertical: lean }).hitsPool;
 
   required<HTMLElement>('#planValue').textContent = signed(rotation);
   required<HTMLElement>('#leanValue').textContent = lean.toFixed(1) + '°';
@@ -586,15 +596,11 @@ function update(): void {
   rotationControl.setAttribute('aria-valuetext', '3F 水平旋轉 ' + signed(rotation));
   leanControl.setAttribute('aria-valuetext', '鏡牆外傾 ' + lean.toFixed(1) + '°');
   currentYearButton.disabled = followsCurrentYear;
-  const energyStart = study.energyAssumptions.daylightStartHour;
-  const energyEnd = study.energyAssumptions.daylightEndHour;
-  const inEnergyWindow = hour >= energyStart && hour <= energyEnd;
+  // Annual energy sums every hour with direct sun; the 07–17 assumption only
+  // counts roof-redirected hours during school use.
   timeScope.textContent =
-    '方向診斷 ' + String(diagnosticStartHour).padStart(2, '0') + ':00–'
-      + String(diagnosticEndHour).padStart(2, '0') + ':00 · 年度能量 '
-      + String(energyStart).padStart(2, '0') + ':00–'
-      + String(energyEnd).padStart(2, '0') + ':00'
-      + (inEnergyWindow ? '' : ' · 本時刻僅供方向診斷，不納入年度能量時段');
+    '逐時診斷 ' + String(diagnosticStartHour).padStart(2, '0') + ':00–'
+      + String(diagnosticEndHour).padStart(2, '0') + ':00 · 年度能量逐時加總全天直射';
 
   buildingPlan.setAttribute(
     'transform',
@@ -639,7 +645,7 @@ function update(): void {
   minimumDownwardLabel.setAttribute('x', (minimumDownwardX + 5).toFixed(1));
   minimumDownwardLabel.setAttribute('y', (minimumDownwardY - 8).toFixed(1));
   minimumDownwardLabel.textContent =
-    '最低下射 ' + study.minimumDownwardAngle.value.toFixed(0) + '°（方向代理）';
+    '下射參考 ' + study.minimumDownwardAngle.value.toFixed(0) + '°';
 
   required<HTMLElement>('#altitude').textContent = solar.altitude.toFixed(1) + '°';
   required<HTMLElement>('#azimuth').textContent = solar.azimuth.toFixed(1) + '°';
@@ -659,7 +665,7 @@ function update(): void {
     required<HTMLElement>('#downAngle').textContent = '—';
     result.classList.remove('is-warn');
     resultTitle.textContent = '此時刻方向診斷：太陽已在地平線下';
-    resultDetail.textContent = '沒有可用直射日光，因此不計算鏡面反射命中；年度性能仍以 PVGIS TMY 能量分析為準。';
+    resultDetail.textContent = '沒有可用直射日光，因此沒有鏡面反射；年度性能仍以 PVGIS TMY 能量分析為準。';
     renderLivePreview();
     return;
   }
@@ -693,7 +699,7 @@ function update(): void {
     ? 'back-lit'
     : (!reflection.reflectedFrontSide
       ? 'invalid-reflection'
-      : (evaluation.hitsPool ? 'hits-pool' : 'misses-pool'));
+      : (hitsPool ? 'hits-pool' : 'misses-pool'));
   reflected.setAttribute(
     'points',
     hitX.toFixed(1) + ',' + hitY.toFixed(1) + ' '
@@ -708,9 +714,9 @@ function update(): void {
   reflected.setAttribute(
     'aria-label',
     sectionReflectionState === 'hits-pool'
-      ? '反射光，命中池面'
+      ? '反射光，落在池面'
       : (sectionReflectionState === 'misses-pool'
-        ? '反射光，未命中池面'
+        ? '反射光，未落在池面'
         : (sectionReflectionState === 'invalid-reflection'
           ? '反射向量未位於鏡面正面，已停止繪製'
           : '鏡牆背光，無有效反射')),
@@ -719,52 +725,45 @@ function update(): void {
 
   sunLabel.textContent = formatDate(date) + ' ' + time + ' · 高度 ' + solar.altitude.toFixed(1) + '°';
   sunLabel.setAttribute('fill', period.color);
-  rayLabel.textContent = evaluation.hitsPool
-    ? '反射光（命中池面）'
+  rayLabel.textContent = hitsPool
+    ? '反射光（落在池面）'
     : (hasValidReflection
-      ? '反射光（未命中池面）'
+      ? '反射光（未落在池面）'
       : (reflection.frontLit ? '反射向量無效（停止繪製）' : '鏡牆背光（無有效反射）'));
   rayLabel.setAttribute('fill', reflectedColor);
   sideLabel.textContent =
     '3D 反射方位 ' + reflection.reflectedAzimuth.toFixed(1)
-      + '° · 方位偏差 ' + evaluation.azimuthDelta.toFixed(1)
-      + '°／容許 ≤' + study.azimuthTolerance.value.toFixed(1)
-      + '° · 下射 ' + reflection.reflectedDownwardAngle.toFixed(1)
-      + '°／最低 ≥' + study.minimumDownwardAngle.value.toFixed(1) + '°';
+      + '° · 與池向差 ' + evaluation.azimuthDelta.toFixed(1)
+      + '° · 下射 ' + reflection.reflectedDownwardAngle.toFixed(1) + '°';
 
   required<HTMLElement>('#downAngle').textContent = reflection.reflectedDownwardAngle.toFixed(1) + '°';
-  const thresholdReadout =
-    '實際方位偏差 ' + evaluation.azimuthDelta.toFixed(1)
-      + '°（門檻 ≤' + study.azimuthTolerance.value.toFixed(1)
-      + '°）；反射向下角 ' + reflection.reflectedDownwardAngle.toFixed(1)
-      + '°（門檻 ≥' + study.minimumDownwardAngle.value.toFixed(1) + '°）。';
+  const directionReadout =
+    '方向參考：反射方位與池向差 ' + evaluation.azimuthDelta.toFixed(1)
+      + '°（參考範圍 ±' + study.azimuthTolerance.value.toFixed(0)
+      + '°），反射向下 ' + reflection.reflectedDownwardAngle.toFixed(1)
+      + '°（參考線 ' + study.minimumDownwardAngle.value.toFixed(0) + '°）。';
 
   const diagnosticPrefix = period.key === 'warm'
     ? '此夏季時刻方向診斷'
     : '此冬季時刻方向診斷';
-  result.classList.toggle('is-warn', period.key === 'warm' && evaluation.hitsPool);
+  result.classList.toggle('is-warn', period.key === 'warm' && hitsPool);
   if (!reflection.frontLit) {
     resultTitle.textContent = diagnosticPrefix + '：鏡牆背光';
-    resultDetail.textContent = '入射方向位於鏡面背側，方向代理不進入方位與下射門檻判讀；暖冷季性能仍以 PVGIS TMY 有鏡／無鏡能量差為準。';
+    resultDetail.textContent = '入射方向位於鏡面背側，沒有有效反射；暖冷季性能仍以 PVGIS TMY 有鏡／無鏡能量差為準。';
   } else if (!reflection.reflectedFrontSide) {
     resultTitle.textContent = diagnosticPrefix + '：反射向量未通過 3D 正面檢查';
-    resultDetail.textContent = '反射向量不在鏡面正面半空間，已停止繪製反射光並排除池面命中，避免把座標或方向錯誤顯示成穿牆光線。';
-  } else if (evaluation.hitsPool) {
-    resultTitle.textContent = diagnosticPrefix + '：反射朝向池面';
-    resultDetail.textContent = period.key === 'warm'
-      ? thresholdReadout + ' 原本已有直射仍須計入鏡面疊加能量；這是單點方向代理，不是整季 kWh 或熱效益結論。'
-      : thresholdReadout + ' 平面方位與剖面下射角同時通過方向代理門檻；這不是 kWh、照度或熱效益定量。';
+    resultDetail.textContent = '反射向量不在鏡面正面半空間，已停止繪製反射光，避免把座標或方向錯誤顯示成穿牆光線。';
+  } else if (hitsPool) {
+    resultTitle.textContent = diagnosticPrefix + '：反射光落在池面';
+    resultDetail.textContent = '鏡面反射光投到池面高度的範圍與泳池相交，年度能量分析用的是同一個判定。'
+      + directionReadout
+      + (period.key === 'warm'
+        ? ' 這是單一時刻，不是整季 kWh 或熱效益結論。'
+        : ' 這不是 kWh、照度或熱效益定量。');
   } else {
-    const diagnosticResult = evaluation.planPass ? '未形成有效下射' : '偏離池心';
-    resultTitle.innerHTML = diagnosticPrefix + '：<br>' + diagnosticResult;
-    if (period.key === 'warm') {
-      resultDetail.innerHTML = thresholdReadout
-        + '<br>此時刻未通過方向代理門檻，但不能直接推論整個暖季零增量；仍須看年度能量分析。';
-    } else {
-      resultDetail.textContent = thresholdReadout + (evaluation.planPass
-        ? ' 平面方向通過，但剖面反射沒有達到最低下射門檻。'
-        : ' 平面反射方向超出泳池方位容許範圍。');
-    }
+    resultTitle.innerHTML = diagnosticPrefix + '：<br>反射光未落在池面';
+    resultDetail.textContent = '鏡面反射光投到池面高度的範圍沒有與泳池相交。' + directionReadout
+      + (period.key === 'warm' ? ' 單一時刻未落在池面，不代表整個暖季零增量；仍須看年度能量分析。' : '');
   }
   renderLivePreview();
 }

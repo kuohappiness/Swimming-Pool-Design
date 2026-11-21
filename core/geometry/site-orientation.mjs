@@ -81,3 +81,39 @@ export function deriveMirrorNormalAzimuth(referenceSystem, planRotation) {
     orientation.poolFacingAzimuth + finite(planRotation, 'L3 plan rotation'),
   );
 }
+
+// SITE-XY is right-handed with Z up: seen from above, +X turns counter-clockwise
+// onto +Y. Compass azimuths turn clockwise, so a bearing maps to the plan angle
+// (bearing of +X) − azimuth. Every conversion between compass directions and
+// SITE-XY goes through the two functions below; do not re-derive it elsewhere.
+
+/** Horizontal unit vector in SITE-XY for a compass azimuth (degrees clockwise from true north). */
+export function siteVectorFromAzimuth(azimuth, positiveXAxisBearingFromTrueNorth) {
+  const planAngle = (
+    finite(positiveXAxisBearingFromTrueNorth, 'bearing of SITE +X')
+      - finite(azimuth, 'azimuth')
+  ) * RADIANS;
+  return { x: Math.cos(planAngle), y: Math.sin(planAngle) };
+}
+
+/** Compass azimuth of a horizontal SITE-XY vector. */
+export function azimuthFromSiteVector(vector, positiveXAxisBearingFromTrueNorth) {
+  const planAngle = Math.atan2(finite(vector?.y, 'vector.y'), finite(vector?.x, 'vector.x')) / RADIANS;
+  return normalizeBearingDegrees(
+    finite(positiveXAxisBearingFromTrueNorth, 'bearing of SITE +X') - planAngle,
+  );
+}
+
+/**
+ * Rotates a SITE-XY plan point clockwise as seen from above, the sense in which
+ * the model states the L3 plan rotation (same as the 3D viewer and drawings).
+ */
+export function rotateSitePointClockwise(point, pivot, clockwiseDegrees) {
+  const angle = -finite(clockwiseDegrees, 'clockwise rotation') * RADIANS;
+  const relativeX = finite(point?.x, 'point.x') - finite(pivot?.x, 'pivot.x');
+  const relativeY = finite(point?.y, 'point.y') - finite(pivot?.y, 'pivot.y');
+  return {
+    x: pivot.x + relativeX * Math.cos(angle) - relativeY * Math.sin(angle),
+    y: pivot.y + relativeX * Math.sin(angle) + relativeY * Math.cos(angle),
+  };
+}

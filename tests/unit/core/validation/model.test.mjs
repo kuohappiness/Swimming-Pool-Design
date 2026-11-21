@@ -39,7 +39,7 @@ test('active revision is the only geometry source and uses SITE-XY', () => {
 
 test('active solar contract and local coordinate evidence are fail-closed', () => {
   const active = resolveActiveGeometry(model);
-  assert.equal(active.solar.analysisMethodRevision, 'SOLAR-METHOD-1.0.0');
+  assert.equal(active.solar.analysisMethodRevision, 'SOLAR-METHOD-1.1.0');
   assert.deepEqual(active.solar.energyAssumptions, {
     mirrorReflectance: 0.75,
     glazingSolarTransmittance: 0.6,

@@ -35,3 +35,20 @@ export function deriveMirrorNormalAzimuth(
   referenceSystem: SiteOrientationReferenceSystem,
   planRotation: number,
 ): number;
+export interface SitePlanPoint {
+  x: number;
+  y: number;
+}
+export function siteVectorFromAzimuth(
+  azimuth: number,
+  positiveXAxisBearingFromTrueNorth: number,
+): SitePlanPoint;
+export function azimuthFromSiteVector(
+  vector: SitePlanPoint,
+  positiveXAxisBearingFromTrueNorth: number,
+): number;
+export function rotateSitePointClockwise(
+  point: SitePlanPoint,
+  pivot: SitePlanPoint,
+  clockwiseDegrees: number,
+): SitePlanPoint;

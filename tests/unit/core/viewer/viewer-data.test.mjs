@@ -262,7 +262,9 @@ test('Viewer, solar study, and atlas navigation expose current owners and only v
   assert.match(solarHtml, /3D 反射光水平投影（虛線）/);
   assert.match(solarHtml, /<h2>平面：L3 旋轉改變鏡牆法線方位<\/h2>/);
   assert.doesNotMatch(solarHtml, /<h2>平面方位投影/);
-  assert.match(solarHtml, /未命中池面時仍維持完整對比、末端箭頭與文字標示/);
+  assert.match(solarHtml, /未落在池面時仍維持完整對比、末端箭頭與文字標示/);
+  // DEC-151: the fan and the 8° line are direction references, never a hit verdict.
+  assert.doesNotMatch(solarHtml, /命中|照到泳池|代理門檻/);
   assert.match(solarHtml, /id="reflected"[^>]*aria-label="反射光"/);
   assert.match(solarHtml, /id="desktopPlanPreviewViewport"/);
   assert.match(solarHtml, /id="desktopSectionPreviewViewport"/);

@@ -7,9 +7,10 @@ import {
   normalizeAzimuth,
   projectMirrorReflectionFootprint,
   reflectSolarRay,
-  rotatePlanPoint,
 } from './solar-reflection.mjs';
 import { resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active-geometry.mjs';
+import { deriveMirrorGeometry } from '../geometry/mirror-geometry.mjs';
+import { rotateSitePointClockwise } from '../geometry/site-orientation.mjs';
 
 export const SUMMER_DATES = [[2026, 5, 21], [2026, 6, 21], [2026, 7, 21], [2026, 8, 21]];
 export const WINTER_DATES = [[2026, 11, 21], [2026, 12, 21], [2027, 1, 21], [2027, 2, 21]];
@@ -456,20 +457,29 @@ function poolRectangle(model) {
 export function buildReflectingVolumeCorners(model, input) {
   const study = activeSolarStudyGeometry(model);
   const pivot = { x: input.pivotX, y: study.pivotY };
+  const mirror = deriveMirrorGeometry({
+    startX: study.startX,
+    width: study.width,
+    pivot,
+    planRotation: input.planRotation,
+    leanFromVertical: input.mirrorLeanFromVertical,
+    height: input.mirrorHeight,
+    baseElevation: study.baseElevation,
+    positiveXAxisBearingFromTrueNorth: deriveSolarPlanOrientation(model.referenceSystem).buildingAzimuth,
+  });
+  // L3 plate seen from above, clockwise; the mirror edge (start X) leans outward at the top.
   const bottomPlan = [
-    { x: study.startX, y: 0 },
-    { x: study.endX, y: 0 },
-    { x: study.endX, y: study.width },
-    { x: study.startX, y: study.width },
-  ].map((point) => rotatePlanPoint(point, pivot, input.planRotation));
-  const rotationRadians = input.planRotation * Math.PI / 180;
-  const normal = { x: -Math.cos(rotationRadians), y: -Math.sin(rotationRadians) };
-  const topOffset = input.mirrorHeight * Math.tan(input.mirrorLeanFromVertical * Math.PI / 180);
-  const topPlan = bottomPlan.map((point, index) => (
-    index === 0 || index === 3
-      ? { x: point.x + normal.x * topOffset, y: point.y + normal.y * topOffset }
-      : point
-  ));
+    mirror.lower[0],
+    rotateSitePointClockwise({ x: study.endX, y: 0 }, pivot, input.planRotation),
+    rotateSitePointClockwise({ x: study.endX, y: study.width }, pivot, input.planRotation),
+    mirror.lower[1],
+  ].map(({ x, y }) => ({ x, y }));
+  const topPlan = [
+    mirror.upper[0],
+    bottomPlan[1],
+    bottomPlan[2],
+    mirror.upper[1],
+  ].map(({ x, y }) => ({ x, y }));
   return [
     ...bottomPlan.map((point) => ({ ...point, z: study.baseElevation })),
     ...topPlan.map((point) => ({ ...point, z: study.baseElevation + input.mirrorHeight })),
@@ -500,10 +510,10 @@ export function evaluatePoolSurfaceScenario(model, options = {}) {
   const wallAzimuth = normalizeAzimuth(poolAzimuth + planRotation);
   const geometryInput = {
     positiveXAxisBearingFromTrueNorth: localBearing,
-    baseCenter: { x: study.startX, y: study.width / 2 },
+    startX: study.startX,
     pivot: { x: pivotX, y: study.pivotY },
     width: study.width,
-    verticalHeight: mirrorHeight,
+    height: mirrorHeight,
     baseElevation: study.baseElevation,
     planRotation,
     leanFromVertical: mirrorLeanFromVertical,

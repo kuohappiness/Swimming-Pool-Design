@@ -23,7 +23,10 @@ test('loads one coordinate-matched PVGIS typical meteorological year', () => {
   assert.equal(Number((weather.reduce((sum, sample) => sum + sample.ghi, 0) / 1000).toFixed(3)), 1584.747);
 });
 
-test('v0.6.7 carried-forward working optimum keeps X35 warm-season pool gain at zero', () => {
+// SOLAR-METHOD-1.1.0 values (right-handed SITE-XY, L3 turned clockwise). The data
+// accuracy review reproduced every number below independently by mirroring the
+// pool and roof receivers under the old method; see DEC-150.
+test('X35 working angles: corrected energy shows a small warm-season gain', () => {
   const result = evaluateMirrorEnergy(model, weather);
   assert.equal(result.input.planRotation, 25.5);
   assert.equal(result.input.mirrorLeanFromVertical, 23);
@@ -34,14 +37,17 @@ test('v0.6.7 carried-forward working optimum keeps X35 warm-season pool gain at 
   assert.equal(result.input.mirrorHeight, 3.6);
   assert.equal(result.input.pivotX, 35);
   assert.equal(result.mirrorSurfaceArea, 52.797);
-  assert.equal(result.warm.baselinePoolKWh, 89032.14);
-  assert.equal(result.warm.poolAddedKWh, 0);
-  assert.equal(result.warm.roofRedirectedKWh, 289.797);
-  assert.equal(result.cool.baselinePoolKWh, 107731.929);
-  assert.equal(result.cool.poolAddedKWh, 1036.829);
-  assert.equal(result.cool.poolIncreasePercent, 0.962);
-  assert.equal(result.cool.roofRedirectedKWh, 4857.203);
-  assert.equal(result.selectivity.strictWarmZero, true);
+  assert.equal(result.warm.baselinePoolKWh, 90622.62);
+  assert.equal(result.warm.poolAddedKWh, 0.002);
+  assert.equal(result.warm.poolAddedHours, 1);
+  assert.equal(result.warm.roofRedirectedKWh, 290.401);
+  assert.equal(result.cool.baselinePoolKWh, 108345.758);
+  assert.equal(result.cool.poolAddedKWh, 1224.692);
+  assert.equal(result.cool.poolAddedHours, 890);
+  assert.equal(result.cool.poolIncreasePercent, 1.13);
+  assert.equal(result.cool.roofRedirectedKWh, 4883.779);
+  // 0.002 kWh exceeds the 0.001 kWh strict-zero threshold; the threshold stays.
+  assert.equal(result.selectivity.strictWarmZero, false);
 });
 
 test('receiver geometry and optical factors stay within physical energy bounds', () => {
@@ -96,12 +102,12 @@ test('superseded v0.5.0 angles are rejected on the v0.6.7 pool', () => {
     planRotation: 26.5,
     mirrorLeanFromVertical: 3.1,
   });
-  assert.equal(result.warm.poolAddedKWh, 200.722);
-  assert.equal(result.cool.poolAddedKWh, 2116.651);
+  assert.equal(result.warm.poolAddedKWh, 313.569);
+  assert.equal(result.cool.poolAddedKWh, 2973.223);
   assert.equal(result.selectivity.strictWarmZero, false);
 });
 
-test('pivot sensitivity matches the registered v0.6.7 carried-forward energy results', () => {
+test('pivot sensitivity matches the corrected registered energy results', () => {
   const sensitivity = evaluateEnergySensitivity(model, weather);
   const compact = sensitivity.results.map((result) => ({
     pivotX: result.input.pivotX,
@@ -109,10 +115,16 @@ test('pivot sensitivity matches the registered v0.6.7 carried-forward energy res
     cool: result.cool.poolAddedKWh,
   }));
   assert.deepEqual(compact, [
-    { pivotX: 33, warm: 0.125, cool: 1199.844 },
-    { pivotX: 35, warm: 0, cool: 1036.829 },
-    { pivotX: 37, warm: 0, cool: 876.599 },
-    { pivotX: 39, warm: 0, cool: 732.206 },
-    { pivotX: 41, warm: 0, cool: 596.158 },
+    { pivotX: 33, warm: 0.206, cool: 1328.094 },
+    { pivotX: 35, warm: 0.002, cool: 1224.692 },
+    { pivotX: 37, warm: 0, cool: 1103.37 },
+    { pivotX: 39, warm: 0, cool: 970.156 },
+    { pivotX: 41, warm: 0, cool: 835.171 },
   ]);
+  assert.deepEqual(
+    model.geometryRevisions.find(({ id }) => id === model.activeGeometryRevisionId).solar.pivotSensitivity
+      .map(({ pivotX, warmPoolAddedKWh, coolPoolAddedKWh }) => ({ pivotX, warm: warmPoolAddedKWh, cool: coolPoolAddedKWh })),
+    compact,
+    'the model must register the values the analysis computes',
+  );
 });

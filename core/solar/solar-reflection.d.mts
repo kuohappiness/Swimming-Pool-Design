@@ -1,3 +1,5 @@
+import type { MirrorGeometryInput } from '../geometry/mirror-geometry.mjs';
+
 export interface SolarPositionInput {
   year: number;
   month: number;
@@ -63,22 +65,13 @@ export interface Rectangle2D {
   y2: number;
 }
 
-export interface MirrorFootprintInput {
+export interface MirrorFootprintInput extends MirrorGeometryInput {
   reflection: SolarReflection;
-  positiveXAxisBearingFromTrueNorth: number;
-  baseCenter: Point2D;
-  pivot: Point2D;
-  width: number;
-  verticalHeight: number;
-  baseElevation: number;
-  planRotation: number;
-  leanFromVertical: number;
   poolRectangle?: Rectangle2D;
 }
 
 export interface MirrorFootprintResult {
   reachesPoolPlane: boolean;
-  rotatedBaseCenter?: Point2D;
   sourceCorners?: Vector3D[];
   footprint: Point2D[];
   hitsPool: boolean;

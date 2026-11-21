@@ -178,10 +178,10 @@ export function mirrorReceiverFractions(model, input, reflection) {
   const orientation = deriveSolarPlanOrientation(model.referenceSystem);
   const common = {
     positiveXAxisBearingFromTrueNorth: orientation.buildingAzimuth,
-    baseCenter: { x: study.startX, y: study.width / 2 },
+    startX: study.startX,
     pivot: { x: input.pivotX, y: study.pivotY },
     width: study.width,
-    verticalHeight: input.mirrorHeight,
+    height: input.mirrorHeight,
     baseElevation: study.baseElevation,
     planRotation: input.planRotation,
     leanFromVertical: input.mirrorLeanFromVertical,

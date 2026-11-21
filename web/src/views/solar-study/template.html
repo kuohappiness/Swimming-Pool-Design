@@ -52,7 +52,7 @@
           </div>
           <div>
             <dt>暖季池面能量增量</dt>
-            <dd><strong id="conclusion-warm-gain">—</strong><small>0.000%</small></dd>
+            <dd><strong id="conclusion-warm-gain">—</strong><small id="conclusion-warm-note">—</small></dd>
           </div>
         </dl>
         <p class="research-conclusion-note">池面能量增量為入射太陽能量差，不等同於泳池水的實際吸收熱量或水溫增幅。</p>
@@ -81,7 +81,7 @@
             <text x="280" y="462" text-anchor="middle" class="cardinal">S</text>
             <text x="506" y="240" class="cardinal">E</text>
             <text x="48" y="240" class="cardinal">W</text>
-            <g class="azimuth-tolerance-visual" aria-label="池向方位代理門檻">
+            <g class="azimuth-tolerance-visual" aria-label="池向方位參考範圍">
               <path id="azimuthToleranceFan" class="azimuth-tolerance-fan" />
               <line id="azimuthToleranceStart" class="azimuth-tolerance-bound" />
               <line id="azimuthToleranceEnd" class="azimuth-tolerance-bound" />
@@ -114,7 +114,7 @@
             <span><i class="swatch fixed"></i>固定 L1／L2</span>
             <span><i class="swatch upper"></i>旋轉 L3</span>
             <span><i class="swatch wall"></i>鏡牆法線</span>
-            <span><i class="swatch tolerance"></i>方位代理門檻</span>
+            <span><i class="swatch tolerance"></i>池向方位參考範圍</span>
             <span><i class="swatch current-path"></i>所選日期 07–18 時路徑</span>
             <span><i class="swatch incoming"></i>入射光（實線）</span>
             <span><i class="swatch reflected"></i>3D 反射光水平投影（虛線）</span>
@@ -123,7 +123,7 @@
 
         <article class="panel">
           <h2>剖面：外傾角改變反射下射角</h2>
-          <p class="sub">此剖面沿鏡牆法線切取，因此水平旋轉本身在右圖不會看起來旋轉；它的作用會反映在最下方的 3D 方位判讀。反射光固定採與入射光同色的虛線；未命中池面時仍維持完整對比、末端箭頭與文字標示。</p>
+          <p class="sub">此剖面沿鏡牆法線切取，因此水平旋轉本身在右圖不會看起來旋轉；它的作用會反映在最下方的 3D 方位讀值。反射光固定採與入射光同色的虛線；未落在池面時仍維持完整對比、末端箭頭與文字標示。</p>
           <svg id="section" viewBox="0 0 720 430" role="img" aria-labelledby="section-title section-desc">
             <title id="section-title">三樓鏡牆反射日光的建築剖面示意</title>
             <desc id="section-desc">日光射向三樓外傾承載牆上的共面鏡面，再反射到一樓泳池水面或避開泳池。</desc>
@@ -279,10 +279,10 @@
         <h2>這個設計語言的重點</h2>
         <div class="principle-grid">
           <div><b>L1／L2 是不可變的基準</b><span>泳池、地基、L1 Y0 的池廳玻璃／服務本體清水模分段、L2 Y0 全玻璃與下兩層服務中心不參與角度調整，只有 L3 旋轉。</span></div>
-          <div><b>平面旋轉與剖面外傾分工</b><span>L3 水平旋轉負責朝哪裡反射；承載牆與鏡面共同外傾負責向下多少。兩者需同時通過才算命中泳池。</span></div>
+          <div><b>平面旋轉與剖面外傾分工</b><span>L3 水平旋轉負責朝哪裡反射；承載牆與鏡面共同外傾負責向下多少。反射光是否落在池面，以整面鏡子的反射範圍投到池面高度、與泳池是否相交判定。</span></div>
           <div><b>能量差才是性能指標</b><span>反射落在本來已有直射的池面仍會增加能量；必須比較同一 TMY 下有鏡與無鏡的 kWh。</span></div>
-          <div><b>新高度改變季節選擇</b><span>L3 鏡牆底升至 +6.88 m 後，固定角度搜尋出現暖季池面零增量、冷季正收益候選；不再假設需要可動遮罩。</span></div>
-          <div><b>上部接收是另一條能量路徑</b><span>v0.6.7 沿用的工作支點下，暖季約 289.797 kWh、冷季約 4,857.203 kWh 轉向屋頂／上部接收面；完整 L3 屋頂與高覆蓋率太陽能排布尚未納入，實際 lux、熱效應與去向仍需 BSDF 及年度模擬。</span></div>
+          <div><b>新高度改變季節選擇</b><span>L3 鏡牆底升至 +6.88 m 後，固定角度可讓暖季池面增量接近零、冷季維持正收益，不需要可動遮罩。現行工作角度依更正後的座標重算，暖季增量接近零但不是零；是否再調整角度或支點尚待決定。</span></div>
+          <div><b>上部接收是另一條能量路徑</b><span>現行工作支點下，部分反射光轉向屋頂／上部接收面（數值見日照分析文件）；完整 L3 屋頂與高覆蓋率太陽能排布尚未納入，實際 lux、熱效應與去向仍需 BSDF 及年度模擬。</span></div>
         </div>
         <div class="note"><strong>OPEN-011／OPEN-022：</strong>正式支點與結構核心、L3 旋轉後的外挑／退縮、鏡牆分格與固定、材料實測光學值、框架遮蔭、屋頂接收後的透反射、太陽能模組遮蔭／眩光／發電、專業 3D 光線追蹤及熱分析仍待驗證。工作 kWh 不是施工節能保證。</div>
       </section>
