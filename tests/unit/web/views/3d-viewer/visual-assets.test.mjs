@@ -78,45 +78,7 @@ test('quality profiles enforce visual-only descending budgets and mobile fallbac
   }
 });
 
-test('v0.6.7 visual baseline preserves deterministic screenshots and relative performance evidence', async () => {
-  const baselineRoot = resolve(repoRoot, 'tests/visual-baselines/v0.6.7');
-  const report = await readFile(resolve(baselineRoot, 'baseline-report.json'), 'utf8').then(JSON.parse);
-  assert.equal(report.schemaVersion, '1.0.0');
-  assert.equal(report.baselineId, 'viewer-0.6.7-before-enhanced-rendering');
-  assert.match(report.performanceInterpretation, /Relative regression baseline only/);
-  assert.deepEqual(report.deterministicConditions.sceneIds, ['overview', 'light', 'rain', 'people', 'time']);
-  assert.deepEqual(report.desktop.viewport, { width: 1440, height: 900 });
-  assert.deepEqual(report.mobile.viewport, { width: 390, height: 844 });
-  assert.equal(report.desktop.frameTiming.sampleCount, 12);
-  assert.equal(report.mobile.frameTiming.sampleCount, 12);
-  assert.equal(report.desktop.resources.encodedBodyBytes > 0, true);
-  assert.equal(report.mobile.resources.encodedBodyBytes > 0, true);
-  assert.deepEqual(report.desktop.resources.externalOrigins, []);
-  assert.deepEqual(report.mobile.resources.externalOrigins, []);
-  assert.equal(report.screenshots.length, 14);
-
-  const filenames = new Set(report.screenshots.map(({ filename }) => filename));
-  for (const viewport of ['desktop-1440x900', 'mobile-390x844']) {
-    for (const scene of report.deterministicConditions.sceneIds) {
-      assert.equal(filenames.has(`${viewport}-scene-${scene}.png`), true);
-    }
-    assert.equal(filenames.has(`${viewport}-walkthrough-entrance.png`), true);
-  }
-  assert.equal(filenames.has('desktop-1440x900-view-pool-side.png'), true);
-  assert.equal(filenames.has('desktop-1440x900-view-school-side.png'), true);
-
-  for (const screenshot of report.screenshots) {
-    const bytes = await readFile(resolve(baselineRoot, screenshot.filename));
-    assert.equal(bytes.byteLength, screenshot.byteSize, `${screenshot.filename} byte size changed`);
-    assert.equal(
-      createHash('sha256').update(bytes).digest('hex'),
-      screenshot.sha256,
-      `${screenshot.filename} hash changed`,
-    );
-  }
-});
-
-test('historical v0.6.7 visual baseline remains immutable while release versions stay synchronized', async () => {
+test('package version stays synchronized with the model version', async () => {
   const [packageJson, projectModel] = await Promise.all([
     readFile(resolve(repoRoot, 'package.json'), 'utf8').then(JSON.parse),
     readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),

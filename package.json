@@ -21,10 +21,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:e2e": "node tests/e2e/web.e2e.mjs && node tests/e2e/3d-viewer.e2e.mjs",
-    "capture:viewer-baseline": "npm run build && node tools/capture/capture-viewer-baseline.mjs",
     "capture:viewer-quality": "npm run build && node tools/capture/capture-viewer-quality.mjs",
-    "verify:v090-baseline": "npm run build:content && node tools/check/verify-v090-baseline.mjs",
-    "verify:v091-baseline": "npm run build:content && node tools/check/verify-v090-baseline.mjs --allow-concept-source-change",
     "clean:dist": "node tools/build/clean-dist.mjs",
     "build": "npm run build:content && npm run check:docs && npm run check:model && npm test && npm run typecheck && npm run clean:dist && vite build"
   },

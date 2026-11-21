@@ -24,7 +24,7 @@ const qualityBudgets = {
 const qualityFpsTargets = { high: 50, medium: 40, low: 30 };
 const baseline = JSON.parse(
   await readFile(
-    resolve(repoRoot, 'tests/visual-baselines/v0.6.7/baseline-report.json'),
+    resolve(repoRoot, 'tests/fixtures/v0.6.7-viewer-baseline-report.json'),
     'utf8',
   ),
 );
