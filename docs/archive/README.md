@@ -67,3 +67,5 @@
 | `reference/drafts/v0.6.6/` | 9 | 同上 | [c614023](https://github.com/kuohappiness/Swimming-Pool-Design/tree/c614023f662c8309f07ec9521cab7036aec67dde/reference/drafts/v0.6.6) |
 | `scripts/generate-v063-l2-review.mjs` | 1 | 0.6.3 一次性比較圖腳本 | [c614023](https://github.com/kuohappiness/Swimming-Pool-Design/blob/c614023f662c8309f07ec9521cab7036aec67dde/scripts/generate-v063-l2-review.mjs) |
 | `.nojekyll` | 1 | 網站改由 GitHub Actions 部署，不需要 | [c614023](https://github.com/kuohappiness/Swimming-Pool-Design/blob/c614023f662c8309f07ec9521cab7036aec67dde/.nojekyll) |
+| `web/src/generated/` | 2 | 改為不入庫，由 `build:content` 在安裝、開發、測試、型別檢查與建置前自動產生 | [d30c049](https://github.com/kuohappiness/Swimming-Pool-Design/tree/d30c049ca7cd04a2605266d95f88c51972b847e1/web/src/generated) |
+| `drawings/current/*.png` | 4 | 改為不入庫，由 `build:drawings` 自同名 SVG 轉出 | [d30c049](https://github.com/kuohappiness/Swimming-Pool-Design/tree/d30c049ca7cd04a2605266d95f88c51972b847e1/drawings/current) |
