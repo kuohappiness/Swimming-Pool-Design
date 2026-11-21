@@ -152,6 +152,7 @@
 | DEC-144 | Solar Study 的方向代理門檻需直接呈現在互動圖上 | 平面圖以池向為中心，依 active model 顯示方位容許範圍（目前為 ±28°）淡色扇形；剖面圖依 active model 顯示最低下射角門檻（目前為 8°）參考線或淡色區。這些圖示只用來解釋方向代理是否通過，不得呈現成精確池面落點、反射能量或完整 3D 光線追蹤結果 | implemented in TASK-101 |
 | DEC-145 | Solar Study 的入射光與反射光採同色、不同線型的統一符號 | 平面圖補上目前缺少的反射光；入射光與反射光使用相同色相，入射光為實線、反射光為虛線，兩者皆加上箭頭表示傳播方向。鏡牆法線維持不同色相與清楚標示，避免再被誤認為反射光。剖面圖未命中池面的反射光不得降為難以辨識的低對比灰線，相關可讀性修正另列獨立任務追蹤 | plan ray symbols implemented in TASK-101; section miss readability pending TASK-102 |
 | DEC-146 | Solar Study 保留既有平面圖標題，並以投影標註與遮罩釐清反射光沒有穿透鏡牆 | 平面虛線明列為 3D 反射光的水平投影，並同時標示反射方位與向下角；鏡牆覆蓋光線，代表性入射點清楚可見，牆線兩側保留極短視覺間隙。runtime 另以完整 3D 反射向量位於鏡面正面半空間為有效反射條件；未通過時不得繪出反射光。平面圖原標題不改，入射／反射同色、實／虛線及末端箭頭規則不變 | confirmed by user for TASK-105 |
+| DEC-147 | 資料夾與文件結構、檔名全專案一致，同一功能只用一個名字，並比照 Essence 的工作流程 | 網站改放 `web/`（產出 `dist/web`）、命令列工具 `tools/`、純邏輯 `core/`、現行圖面 `drawings/current/`（檔名不帶版號）、網站文案 `content/`；「site」只指基地；檢查類指令一律 `check:`、產生類一律 `build:`。01～07 與文件所有權依功能改名為 product、site-and-sources、design-basis、decisions 與 backlog、contracts/model、agents/workflow、roadmap、architecture。DEC／OPEN／TASK／SRC 編號、模型數值、原始來源與雜湊、公開網址與 view id 不變；冗餘舊檔自現行版本刪除，不改寫 Git 歷史；6 張場勘原圖不縮小。使用者 2026-11-21 同意；執行見 [資料夾架構與命名統一設計](specs/2026-11-21-folder-structure-migration-design.md) | confirmed |
 
 ## 2. 尚待精化
 
