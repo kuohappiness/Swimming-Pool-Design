@@ -22,6 +22,17 @@ async function collectMarkdown(relativeDir) {
   return files;
 }
 
+async function collectFiles(relativeDir) {
+  const entries = await readdir(path.join(repoRoot, relativeDir), { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const relativePath = path.join(relativeDir, entry.name);
+    if (entry.isDirectory()) files.push(...await collectFiles(relativePath));
+    else if (entry.isFile()) files.push(relativePath);
+  }
+  return files;
+}
+
 async function exists(target) {
   try {
     await access(target);
@@ -96,7 +107,7 @@ export function validateTaskConcurrency({
   taskRows,
   decisionContent,
   activeSpecContents,
-  source = 'docs/07_ACTIVE_WORK.md',
+  source = 'docs/roadmap.md',
 }) {
   const concurrencyErrors = [];
   const inProgressRows = taskRows.filter((row) => row[2] === 'in_progress');
@@ -153,11 +164,19 @@ export function validateTaskConcurrency({
   return concurrencyErrors;
 }
 
+const skillDirectories = [
+  path.join('.claude', 'skills', 'swimming-pool-design'),
+  path.join('.agents', 'skills', 'swimming-pool-design'),
+];
+
 const markdownFiles = [
   'README.md',
+  'AGENTS.md',
   ...await collectMarkdown('docs'),
-  ...await collectMarkdown('versions'),
-  ...await collectMarkdown(path.join('.codex', 'skill')),
+  ...await collectMarkdown('content'),
+  ...await collectMarkdown('drawings'),
+  ...await collectMarkdown('source-materials'),
+  ...(await Promise.all(skillDirectories.map((directory) => collectMarkdown(directory)))).flat(),
 ];
 
 const contents = new Map();
@@ -174,15 +193,20 @@ for (const [relativePath, content] of contents) {
   }
 }
 
-const decisionPath = path.join('docs', '04_DECISIONS_AND_OPEN_ITEMS.md');
-const sourcePath = path.join('docs', '02_SITE_AND_SOURCES.md');
-const taskPath = path.join('docs', '07_ACTIVE_WORK.md');
+const decisionPath = path.join('docs', 'decisions.md');
+const backlogPath = path.join('docs', 'backlog.md');
+const sourcePath = path.join('docs', 'site-and-sources.md');
+const taskPath = path.join('docs', 'roadmap.md');
 const decisionContent = contents.get(decisionPath);
+const backlogContent = contents.get(backlogPath);
 const sourceContent = contents.get(sourcePath);
 const taskContent = contents.get(taskPath);
 
 ensureUnique(tableDeclarations(decisionContent, 'DEC'), 'DEC', decisionPath);
-ensureUnique(tableDeclarations(decisionContent, 'OPEN'), 'OPEN', decisionPath);
+ensureUnique(tableDeclarations(backlogContent, 'OPEN'), 'OPEN', backlogPath);
+for (const id of tableDeclarations(decisionContent, 'OPEN')) {
+  errors.push(`${decisionPath}: ${id} belongs in ${backlogPath}`);
+}
 ensureUnique(tableDeclarations(sourceContent, 'SRC-(?:SITE|CONCEPT)'), 'SRC', sourcePath);
 
 const taskRows = taskContent
@@ -217,7 +241,7 @@ const requiredSpecFields = ['日期', '類型', '狀態', '任務', '目標版�
 const activeStatus = new Set(['draft', 'approved', 'in_progress']);
 const archiveStatus = new Set(['completed', 'superseded']);
 const activeSpecs = markdownFiles.filter((file) =>
-  path.dirname(file) === path.join('docs', 'specs')
+  path.dirname(file) === path.join('docs', 'tasks')
 );
 const archiveSpecs = markdownFiles.filter((file) =>
   path.dirname(file) === path.join('docs', 'archive', 'specs')
@@ -258,11 +282,31 @@ for (const file of activeSpecs) {
 }
 
 const readme = contents.get('README.md');
-if (/\]\(docs\/specs\//.test(readme) || /\]\(docs\/archive\/specs\//.test(readme)) {
-  errors.push('README.md: link through owner documents or Active Work instead of individual specs');
+if (/\]\(docs\/tasks\//.test(readme) || /\]\(docs\/archive\/specs\//.test(readme)) {
+  errors.push('README.md: link through owner documents or the roadmap instead of individual task specs');
 }
 if (/\b(?:DEC|OPEN|TASK)-\d{3}\b/.test(readme)) {
   errors.push('README.md: detailed DEC, OPEN, or TASK status belongs in owner documents');
+}
+
+// The repo skill is kept as two real copies (no symlinks, for Windows);
+// both tools must read the same bytes.
+const [primarySkill, mirrorSkill] = await Promise.all(
+  skillDirectories.map((directory) => collectFiles(directory)),
+);
+const primaryNames = primarySkill.map((file) => path.relative(skillDirectories[0], file)).sort();
+const mirrorNames = mirrorSkill.map((file) => path.relative(skillDirectories[1], file)).sort();
+if (primaryNames.join('\n') !== mirrorNames.join('\n')) {
+  errors.push(`${skillDirectories[1]}: file list differs from ${skillDirectories[0]}`);
+} else {
+  for (const name of primaryNames) {
+    const [first, second] = await Promise.all(
+      skillDirectories.map((directory) => readFile(path.join(repoRoot, directory, name))),
+    );
+    if (!first.equals(second)) {
+      errors.push(`${path.join(skillDirectories[1], name)}: differs from ${path.join(skillDirectories[0], name)}`);
+    }
+  }
 }
 
 if (errors.length > 0) {
@@ -272,7 +316,7 @@ if (errors.length > 0) {
 } else {
   console.log(
     `Documentation checks passed: ${markdownFiles.length} Markdown files, `
-    + `${taskRows.length} tasks, ${activeSpecs.length} active specs, `
+    + `${taskRows.length} tasks, ${activeSpecs.length} active task specs, `
     + `${archiveSpecs.length} archived specs.`,
   );
 }

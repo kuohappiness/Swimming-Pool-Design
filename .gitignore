@@ -3,3 +3,4 @@ dist/
 .superpowers/
 *.log
 test-results/
+.claude/settings.local.json

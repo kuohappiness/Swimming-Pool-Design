@@ -1,0 +1,58 @@
+Swimming Pool Design — 授權說明 / License
+
+本 repo 依內容種類使用兩種授權，第三方素材除外。
+This repository uses two licenses by content type. Third-party material is excluded.
+
+1. 程式 / Code — MIT License
+   範圍：core/、tools/、tests/、web/ 內的程式與樣式（.ts、.mjs、.js、.css、.html），
+   以及根目錄與 .github/ 的設定檔。
+   Scope: source code and styles under core/, tools/, tests/ and web/, plus the
+   configuration files at the root and under .github/.
+
+2. 文件、設計、圖面與照片 / Documents, design, drawings and photos — CC BY 4.0
+   範圍：docs/、content/、drawings/、model/、source-materials/ 與 web/ 內的影像，
+   第 3 點列出的除外。
+   Scope: docs/, content/, drawings/, model/, source-materials/ and the images under
+   web/, except the items listed in section 3.
+   https://creativecommons.org/licenses/by/4.0/
+
+3. 不在上述授權範圍內的第三方素材 / Third-party material not covered above
+   - source-materials/site/SRC-SITE-001_google-maps-satellite.png 及以它為底的
+     標註圖 SRC-SITE-002、SRC-SITE-004，與網站圖面頁使用的同一衛星底圖：
+     地圖資料與影像權利屬 Google 及其資料提供者，僅作為概念設計的來源證據保存。
+     The Google Maps satellite image and the annotated images based on it
+     (SRC-SITE-001, SRC-SITE-002, SRC-SITE-004, and the same base map shown on the
+     drawings page). Map data and imagery belong to Google and its data providers.
+   - source-materials/site/SRC-SITE-005_school-emblem-transparent.png 及其衍生的
+     web/src/shared/assets/brand/school-emblem-header.png：校徽屬學校所有。
+     The school emblem and its derived header image belong to the school.
+   - source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json：氣象資料來自
+     European Commission Joint Research Centre PVGIS 5.3，依其使用條款引用並標註出處。
+     Weather data from the European Commission Joint Research Centre PVGIS 5.3,
+     used under its own terms with attribution.
+   - node_modules/ 與 package-lock.json 列出的相依套件依各自的授權。
+     Dependencies keep their own licenses.
+
+------------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 kuohappiness
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

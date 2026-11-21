@@ -18,6 +18,8 @@ source-materials/concepts/hand-sketches/
 SRC-CONCEPT-012 … SRC-CONCEPT-023
 ```
 
+其中 `SRC-CONCEPT-012`～`017` 是校園場勘照片，2026-11-22 起放在 `source-materials/site/photos/`，編號、檔名與位元組不變；本資料夾只放手繪稿 `SRC-CONCEPT-018`～`023`。
+
 網站使用的方向校正與壓縮版本位於
 `web/src/views/design-concept/assets/`；本資料夾中的原始位元組未被修改。
 
@@ -29,4 +31,4 @@ SRC-CONCEPT-012 … SRC-CONCEPT-023
 - `SRC-CONCEPT-012`、`SRC-CONCEPT-014`、`SRC-CONCEPT-015` 只保存來源，不放入 HTML。
 
 完整 MIME、bytes、dimensions、SHA-256、用途與公開狀態登錄於
-`docs/02_SITE_AND_SOURCES.md`。
+`docs/site-and-sources.md`。

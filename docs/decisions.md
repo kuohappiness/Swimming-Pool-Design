@@ -1,0 +1,207 @@
+# 決策
+
+本文件是設計決策、已關閉的舊 OPEN 與設計風險的唯一權威清單。尚無答案的 OPEN 在 [待決事項](backlog.md)；數值由 [設計基準](design-basis.md) 管理；已知修法的執行狀態由 [進度與任務](roadmap.md) 管理。
+
+第 2 節「尚待精化」已於 2026-11-22 移到 [待決事項](backlog.md)，其餘節號不變。
+
+## 1. 已確認決策
+
+| ID | 決策 | 理由／影響 | 狀態 |
+| --- | --- | --- | --- |
+| DEC-001 | 基地識別為國立臺中教育大學附設實驗國民小學既有泳池及相鄰廁所區 | 公開地圖與使用者說明一致 | confirmed |
+| DEC-002 | 黃色泳池基地與綠色廁所基地共同納入規劃 | 形成單一整體基地 | confirmed |
+| DEC-003 | 既有廁所拆除重建 | 重新整合廁所、服務核心及垂直動線 | confirmed |
+| DEC-004 | 玻璃屋頂只覆蓋泳池大廳 | 服務核心採非玻璃屋面 | confirmed |
+| DEC-005 | 不等待正式測量或 CAD | 使用當前證據建立明確、可修訂工作值 | confirmed |
+| DEC-006 | 圖面直接顯示數值 | 狀態與依據保存在資料層 | confirmed |
+| DEC-007 | 方位為模型一級資料 | 圖集、Viewer、DXF 必須一致 | confirmed |
+| DEC-008 | 新成果先建立空間參照圖集，再延伸可信即時 3D Viewer | 先固定討論語言與模型 ID | confirmed |
+| DEC-009 | 技術核心採 TypeScript、Vite，第一階段不使用 React | 現階段互動狀態不需要框架層 | confirmed |
+| DEC-010 | 模型、圖集、Viewer 與 DXF 共用單一參數資料 | 禁止各成果硬編碼尺寸 | confirmed |
+| DEC-011 | 已登錄的來源圖可存於公開 repo | 保留原有 Google 標示與來源說明；使用者新增標註依同一規則進件 | confirmed |
+| DEC-012 | `EN-01` 位於黃綠基地交界的校園側，且為進入 L1 戶外前場的唯一日常到達入口 | 固定基地到達點、管理與座標原點；不表示室內共用前室 | confirmed |
+| DEC-013 | L1 重建男女廁所；L2 設男女更衣淋浴區 | 固定主要樓層關係 | confirmed |
+| DEC-014 | L2 男女嚴格分離，共用樓梯於分流前室後分開進入 | 避免交叉與內部串通 | confirmed |
+| DEC-015 | 男女各 15 間更衣淋浴整合單元，另各保留 5 間擴充位置 | 兼顧小學生尺度與 20 人上限 | confirmed |
+| DEC-016 | 每間內設壁掛櫃，不設集中式置物櫃區 | 減少額外面積與集中壅塞 | confirmed |
+| DEC-017 | `ST-01` 位於長邊玻璃牆乾式透明樓梯廊 | 建立通透動線並隔離泳池濕氣 | confirmed |
+| DEC-018 | `ST-01` 採 A2 兩段同向、懸浮中間平台、雙側厚鋼梯梁 | 落實使用者選定形式 | confirmed |
+| DEC-019 | 梯下完全開放，不以水泥封閉；樓梯不由玻璃屋頂承重 | 保留通透感及清楚結構邏輯 | confirmed |
+| DEC-020 | 屋頂坡度 10°，服務核心端高、泳池遠端低 | 原始屋頂坡向與剖面決策；坡向保留，角度由 `DEC-033` 取代 | superseded |
+| DEC-021 | V02／V03 保留為歷史成果 | 可比較但不再是權威模型 | confirmed |
+| DEC-022 | 本地 +X 由泳池遠端指向原廁所／服務核心基地，首版方位由 127° 反轉為 307° | 使 `CORE-01` 落在衛星圖綠框，`EN-01` 對應紅箭頭，泳池大廳向黃色基地延伸 | confirmed |
+| DEC-023 | L1 男女廁採男左女右；操場側共用前室分流，兩廁各有泳池側時段管制後門 | 此處把戶外空間誤判為室內前室；由 `DEC-028` 取代 | superseded |
+| DEC-024 | L2 在原 11.0 m 核心外向泳池大廳上方增加 5.0 m 二樓專用擴建量體 | 首版形成 16.0 m L2 工作長度；擴建量體下方 L1 保持開放 | confirmed |
+| DEC-025 | L2 以 E 軸 X=27.0 m 中央分流，男生往較低 X 側、女生往較高 X 側；`ST-01` 上端落在中央且入口錯位 | 形成直覺左右分流並維持視線隱私 | confirmed |
+| DEC-026 | `RF-GL-01` 由 L2 擴建量體邊緣以 10° 向泳池遠端左下傾斜，平面跨度隨擴建長度推導 | 原始服務核心修正；平面跨度推導仍有效，10° 與 deferred 標高由 `DEC-033` 取代 | superseded |
+| DEC-027 | 太陽反射研究固定 1F 地基、泳池及長邊玻璃牆，只以 2F 更衣量體水平旋轉與面池端牆外傾作為建築本體變因 | 原始目標為冬季上午導入、夏季不增加池面反射且不新增額外反射層板；性能指標已由 `DEC-039` 精確化為有鏡／無鏡能量差，並允許以非反射的建築遮蔭構造形成季節閘門 | confirmed |
+| DEC-028 | L1 操場側綠框為戶外空間；泳池大廳、男廁、女廁各有直接面向戶外的獨立開口，男女廁另各有一樘後門經最上方乾式通道連回泳池大廳 | 取代 `DEC-023` 的共用前室；雙向廁所動線仍保留，但「戶外區直接連接泳池大廳」已由 `DEC-043` 及 `SRC-CONCEPT-010` 取代 | superseded |
+| DEC-029 | 太陽研究的固定建築與 2F 量體統一使用模型本地 +X 307° 作為世界 transform；127° 只代表面池反方向，可供鏡牆法線、反射目標或判讀使用 | 修正太陽研究把面池方向誤作整棟基準旋轉而造成的 180° 首尾顛倒；實作與驗證由 `TASK-001` 管理 | confirmed |
+| DEC-030 | `REF-401` 的 10° 玻璃屋頂改為高端靠近 L2 樓板的概念位置；L1 右端綠框為入口戶外區；`EXT-L2-01` 低 X 面池端為向泳池側外傾的鏡面反射牆 | 依 `SRC-CONCEPT-009` 修正剖面關係；正式標高與入口尺寸分別保留於 `OPEN-010`、`OPEN-008`。鏡牆外傾角已由 `DEC-032` 確認為 +8.5°；`OPEN-011` 只保留支點、牆高、材料及性能驗證等剩餘事項 | confirmed |
+| DEC-031 | 2F 更衣量體以與 1F 長軸對齊為 0°，由上往下看順時針水平旋轉 +9.5° | 0.3.0 代表日比較中位於冬季最佳區間中心並由使用者確認；造型幾何維持 confirmed。代表日不能證明暖季性能，解讀已由 `DEC-037` 修正；詳細依據由 [日照分析](analysis/solar-analysis.md) 保存 | confirmed geometry |
+| DEC-032 | `F-MIR-01` 由垂直向泳池側外傾 +8.5° | 0.3.0 四個代表日比較中通過當時誤差包絡，兼顧冬季機會與外觀／構造，並由使用者確認；造型幾何維持 confirmed。整個暖季零命中的舊解讀已由 `DEC-037` 修正 | confirmed geometry |
+| DEC-033 | `RF-GL-01` 改採 4.5°；L2 與屋頂高端同為 +4.500 m；室內跨度 19.0 m，低端超出遠端短邊牆 1.2 m | 使高端真正對齊 L2 地坪並保留可辨識坡度；推導短邊牆處約 +3.005 m、外側雨簾滴水端約 +2.910 m；取代 `DEC-020`／`DEC-026` 的 10° 及 `DEC-030` 中僅屬屋頂位置示意的部分 | confirmed |
+| DEC-034 | `J-RF-L2-01` 採 A＋B 混合：獨立、可維修的屋頂真實接縫，加上由 L2 外殼支撐的全寬薄遮簷與連續陰影縫 | 屋頂與 L2 荷重完全分離；外觀以 0.75 m 出挑、0.15 m 視覺厚度、0.12 m 陰影／維修縫及兩端 0.60 m 回折形成「浮盒－陰影縫－玻璃水翼」三層關係；材料與最終施工尺寸仍需專業精化 | confirmed |
+| DEC-035 | `ST-01` 採 4.500 m 總升高、30 級高／28 踏面、兩跑各 15 級高／14 踏面、0.300 m 踏深、1.800 m 平台與 10.200 m 總長；結構採 S1 雙連續箱型梯梁、封閉踢面但梯下開放；防墜以 2.4 m 全高垂直弦幕為 B 主案、1.35 m 夾層玻璃為 A 備案 | 原核准基準完整保留；使用者依剖面 V2.0 重新提出長度與角度合理性檢核。防墜與構造意圖不變，縱向幾何改由 `DEC-046`／`OPEN-017` 以 working recommendation 重審 | reopened by DEC-046 |
+| DEC-036 | `RF-GL-01` 低端採全寬被動均壓雨簾，由封閉隔離承接溝收集屋頂水；正常雨量經濾網、初雨分流、沉砂／過濾、加蓋儲存與獨立管線供 L1 廁所沖洗，極端雨量以高位溢流獨立旁通 | 保持無旱天循環泵、孩童不可進入、可維修且不混入操場／地坪逕流；自來水補水必須防回流隔離。容量、設備與水質等施工設計轉由 `OPEN-014` | confirmed |
+| DEC-037 | 保留 +9.5°／+8.5° 為建築造型幾何，但撤回「四個代表日已證明整個暖季方向零命中」的解讀 | 0.3.0 只抽 5／21～8／21 四日；連續 5～9 月逐分鐘篩檢自 8／25 起出現方向命中，27 組方向誤差情境全數出現命中；全寬鏡牆工作幾何也存在池面交集。原始路徑診斷先交由 `DEC-038` 判讀，最終性能口徑已由 `DEC-039` 取代 | confirmed |
+| DEC-038 | 暖季性能只計「鏡牆反射照到同一時刻原本沒有直射陽光的池面」；原本已有直射的區域不列為新增入射 | 使用者已澄清真正目標是比較有鏡／無鏡的池面總太陽能量差，不論該區原本是否已有直射；本判定由 `DEC-039` 取代，相關面積分析只保留於已封存的 `TASK-012` 歷史證據 | superseded |
+| DEC-039 | 鏡牆的主要環境目標改為：冷季增加泳池接收的太陽能量，暖季不得增加或應以建築本體控制至近零；性能以同一氣象資料、同一幾何與同一材料假設下「有鏡－無鏡」的入射能量差判定。偏暗天花板／上部擴散面的可用自然光為第二效益 | 取代 `DEC-038` 的新增受光面積口徑；原本已有直射的池面仍須計入鏡面疊加能量。分析必須分開報告池面 kWh、相對基準增幅、暖冷季比、屋頂／天花板接收潛力及眩光／熱負荷限制；實作與驗證由 `TASK-013` 管理 | confirmed |
+| DEC-040 | 季節採光腔、雙面 360°旋轉鏡面／消光葉片、可完全收納不透光消光捲屏、實體摺疊／滑動消光板及外置百葉均只保留為研究選項，不選為現行方案 | 使用者明確表示不滿意目前方案；22°／88°～135°只保留為分析用 solar mask 與性能基準，不能反推已核准的構造形式。下一輪從新的建築方向重新討論；在再次核准前不得寫入模型、HTML 或施工語彙 | confirmed design reset |
+| DEC-041 | `F-MIR-01` 的 +8.5° 是面池端承載牆體本身的外傾角；鏡面是貼附於牆體外側、與牆體共面的覆層，不是設於垂直牆前方的獨立傾斜板 | 釐清 `DEC-032` 的構造語意，不改變已確認角度。Viewer 可用極薄或微量偏移避免重疊，但不得形成可辨識的牆鏡夾角或空腔；牆體厚度、鏡面系統、固定方式與分格仍由 `OPEN-011` 管理，實作差異由 `TASK-023` 修正 | confirmed geometry clarification |
+| DEC-042 | L1 泳池大廳地坪是包圍 `POOL-01` 開口的池畔，池體是低於 L1 的完整空間；原方向為服務核心／廁所端 1.2 m、泳池遠端 1.5 m | 池口、池畔、池壁及池底的表達要求仍有效；淺深端方向已由 `DEC-045` 反轉，舊方向不得再驅動下一版模型 | partially superseded by DEC-045 |
+| DEC-043 | L1 V2.0 採 33.0 m 泳池主體加右側 8.0 m 機能翼；8.0 × 7.0 m 戶外區不與泳池大廳銜接。廁所帶深 7.0 m 且包含最上方泳池側乾式走道，男女廁各設一個操場側開口及一個泳池側開口；原基地左端邊界內退 2.0 m | 使用者依 `SRC-CONCEPT-010` 明確確認；33 m 不含右側 8 m，總長 41 m 為推導值。2 m 退縮用於視覺開闊、傾斜屋頂瀑布造景與雨水回收介面；取代 `DEC-028` 中戶外區直通泳池大廳的部分，模型遷移前由 `OPEN-008`／`OPEN-016` 管理未決對應 | confirmed target revision |
+| DEC-044 | 以已發布 0.4.0 為本輪修訂基準；使用者逐項提出時先記錄，不修改幾何、程式或發布成果，待使用者確認修訂清單完整後再協調整批實作 | 每筆修訂在記錄、建議或實作前，AI 都須檢查內部邏輯與階段相稱的施工可行性，並標示為「概念可行」、「需專業驗證」或「矛盾／目前不可行」；未決風險記入 OPEN，只阻擋受影響的實作。0.4.0 不覆寫，當時原記錄的整批目標為 0.4.1，版本目標後由 `DEC-047` 改為 0.5.0 | confirmed workflow; release target superseded by DEC-047 |
+| DEC-045 | 剖面 V2.0 的泳池左端為 1.2 m 淺水端，右端為 1.5 m 深水端；池底由左向右下降 | 左端以 2 m 退縮／雨水回收端識別，右端以 8 m 機能翼／L1 廁所端識別，避免畫面左右在後續圖面被交換。使用者依 `SRC-CONCEPT-011` 明確確認，取代 `DEC-042` 的舊淺深端方向；0.4.0 模型差異由 `TASK-024` 管理 | confirmed target revision |
+| DEC-046 | `SRC-CONCEPT-011` 向右上方延伸的兩條斜線代表 `ST-01` 由 1F 至 2F 的樓梯，不是鏡面反射光路；圖上不直接確認施工長度或角度 | 使用者要求 AI 重新檢核樓梯合理性。4.500 m 高差不得採單一不中斷梯段；目前推薦沿用 `DEC-035` 的兩跑 0.150／0.300 m、1.800 m 中間平台、約 26.6°、總長 10.200 m 作 working baseline，最終落點、淨高與屋頂關係由 `OPEN-017` 確認 | confirmed interpretation; geometry under review |
+| DEC-047 | 將本輪從 0.4.0 累積的修訂改以 0.5.0 為整批實作與發布目標，不再以 0.4.1 為目標 | 使用者明確改變預期版本。修訂收集流程與 0.4.0 不覆寫的原則仍沿用 `DEC-044`；`TASK-021`～`TASK-024` 及後續修訂在清單完整前仍維持 queued | confirmed workflow revision |
+| DEC-048 | 0.5.0 鏡牆沿用原始鏡面材質意圖；建築面池承載牆本體向泳池側外傾 +8.5°，鏡面與牆體共面，不是在垂直牆前另裝斜鏡 | 延續 `DEC-041` 的構造語意並把鏡牆移至 L3；不採反射玻璃替代、不設吸光窗簾、雙層整合立面、收合式擴散簾或可調反射翼片。實際戶外鏡面產品、反射率、耐候與含氯耐久仍由 `OPEN-011` 驗證 | confirmed target revision; material performance deferred |
+| DEC-049 | 右側重新定義為三層實體服務中心；泳池玻璃斜屋頂在該量體面池立面界線終止，L3 面池牆為外傾鏡牆 | 玻璃屋頂不穿入 L2／L3 樓板範圍。「立面界線」只描述屋頂終點，不推翻 `DEC-048` 的整體外傾牆。L3 與 L2 以相同樓地板面積為目標，但精確輪廓與標高由 `OPEN-016` 協調 | confirmed target revision; geometry under review |
+| DEC-050 | 原本由 L2 承擔的 +9.5° 平面水平旋轉改由 L3 承擔；L1／L2 保持固定對齊 | 取代 `DEC-031` 的旋轉樓層，但暫保留角度方向。使用者確認 L3 與 L2 維持相同樓地板面積，並接受旋轉後產生外挑與退縮、兩層全球座標輪廓不完全重合；0.4.0 日照分析與 Viewer 必須在整批實作時按 L3 新標高重做 | confirmed target revision; supersedes DEC-031 level assignment |
+| DEC-051 | L3 的水平旋轉軸心由整體結構力學決定，優先與不旋轉的樓梯／機電／結構核心整合 | 避免任意幾何支點造成過大扭轉與懸挑；確切軸心、質心／剛心關係、樓板重疊與轉換構架由 `OPEN-011`／`OPEN-016` 專業驗證 | confirmed principle; pivot deferred |
+| DEC-052 | 水塔及其他重物依結構核心配置 | 重物須落在主要柱、剪力牆或核心正上方，不置於 L3 旋轉懸挑端；高位水量、機電振動、耐震及基礎增量仍須結構與機電計算 | confirmed principle; requires professional validation |
+| DEC-053 | 主要柱列盡量融入服務中心外牆或池畔乾區邊界，不占用池水及主要泳池空間 | 空間意圖概念可行；L3 旋轉會使部分外牆柱無法上下直接對齊，須以固定核心、周邊柱及轉換梁／桁架建立連續荷重路徑，不能把荷重交給玻璃屋頂或帷幕牆 | confirmed target principle; requires professional validation |
+| DEC-054 | L2、L3 未旋轉前的基準樓板均為 12.0 × 13.5 m＝162.0 m²；長向由 8.0 m 機能翼加向泳池挑高區伸入 4.0 m 組成 | 取代暫擬的 16.0 × 13.5 m。L3 維持相同面積並依 `DEC-050` 旋轉；改變屋頂終止位置，但不必然強迫 L3 樓板標高或 5°屋頂坡度改變，交界由 `OPEN-016` 決定 | confirmed target revision; roof junction under review |
+| DEC-055 | 0.5.0 採 L3 樓板 +6.88 m、玻璃屋頂 29.0 m 水平跨度／低端 +4.00 m／5°坡度／高端 +6.537 m，並在屋頂高端與 L3 樓板間保留約 0.343 m 結構／泛水轉接帶 | 使用者明確同意推薦關係。+6.537 m 是屋頂高端，不是 L1＋L2 總樓高；L3 仍為 +6.88 m。概念可行，但梁深、活動縫、止水、排水、冷凝、熱位移及施工順序需建築／結構專業驗證 | confirmed geometry; requires professional validation |
+| DEC-056 | 0.5.0 三層量體的工作樓層標高採 L1 +0.00 m、L2 +3.30 m、L3 +6.88 m；L1／L2 樓高分別為 3.30／3.58 m，不納入服務中心地坪下挖 0.30 m | 屋頂 +6.537 m 不要求重分樓高，但舊 L2 +4.50 m 會使 L2→L3 只剩 2.38 m，因此須另行重配。把較多空間留給 L2 更衣淋浴除濕與管線；L2 標高是可逆工作建議，待樓板、梁與機電深化。下挖地坪會增加積水倒灌、門檻與可及性風險，暫不當成免費樓高 | working recommendation; requires professional validation |
+| DEC-057 | L3 新日照工作角度採水平順時針 +26.5°、面池承載牆與共面鏡面向池外傾 +3.1°；X=37 m 作結構核心工作支點，X=33～41 m 作敏感度 | 以 L3 +6.88 m、鏡高 3.60 m、12 × 13.5 m 樓板、29 m／5°屋頂及 `SRC-SITE-003` 的 8760 小時 TMY 重跑。3,111 組粗掃加局部細掃後，在 `ρ=0.75`、`τ=0.60` 下，X=37 m 暖季池面新增 0、冷季 +910.020 kWh；五個支點均維持暖季 0、冷季 +673.310～+1,151.973 kWh。不使用窗簾、雙層立面、收合簾、solar mask 或可調翼片。這是工作最佳化結果，不取代結構、材料、眩光及專業光熱模擬 | working optimized; requires professional validation; supersedes DEC-048/DEC-050 angle values |
+| DEC-058 | L3 工作支點由 X=37 m 轉換為 X=35 m、Y=6.75 m；+26.5°水平旋轉及 +3.1°鏡牆外傾不變 | X=35 m 是 12 × 13.5 m L3 樓板幾何中心。旋轉後與固定 L2 投影重疊 138.099 m²（85.25%），為五案最高；幾何偏心 0 m、投影外面積 23.901 m²，並保留 X=33 m 最大冷季收益的 88.8%。更新後暖季池面新增 0、冷季 +1,022.903 kWh（+1.300%），屋頂／上部接收暖季 1,332.850 kWh、冷季 9,055.633 kWh。此為結構與日照的工作折衷，不是實際質心／剛心、構件容量或結構核准 | working structural proxy; requires professional validation; supersedes DEC-057 pivot only |
+| DEC-059 | V2.2 平面圖圖面向右即本地 +X，右側服務中心約朝西北 307°；北箭頭應指向圖面右上 | 使用者修正 V2.1 把右側服務中心誤標為東南 127°的錯誤。模型原有 `localLongAxisBearingFromTrueNorth=307°` 與日照 world transform 不變；127°仍只是同一長軸反方向及面池判讀方向 | confirmed orientation correction; supersedes V2.1 drawing annotation |
+| DEC-060 | 池畔完成面確定抬高至相對 L1 服務中心基準 +0.30 m；屋頂低端仍維持 +4.00 m | 左端完成面至屋頂幾何淨高因此為 3.70 m。若 `ST-01` 自池畔起步至 L2 +3.30 m，總升高為 3.00 m，工作幾何重算為 20 級高／18 踏面、兩跑各 10 級高／9 踏面；平台 1.80 m 時總長 7.20 m，平台 1.50 m 時為 6.90 m。抬高地坪概念可行，但門檻轉換、坡道、防水、溢流、排水與樓梯起點仍需專業驗證 | confirmed elevation; derived stair geometry working; requires professional validation |
+| DEC-061 | 圖面向右仍為服務中心端／西北 307°，但依目前平面圖座標手性，真北箭頭必須指向圖面右下；V2.3 修正箭頭，不旋轉建築幾何 | 使用者再次明確校正 V2.2。`localLongAxisBearingFromTrueNorth=307°`、日照 world transform、L3 +26.5°及鏡牆 +3.1°均不變；本決策只取代 `DEC-059` 對北箭頭象限的錯誤敘述，V2.2 保留為歷史檢討圖 | confirmed orientation annotation correction; supersedes DEC-059 arrow quadrant |
+| DEC-062 | 後續圖面工作進入 0.6.0；最新 1F～3F 合併平面拆成三張獨立樓層圖，且每張向量圖的檔名、頁首與圖框都明示 v0.6.0 | 保留 v0.5.0 歷史圖，不以新檔覆寫；模型尚未升版前，同時標示 `MODEL BASE v0.5.0`，避免把版面拆分誤認為幾何或日照分析已更新 | confirmed drawing workflow; model migration deferred |
+| DEC-063 | 0.6.0 的 2F、3F 獨立平面圖保留完整 1F 41 × 14 m 基地／建築工作外框作淡色參照底圖 | 讓上層樓板相對一樓的退縮、伸入、旋轉與外挑可在同一平面座標下直接判讀；底圖須清楚標為參照，不得被誤認為該層樓板 | confirmed drawing representation |
+| DEC-064 | 0.6.0 三張獨立樓層向量圖統一加入模型 canonical 軸網 A–F／1–4、本地 +X／+Y、A/1 工作座標起點及 E/1 的 `O-SITE-01` | 使用既有 `referenceSystem.grids`，不虛構新柱網；2F、3F 軸網固定對齊 1F 基地參照，不跟隨 L3 旋轉，使跨樓層位置可用同一套軸交點與偏移討論 | confirmed coordinate representation |
+| DEC-065 | 0.6.0 圖面座標改以純數值 X／Y 表示，0.5 m 為最小刻度，座標格式為 `X2.5／Y3.5`；A–F／1–4 軸號退出目前三張平面圖 | 淡格線每 0.5 m，為避免標籤重疊，每 2.5 m 顯示數值，端點補標 X41／Y14。2F、3F 座標網固定對齊 1F 基地，不隨 L3 旋轉；0.5 m 只表示討論讀圖單位，不冒充施工放樣精度 | confirmed coordinate representation; supersedes DEC-064 drawing labels |
+| DEC-066 | 0.6.0 的 `ST-01` 採方案 E：維持 Y0.5～Y2.0，整體起點由 X19.5 右移 1 m 至 X20.5，兩跑各 2.70 m，中繼平台由 1.80 m 延長至 3.10 m，總長 8.50 m，終點 X29 直接接入 L2；維持 20 級高／18 踏面、R=0.150 m、T=0.300 m、池畔 +0.30 m 至 L2 +3.30 m | 使用者正式核准「斜跑—長水平平台—斜跑」構圖。它修正舊工作值上端 X26.7 未接 L2 的問題，不需另設短橋，也不以改變梯級步距換取延伸感。幾何定案不等於施工核准；3.10 m 平台的群聚荷重、扭轉、振動、S1 箱型梯梁、逐點淨高、防墜、門洞、排水與避難仍由 `OPEN-017` 專業驗證 | confirmed concept geometry; requires professional validation; supersedes DEC-060 1.80 m platform working value |
+| DEC-067 | 建築結構與空間規劃必須同步生成：優先讓柱、剪力牆、核心筒、梯梁與平台受力構件成為隔間、立面分格、設備帶或動線構圖的一部分，避免為了結構而在完成的空間中插入突兀、孤立的支撐柱 | 「結構本身形成良好隔間」是跨樓層設計原則，但不是要求任意隔間牆承重。可研議把支撐柱整合進 Y0 玻璃牆的實體豎框／邊柱，或讓樓梯中繼平台荷重與鄰近柱線協同；這些只是策略範例，不是固定位置或唯一解。任何整合仍須具備連續至基礎的清楚荷重路徑，且不得把荷重傳給玻璃、非承重填充牆或未驗證的帷幕構件 | confirmed design principle; structural layout requires professional validation |
+| DEC-068 | 0.6.0 的 L1 四間獨立廁所均採男廁靠 Y0、女廁靠 +Y 方向的上下分區；泳池側與操場側各自形成一組男女廁 | 入口分別只朝向所服務的一側，避免兩組廁所互相穿越；無障礙廁所仍留待後續專題規劃，不因本輪平面重排而視為刪除 | confirmed zoning; accessible toilet deferred |
+| DEC-069 | L1 泳池館主要入口維持於約 X0.5～X2.5／Y0 | 室內游泳池通常歸 D-1 類組；現行建築技術規則對 D-1 避難層每處屋外出入口要求不小於 2.00 m。X0.5～X2.5 只有 2.00 m 幾何跨度，若含門框將不足 2.00 m 有效淨寬，因此位置已確認、結構開口與門框尺寸仍須放大後專業驗證 | confirmed location; clear width requires professional validation |
+| DEC-070 | 25 × 8.5 m 泳池的橫向使用配置採兩條 2.5 m 標準水道，加一條較寬的正常游泳／教學混合區 | 工作分帶為 0.5 m 外側安全緩衝＋2.5 m 標準道＋2.5 m 標準道＋3.0 m 混合教學區＝8.5 m；3.0 m 區由最外水道繩至池壁，已內含靠牆 0.5 m 安全帶，因此不是第三條 3.0 m 競賽標準道。它可供一般直線游泳，也較適合教師下水、初學者並排及自救教學；水道繩、池底線與教學器材收納仍須在平面深化 | confirmed mixed-use lane concept; markings require refinement |
+| DEC-071 | L1 池水循環泵、主要過濾器、平衡槽及酸／氯藥劑仍優先留在鄰池的 L1；3F 只配置水塔、空調除濕／熱回收、熱泵與控制設備，且須落在固定核心／直落柱線，避開旋轉懸挑與鏡牆 | 新廁所工作邊界若採 Y0～Y7.5，上方可保留 Y7.5～Y14＝52 m²服務帶；以 X31～X32.5 作乾式儲藏、X32.5～X39 作水處理／獨立藥劑分間時，概念面積為 9.75 m²與 42.25 m²。面積仍須依設備選型、平衡槽、藥劑分間及維修淨空驗證 | confirmed equipment strategy; working area requires professional validation |
+| DEC-072 | 泳池大廳、池畔及泳池側男女廁採連續 +0.30 m 完成面，不在這一組空間內設主要標高轉換坡道或階梯 | 「平坦」仍允許不造成通行障礙的局部排水洩水坡；泳池側廁所與池畔同高，可取消先前高差轉換對室內面積與濕區安全的干擾 | confirmed flat pool-side principle |
+| DEC-073 | L1 廁所改為泳池側與操場側左右切割的四間獨立空間：泳池男廁 +0.30 m（2 WC＋2 小便斗＋2 洗面盆）、泳池女廁 +0.30 m（3 WC＋2 洗面盆）；操場男廁 +0.10 m（1 WC＋1 小便斗＋1 洗面盆）、操場女廁 +0.10 m（2 WC＋1 洗面盆） | 泳池組只由 X31 進出，操場組只由 X39 進出，兩組不得設互通門、共用內部走道或借道。工作切線採 X35.5，男廁帶 Y0～Y3.5、女廁帶 Y3.5～Y7.5；精確隔間、門位、管道牆與外部 +0.10 m 銜接由 `OPEN-008`／`OPEN-016` 深化 | confirmed program and levels; working geometry implemented in v0.6.0 |
+| DEC-074 | 0.6.0 以頂層唯一 `activeGeometryRevisionId=GEO-0.6.0` 與 `SITE-XY` 作為所有圖面、Viewer、分析與驗證的唯一幾何來源 | `resolveActiveGeometry()` 對 active 缺失、unknown、duplicate、版本不符、frame 缺失及重複 entity ID 採 fail-closed；舊 `v050Study` 只保留歷史，不得由 consumer 直接選取或 fallback | confirmed implementation contract |
+| DEC-075 | 0.6.0 active model 同步採 25 × 8.5 m 池體、四間獨立廁所、儲物／水處理／藥劑分間、ST-01 方案 E、固定 L2／屋頂與旋轉 L3 | 結構支承整合進 X32.5／X35.5 隔間／設備／立面帶，不設突兀孤柱，玻璃不承重；高位設備只落在固定支承線。概念整合完成但建築、結構、機電、消防與無障礙均未專業核定 | working geometry implemented; professional approvals outstanding |
+| DEC-076 | v0.6.0 日照工作值改為 L3 水平 +25.5°、鏡牆外傾 +23.0°、X=35 m | 以新池體重算後，X35 暖季池面新增 0、冷季 +1,036.829 kWh（+0.962%）；舊 +26.5°／+3.1°會產生暖季 +200.722 kWh，故淘汰。23° 外傾幅度大，只屬概念光學工作值，必須由結構、構造、固定、維修與眩光專業驗證 | working optimized; supersedes DEC-057/DEC-058 angles; requires professional validation |
+| DEC-077 | 現行 HTML 圖集只保留 v0.6.0 的 L1、L2、L3 與縱剖圖，Viewer 與 solar-study 最新圖面連結統一指向 `#V060-L1` | v0.5.0 舊圖保留在歷史資料夾，但不再出現在 current tab；四張圖均由 active geometry 重現並標示 model、active revision、SITE-XY 與非施工圖 | confirmed release output |
+| DEC-078 | 0.6.1 修正 Viewer 的 SITE-XY／Three.js 左右手座標錯配：唯一允許的 adapter 為 SITE X→Three X、SITE Y→Three −Z、SITE Z→Three Y | 0.6.0 雖已從 active bounds 取得 `ST-01=Y0.5～Y2.0`，但 `SITE Y→Three +Z` 會把俯視方向鏡射，使 Y0 側在 Viewer 中看成 Y14 側；同時殘留的 `originY` 是第二套可漂移座標。0.6.1 移除 stair 的 `startX/originY/width` 輸出，renderer 只由 canonical bounds 推導，並驗證 adapter、scene root 的 −Z、ST-01／entityBounds 一致及 Y0 側關係 | confirmed regression fix; 0.6.1 work in progress |
+| DEC-079 | 四間 L1 廁所主入口均採 1.00 m 無門板開口；泳池側由泳池面向 +X 時男右女左，操場側由操場面向 −X 時男左女右；男廁入口靠低 Y 並將洗手台貼 Y0，女廁入口為 Y6～7 並將洗手台貼 Y7.5 | 入口左右以實際到達者面向立面判斷，避免平面與 Viewer 再因觀察方向產生相反解讀。無門板只適用四個主要入口；內部 WC 隔間保留門板，入口另設錯位隱私屏風。隔間淨空、無障礙及正式設備尺寸仍須專業驗證 | confirmed concept layout; requires professional validation |
+| DEC-080 | L1～L3 所有不透明服務中心採自然灰清水模語彙；玻璃屋頂與 L3 鏡牆維持各自原材質 | 統一服務區建築表情，同時不混淆玻璃採光構件與反射鏡面。模板分割、螺桿孔、防水、耐候與施工縫仍屬後續材料深化 | confirmed architectural style; details require professional validation |
+| DEC-081 | 0.6.1 所有平面圖真北箭頭指向圖面右下；圖面向右仍為本地 +X／服務中心端／西北 307° | 模型與衛星判讀早已固定 `northArrowPlanDirection=lower-right`，但 0.6.0 SVG 產生器誤用 `rotate(53)`，在 SVG 向下 Y 軸中畫成右上。產生器改用右下象限並加輸出驗證，不旋轉建築幾何或改變日照世界 transform | confirmed output correction; reinforces DEC-061 |
+| DEC-082 | `ST-01` 以懸空式薄踏步、封閉踢面、雙連續深色鋼箱梯梁與開放梯下表達；不得再以逐階落地實心箱體模擬 | 保留方案 E 的 2.70＋3.10＋2.70 m、20 級高／18 踏面與 X29 直接接 L2，只修正 3D 構造表達使其符合既有懸空樓梯設計意圖。梯梁尺寸、平台扭轉、振動、節點、防墜與結構計算仍由 `OPEN-017` 專業驗證 | confirmed design intent; structural sizes remain working |
+| DEC-083 | 0.6.2 移除四間 L1 廁所入口的錯位隱私屏風；入口可直接面對洗手台 | 取代 `DEC-079`「入口另設錯位隱私屏風」的部分。四個主入口仍為 1.00 m 無門板開口，WC 個別隔間仍保留門板；只移除入口遮擋板，不改變入口位置、洗手台牆面或四間廁所互不相通的原則 | implemented in 0.6.2 |
+| DEC-084 | 0.6.2 泳池女廁的 3 座馬桶及其隔間改沿 Y3.5 牆面排列 | Y3.5 可作為男女廁背對背的集中管線牆；器具數量不變。概念上可行，實際隔間淨寬、管道／檢修空間及無障礙配置仍須專業驗證 | implemented in 0.6.2; professional validation remains |
+| DEC-085 | 0.6.2 泳池男廁的 2 座馬桶及其隔間改沿 Y3.5 牆面排列，2 座小便斗中的 1 座移至 X31 牆面 | 集中馬桶管線並釋放原有牆面；器具總數不變。X31 小便斗不得侵入既有入口開口與到達淨空，精確位置、隔屏及管道須在平面與 Viewer 中協調 | implemented in 0.6.2; professional validation remains |
+| DEC-086 | 0.6.2 操場女廁的 2 座馬桶及其隔間改沿 Y3.5 牆面排列 | 與相鄰操場男廁共用 Y3.5 集中管線牆；器具數量不變。概念上可行，實際隔間淨寬、管道／檢修空間及無障礙配置仍須專業驗證 | implemented in 0.6.2; professional validation remains |
+| DEC-087 | 0.6.2 操場男廁的 1 座馬桶及其隔間改沿 Y3.5 牆面排列 | 與相鄰操場女廁共用 Y3.5 集中管線牆；器具數量不變。概念上可行，實際隔間淨寬、管道／檢修空間及無障礙配置仍須專業驗證 | implemented in 0.6.2; professional validation remains |
+| DEC-088 | 0.6.2 在 3D Viewer 加入固定畫面方向箭頭，清楚指向右下角並標示真北 N | Viewer 現有文字仍不易辨識方向；新箭頭是螢幕上的視覺提示，須在一般桌面與行動版視窗清楚可見。此修正不旋轉模型、不改變 SITE-XY、307°世界方位或平面圖既有真北定義 | implemented in 0.6.2; reinforces DEC-081 |
+| DEC-089 | 2F 男女更衣／淋浴區可重新分配，不再以現行 X35 左右各半為固定答案；工作數量採男生 15 間、女生 15 間標準淋浴間，每間淨尺寸暫按 1.0 × 1.0 m | 12 × 13.5 m 固定 L2 樓板共 162 m²；現行各半分區各 81 m²，每側 15 間淋浴本體只占 15 m²，因此面積上概念可行。正式配置仍須扣除共用前室／樓梯、隔間厚度、管道牆、乾濕走道、置物／更衣、清潔、無障礙淋浴及設備維修空間；1 × 1 m 不代表無障礙或法定淨空已核定 | implemented as working layout in 0.6.2 |
+| DEC-090 | L2→L3 新樓梯在平面上須保持與 X 軸平行，不採斜向樓梯；候選帶為方案一 Y0.5～Y2.0，或方案二 Y12.0～Y13.5 | 固定 1.50 m Y 向樓梯帶可讓男女更衣／淋浴區使用正交隔間。實際上下樓方向、X 向起訖點、上層到達平台與最終方案仍由 `OPEN-019` 決定，不因本決策先行改變 L3 +25.5°工作角 | implemented through selected scheme one in 0.6.2 |
+| DEC-091 | L2→L3 新樓梯選定方案一：由 2F 的 X32.5 起步，固定在 Y0.5～Y2.0 水平帶內並朝 +X 上升；方案二 Y12.0～Y13.5 不再作現行目標 | 2F 男女更衣／淋浴可依此樓梯帶重新分配。3F 接點不足優先以增加局部 L3 到達平台面積解決，不為樓梯先改變 +25.5°水平旋轉角或既有軸心；局部延伸形式、支承與最終面積由 `OPEN-019` 收斂 | implemented as ST-02 in 0.6.2; professional validation remains |
+| DEC-092 | 接受 3F 在方案一樓梯端設置不隨主樓板旋轉的 SITE-XY 正交到達翼，保留與旋轉樓板交接形成的不規則三角區 | 到達翼優先服務 X32.5 起步的水平樓梯，不全面放大 12 × 13.5 m 旋轉矩形，也不改 +25.5°工作角與軸心。樓梯至 3F 室內的必要通路必須保持有遮蔽；三角餘區可另研究為戶外景觀陽台，但不得把露天路線當成唯一室內到達路徑 | implemented in 0.6.2; professional validation remains |
+| DEC-093 | 3F 三角景觀陽台只限教師與維修人員受控進入，不開放學生或一般訪客 | 陽台由 3F 受控服務區以可上鎖門扇進出，設清楚限制標示；不作公共聚集空間、學生教學活動區或主要避難路徑。樓梯到 3F 室內的必要通路仍須有遮蔽並與陽台分開，景觀以輕量、低維護植栽為原則 | implemented in 0.6.2; safety details require professional validation |
+| DEC-094 | 0.6.3 操場男廁與女廁各在原有洗手槽旁新增 1 座洗手槽；操場男廁另在原有小便斗旁新增 1 座小便斗 | 操場男廁調整後為 1 WC＋2 小便斗＋2 洗手槽，操場女廁為 2 WC＋2 洗手槽；既有器具保留原位，新增器具須與同類既有器具相鄰並沿用相同牆面。此修正不改變廁所邊界、入口、標高、WC 數量或四間廁所互不相通的原則；精確中心距、隔屏、管道及使用淨空仍由 `OPEN-008`／`OPEN-009` 驗證 | implemented in 0.6.3; professional validation remains |
+| DEC-095 | 0.6.3 的 2F 採 Review A 重排：`ST-02` 樓梯區為 X32.5～X41／Y0～Y2.5，Y2.5 設分隔牆、Y0 延續大面玻璃；X29～X32 形成面池走道，X29 設觀景窗、X32 作更衣室入口牆；更衣室上半為女、下半為男，兩入口均在 X32 且靠各區上方，寬 1.00 m、無門片；男女各 15 間淋浴採含隔間 1.20 × 1.20 m | 使用者已核准 Review A，包含男區 X32～41／Y2.5～8、女區 X32～41／Y8～13.5、各 3 排 × 5 間淋浴、走道無座懸空站立長桌／飲水機／室內植栽，以及每側增設 1 間一般 WC＋2 座洗手槽。這些衛生器具已由工作建議轉為 0.6.3 正式需求；但不代表無障礙、法規或施工配置已核定。樓梯、玻璃、清水模牆、觀景窗、懸空桌固定、隱私、排水、避難與淨空均須專業驗證；現已同步 v0.6.3／`GEO-0.6.3` current model、圖面與 Viewer | implemented in 0.6.3; professional validation remains |
+| DEC-096 | 0.6.3 的 `ST-02` 採與 `ST-01` 呼應的懸空樓梯語彙，樓梯下方配置造景植栽 | 懸空表達不代表取消必要梯梁、平台支承、封閉踢面、防墜或防火要求；梯下植栽採低矮、耐陰、低落葉且可移除的輕量盆栽，集中於不侵入必要通行、逐點淨高、樓梯支承與維修範圍的位置。不得採深土槽、水池、大型喬木或把灌溉／排水直接固定於主要梯梁；承載、防水、洩水、含氯耐久、火載量、跌倒與維護仍須景觀、結構、建築及消防專業驗證 | implemented in 0.6.3; professional validation remains |
+| DEC-097 | 3F 現階段不設教師觀察／泳課分析室或環境教育展示空間，只保留未來可轉用的彈性；乾式維修備品間列為考慮，不先定案；既有受控景觀露台維持 | 3F 目前仍以水塔、除濕／熱回收、熱泵冷凝端、BMS／電控等適合高層的低人數設備機能及連續維修動線為主。未來彈性區不得先被固定隔間、重設備或不可逆管線占滿；也不得因此把池水循環泵、平衡槽、反沖洗、酸氯藥劑、高密度學生教室、健身重量區或公眾活動空間移到 3F。景觀露台仍依 `DEC-093` 限教師與維修人員受控使用 | implemented as 0.6.3 program boundary; dry storage remains under consideration |
+| DEC-098 | 0.6.3 採「3F 上方屋頂光電概念預留＋地面層獨立戶外儲能優先」的分期策略；3F 只保留電力／EMS 介面及專用戶外防火儲能空間的備案 | 屋頂光電預留區須由固定核心／直接支承線承載，避開旋轉懸挑端、外傾鏡牆、三角景觀露台及既有玻璃池廳屋頂；同步保留預埋固定、電纜、逆變器／EMS、排水與維修介面。0.6.3 不在一般 3F 室內放置電池，也不虛構容量、品牌、發電量、備援時數或消防核准。地面戶外儲能的精確位置與容量待基地、逐時負載及專業設計收斂；若未來證明地面配置不可行，3F 備案也只能採直接支承線上的認證模組化系統與獨立戶外防火技術空間 | implemented as 0.6.3 conceptual reserve; capacity and approvals remain deferred |
+| DEC-099 | 0.6.4 的 3F 平面圖與縱向剖面圖須顯示可讀的 SITE 座標軸／格線，視覺層級與 1F 一致 | 3F 既有格線畫在量體填色下方而被遮蔽，剖面則只有標高虛線；修正後 3F 格線置於主要填色上方，剖面以 X／Z 同尺度顯示 0.5 m 次格線、2.5 m 主格線及 X／Z 數值標籤，不改變 SITE-XY 幾何 | confirmed output correction for 0.6.4 |
+| DEC-100 | 0.6.4 在旋轉 3F 量體上建立完整不透明屋頂，並在保留 0.25 m 周邊維修退縮後讓太陽能板盡量鋪滿屋頂 | 屋頂從外傾鏡牆上緣連續覆蓋至相對側直立牆，避免 3F 無屋頂；光電由 0.6.3 的 13.5 m² 小範圍預留改為隨 3F 屋頂旋轉的高覆蓋率概念排布。模組規格、容量、發電量、檢修道、支承、風震、防水、眩光與消防仍由 `OPEN-022` 專業驗證 | confirmed geometry for 0.6.4; supersedes DEC-098 PV extent only |
+| DEC-101 | 0.6.4 補滿 3F 外傾鏡牆兩端與相鄰直立側牆之間的三角形空隙 | 鏡牆仍與承載牆共面並共同外傾 +23.0°；只新增同材質的側牆三角收邊，使兩端從樓板到屋頂連續封閉，不改鏡面角度、寬度或光學工作值 | confirmed geometry for 0.6.4 |
+| DEC-102 | 0.6.4 的 2F Y2.5 清水模分隔牆須從 X32 連續填滿到 X41，不得在 X32～X32.5 留出由樓梯區進入男更衣室的通道 | 2F 更衣室仍只能由 X32 牆上的既定入口進入；ST-02 樓梯區與男更衣區在 Y2.5 完整分隔，不新增門洞 | confirmed circulation correction for 0.6.4 |
+| DEC-103 | 0.6.4 的 3D Viewer 必須分別建立完整 L2 天花板與完整 L3 天花／屋頂板，不得因旋轉樓板或外傾鏡牆留下視覺縫隙 | L2 天花板使用固定 X29～X41／Y0～Y13.5 投影；L3 屋頂延伸至鏡牆外傾上緣，兩層均以連續板件封閉。實際樓板厚度、結構、設備穿孔、防火與維修仍待專業深化 | confirmed Viewer geometry for 0.6.4 |
+| DEC-104 | 0.6.4 的 L2 Y0 外牆全寬 X29～X41 採安全玻璃，不混入不透明牆段 | 樓梯區與男女更衣層共用同一全寬玻璃立面；玻璃框架、防撞、防窺、熱濕與消防性能仍待專業驗證 | confirmed envelope intent for 0.6.4 |
+| DEC-105 | 0.6.4 的 L1 Y0 外牆採自然灰清水模風格，僅 `EN-01` 保留必要玻璃入口 | 取代 Viewer 內 L1 Y0 的長向玻璃牆表達；清水模外牆須從 X0 連續至 X39 並依屋頂／樓層高度收頭，主入口 X0.5～X2.5 仍清楚切開。材料樣板、接縫、耐氯胺、保溫與防水仍待專業驗證 | superseded by DEC-107 |
+| DEC-106 | 日照分析只在實際分析輸入改變時重算，不因一般模型版本、立面材質、隔牆、天花或未納入分析的光電排布改版而重算 | solar `inputHash` 鎖定校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。0.6.4 與 0.6.3 的 inputHash 相同，因此沿用 2026-07-23 已驗證結果，不執行新的全角度最佳化；若未來上述任一輸入改變，Viewer 才標成 `stale` 並要求重算 | confirmed analysis-governance correction for 0.6.4 |
+| DEC-107 | 0.6.5 的 L1 Y0 外牆只在服務本體 X31～X39 採自然灰清水模；泳池端 X0.5～X31 維持安全玻璃。西端外牆由 X0 退縮至 X0.5，`EN-01` 同步向 +X 平移 0.5 m 至 X1.0～X3.0 | 更正 `DEC-105` 把整面長向立面改成清水模的過度延伸。X0～X0.5 不再是室內量體；入口寬度不變。玻璃、清水模、入口框架、耐氯胺與防撞性能仍待專業驗證 | confirmed envelope correction for 0.6.5; supersedes DEC-105 |
+| DEC-108 | 在 L1 西端 X0～X0.5 設傾斜玻璃突出屋簷及下方雨水回收系統；服務中心後側 X31～X39／Y13.5～Y14.5 補透明玻璃屋頂 | `SITE-XY` 基地／建築協調格線仍維持 X0～41、Y0～14；Y14 是建築邊線而非不可跨越的產權界線，Y14～Y14.5 在圖面明確標成「突出屋簷」。屋簷支承、玻璃安全、防水、排水、雨水回收容量與溢流仍由 `OPEN-014`／`OPEN-016` 專業驗證 | confirmed canopy geometry for 0.6.5 |
+| DEC-109 | 3D Viewer 的 L2 Y0 仍為 X29～X41 全寬安全玻璃，Y2.5 的 X32～X41 清水模牆維持為後方獨立牆面；從 Y0 與 Y14 兩側觀看都必須清楚辨識玻璃存在 | 目前 X32～X41 玻璃因材質過淡且後方清水模牆僅距約 2.5 m，在 Y0 視角視覺上消失。0.6.5 以淡藍色透明度、反射高光、邊框與豎梃加強玻璃讀性，不把後方分隔牆誤改為玻璃或移除 | confirmed rendering correction for 0.6.5 |
+| DEC-110 | 3F 圖面的樓板、屋頂、鏡牆與太陽能板共用同一 +25.5° SITE-XY 水平旋轉，不再對太陽能板施加額外或反向旋轉；光電填色改為淡藍透明，HTML 內嵌 SVG 並提供獨立且預設勾選的「太陽能板」顯示控制 | 3D 模型的屋頂與光電原已共用同一旋轉，只保留 0.02 m 防止疊面；問題源於 SVG 在反轉 Y 軸後仍使用相反號旋轉，造成約 51°相對誤差。修正只統一圖面 transform 與圖層控制，不改 +25.5°日照輸入、光電覆蓋範圍或鏡牆角度 | confirmed drawing/UI correction for 0.6.5 |
+| DEC-111 | 縱向剖面補上 L1 西端 X0.5、L2 X29、L2／L3 X41 的垂直牆面；`EN-01` 因不在泳池中心剖切線上，以投影立面虛線表示 | 剖面須同時表達 X0～X0.5 西端屋簷／雨水回收關係及向右平移後的入口；不把投影入口誤畫為被剖切實牆 | confirmed section correction for 0.6.5 |
+| DEC-112 | 3D Viewer 新增固定「泳池剖視」：由 Y0 長邊觀看，可稍微向下旋轉，隱藏鏡頭側地坪／池壁並保留遠側池壁、透明水體與由 X3 淺端 1.20 m 漸深至 X28 深端 1.50 m 的斜底 | 剖視模式容許相機越過水平線，最大極角約 120°；顯示「淺端 1.20 m」「深端 1.50 m」「高差 0.30 m」標示。離開剖視或重設時恢復完整模型與一般相機限制；桌面與行動版都須可操作及截圖驗證 | confirmed Viewer interaction for 0.6.5 |
+| DEC-113 | 0.6.5 不重新執行日照最佳化，沿用既有 solar 分析與 registry `inputHash` | 本次改動不變更池體、L3 旋轉／支點、鏡牆角度／高度、固定屋頂日照接收面、能量假設或氣象來源。西端與服務中心新增屋簷明確屬非日照接收雨棚，Viewer／圖面／材質修正也不在 solar input contract 內；build 必須驗證 current inputHash 仍等於 registry 值 | confirmed analysis reuse for 0.6.5; reinforces DEC-106 |
+| DEC-114 | 0.6.6 完全取消 3D 畫布上的黃色選取外接框；構件點選、鍵盤輪選、下拉選單及右側資訊面板維持 | 外接框以 `depthTest=false` 穿透不透明牆面，容易被誤認為漂浮的黃色建築量體。移除外接框不影響構件辨識與資訊查閱；驗收須在選取 `WT-01` 與其他構件後確認畫布無選取線框 | confirmed Viewer interaction correction for 0.6.6 |
+| DEC-115 | 0.6.6 的 L2 Y0 X29～X41 外牆改與其他安全玻璃外牆共用同一 Viewer 材質與表達系統，不保留 L2 專用的較深透明材質 | 0.6.5 雖建立全寬玻璃幾何，但專用材質與後方 Y2.5 清水模牆疊合後仍被讀成水泥外牆。0.6.6 統一玻璃材質、高光、邊框與豎梃，保留後方 X32～X41／Y2.5 清水模分隔牆；驗收以 Y0／Y14 實際截圖能辨識前方玻璃為準，不只檢查資料標籤 | confirmed Viewer rendering correction for 0.6.6 |
+| DEC-116 | 0.6.7 撤回 0.6.5／0.6.6 以加深玻璃材質處理 L2 Y0 灰牆的錯誤診斷，改修 `viewer-data` 漏傳 `l2.splitAxisY` 的根因 | canonical model 的男女更衣分界為 Y8，但 0.6.6 generated viewer model 漏掉 `splitAxisY`；Three.js 因未定義座標把 9.0 × 3.3 m 清水模內牆建立在 Y0，實際遮在玻璃前。0.6.7 須讓 Viewer L2 資料完整繼承 active L2 欄位、驗證 `splitAxisY=男區 y2=女區 y1=8` 且不得與 Y0 玻璃重合，並把共用玻璃恢復至 0.6.5 前的一般淡藍透明基準。`DEC-114` 的取消黃色外接框保留；`DEC-109`／`DEC-115` 的玻璃外牆意圖仍有效，但「後牆反射／材質過淡是主因」的診斷由本決策取代 | confirmed root-cause correction for 0.6.7; supersedes DEC-109/DEC-115 diagnosis only |
+| DEC-117 | 0.7.0 將第一人稱 Walkthrough 視為現有 3D Viewer 內的整合式子專案，入口仍為 `/3d-viewer/`，以「模型檢視／第一人稱漫遊」切換 | walkthrough 擁有 `reference/src/3d-viewer/walkthrough/` 模組與 `docs/subprojects/3d-walkthrough/` 文件索引，但共用 Three.js、Vite、package、頁面、測試與發布流程。`model/project-model.json` 保持唯一 canonical source；walkthrough 只讀 active derived Viewer data，體驗設定與 runtime state 不得回寫或混入原始模型。未來 SketchUp／GLB 只可替換視覺資產層，不取代 canonical geometry 或碰撞語意 | confirmed architecture for 0.7.0 |
+| DEC-118 | 0.7.0 Walkthrough MVP 採第一人稱並同時支援桌機與手機，開放所有已建模區域，包含陸地行走、兩座樓梯、區域跳轉、水面游泳與水下探索 | 不製作可見人物、肢體動畫、氧氣／溺水、多人或 VR。桌機以鍵盤＋滑鼠、手機以左移動／右環視觸控控制，共用固定步進 player state machine 與 capsule collision。無連續實體動線的屋頂等區域以明確 safe-spawn 跳轉抵達；泳池由 active bounds／水面／1.20→1.50 m 斜底衍生 water volume，支援上浮、下潛、池壁／池底碰撞、上岸與返回池畔 | confirmed experience scope for 0.7.0 |
+| DEC-119 | 3D Viewer 視覺擬真升級獨立為 0.8.0，不併入 0.7.0 Walkthrough MVP 的發布範圍 | 0.8.0 以 PBR 材質、HDR／色調映射、建築表面細節、玻璃與水面、環境資產、後製及桌機／手機畫質階級為主；不改 canonical geometry、碰撞語意或日照輸入。0.7.0 仍先正式發布，0.8.0 合併其正式基線後才發布 | confirmed release separation |
+| DEC-120 | TASK-053 完成後，先以 TASK-059 建立不改變既有畫面的共用渲染接縫，再讓 0.7.0 與 0.8.0 在隔離 branch／worktree 平行開發 | runtime 資料相容性以 schema、active revision、SITE-XY、adapter 與 hash 判定，不以目標版號硬編碼。0.7.0 擁有 walkthrough／collision／movement；0.8.0 擁有 enhanced rendering／materials／visual assets。`main.ts`、`scene-factory.ts`、共用 CSS、E2E、版本與 Viewer contract 只由明列的 integration task 修改。平行任務可同時進行，但正式發布維持 0.7.0→0.8.0 | confirmed parallel-development boundary |
+| DEC-121 | 修正 3D Viewer 將 307° 羅盤方位角直接當成 Three.js Y 軸旋轉角的根本錯誤，並在場景真北箭頭尖端加入 N 標記 | `localLongAxisBearingFromTrueNorth=307°` 是從真北順時針量到 SITE +X 的羅盤方位，不是從 Three +X 量起的數學角；在 SITE Y→Three −Z 的右手 adapter 下，世界 root 應使用 `90°−307°=143°`。舊程式的 `−307°` 實際把 SITE +Y 誤當成 307°，使真北相對平面落到右上。修正後 SITE +X 在世界中指向西北 307°，真北在 SITE 平面指向右下，場景箭頭、N 標記、固定螢幕提示與資料驗證均由同一 307° transform 推導；既有固定鏡位同步校正 90°以維持原構圖，不修改衛星判讀、模型方位值或日照輸入 | confirmed Viewer root-cause correction; preserves DEC-061/DEC-081 |
+| DEC-122 | 0.8.2 擬真優先順序採「剛完工但已投入使用」的建築本體，校園環境延至第二階段 | 桌機 high 先提升外觀、泳池大廳、室內、更衣淋浴與衛浴器具的材質、接縫、排水、照明、五金及輕微使用痕跡；畫面應乾淨、完整且有少量水痕，不做老舊破損。手機依 high→medium→low 單向降階，low 只保留必要輪廓、基本水面與操作；植栽、校園街具及大範圍環境精化不列本輪阻擋項 | confirmed building-first visual direction; campus phase deferred |
+| DEC-123 | L1 八座 WC 採坐式、蹲式各半，並固定四間廁所內的資料順序 | 全案正好 4 坐式＋4 蹲式；泳池男廁為坐、蹲，泳池女廁為坐、蹲、蹲，操場男廁為坐，操場女廁為蹲、坐，且靠 X39 入口者為坐式。每個隔間以 canonical `fixtureType`、`fixtureCenter`、`fixtureFacing` 驗證；洗手槽、小便斗與隔間細節只作概念配置，器具數、無障礙、管道、防水與法規仍由 OPEN-008 專業核定 | confirmed working sanitary distribution |
+| DEC-124 | 0.8.2 建築細節採 visual-only 分級，不得改變漫遊碰撞或專業核定狀態 | 所有可因畫質切換的接縫、五金、磁磚格線、排水、焦散、照明、淋浴、置物櫃及衛浴附件必須標記 `visualOnly=true`／`collisionExcluded=true`，以 `essential | reduced | full` 單調顯示；水面法線與焦散動畫只在允許時運作，reduced motion 或低階必須停止。canonical bounds、selectables、collision proxies、player／water state、solar inputHash 與 `professionalApprovals=false` 均維持不變 | confirmed reversible visual-detail contract |
+| DEC-125 | 0.9.0 將空間參照圖集、日照研究與 3D Viewer 整合為單一 `index.html` 公開成果網站，使用 `?view=design-concept`、`solar-study`、`drawings`、`3d-viewer` 切換 | GitHub Pages 沒有一般 SPA rewrite，query route 可維持單一正式 HTML 並支援直接連入。缺少或無效 view 回到設計理念；舊 `/solar-study/`、`/3d-viewer/` 直接淘汰，不保留轉址或相容 HTML | confirmed 0.9.0 public-site architecture |
+| DEC-126 | 0.9.0 的中文主導覽固定為「設計理念、日照研究、圖面設計、3D 展示」，網站定位為公開建築成果展而非內部工作台 | 觀看順序由設計敘事進入專業研究與完稿圖，最後以 3D／第一人稱漫遊形成高潮。設計理念以「向光、向水、向人、向時間」作展示章節；`向水`涵蓋既有雨簾、雨水收集與回用內容，不改寫其專業事實 | confirmed 0.9.0 information architecture |
+| DEC-127 | 0.9.0 只改展示架構、版面、字型與視覺層級，不改實際資料來源、完稿設計圖、日照結果或 3D／漫遊語意 | active geometry、solar inputHash、V067 SVG／PNG、模型構件、碰撞、移動、游泳、場景及專業限制保持不變。允許 release metadata、DOM、router、mount lifecycle、CSS 與不改語意的展示標籤變更 | confirmed immutable-content boundary |
+| DEC-128 | 0.9.0 視覺採「優雅、舒服、克制的建築刊物與數位展覽」，以圖紙白、炭墨黑、泳池藍綠、混凝土灰及少量陶土色建立統一識別 | 以襯線展覽標題、無襯線正文／控制及等寬技術數值形成三種字型角色；取消大面積漸層、發光、密集膠囊及普遍卡片陰影，以細線、留白、比例與排版建立層次。3D 可採較深沉浸背景，但仍共用導覽與 token | confirmed 0.9.0 visual direction |
+| DEC-129 | 0.9.0 將手機流暢度列為所有 view 的共同驗收，而非發布前補修 | 最低 320 px、主要 390 × 844、另驗證 768 px；共用 header 採兩列式識別＋可水平滑動文字導覽，主要觸控目標至少 44 CSS px。文章單欄、日照保留 sticky 預覽、圖面不裁圖框、3D／漫遊控制不得被導覽遮擋，整頁不得水平溢出 | confirmed mobile-first presentation boundary |
+| DEC-130 | 0.9.0 日照研究維持完整專業密度，但在研究工具前加入「向光」設計理念、研究問題與策略引導 | +25.5°、+23.0°、152.5°、+1,036.829 kWh、控制範圍、inputHash、X33 限制及專業驗證警語全部保留；資訊可重新排序或收合，但不得以美化弱化工作值、方法或限制 | confirmed solar presentation strategy |
+| DEC-131 | 0.9.1 把「優雅、清楚、流暢且專注」定為閱讀精修的首要判準 | 延續 0.9.0 建築刊物語彙，以比例、留白、細線與字級建立層次；不新增輪播、自動播放、視差、裝飾動畫、生成式背景或大量等權卡片。任何互動只有在協助閱讀、觀看模型或到達資訊時才成立 | confirmed 0.9.1 reading-experience direction |
+| DEC-132 | 手繪設計稿作為設計理念頁內的 `00 / ORIGIN`，不新增第五個主導覽 | 敘事固定為作品首屏→手稿起點→四個設計方向→日照／圖面／3D 成果。桌面預留一主兩輔的非對稱圖集、手機單欄；收到原圖前只顯示待收錄狀態，不以假圖替代。原始照片放在 `source-materials/concepts/hand-sketches/`，完成 source intake 後才上稿 | confirmed 0.9.1 narrative architecture |
+| DEC-133 | 3D 展示只保留空間觀看與操作所需資訊，不再注入完整設計理念文章 | Viewer 畫布為主角；每個場景只顯示短摘要、三個觀看重點及返回理念頁的連結。WebGL fallback 採相同資訊密度。3D view 改用 App Shell 內的 fragment，不再匯入含 document／body／script 的舊完整頁面再拆解 | confirmed 0.9.1 focused-viewer boundary |
+| DEC-134 | 0.9.1 是敘事、DOM 與響應式展示精修，不是建築或分析改版 | active `GEO-0.8.2`、solar inputHash、V067 current 圖面、3D 幾何／相機／圖層／選取／碰撞／移動／游泳／safe spawn／畫質行為與四項 query route 保持不變；公開理念文案、場景展示摘要、view fragment、CSS 與測試可依本輪設計調整 | confirmed immutable-content boundary |
+| DEC-135 | 0.9.1 ORIGIN 只公開場勘 2／5／6 與樓梯概念圖以外的五張手稿 | HTML 使用 `SRC-CONCEPT-013`／`016`／`017` 與 `SRC-CONCEPT-018`～`022`；`SRC-CONCEPT-012`／`014`／`015`／`023` 保留在來源庫但不被頁面引用。敘事順序為現場觀察→日照判讀→俯視配置→剖面推演→早期 3D→反射深化；來源檔不修改，網站另用校正方向與壓縮後的衍生檔 | confirmed 0.9.1 image selection and sequence |
+| DEC-136 | 0.9.2 定位為四個公開分頁的文字、版面與操作介面細修 | 允許修正文案、斷行、字級、留白、對齊、可見性與按鈕名稱；active `GEO-0.8.2`、solar inputHash、V067 圖面、3D 幾何、相機、圖層、選取、碰撞、移動與游泳語意均不得變更 | confirmed 0.9.2 presentation-only boundary |
+| DEC-137 | 0.9.2 完成後，以實際瀏覽器渲染結果建立 `docs/public/website-copy-v1.0.md` | 快照覆蓋設計理念、日照研究、圖面設計與 3D 展示，保留可見斷行並附各頁 SHA-256；隱藏內容不列入快照但必須保留於來源程式，後續文字改版前可重新擷取比對 | confirmed rendered-copy archive |
+| DEC-138 | 0.9.2 的 3D 展示採聚焦模式 | 場景敘事導覽及右側構件資訊暫不顯示但不刪除；圖層狀態以顏色圓點表示，攝影機控制縮短，第一人稱入口移至頁首並命名「實境漫遊」，整體配色改為低對比的圖紙白與泳池綠 | confirmed focused Viewer presentation |
+| DEC-139 | 0.9.3 是只作用於手機斷點的閱讀與圖面操作 PATCH | 720 px 以下理念索引與章節標題避免換行／重複、引言字體跟隨內文；820 px 以下圖面目錄以端點感知漸層提示水平滑動，工作區滿版。桌機／平板展示、active `GEO-0.8.2`、solar inputHash、V067 圖面本體及 3D／漫遊行為全部不變 | confirmed mobile-only presentation boundary |
+| DEC-140 | 0.9.4 將公開敘事改為較精簡、易讀的成果展文字，並把面向使用者的「服務量體」統一稱為「服務中心」 | 修改範圍限公開理念、相關替代文字／場景摘要、引言樣式與文件用詞。active `GEO-0.8.2`、solar inputHash、V067 圖面本體、3D 幾何與漫遊行為均不變 | confirmed copy-only release boundary |
+| DEC-141 | 0.9.6 將 `referenceSystem.siteOrientation` 定為全專案唯一可寫入的基地方位：SITE +X 由泳池遠端指向服務核心、真北方位 307°；SITE −X 127°、Three root 143°、圖面真北與所有方向讀值均由它推導 | 使用者確認 127°／307°為本專案唯一正確基地方位。刪除 `localLongAxisBearingFromTrueNorth`、`worldTransform.rotationFromTrueNorth`、active／legacy site bearing 與預存北箭頭象限，任何重新出現都由 schema／validator fail closed。鏡牆法線不納入固定基地方位；它必須由 `127° + 當下 L3 水平旋轉角` 即時計算，因此可隨後續日照研究結論調整 | confirmed canonical orientation contract; closes OPEN-006 for project use and supersedes all parallel orientation fields |
+| DEC-142 | 日照分析的判讀門檻、能量假設、氣象來源與方法修訂版只由 active geometry 的 `solar` 子樹管理；現行分析不得再讀取 `geometry.solarReflection` 或程式內建預設 | `GEO-0.8.2.solar` 明列方位容差、最低向下角、反射率、玻璃太陽透射率、日照時段與 `analysisMethodRevision`；solar `inputHash` 必須涵蓋這些欄位，任何方法修訂或假設變更都會使 registry 失效並要求重新驗證。`geometry.solarReflection.legacyV050Study` 只保留歷史重現用途，不參與現行運算。本輪不改 HTML、CSS、公開文字快照或部署，展示層待最後階段另行同步 | confirmed active-only solar-analysis contract |
+| DEC-143 | Solar Study HTML 下一輪同步採五項已核准修正：研究摘要改標 v0.6.7 研究基線／Model 0.9.6 已驗證、研究資料列顯示 active 方法與假設、互動初始值移除 HTML 硬編碼、區分 07:00～18:00 方向診斷與 07:00～17:00 能量時段、把「鏡牆朝向」改為「鏡牆法線方位」 | 所有新增讀值由 active solar contract 或 current registry/runtime 填入，不建立第二套 HTML 預設；+25.5°、+23.0°、暖季 0 與冷季 +1,036.829 kWh 研究結果不變。使用者要求先登錄、稍後與其他 HTML 工作一併實作；研究方法／限制 footer 的文字更新不包含在本次五項核准範圍 | implemented in TASK-101 |
+| DEC-144 | Solar Study 的方向代理門檻需直接呈現在互動圖上 | 平面圖以池向為中心，依 active model 顯示方位容許範圍（目前為 ±28°）淡色扇形；剖面圖依 active model 顯示最低下射角門檻（目前為 8°）參考線或淡色區。這些圖示只用來解釋方向代理是否通過，不得呈現成精確池面落點、反射能量或完整 3D 光線追蹤結果 | implemented in TASK-101 |
+| DEC-145 | Solar Study 的入射光與反射光採同色、不同線型的統一符號 | 平面圖補上目前缺少的反射光；入射光與反射光使用相同色相，入射光為實線、反射光為虛線，兩者皆加上箭頭表示傳播方向。鏡牆法線維持不同色相與清楚標示，避免再被誤認為反射光。剖面圖未命中池面的反射光不得降為難以辨識的低對比灰線，相關可讀性修正另列獨立任務追蹤 | plan ray symbols implemented in TASK-101; section miss readability pending TASK-102 |
+| DEC-146 | Solar Study 保留既有平面圖標題，並以投影標註與遮罩釐清反射光沒有穿透鏡牆 | 平面虛線明列為 3D 反射光的水平投影，並同時標示反射方位與向下角；鏡牆覆蓋光線，代表性入射點清楚可見，牆線兩側保留極短視覺間隙。runtime 另以完整 3D 反射向量位於鏡面正面半空間為有效反射條件；未通過時不得繪出反射光。平面圖原標題不改，入射／反射同色、實／虛線及末端箭頭規則不變 | confirmed by user for TASK-105 |
+| DEC-147 | 資料夾與文件結構、檔名全專案一致，同一功能只用一個名字，並比照 Essence 的工作流程 | 網站改放 `web/`（產出 `dist/web`）、命令列工具 `tools/`、純邏輯 `core/`、現行圖面 `drawings/current/`（檔名不帶版號）、網站文案 `content/`；「site」只指基地；檢查類指令一律 `check:`、產生類一律 `build:`。01～07 與文件所有權依功能改名為 product、site-and-sources、design-basis、decisions 與 backlog、contracts/model、agents/workflow、roadmap、architecture。DEC／OPEN／TASK／SRC 編號、模型數值、原始來源與雜湊、公開網址與 view id 不變；冗餘舊檔自現行版本刪除，不改寫 Git 歷史；6 張場勘原圖不縮小。使用者 2026-11-21 同意；執行見 [資料夾架構與命名統一設計](tasks/2026-11-21-folder-structure-migration-design.md) | confirmed |
+| DEC-148 | 每個變更經 PR 自動檢查通過才合併到 `main` | 新增 `.github/workflows/ci.yml`，在每個 PR 與 `main` push 執行程式檢查（ESLint）、型別檢查、文件與模型檢查、單元測試、與部署相同的建置、瀏覽器測試與 gitleaks 金鑰掃描（完整歷史與目前檔案），最後由單一彙總檢查「全部檢查通過」判定；`main` 的分支保護只要求這一項。第三方 Actions 以 commit 編號鎖定。工具選擇與使用者另外兩個 repo 一致（ESLint 加 typescript-eslint、Node 內建測試、gitleaks）；瀏覽器測試是唯一額外項目，因為本站的 3D 與圖面必須在真實瀏覽器驗證。部署流程不變。使用者 2026-11-21 同意開工；執行見 [PR 自動檢查設計](archive/specs/2026-11-21-pr-checks-design.md) | implemented in TASK-111 |
+
+## 3. 本輪已關閉的舊 OPEN
+
+| 舊 ID | 結果 |
+| --- | --- |
+| OPEN-001 主入口 | 由 DEC-012 關閉 |
+| OPEN-002 樓梯 | 由 DEC-017～019 關閉 |
+| OPEN-003 男女更衣室 | 由 DEC-013～016 關閉 |
+| OPEN-004 屋頂高低側 | 由 DEC-020 關閉 |
+| OPEN-005 服務中心外輪廓 | L1 維持 11.0 × 13.5 m；L2 改為 16.0 × 13.5 m，含 5.0 m 可修改工作擴建值，由 DB-003 管理 |
+| OPEN-007 水道與池畔平衡 | 首版採 20.5 × 7.5 m 三水道池及 35.0 × 13.5 m 建築 |
+| OPEN-012 太陽研究 180° 首尾顛倒 | 修法由 `DEC-029` 確認；不再是未決問題，執行由 `TASK-001` 管理 |
+| OPEN-010 屋頂交界、雨簾與雨水再利用概念 | 由 `DEC-033`～`DEC-036` 關閉；0.3.0 已同步模型與 HTML。施工尺度及專業計算移交 `OPEN-014` |
+| OPEN-015 泳池深度方向 | 原方向由 `DEC-042` 關閉；使用者於剖面 V2.0 改為左端 1.2 m、右端 1.5 m，現由 `DEC-045` 取代且仍無未決答案，實作由 `TASK-024` 管理 |
+
+## 4. 風險與控制
+
+| 風險 | 控制方式 |
+| --- | --- |
+| 衛星圖不是測量成果 | 保存原圖、工作 transform 與修訂記錄；全部幾何參數化 |
+| 手繪被誤當按比例圖 | 只提取意圖；尺寸由設計基準管理 |
+| 15＋5 或男女分區在改圖時失真 | validator 檢查正式數、擴充數及嚴格分區旗標 |
+| 集中置物櫃區被誤加回 | 模型要求 `centralLockerArea = false`，建置時驗證 |
+| 玻璃屋頂越界或坡度失真 | 驗證高邊等於 L2 擴建起點、坡度為 4.5°、室內跨度 19.0 m、低端外挑 1.2 m；剖面圖必須使用水平／垂直同尺度 |
+| 圖面與未來輸出漂移 | [模型契約](contracts/model.md) 要求所有 consumer 只讀單一模型與 geometry helper |
+| L1 V2.0 戶外區被誤畫成室內共用前室或重新接入泳池大廳 | `DEC-043` 固定 8 × 7 m 戶外區不連接泳池大廳；`TASK-022` 已更新 active Viewer／V2.3 圖面，舊 0.4.0 相容圖層不得反向覆寫新方案 |
+| 41 m 基地、L2／L3 與屋頂被不同版本各自解讀 | `DEC-074` 以 `GEO-0.6.0`／`SITE-XY` 統一 41 × 14 m 基地、12 × 13.5 m 樓板及 29 m 屋頂；consumer 不得直接讀取任何具名舊 study |
+| L1 四間獨立廁所、儲物與水處理六區在非對齊分界下造成無用途凹角、門位互撞或管道／結構衝突 | `TASK-035` 已完成概念疊圖與衝突檢查；`OPEN-008`／`OPEN-009`／`OPEN-018` 繼續管理施工級牆厚、器具淨空、管道、設備搬運、無障礙與法規核定 |
+| 2 m 退縮被直接當成瀑布與雨水回收已可施工的尺度 | 目前只確認空間及概念用途；屋頂荷重、防水、落水安全、集排水、溢流與維修須由 `OPEN-014` 驗證，跨樓層定位仍受 `OPEN-016` 管理 |
+| 剖面 V2.0 的樓梯被照圖做成單一 4.5 m 高不中斷斜梯，或在頂端穿入玻璃屋頂 | `DEC-046` 禁止把手繪斜線當施工幾何；`OPEN-017` 要求兩跑與中間平台、乾式長邊廊、屋頂獨立、逐點淨高及頂端落點檢核 |
+| 1.500 m 被當成樓梯結構外寬，導致扣除扶手、防墜或施工公差後的有效淨寬低於要求；或樓梯真正貼合玻璃帷幕形成承重、積水、無法清潔或夾縫風險 | `OPEN-017` 將 1.500 m 定義為候選「有效淨寬」，等實際使用人數與逃生寬度專業核定；樓梯只與長邊玻璃牆相鄰且平行，結構、清潔、排水與防夾縫交界必須獨立設計 |
+| 泳池淺深端仍沿用 0.4.0 舊方向 | `DEC-045` 固定剖面左端 1.2 m、右端 1.5 m；`TASK-024` 已同步 V2.3、Viewer 與測試，舊發布成果不得回寫 active geometry |
+| 5.0 m 擴建值在各圖面被各自硬編碼 | 模型只保存擴建基礎參數，L2 起點、總長、分流軸、樓梯上端及屋頂跨度全部推導 |
+| 概念交界被誤認為施工定案 | `DEC-034` 只確認獨立荷重路徑、雙道防水／活動縫策略與外觀層次；材料厚度、固定件、熱工、冷凝及檢修尺度仍由 `OPEN-014` 管理 |
+| 雨簾回用被誤認為可直接施工 | `DEC-036` 只固定被動雨簾、屋頂水專用、隔離承接、極端旁通與沖廁流程；設計雨量、容量、泵浦、水質及排放仍由 `OPEN-014` 驗證 |
+| 全高弦幕被誤認為已可施工 | B 案仍受 `OPEN-013` 管理；任何一般不鏽鋼假設、不可檢查的隱藏張力器或把張力傳給玻璃屋頂的作法都不成立，驗證未通過時回退 A 玻璃備案 |
+| L2 擴建量體把荷重傳給玻璃屋頂 | 模型及驗證要求擴建量體與 `RF-GL-01` 結構獨立 |
+| 把「L2／L3 面積相同」誤畫成旋轉後兩層輪廓仍完全重合 | `DEC-050` 只固定面積關係及 L3 旋轉；`OPEN-016` 必須以疊圖顯示重疊、外挑與退縮，不得隱藏轉換結構需求 |
+| L3 外傾鏡牆被畫成垂直牆前的獨立斜鏡 | `DEC-048` 要求建築承載牆本體外傾、鏡面共面；任何支架空腔、分格與維修縫都只能是實際鏡面系統的細部，不得改變整體牆面角度語意 |
+| L3 逃生梯只接到 L2，或為省空間改用螺旋梯作主要逃生 | `OPEN-009` 要求固定核心內的安全梯形成 L1～L3 連續直通路徑；梯型、座數、寬度與防火區劃按用途、人數及主管機關核定，不能以造型樓梯取代 |
+| 使用者的「L2／L3 不需要無障礙」偏好被誤當成已核准豁免 | `OPEN-009` 明確保持 deferred；現行規則原則上要求新建／增建設無障礙設施且至少一座直通樓梯為無障礙樓梯，只有取得適用例外或主管機關核准後才能縮減 |
+| 柱列雖藏入 L2 外牆，卻未與旋轉 L3 荷重路徑對齊 | `DEC-051`～`DEC-053` 以固定核心、外牆／乾區柱列及可計算的轉換構架連續傳力；玻璃屋頂、鏡面覆層及帷幕牆不得承擔樓層荷重 |
+| X=35 m 幾何中心被誤稱為正式結構安全軸 | `DEC-058` 只用樓板投影重疊與幾何偏心做概念代理；正式質心／剛心須納入水塔、機房、牆柱、樓梯、活載、地震與風作用，以三維結構模型驗證 |
+| V2.1 把右側服務中心誤標成東南 127°，V2.2 又把北箭頭畫到錯誤象限 | `DEC-061` 與 V2.3 明定圖面向右＝本地 +X＝服務中心端＝西北 307°，真北箭頭指向圖面右下；127°只保留給反方向／面池判讀 |
+| 池畔 +0.30 m 被當成不影響淨高、樓梯或排水的純視覺抬高 | `DEC-060` 固定左端幾何淨高 3.70 m並重算 `ST-01` 起點與總升高；`OPEN-016`／`OPEN-017` 繼續管理門檻、坡道、防水、溢流、排水與樓梯接點 |
+| 太陽研究角度狀態被混淆 | v0.6.0 只以 active L3 +25.5°／鏡牆 +23.0°為現行工作值；+26.5°／+3.1°是已淘汰的 v0.5.0 比較。HTML 與分析 registry 必須跟 model hash 同步，23° 必須標示需專業驗證 |
+| 四個代表日被誤述為整個夏季方向零命中 | `TASK-011` 已加入 5～9 月連續逐日／逐分鐘方向與池面交點診斷；`DEC-037` 限定其用途，不再由四日抽樣外推整季 |
+| 新增受光面積被誤當成太陽能量差 | `DEC-038` 已被 `DEC-039` 取代；任何落到池面的鏡面反射都須計入有鏡／無鏡的能量差，即使同一區域原本已有直射。展示仍須分開標示入射能量、可用採光、眩光與實際水溫／設備節能 |
+| 太陽研究再次首尾顛倒 | `DEC-029` 與 [solar-study contract](contracts/solar-study.md) 分離 307° 世界 transform 與 127° 面池方向，並由 `TASK-001` 加入一致性測試 |

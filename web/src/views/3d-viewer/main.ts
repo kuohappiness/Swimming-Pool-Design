@@ -353,7 +353,7 @@ try {
         <div class="selection-heading"><span class="status-dot" data-status="${selection.status}"></span><strong>${selection.entityId}</strong></div>
         <h3>${selection.label}</h3>
         <p>${selection.description}</p>
-        ${selection.openItemId ? `<a href="../../docs/04_DECISIONS_AND_OPEN_ITEMS.md#${selection.openItemId.toLowerCase()}">${selection.openItemId} · 尚待確認</a>` : ''}`;
+        ${selection.openItemId ? `<a href="../../docs/backlog.md#${selection.openItemId.toLowerCase()}">${selection.openItemId} · 尚待確認</a>` : ''}`;
     };
     const selectionController = setupSelection({
       canvas: renderer.domElement, camera, controls,
