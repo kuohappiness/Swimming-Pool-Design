@@ -15,8 +15,8 @@
 
 1. 讀 [README](README.md) 的導覽表，只讀這次工作需要的 owner 文件。
 2. 檔案放哪裡、依賴方向、路由與名詞，以 [架構](docs/architecture.md) 為準；結構有變動時同一個 PR 更新它。
-3. 工作流程、檢查與發布照 [工作流程與發布](docs/agents/workflow.md)；任務狀態只寫在 [進度與任務](docs/roadmap.md)。
-4. 長文件先看標題，只讀需要的那一段。
+3. 先讀 [進度與任務](docs/roadmap.md) 的〈現在在哪裡〉。工作流程、檢查與發布照 [工作流程與發布](docs/agents/workflow.md)；每件工作的狀態只寫在它任務說明標題下的狀態行，roadmap 那一列同一個 commit 照抄。
+4. 長文件只讀需要的那一段：`node tools/section.mjs <檔案> <標題或 ID>`。
 5. repo 內的工作程序在 `.claude/skills/swimming-pool-design/`（`.agents/skills/` 有相同的一份，兩份要一起改）。
 
 ## 必跑的檢查

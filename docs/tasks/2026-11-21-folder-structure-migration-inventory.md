@@ -1,8 +1,9 @@
 # 資料夾架構調整清單
 
+狀態：已合併｜完成：逐檔搬移、刪除與引用更新都已照表完成｜等誰：—
+
 - 日期：2026-11-21
 - 類型：inventory
-- 狀態：approved
 - 任務：TASK-107～TASK-109
 - 目標版本：repository structure（不另發版）
 - 設計：[資料夾架構與命名統一設計](2026-11-21-folder-structure-migration-design.md)
