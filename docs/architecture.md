@@ -24,15 +24,15 @@ Swimming-Pool-Design/
 │  └─ validation/            model-validation
 ├─ content/                  網站文案原始檔 design-concept.md、公開文字快照 website-copy.md
 ├─ drawings/
-│  └─ current/               現行圖面 DRAW-*.svg 與 PNG，檔名不帶版號
+│  └─ current/               現行圖面 DRAW-*.svg，檔名不帶版號；PNG 由 build:drawings 產生，不入庫
 ├─ web/                      網站（Vite root），產出到 dist/web/
 │  ├─ index.html             唯一的 HTML 入口
 │  └─ src/
 │     ├─ app/                bootstrap、app-shell、router、view-contract
 │     ├─ design-system/      共用樣式
 │     ├─ shared/             types.ts、assets/brand/
-│     ├─ generated/          build:content 的產物
-│     └─ views/<view id>/    每個分頁一個資料夾
+│     ├─ generated/          build:content 的產物，不入庫
+│     └─ views/<view id>/    每個分頁一個資料夾；影像衍生檔放該頁的 assets/
 ├─ tools/                    命令列工具，不被網站匯入
 │  ├─ build/                 build-content、build-drawings、render-drawing-png、build-copy、clean-dist
 │  ├─ check/                 check-docs、check-model、verify-v090-baseline
@@ -123,9 +123,9 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 三個輸入與衍生資料夾：
 
-- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`，網站只讀編譯結果。
-- `drawings/current/`：現行圖面，由 `npm run build:drawings` 自模型產生，網站以原始 SVG 內嵌。
-- `source-materials/`：原始來源，只有 `tools/` 可讀。網站需要的影像必須先成為 `web/` 內的衍生檔。
+- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`，網站只讀編譯結果。編譯結果不入庫，`npm install`、`dev`、`test`、`typecheck` 與 `build` 都會先自動產生。
+- `drawings/current/`：現行圖面，由 `npm run build:drawings` 自模型產生，網站以原始 SVG 內嵌。SVG 入庫；同時產生的 PNG 需要瀏覽器才能轉出，不入庫。
+- `source-materials/`：原始來源，只有 `tools/` 可讀。網站需要的影像必須先成為 `web/` 內的衍生檔，並在[基地與來源](site-and-sources.md)記下對應的來源編號、尺寸與雜湊。
 
 規則：
 
@@ -136,7 +136,6 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 現存例外：
 
-- `web/src/views/drawings/sheets.ts` 仍直接讀取 `source-materials/` 的基地衛星圖，待 TASK-109 改為衍生檔後移除。
 - `core/solar/solar-angle-analysis.mjs`、`core/solar/solar-energy-analysis.mjs`、`core/validation/model-validation.mjs` 內含讀檔程式，只供 `tools/` 與 `tests/` 使用，不得被 `web/` 引用。
 
 ## 5. 路由與頁面

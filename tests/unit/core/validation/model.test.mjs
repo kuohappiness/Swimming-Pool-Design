@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveActiveGeometry, resolveGeometryEntity, sitePointToThree } from '../../../../core/geometry/active-geometry.mjs';
@@ -252,7 +252,6 @@ test('all four reproducible drawings carry active revision and SITE-XY metadata'
   for (const name of names) {
     const base = resolve(repoRoot, 'drawings/current', name);
     const svg = await readFile(`${base}.svg`, 'utf8');
-    await access(`${base}.png`);
     assert.match(svg, /data-model-version="0\.6\.7"/);
     assert.match(svg, /data-active-geometry="GEO-0\.6\.7"/);
     assert.match(svg, /data-coordinate-system="SITE-XY"/);
