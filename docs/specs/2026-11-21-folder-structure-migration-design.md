@@ -32,7 +32,7 @@
 ```text
 Swimming-Pool-Design/
 ├─ README.md                 入口與「想知道什麼、讀哪一份」導覽表
-├─ LICENSE                   授權（由使用者選定）
+├─ LICENSE                   程式 MIT；文件、圖面與照片 CC BY 4.0；第三方素材除外
 ├─ AGENTS.md                 給所有 AI 工具的規則：底線、開工前、Code Review Rules
 ├─ CLAUDE.md                 只有一行 @AGENTS.md
 ├─ package.json、package-lock.json、tsconfig.json、vite.config.ts
@@ -171,7 +171,7 @@ commit 切法：
 5. **刪除**：舊版圖面 `reference/drafts/v0.5.0`～`v0.6.6`（82 檔、約 7.0 MB）、一次性腳本 `generate-v063-l2-review.mjs`、`.nojekyll`。每一項在 `docs/archive/README.md` 的已刪除清單寫下原路徑與刪除前的 commit 連結。
 6. **場勘照片**：`SRC-CONCEPT-012`～`017` 搬到 `source-materials/site/photos/`，編號、檔名、雜湊不變；`site-and-sources.md` 的登錄路徑同步修改。
 7. **入口**：README 改成導覽表，只寫現行版號；`AGENTS.md` 改寫（底線置頂、開工前、資料夾與依賴規則的連結、必跑的檢查、Code Review Rules，原推理強度設定保留為一節），`CLAUDE.md` 只有一行 `@AGENTS.md`；`.codex/skill/` 改為 `.claude/skills/swimming-pool-design/` 與 `.agents/skills/swimming-pool-design/`；`docs/releases/README.md` 加各版索引並註明 0.8.1 跳號。
-8. **設定檔**：`.editorconfig`、`.gitattributes`、`.ignore`（讓搜尋工具略過 `docs/archive/`）、`.gitignore` 清理、`.github/pull_request_template.md`（含「結構有變動時已更新 docs/architecture.md」）、`.claude/settings.json`（雲端開工自動 `npm ci`）、`LICENSE`（使用者選定授權後加入）。
+8. **設定檔**：`.editorconfig`、`.gitattributes`、`.ignore`（讓搜尋工具略過 `docs/archive/`）、`.gitignore` 清理、`.github/pull_request_template.md`（含「結構有變動時已更新 docs/architecture.md」）、`.claude/settings.json`（雲端開工自動 `npm ci`）、`LICENSE`（使用者 2026-11-21 選定：程式碼 MIT，文件、圖面與照片 CC BY 4.0；Google 衛星圖 `SRC-SITE-001` 與以它為底的標註圖、校徽屬第三方，明列為不在授權範圍內；PVGIS 氣象資料依其原授權標註出處）。
 9. **`docs/archive/README.md`**：舊路徑對照表與搬移前的 commit 連結，註明封存文件內的舊路徑不改寫。
 
 驗收：`npm run build` 通過；`git grep` 在現行文件與程式內找不到 01～07、`DOCUMENT_OWNERSHIP`、`reference/`、`scripts/`、`versions/` 等舊路徑（封存與發布紀錄除外）；兩份 skill 一致。
