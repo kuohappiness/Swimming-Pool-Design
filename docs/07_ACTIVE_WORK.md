@@ -419,7 +419,18 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 `TASK-106` 已收斂為 [Release 0.9.7](releases/0.9.7.md)；不建立 tag，release commit 推送 `main` 後由既有 GitHub Pages workflow 部署。
 
-## 27. 未排程設計問題
+## 27. 資料夾架構與命名統一
+
+依 [DEC-147](04_DECISIONS_AND_OPEN_ITEMS.md) 調整資料夾、檔名與文件結構，不改設計、模型數值、公開網址或任何編號。四項任務各一個 PR，依序合併；`TASK-107` 須等 PR 自動檢查（程式碼品質工作）先合併到 `main`。合併前，其他工作不對現有檔案開大型 PR。
+
+| ID | 任務 | 狀態 | 目標版本 | 依據 | 前置 | 驗收 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-107 | 搬移 A：程式搬到 `web/`、`core/`、`tools/`、`tests/unit/`、`tests/e2e/`、`content/`、`drawings/current/`，只搬不改 | queued | repository structure | [DEC-147](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計](specs/2026-11-21-folder-structure-migration-design.md)、[清單](specs/2026-11-21-folder-structure-migration-inventory.md) | PR 自動檢查已合併 | `npm run build` 通過且測試數不變；Git 認出每個搬移為改名；`dist/web` 與原 `dist/reference` 檔案數相同；四個分頁桌機與手機截圖與搬移前逐像素相同；部署後四個網址正常 |
+| TASK-108 | 搬移 B：01～07 與文件所有權依功能改名、新增 `architecture.md`、舊成果移入 `docs/archive/`、刪除舊版圖面、入口與設定檔整理 | queued | repository structure | [DEC-147](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計](specs/2026-11-21-folder-structure-migration-design.md) | TASK-107 | `npm run build` 通過；現行文件與程式內沒有舊路徑；兩份 skill 一致；`docs/archive/README.md` 列出舊路徑對照與已刪除清單 |
+| TASK-109 | 瘦身與資產：刪除舊視覺基準圖與一次性守門指令、產生檔改為不入庫、圖面底圖改用衍生檔 | queued | repository structure | [DEC-147](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計](specs/2026-11-21-folder-structure-migration-design.md) | TASK-108 | `npm run build` 與 e2e 通過；網站產出 5 MB 以下；網站不再直接讀取 `source-materials/`；圖面底圖經使用者目視確認 |
+| TASK-110 | 工作流程對齊 Essence：狀態行、roadmap 三節、backlog 兩節、`section` 工具、決策索引 | queued | repository structure | [DEC-147](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計](specs/2026-11-21-folder-structure-migration-design.md) | TASK-108 | `check:docs` 檢查狀態行格式與 roadmap、backlog 的分節；`section` 工具可印出單一節 |
+
+## 28. 未排程設計問題
 
 下列項目是真正尚無完整答案的 OPEN，不是已知修法的工作：
 
