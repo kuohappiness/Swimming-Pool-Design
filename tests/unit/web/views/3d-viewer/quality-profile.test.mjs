@@ -4,9 +4,9 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createServer } from 'vite';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../../../../..');
 const vite = await createServer({
-  root: resolve(repoRoot, 'reference'),
+  root: resolve(repoRoot, 'web'),
   appType: 'custom',
   optimizeDeps: { noDiscovery: true },
   server: { middlewareMode: true, hmr: false },
@@ -16,9 +16,9 @@ const [
   manifestModule,
   performanceModule,
 ] = await Promise.all([
-  vite.ssrLoadModule('/src/3d-viewer/rendering/enhanced/quality-profiles.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/rendering/enhanced/asset-manifest.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/walkthrough/performance-profile.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/quality-profiles.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/asset-manifest.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/performance-profile.ts'),
 ]);
 test.after(async () => vite.close());
 
@@ -105,7 +105,7 @@ test('adaptive frame-time hysteresis requires sustained breaches and never oscil
 
 test('viewer publishes deterministic GPU diagnostics and restores only rendering state', async () => {
   const source = await readFile(
-    resolve(repoRoot, 'reference/src/3d-viewer/main.ts'),
+    resolve(repoRoot, 'web/src/views/3d-viewer/main.ts'),
     'utf8',
   );
   assert.match(source, /renderer\.info\.autoReset = false/);

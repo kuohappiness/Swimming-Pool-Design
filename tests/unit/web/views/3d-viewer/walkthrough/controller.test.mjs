@@ -4,9 +4,9 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createServer } from 'vite';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../../../../../..');
 const vite = await createServer({
-  root: resolve(repoRoot, 'reference'),
+  root: resolve(repoRoot, 'web'),
   appType: 'custom',
   optimizeDeps: { noDiscovery: true },
   server: { middlewareMode: true, hmr: false },
@@ -24,13 +24,13 @@ const [
     getWalkthroughCapabilityProfile,
   },
 ] = await Promise.all([
-  vite.ssrLoadModule('/src/3d-viewer/walkthrough/camera-mode-manager.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/walkthrough/fixed-step-loop.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/walkthrough/input/desktop-input.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/walkthrough/input/touch-input.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/walkthrough/player-controller.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/walkthrough/walkthrough-config.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/walkthrough/performance-profile.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/camera-mode-manager.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/fixed-step-loop.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/input/desktop-input.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/input/touch-input.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/player-controller.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/walkthrough-config.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/performance-profile.ts'),
 ]);
 test.after(async () => vite.close());
 
@@ -320,11 +320,11 @@ test('frame-time adaptation only degrades rendering capabilities and preserves s
 
 test('walkthrough UI and selection lifecycle expose stable accessibility hooks', async () => {
   const [view, html, styles, interactions, main] = await Promise.all([
-    readFile(resolve(repoRoot, 'reference/src/views/3d-viewer/index.ts'), 'utf8'),
-    readFile(resolve(repoRoot, 'reference/src/views/3d-viewer/viewer-template.html'), 'utf8'),
-    readFile(resolve(repoRoot, 'reference/src/3d-viewer/styles.css'), 'utf8'),
-    readFile(resolve(repoRoot, 'reference/src/3d-viewer/interactions.ts'), 'utf8'),
-    readFile(resolve(repoRoot, 'reference/src/3d-viewer/main.ts'), 'utf8'),
+    readFile(resolve(repoRoot, 'web/src/views/3d-viewer/index.ts'), 'utf8'),
+    readFile(resolve(repoRoot, 'web/src/views/3d-viewer/template.html'), 'utf8'),
+    readFile(resolve(repoRoot, 'web/src/views/3d-viewer/styles.css'), 'utf8'),
+    readFile(resolve(repoRoot, 'web/src/views/3d-viewer/interactions.ts'), 'utf8'),
+    readFile(resolve(repoRoot, 'web/src/views/3d-viewer/main.ts'), 'utf8'),
   ]);
   assert.match(view, /data-enter-walkthrough/);
   assert.match(view, />實境漫遊</);

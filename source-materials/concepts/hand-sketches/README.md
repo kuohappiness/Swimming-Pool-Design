@@ -19,7 +19,7 @@ SRC-CONCEPT-012 … SRC-CONCEPT-023
 ```
 
 網站使用的方向校正與壓縮版本位於
-`reference/src/views/design-concept/assets/`；本資料夾中的原始位元組未被修改。
+`web/src/views/design-concept/assets/`；本資料夾中的原始位元組未被修改。
 
 ## 0.9.1 公開選擇
 

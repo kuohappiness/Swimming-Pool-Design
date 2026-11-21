@@ -1,7 +1,7 @@
-import legacyDocument from './legacy-template.html?raw';
+import legacyDocument from './template.html?raw';
 import type { MountedView } from '../../app/view-contract';
 import { getViewDefinition } from '../../app/router';
-import '../../solar-study/styles.css';
+import './styles.css';
 import './view.css';
 
 const viewDescription = getViewDefinition('solar-study').description;
@@ -50,7 +50,7 @@ function studyMarkup(): string {
 
 export async function mount(container: HTMLElement): Promise<MountedView> {
   container.innerHTML = studyMarkup();
-  const runtime = await import('../../solar-study/main');
+  const runtime = await import('./main');
   return {
     destroy() {
       runtime.destroySolarStudy?.();

@@ -27,7 +27,7 @@
 ## 預定程式結構
 
 ```text
-reference/src/3d-viewer/rendering/
+web/src/views/3d-viewer/rendering/
 ├─ contracts.ts
 ├─ quality-profile.ts
 ├─ baseline-*.ts
@@ -44,7 +44,7 @@ reference/src/3d-viewer/rendering/
    ├─ water-presentation.ts
    └─ visual-asset-adapter.ts
 
-reference/src/3d-viewer/assets/
+web/src/views/3d-viewer/assets/
 ├─ README.md
 ├─ materials/
 ├─ environments/

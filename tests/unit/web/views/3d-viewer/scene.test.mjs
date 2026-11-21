@@ -4,18 +4,18 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { createServer } from 'vite';
-import { buildViewerModel } from '../scripts/viewer-data.mjs';
+import { buildViewerModel } from '../../../../../core/viewer/viewer-data.mjs';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../../../../..');
 
 test('L2 Y0 ray reaches glass first and the changing-room divider stays at Y8', async () => {
   const [sourceModel, registry, content] = await Promise.all([
     readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
     readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
-    readFile(resolve(repoRoot, 'reference/generated/concept-content.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(repoRoot, 'web/src/generated/concept-content.json'), 'utf8').then(JSON.parse),
   ]);
   const vite = await createServer({
-    root: resolve(repoRoot, 'reference'),
+    root: resolve(repoRoot, 'web'),
     appType: 'custom',
     optimizeDeps: { noDiscovery: true },
     server: { middlewareMode: true, hmr: { port: 0 } },
@@ -23,9 +23,9 @@ test('L2 Y0 ray reaches glass first and the changing-room divider stays at Y8', 
 
   try {
     const [{ createViewerScene }, { adaptViewerData }, { createBaselineSceneRenderingDependencies }] = await Promise.all([
-      vite.ssrLoadModule('/src/3d-viewer/scene-factory.ts'),
-      vite.ssrLoadModule('/src/3d-viewer/model-adapter.ts'),
-      vite.ssrLoadModule('/src/3d-viewer/rendering/index.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/model-adapter.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
     ]);
     const viewerModel = buildViewerModel(sourceModel, registry);
     assert.equal(adaptViewerData(viewerModel, content).model.geometry.l2.splitAxisY, 8);
@@ -72,10 +72,10 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
   const [sourceModel, registry, content] = await Promise.all([
     readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
     readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
-    readFile(resolve(repoRoot, 'reference/generated/concept-content.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(repoRoot, 'web/src/generated/concept-content.json'), 'utf8').then(JSON.parse),
   ]);
   const vite = await createServer({
-    root: resolve(repoRoot, 'reference'),
+    root: resolve(repoRoot, 'web'),
     appType: 'custom',
     optimizeDeps: { noDiscovery: true },
     server: { middlewareMode: true, hmr: { port: 0 } },
@@ -88,10 +88,10 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
       { createBaselineSceneRenderingDependencies },
       { deriveViewerOrientation },
     ] = await Promise.all([
-      vite.ssrLoadModule('/src/3d-viewer/scene-factory.ts'),
-      vite.ssrLoadModule('/src/3d-viewer/model-adapter.ts'),
-      vite.ssrLoadModule('/src/3d-viewer/rendering/index.ts'),
-      vite.ssrLoadModule('/src/3d-viewer/orientation.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/model-adapter.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/orientation.ts'),
     ]);
     const viewerModel = buildViewerModel(sourceModel, registry);
     const model = adaptViewerData(viewerModel, content).model;

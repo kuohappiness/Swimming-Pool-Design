@@ -1,8 +1,8 @@
 import rawModel from '../../../../model/project-model.json';
-import type { ProjectModel } from '../../types';
+import type { ProjectModel } from '../../shared/types';
 import type { MountedView } from '../../app/view-contract';
 import { getViewDefinition } from '../../app/router';
-import '../../styles.css';
+import './styles.css';
 import './view.css';
 
 const model = rawModel as unknown as ProjectModel;
@@ -31,7 +31,7 @@ export async function mount(container: HTMLElement): Promise<MountedView> {
       </div>
     </section>
   `;
-  const runtime = await import('../../main');
+  const runtime = await import('./main');
   return {
     destroy() {
       runtime.destroyAtlas?.();

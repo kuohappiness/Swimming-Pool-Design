@@ -51,7 +51,7 @@
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-017 | 盤點 3D Viewer 資訊完整度並確認 Markdown／模型雙 owner 同步架構 | done | 0.4.0 | [歷史資訊完整度分析](archive/analysis/3d-viewer-information-readiness-v0.4.0.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md) | TASK-016 | confirmed／working／deferred 範圍、現有硬編碼、缺少的 3D 工作幾何、分析失效規則與後續任務邊界已記錄；該準備度文件已隨 TASK-017 完成封存，不代表現行 Viewer／幾何狀態 |
+| TASK-017 | 盤點 3D Viewer 資訊完整度並確認 Markdown／模型雙 owner 同步架構 | done | 0.4.0 | [歷史資訊完整度分析](archive/analysis/3d-viewer-information-readiness-v0.4.0.md)、[公開理念文字](../content/design-concept.md) | TASK-016 | confirmed／working／deferred 範圍、現有硬編碼、缺少的 3D 工作幾何、分析失效規則與後續任務邊界已記錄；該準備度文件已隨 TASK-017 完成封存，不代表現行 Viewer／幾何狀態 |
 | TASK-018 | 建立模型單一來源補強與 3D Viewer MVP | done | 0.4.0 | [completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md)、[Release 0.4.0](releases/0.4.0.md) | TASK-017 | `/3d-viewer/` 由統一模型及 Markdown 編譯內容建立，五組場景、狀態圖例、WebGL fallback、桌機／手機操作與同步測試通過 |
 | TASK-021 | 修正 `ST-01` 樓梯側位，並依剖面 V2.0 建立 0.5.0 工作幾何 | done | 0.5.0 | [DEC-046／DEC-056／DEC-060／OPEN-017](04_DECISIONS_AND_OPEN_ITEMS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、DEC-044、DEC-047 | Viewer 已將樓梯移到長邊玻璃牆旁的獨立乾式透明廊，池畔 +0.30 m 至 L2 +3.30 m 總升高 3.00 m，採 1.50 m 工作淨寬、20 級高／18 踏面、兩跑各 2.70 m、1.80 m 平台及 7.20 m 總長；樓梯與玻璃牆、屋頂荷重分離。法定淨寬、逐點淨高、頂端接點及材料仍由 `OPEN-017` 專業驗證，不把概念模型冒充施工定案 |
 | TASK-022 | 依 L1 V2.0 重建戶外區、廁所雙向開口與入口動線 | done | 0.5.0 | [DEC-043／DEC-044](04_DECISIONS_AND_OPEN_ITEMS.md)、[設計基準](03_DESIGN_BASIS.md)、[模型契約](05_MODEL_CONTRACT.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-018、DEC-043 | 0.5.0 active Viewer／V2.3 圖面表達 8.0 × 7.0 m 戶外區且不連接泳池大廳、7.0 m 廁所帶、泳池側乾式走道及雙向開口；分拆為對外／對池兩套獨立廁所仍保留 `OPEN-008`，未擅自畫入現行方案 |
@@ -62,7 +62,7 @@
 | TASK-027 | 修正平面方位並確認池畔 +0.30 m，發布 V2.2 檢討圖 | done | 0.5.0 review | [DEC-059／DEC-060](04_DECISIONS_AND_OPEN_ITEMS.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md) | TASK-026、OPEN-016、OPEN-017 | V2.2 曾正確標示圖面向右＝服務中心端＝西北 307°並確認池畔 +0.30 m，但把北箭頭誤畫成右上；此錯誤已由 `DEC-061`／`TASK-028` 的 V2.3 取代，V2.2 只保留歷史檢討用途 |
 | TASK-028 | 發布 V2.3 圖面，完成 0.5.0 Viewer、圖集、日照 HTML 與最新來源置換 | done | 0.5.0 | [DEC-061](04_DECISIONS_AND_OPEN_ITEMS.md)、[v0.5.0 圖面](../reference/drafts/v0.5.0/README.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-019、TASK-021～TASK-027 | V2.3 北箭頭改指右下而不旋轉建築；Viewer 完成 41 × 14 m L1、三層服務中心、L3 旋轉鏡牆、固定 5°屋頂、+0.30 m 池畔、池體、樓梯、雨水路徑與未決轉接帶；空間圖集直接載入最新衛星圖及 V2.3 平／剖面，日照 HTML 與 Viewer 同步 0.5.0；模型、文件、測試、桌機／手機瀏覽驗證與 production build 全數通過 |
 | TASK-019 | 完成 Viewer 材質、環境、理念細節、固定鏡位及高解析擷取 | done | 0.5.0 | [3D Viewer 契約](contracts/3d-viewer.md)、[Release 0.5.0](releases/0.5.0.md) | TASK-021～TASK-024 | 向光、向雨、向人、向時間及總覽五場景可重現；圖層、構件選取、四固定鏡位、工作材質、雨簾／光感、WebGL fallback、版本 hash 與桌機／手機高解析擷取均通過；效果不冒充施工性能 |
-| TASK-020 | 建立理念介紹 HTML，輸出 PDF／DOCX 並淘汰舊版文件 | queued | 0.5.0 | [公開理念文字](public/swimming-pool-renovation-design-concept.md)、[completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md) | TASK-019 | 理念 HTML 直接讀取 Markdown 內容與 Viewer畫面；PDF及DOCX分別由共同來源產生並通過視覺驗收；替代檔案確認可開啟後才刪除舊版 DOCX |
+| TASK-020 | 建立理念介紹 HTML，輸出 PDF／DOCX 並淘汰舊版文件 | queued | 0.5.0 | [公開理念文字](../content/design-concept.md)、[completed 3D Viewer MVP design](archive/specs/2026-07-18-3d-viewer-mvp-design.md) | TASK-019 | 理念 HTML 直接讀取 Markdown 內容與 Viewer畫面；PDF及DOCX分別由共同來源產生並通過視覺驗收；替代檔案確認可開啟後才刪除舊版 DOCX |
 
 錯誤記錄（2026-07-18）：本次只登錄 `TASK-021`～`TASK-024` 並釐清 `DEC-041`～`DEC-042`，不修改程式、模型或已發布的 0.4.0 Viewer。
 
@@ -310,7 +310,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-075 | 建立不可變資料／視覺基線、單一 HTML 入口、query router 與 view lifecycle | done | 0.9.0 | [DEC-125／DEC-127](04_DECISIONS_AND_OPEN_ITEMS.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md)、[已完成實作計畫](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-implementation-plan.md) | TASK-074 | 記錄 canonical／solar／V067／三入口視覺基線；Vite 只建置 `index.html`，合法 query view 可直入、無效值回設計理念，舊入口不產生；各 view 有 mount／destroy 邊界，非 3D view 不載入 Three.js；資料、圖面與分析基線無差異，focused tests、typecheck、build 與 diff 檢查通過 |
 | TASK-076 | 建立優雅舒服的共用設計系統、App Shell、四項中文導覽與響應式殼層 | done | 0.9.0 | [DEC-126／DEC-128／DEC-129](04_DECISIONS_AND_OPEN_ITEMS.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-075 | 共用色彩／字型／間距／線條／元件 token 與唯一 header；取消漸層、發光、過量膠囊／陰影；320／390／768／1280／1440 px 導覽、safe area、44 px 觸控、鍵盤與 reduced motion 可用且無整頁水平溢出，字型不存取外部 runtime origin |
-| TASK-077 | 製作「向光、向水、向人、向時間」設計理念策展頁 | done | 0.9.0 | [DEC-126／DEC-127／DEC-128](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-076 | 由公開理念 owner 與 active token 建立作品首屏、核心引言及四章圖文節奏；不使用四張儀表板卡片，不遺漏正文／限制或硬編碼第二份數值；手機單欄、桌面刊物構圖、章節語意與鍵盤閱讀順序通過視覺／無障礙驗收 |
+| TASK-077 | 製作「向光、向水、向人、向時間」設計理念策展頁 | done | 0.9.0 | [DEC-126／DEC-127／DEC-128](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](../content/design-concept.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-076 | 由公開理念 owner 與 active token 建立作品首屏、核心引言及四章圖文節奏；不使用四張儀表板卡片，不遺漏正文／限制或硬編碼第二份數值；手機單欄、桌面刊物構圖、章節語意與鍵盤閱讀順序通過視覺／無障礙驗收 |
 | TASK-078 | 整合專業日照研究並帶入「向光」設計理念 | done | 0.9.0 | [DEC-127／DEC-130](04_DECISIONS_AND_OPEN_ITEMS.md)、[日照分析](analysis/solar-analysis.md)、[solar contract](contracts/solar-study.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-077 | 研究目的、摘要、平／剖面、控制器、讀值、代表時刻、方法與限制形成清楚層級；v0.6.7、+25.5°、+23.0°、152.5°、+1,036.829 kWh、inputHash、X33 與專業警語不變；既有 solar tests、320／390／920 px sticky 預覽及桌機／手機 smoke 通過，不重跑最佳化 |
 | TASK-079 | 將 V067 現行平面／剖面整合為「圖面設計」建築圖冊 | done | 0.9.0 | [DEC-127／DEC-128／DEC-129](04_DECISIONS_AND_OPEN_ITEMS.md)、[圖集契約](contracts/reference-atlas.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-078 | 保留五個 current sheet、內嵌 SVG、ID 選取、縮放、符合畫面與 L3 太陽能控制；V067 SVG／PNG hash 完全不變；桌面最大化圖面＋詳情，手機可順序查看完整圖框、目錄與詳情，320 px 以上可操作且不裁圖 |
 | TASK-080 | 將 3D Viewer、構件檢視與第一人稱漫遊整合為「3D 展示」 | done | 0.9.0 | [DEC-117／DEC-118／DEC-119／DEC-124／DEC-127～DEC-129](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md)、[已完成設計](archive/specs/2026-07-25-v0.9.0-unified-public-exhibition-design.md) | TASK-079 | Viewer 可動態 mount／destroy且多次進出不殘留 listener／RAF／canvas；五場景、圖層、固定視角、剖視、選取、資訊、畫質、fallback、七區漫遊、樓梯、游泳、水下與 snapshot restore 全保留；手機控制不被導覽遮擋，desktop／390 × 844 E2E 及資料／碰撞／移動回歸通過 |
@@ -328,7 +328,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-083 | 建立 0.9.1 設計、決策、不可變邊界與手稿素材收件區 | done | 0.9.1 | [DEC-131～DEC-134](04_DECISIONS_AND_OPEN_ITEMS.md)、[已完成設計](archive/specs/2026-07-25-v0.9.1-narrative-reading-refinement-design.md) | TASK-082 | active spec／plan、決策與 `source-materials/concepts/hand-sketches/README.md` 完成；明列手稿 source intake、原始位元組保留、active GEO-0.8.2／solar／V067／Viewer 行為不可變，docs check 通過 |
-| TASK-084 | 在設計理念加入手稿起點與從一筆線到完整成果的故事收束 | done | 0.9.1 | [DEC-131／DEC-132／DEC-134](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md) | TASK-083 | 公開 Markdown 正本加入 ORIGIN 文案；頁面首屏後有 `00 / ORIGIN` 一主兩輔待收錄架構，四章後有 FROM LINE TO SPACE 收束與日照／圖面／3D 入口；桌機非對稱、手機單欄，沒有假圖、輪播、視差或自動 motion |
+| TASK-084 | 在設計理念加入手稿起點與從一筆線到完整成果的故事收束 | done | 0.9.1 | [DEC-131／DEC-132／DEC-134](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](../content/design-concept.md) | TASK-083 | 公開 Markdown 正本加入 ORIGIN 文案；頁面首屏後有 `00 / ORIGIN` 一主兩輔待收錄架構，四章後有 FROM LINE TO SPACE 收束與日照／圖面／3D 入口；桌機非對稱、手機單欄，沒有假圖、輪播、視差或自動 motion |
 | TASK-085 | 將 3D 頁重構為專注的 Viewer fragment，移除完整設計理念重複 | done | 0.9.1 | [DEC-133／DEC-134](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-083 | 3D 不再匯入舊完整 HTML 或渲染 `data-concept-content`；WebGL／fallback 五場景只顯示短摘要、三個觀察點及理念連結；Viewer 首屏更快進入畫布，既有場景、圖層、選取、剖視、漫遊及 trust boundary 全部通過回歸 |
 | TASK-086 | 收件、登錄、整理並上稿真實手繪設計照片 | done | 0.9.1 | [DEC-132／DEC-135](04_DECISIONS_AND_OPEN_ITEMS.md)、[來源登錄](02_SITE_AND_SOURCES.md)、[實作計畫](archive/specs/2026-07-25-v0.9.1-narrative-reading-refinement-implementation-plan.md) | TASK-084、使用者放入照片 | 12 個原始檔以 `SRC-CONCEPT-012`～`023` 穩定命名，MIME／bytes／dimensions／EXIF／SHA-256／日期／用途／權利完整登錄且位元組不變；HTML 僅使用場勘 2／5／6 與五張非樓梯手稿，共 8 張、16 個響應式衍生檔，完成現場→日照→平面→剖面→3D→反射敘事與 captions |
 | TASK-087 | 完成 0.9.1 跨裝置驗證、版本、release 與依指示發布 | done | 0.9.1 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[已完成實作計畫](archive/specs/2026-07-25-v0.9.1-narrative-reading-refinement-implementation-plan.md)、[Release 0.9.1](releases/0.9.1.md) | TASK-084～TASK-086 | package／lockfile／model／README／contracts 與 release 同步為 0.9.1；build、93 tests、typecheck、四 view × 五 viewport、desktop／mobile／fallback E2E、八圖載入與排除規則、Viewer／漫遊回歸及 v0.9.1 immutable baseline 全部通過；完成後建立單一 release commit 並 push `main` |
@@ -343,7 +343,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-088 | 完成設計理念、日照研究與圖面設計的文案、斷行及版面細修 | done | 0.9.2 | [DEC-136](04_DECISIONS_AND_OPEN_ITEMS.md)、各 output contract | TASK-087 | 四分頁標題與註解一致；內容階層、欄寬、對齊、圖片說明及留白依使用者註記完成，不改研究或圖面資料 |
 | TASK-089 | 完成聚焦式 3D 展示介面 | done | 0.9.2 | [DEC-138](04_DECISIONS_AND_OPEN_ITEMS.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-088 | 暫隱藏但保留敘事／構件 panel；狀態圓點、攝影機網格、重設視角、實境漫遊入口及柔和配色完成，3D runtime 行為不變 |
-| TASK-090 | 登錄校徽來源並建立網站文字 v1.0 快照 | done | 0.9.2 | [DEC-137](04_DECISIONS_AND_OPEN_ITEMS.md)、[來源登錄](02_SITE_AND_SOURCES.md)、[文字快照](public/website-copy-v1.0.md) | TASK-088～TASK-089 | 原始校徽與頁首衍生檔有尺寸／雜湊；四個實際渲染分頁的可見文字、路徑與 SHA-256 由可重跑腳本保存 |
+| TASK-090 | 登錄校徽來源並建立網站文字 v1.0 快照 | done | 0.9.2 | [DEC-137](04_DECISIONS_AND_OPEN_ITEMS.md)、[來源登錄](02_SITE_AND_SOURCES.md)、[文字快照](../content/website-copy.md) | TASK-088～TASK-089 | 原始校徽與頁首衍生檔有尺寸／雜湊；四個實際渲染分頁的可見文字、路徑與 SHA-256 由可重跑腳本保存 |
 | TASK-091 | 同步 0.9.2 版本、文件、完整驗證並 commit／push | done | 0.9.2 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[Release 0.9.2](releases/0.9.2.md) | TASK-088～TASK-090 | package／lockfile／model／README／contracts／release 已同步；build、93 tests、四 view × 五 viewport、desktop／mobile／WebGL fallback E2E、v0.9.1 immutable baseline、四頁文字快照與 diff 檢查通過後建立單一 release commit 並 push `main` |
 
 `TASK-088`～`TASK-091` 已完成並收斂為 [Release 0.9.2](releases/0.9.2.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
@@ -365,7 +365,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-094 | 精修公開理念敘事、服務中心用詞與引言樣式 | done | 0.9.4 | [DEC-140](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](public/swimming-pool-renovation-design-concept.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-093 | 四章與設計細節採核准文字；來源登錄、場景摘要、替代文字及日照示意統一稱服務中心；三段引言採一致易讀樣式，沒有改動建築幾何或研究輸入 |
+| TASK-094 | 精修公開理念敘事、服務中心用詞與引言樣式 | done | 0.9.4 | [DEC-140](04_DECISIONS_AND_OPEN_ITEMS.md)、[公開理念文字](../content/design-concept.md)、[3D Viewer 契約](contracts/3d-viewer.md) | TASK-093 | 四章與設計細節採核准文字；來源登錄、場景摘要、替代文字及日照示意統一稱服務中心；三段引言採一致易讀樣式，沒有改動建築幾何或研究輸入 |
 | TASK-095 | 同步 0.9.4 版本、文件、完整驗證並發布 | done | 0.9.4 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[Release 0.9.4](releases/0.9.4.md) | TASK-094 | package／lockfile／model／generated data／README／contracts／release 同步；完整 build、tests、typecheck、公開頁與 Viewer E2E、immutable baseline 及 diff 檢查通過後建立單一 release commit 並 push `main` |
 
 `TASK-094`～`TASK-095` 已完成並收斂為 [Release 0.9.4](releases/0.9.4.md)；不建立 tag，push `main` 後由既有 GitHub Pages workflow 部署單一公開入口。
@@ -376,7 +376,7 @@ V2.3／0.5.0 實作記錄（2026-07-21）：使用者啟動整批實作後，`TA
 
 | ID | 工作 | 狀態 | 目標版本 | Owner／規格 | 依賴 | 完成條件 |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-096 | 精修 ORIGIN 場勘／手稿文案、圖片順序與單欄版面 | done | 0.9.5 | [網站文字快照](public/website-copy-v1.0.md)、設計理念 view | TASK-095 | 場勘標題與導語採核准文字；三張場勘照改為單欄並按入口／泳池寬度／老樹邊界敘事排列；手稿標題與說明採核准文字，日照反射、1F 俯視、剖面、立體圖四張改為指定順序及單欄排列；localhost 已逐項確認文案、圖片與說明配對 |
+| TASK-096 | 精修 ORIGIN 場勘／手稿文案、圖片順序與單欄版面 | done | 0.9.5 | [網站文字快照](../content/website-copy.md)、設計理念 view | TASK-095 | 場勘標題與導語採核准文字；三張場勘照改為單欄並按入口／泳池寬度／老樹邊界敘事排列；手稿標題與說明採核准文字，日照反射、1F 俯視、剖面、立體圖四張改為指定順序及單欄排列；localhost 已逐項確認文案、圖片與說明配對 |
 | TASK-097 | 同步 0.9.5 版本、文件與完整驗證 | done | 0.9.5 | [發布流程](06_WORKFLOW_AND_RELEASES.md)、[Release 0.9.5](releases/0.9.5.md) | TASK-096 | package／lockfile／model／generated data／README／release 同步；84 份 Markdown、97 個任務、50 個實體、5 張圖面、16 個來源、93 tests、typecheck、production build、公開頁 4 views × 5 viewports、Viewer／solar／atlas E2E、文字快照及 diff 檢查通過 |
 
 依使用者指示，工作歷史與現行執行範圍截止於 `TASK-097`。

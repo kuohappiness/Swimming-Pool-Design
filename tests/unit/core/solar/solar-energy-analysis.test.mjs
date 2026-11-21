@@ -8,10 +8,10 @@ import {
   evaluateEnergySensitivity,
   evaluateMirrorEnergy,
   mirrorReceiverFractions,
-} from '../scripts/solar-energy-analysis.mjs';
-import { deriveSolarPlanOrientation, reflectSolarRay } from '../scripts/solar-reflection.mjs';
+} from '../../../../core/solar/solar-energy-analysis.mjs';
+import { deriveSolarPlanOrientation, reflectSolarRay } from '../../../../core/solar/solar-reflection.mjs';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const pvgis = JSON.parse(await readFile(resolve(repoRoot, 'source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json'), 'utf8'));
 const weather = buildPvgisWeatherSamples(model, pvgis);

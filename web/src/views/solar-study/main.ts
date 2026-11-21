@@ -1,15 +1,15 @@
-import rawModel from '../../../model/project-model.json';
+import rawModel from '../../../../model/project-model.json';
 import generatedViewerModel from '../../generated/viewer-model.json';
-import type { ProjectModel } from '../types';
-import { resolveActiveGeometry } from '../../../scripts/active-geometry.mjs';
+import type { ProjectModel } from '../../shared/types';
+import { resolveActiveGeometry } from '../../../../core/geometry/active-geometry.mjs';
 import {
   calculateSolarPosition,
   deriveSolarPlanOrientation,
   evaluatePoolReflection,
   normalizeAzimuth,
   reflectSolarRay,
-} from '../../../scripts/solar-reflection.mjs';
-import { deriveMirrorNormalAzimuth } from '../../../scripts/site-orientation.mjs';
+} from '../../../../core/solar/solar-reflection.mjs';
+import { deriveMirrorNormalAzimuth } from '../../../../core/geometry/site-orientation.mjs';
 
 const model = rawModel as unknown as ProjectModel;
 

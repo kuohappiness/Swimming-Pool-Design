@@ -1,4 +1,4 @@
-import { deriveSiteOrientation } from './site-orientation.mjs';
+import { deriveSiteOrientation } from '../geometry/site-orientation.mjs';
 
 const RADIANS = Math.PI / 180;
 const DEGREES = 180 / Math.PI;

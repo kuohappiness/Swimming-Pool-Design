@@ -5,8 +5,8 @@ import { access, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright-core';
 
-const repoRoot = resolve(import.meta.dirname, '..');
-const outputPath = resolve(repoRoot, 'docs/public/website-copy-v1.0.md');
+const repoRoot = resolve(import.meta.dirname, '../..');
+const outputPath = resolve(repoRoot, 'content/website-copy.md');
 const previewPort = 4175;
 const suppliedOrigin = process.env.COPY_BASE_URL?.replace(/\/$/, '');
 const origin = suppliedOrigin ?? `http://127.0.0.1:${previewPort}`;

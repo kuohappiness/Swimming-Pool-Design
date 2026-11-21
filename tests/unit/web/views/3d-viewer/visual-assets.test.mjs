@@ -5,10 +5,10 @@ import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createServer } from 'vite';
 
-const repoRoot = resolve(import.meta.dirname, '..');
-const viewerRoot = resolve(repoRoot, 'reference/src/3d-viewer');
+const repoRoot = resolve(import.meta.dirname, '../../../../..');
+const viewerRoot = resolve(repoRoot, 'web/src/views/3d-viewer');
 const vite = await createServer({
-  root: resolve(repoRoot, 'reference'),
+  root: resolve(repoRoot, 'web'),
   appType: 'custom',
   optimizeDeps: { noDiscovery: true },
   server: { middlewareMode: true, hmr: false },
@@ -19,7 +19,7 @@ const {
   assertVisualAssetManifest,
   assertEnhancedQualityProfiles,
   getVisualAssetByteSize,
-} = await vite.ssrLoadModule('/src/3d-viewer/rendering/enhanced/index.ts');
+} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts');
 test.after(async () => vite.close());
 
 test('visual asset manifest resolves to local licensed files with exact hashes and sizes', async () => {

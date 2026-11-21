@@ -1,6 +1,6 @@
 import rawModel from '../../../model/project-model.json';
-import siteEmblem from '../assets/site-emblem-header.png';
-import type { ProjectModel } from '../types';
+import siteEmblem from '../shared/assets/brand/school-emblem-header.png';
+import type { ProjectModel } from '../shared/types';
 import { getViewDefinition, hrefForView, viewDefinitions, type ViewId } from './router';
 
 const model = rawModel as unknown as ProjectModel;

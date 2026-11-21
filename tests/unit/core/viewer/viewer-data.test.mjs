@@ -3,22 +3,22 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildViewerModel } from '../scripts/viewer-data.mjs';
-import { compilePublicContent, injectModelTokens } from '../scripts/build-public-content.mjs';
+import { buildViewerModel } from '../../../../core/viewer/viewer-data.mjs';
+import { compilePublicContent, injectModelTokens } from '../../../../tools/build/build-content.mjs';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const [modelText, registryText, markdown, manifestText, generatedModelText, generatedContentText, sceneFactorySource, baselineMaterialsSource, interactionsSource, viewerHtml, solarHtml] = await Promise.all([
   readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
   readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'),
-  readFile(resolve(repoRoot, 'docs/public/swimming-pool-renovation-design-concept.md'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/3d-viewer/scene-manifest.json'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/generated/viewer-model.json'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/generated/concept-content.json'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/3d-viewer/scene-factory.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/3d-viewer/rendering/baseline-material-registry.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/3d-viewer/interactions.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/views/3d-viewer/viewer-template.html'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/views/solar-study/legacy-template.html'), 'utf8'),
+  readFile(resolve(repoRoot, 'content/design-concept.md'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/scene-manifest.json'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/generated/viewer-model.json'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/generated/concept-content.json'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/scene-factory.ts'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/rendering/baseline-material-registry.ts'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/interactions.ts'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/template.html'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/views/solar-study/template.html'), 'utf8'),
 ]);
 const sourceModel = JSON.parse(modelText);
 const registry = JSON.parse(registryText);

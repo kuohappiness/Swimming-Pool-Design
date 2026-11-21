@@ -7,9 +7,9 @@ import { chromium } from 'playwright-core';
 import {
   deriveMirrorNormalAzimuth,
   deriveSiteOrientation,
-} from './site-orientation.mjs';
+} from '../../core/geometry/site-orientation.mjs';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../..');
 const port = 4173;
 const origin = `http://127.0.0.1:${port}`;
 const outputDirectory = resolve(repoRoot, 'test-results');

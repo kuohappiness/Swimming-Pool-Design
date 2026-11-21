@@ -1,7 +1,7 @@
-import viewerTemplate from './viewer-template.html?raw';
+import viewerTemplate from './template.html?raw';
 import type { MountedView } from '../../app/view-contract';
 import { getViewDefinition } from '../../app/router';
-import '../../3d-viewer/styles.css';
+import './styles.css';
 import './view.css';
 
 const viewDescription = getViewDefinition('3d-viewer').description;
@@ -24,7 +24,7 @@ function viewerMarkup(): string {
 
 export async function mount(container: HTMLElement): Promise<MountedView> {
   container.innerHTML = viewerMarkup();
-  const runtime = await import('../../3d-viewer/main');
+  const runtime = await import('./main');
   return {
     async destroy() {
       await runtime.destroyViewer?.();

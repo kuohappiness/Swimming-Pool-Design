@@ -4,10 +4,10 @@ import { readFile } from 'node:fs/promises';
 import {
   deriveMirrorNormalAzimuth,
   deriveSiteOrientation,
-} from '../scripts/site-orientation.mjs';
+} from '../../../../core/geometry/site-orientation.mjs';
 
 const model = JSON.parse(
-  await readFile(new URL('../model/project-model.json', import.meta.url), 'utf8'),
+  await readFile(new URL('../../../../model/project-model.json', import.meta.url), 'utf8'),
 );
 
 function pathsContainingKey(value, targetKey, path = 'model') {

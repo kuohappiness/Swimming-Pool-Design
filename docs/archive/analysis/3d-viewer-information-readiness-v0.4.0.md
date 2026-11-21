@@ -2,7 +2,7 @@
 
 > 本文件是 `TASK-017` 完成時的歷史快照，已不再是現行分析 owner。文內 0.4.0 尺寸、角度、runtime 準備度與缺口不得回寫 active model。現行資料以 `docs/03_DESIGN_BASIS.md`、`docs/05_MODEL_CONTRACT.md` 與各 output contract 為準。
 
-本文件記錄 3D Viewer 建模準備度、公開理念內容同步風險與後續補強順序。公開敘事當時以[理念文字正本](../../public/swimming-pool-renovation-design-concept.md)為準；有效數值、決策與未決事項仍由當時的 03～05 及個別分析 owner 管理。
+本文件記錄 3D Viewer 建模準備度、公開理念內容同步風險與後續補強順序。公開敘事當時以[理念文字正本](../../../content/design-concept.md)為準；有效數值、決策與未決事項仍由當時的 03～05 及個別分析 owner 管理。
 
 ## 1. 結論
 

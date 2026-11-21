@@ -21,12 +21,12 @@
 | 核准設計及實作步驟 | `docs/specs/` |
 | 已完成／被取代規格 | `docs/archive/specs/` |
 | 已發布版本證據 | `docs/releases/<version>.md` |
-| 公開設計理念的敘事文字 | `docs/public/swimming-pool-renovation-design-concept.md` |
-| 公開網站四分頁的可見文字版本快照 | `docs/public/website-copy-v1.0.md`；屬衍生備份，不取代各頁資料 owner |
+| 公開設計理念的敘事文字 | `content/design-concept.md` |
+| 公開網站四分頁的可見文字版本快照 | `content/website-copy.md`；屬衍生備份，不取代各頁資料 owner |
 
 README 只保留定位、quickstart、URL、版本與 01～07 導航。repo-local skill 只保存工作程序並引用本文件，不複製 owner 規則表。
 
-`docs/public/website-copy-v1.0.md` 由 `npm run capture:copy` 讀取實際渲染頁面後產生；任何公開文字或可見性調整後都應重新擷取，不得手動維護第二份可漂移的內容。
+`content/website-copy.md` 由 `npm run build:copy` 讀取實際渲染頁面後產生；任何公開文字或可見性調整後都應重新擷取，不得手動維護第二份可漂移的內容。
 
 子專案 README 也只保留入口、固定邊界、預定檔案位置與 owner 連結。設計答案仍進 DEC／design spec，執行狀態仍只進 `07_ACTIVE_WORK.md`，已發布行為仍由 output contract 管理。
 
@@ -68,4 +68,4 @@ archive spec 必須使用 `completed` 或 `superseded`，並增加 `完成日期
 
 ## 6. 檢查
 
-`npm run check:docs` 檢查本地 Markdown 連結、ID 宣告、TASK 狀態、spec metadata 與 active spec 引用。模型來源檔案與雜湊另由 `npm run validate:reference` 檢查。
+`npm run check:docs` 檢查本地 Markdown 連結、ID 宣告、TASK 狀態、spec metadata 與 active spec 引用。模型來源檔案與雜湊另由 `npm run check:model` 檢查。

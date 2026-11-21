@@ -5,9 +5,9 @@ import {
   evaluateEnergySensitivity,
   evaluateMirrorEnergy,
   scanMirrorEnergyAngles,
-} from './solar-energy-analysis.mjs';
+} from '../../core/solar/solar-energy-analysis.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../..');
 const model = JSON.parse(await readFile(resolve(root, 'model/project-model.json'), 'utf8'));
 const pvgis = JSON.parse(await readFile(resolve(root, 'source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json'), 'utf8'));
 const weather = buildPvgisWeatherSamples(model, pvgis);

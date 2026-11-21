@@ -57,7 +57,7 @@
 
 `SRC-CONCEPT-011` 於 2026-07-20 由使用者提供。圖面可直接觀察到剖面左右端、33 m、8 m、2 m、玻璃屋頂、鏡牆、雨水回收、泳池、L1 男女廁與 L2 男女更衣室；圖上「深 1.4 公尺」不是最終設計值。使用者隨附文字進一步確認：向右上方延伸的兩條斜線代表 `ST-01` 由 1F 至 2F 的樓梯，不是鏡面反射光路；樓梯長度與角度仍需建議及確認；水深改為剖面左端（2 m 退縮／雨水回收端）1.2 m 淺水、剖面右端（8 m 機能翼／廁所端）1.5 m 深水。
 
-`SRC-CONCEPT-012`～`SRC-CONCEPT-023` 於 2026-07-25 由使用者提供。原始位元組只改為穩定檔名，未縮放、旋轉、裁切、標註或重新壓縮；表內 SHA-256 即收件位元組。使用者指定 0.9.1 HTML 只使用校園場勘 2／5／6（`SRC-CONCEPT-013`／`016`／`017`）及除樓梯概念圖外的五張手稿（`SRC-CONCEPT-018`～`022`）；`SRC-CONCEPT-012`／`014`／`015`／`023` 仍保存但不被 HTML 引用。網站衍生檔另存於 `reference/src/views/design-concept/assets/`，只校正 EXIF 方向並縮放壓縮，沒有裁切或重繪。
+`SRC-CONCEPT-012`～`SRC-CONCEPT-023` 於 2026-07-25 由使用者提供。原始位元組只改為穩定檔名，未縮放、旋轉、裁切、標註或重新壓縮；表內 SHA-256 即收件位元組。使用者指定 0.9.1 HTML 只使用校園場勘 2／5／6（`SRC-CONCEPT-013`／`016`／`017`）及除樓梯概念圖外的五張手稿（`SRC-CONCEPT-018`～`022`）；`SRC-CONCEPT-012`／`014`／`015`／`023` 仍保存但不被 HTML 引用。網站衍生檔另存於 `web/src/views/design-concept/assets/`，只校正 EXIF 方向並縮放壓縮，沒有裁切或重繪。
 
 這批資料的提供者為專案使用者；個別攝影者／繪圖者未另做完整權利登記，其中 `SRC-CONCEPT-020` 依原檔名與使用者敘述記為哥哥協助。使用者已在本輪明確指示上述八張影像放入公開 HTML。圖面中的線條與手寫文字只作為早期設計過程證據，不取代現行尺寸、active geometry 或專業設計確認。
 
@@ -65,7 +65,7 @@
 
 `SRC-SITE-004` 於 2026-07-20 由使用者提供，原始檔完整保存，未裁切、縮放或重新壓縮。圖面可直接觀察到紅色框與上下兩個綠色框；框線語意依使用者隨附說明登錄為：紅框是目前泳池本體，上方綠框是廁所＋女生更衣室，下方綠框是男生更衣室。此圖已取代 `REF-001` HTML 內顯示的舊衛星空照圖；`SRC-SITE-001`／`SRC-SITE-002` 仍保留為歷史來源，不以新檔覆寫既有證據。彩框只確認現況位置與用途，不提供地籍邊界或精確尺寸。
 
-`SRC-SITE-005` 於 2026-07-25 由使用者提供；原始透明 PNG 保留於來源資料夾，頁首使用 `reference/src/assets/site-emblem-header.png`（256 × 256、71,133 bytes、SHA-256 `2D0DD7CE869E3116E6EA1C8304640EF8E4C9151A15268AC0EFD704076706F77F`）衍生檔。
+`SRC-SITE-005` 於 2026-07-25 由使用者提供；原始透明 PNG 保留於來源資料夾，頁首使用 `web/src/shared/assets/brand/school-emblem-header.png`（256 × 256、71,133 bytes、SHA-256 `2D0DD7CE869E3116E6EA1C8304640EF8E4C9151A15268AC0EFD704076706F77F`）衍生檔。
 
 `SRC-SITE-003` 於 2026-07-16 由 PVGIS 5.3 TMY API 以 `24.14434°N, 120.67341°E` 取得；原始 metadata 記錄海拔 84 m、`PVGIS-ERA5`／ERA5、2005～2023、啟用 DEM horizon，12 個月份各選一個典型月份。觀察資料包含逐時 GHI `G(h)`、DNI `Gb(n)`、DHI `Gd(h)`、溫度、濕度、風與氣壓；本專案只解讀輻射欄位作概念能量比較。TMY 是長期典型月份的組合，不代表 2026 年實際天氣，也不是施工熱負荷保證。來源：[PVGIS 5.3 API](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en)、[PVGIS TMY 說明](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/pvgis-5-tools/pvgis-typical-meteorological-year-tmy-generator_en)。
 

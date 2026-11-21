@@ -4,8 +4,8 @@ import {
   resolveActiveGeometry,
   resolveGeometryEntity,
   THREE_SITE_ADAPTER_ID,
-} from './active-geometry.mjs';
-import { deriveSiteOrientation } from './site-orientation.mjs';
+} from '../geometry/active-geometry.mjs';
+import { deriveSiteOrientation } from '../geometry/site-orientation.mjs';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);

@@ -15,7 +15,7 @@ import {
   activeSolarStudyGeometry,
   buildReflectingVolumeCorners,
 } from './solar-angle-analysis.mjs';
-import { resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
+import { resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active-geometry.mjs';
 
 export const WARM_MONTHS = new Set([5, 6, 7, 8, 9]);
 const EPSILON = 1e-9;
@@ -437,9 +437,9 @@ export function scanMirrorEnergyAngles(model, weatherSamples, options = {}) {
 }
 
 async function buildReport() {
-  const model = JSON.parse(await readFile(new URL('../model/project-model.json', import.meta.url), 'utf8'));
+  const model = JSON.parse(await readFile(new URL('../../model/project-model.json', import.meta.url), 'utf8'));
   const pvgis = JSON.parse(await readFile(
-    new URL('../source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json', import.meta.url),
+    new URL('../../source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json', import.meta.url),
     'utf8',
   ));
   const weather = buildPvgisWeatherSamples(model, pvgis);

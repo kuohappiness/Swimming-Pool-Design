@@ -1,5 +1,5 @@
-import rawModel from '../../model/project-model.json';
-import type { ProjectModel, SheetRender } from './types';
+import rawModel from '../../../../model/project-model.json';
+import type { ProjectModel, SheetRender } from '../../shared/types';
 import { escapeHtml } from './geometry';
 import { renderSheets } from './sheets';
 

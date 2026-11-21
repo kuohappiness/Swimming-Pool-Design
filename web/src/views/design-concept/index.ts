@@ -1,10 +1,10 @@
-import rawContent from '../../../generated/concept-content.json';
+import rawContent from '../../generated/concept-content.json';
 import rawModel from '../../../../model/project-model.json';
-import l3Drawing from '../../../drafts/v0.6.7/DRAW-L3-PLAN-v0.6.7.svg?raw';
-import { resolveActiveGeometry } from '../../../../scripts/active-geometry.mjs';
+import l3Drawing from '../../../../drawings/current/DRAW-L3-PLAN.svg?raw';
+import { resolveActiveGeometry } from '../../../../core/geometry/active-geometry.mjs';
 import type { MountedView } from '../../app/view-contract';
 import { getViewDefinition } from '../../app/router';
-import type { ProjectModel } from '../../types';
+import type { ProjectModel } from '../../shared/types';
 import campus02Large from './assets/origin-campus-02-1920.jpg';
 import campus02Small from './assets/origin-campus-02-960.jpg';
 import campus05Large from './assets/origin-campus-05-1920.jpg';

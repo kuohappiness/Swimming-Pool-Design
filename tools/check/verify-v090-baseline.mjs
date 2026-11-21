@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { resolveActiveGeometry } from './active-geometry.mjs';
+import { resolveActiveGeometry } from '../../core/geometry/active-geometry.mjs';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../..');
 const allowConceptSourceChange = process.argv.includes('--allow-concept-source-change');
 const report = JSON.parse(await readFile(
   resolve(repoRoot, 'tests/visual-baselines/v0.9.0-pre-unification/baseline-report.json'),
@@ -13,8 +13,8 @@ const report = JSON.parse(await readFile(
 const [model, registry, viewerModel, conceptContent] = await Promise.all([
   readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
   readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
-  readFile(resolve(repoRoot, 'reference/generated/viewer-model.json'), 'utf8').then(JSON.parse),
-  readFile(resolve(repoRoot, 'reference/generated/concept-content.json'), 'utf8').then(JSON.parse),
+  readFile(resolve(repoRoot, 'web/src/generated/viewer-model.json'), 'utf8').then(JSON.parse),
+  readFile(resolve(repoRoot, 'web/src/generated/concept-content.json'), 'utf8').then(JSON.parse),
 ]);
 
 const stableJson = (value) => {

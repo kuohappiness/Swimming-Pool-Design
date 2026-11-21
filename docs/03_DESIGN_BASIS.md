@@ -140,7 +140,7 @@ L1 池畔必須圍繞真實池口，不得以完整地板穿過池體。池體�
 ## 7. 現行輸出
 
 - 空間圖集只顯示 `REF-001`、`V067-L1`、`V067-L2`、`V067-L3`、`V067-SECTION`。
-- v0.6.7 SVG／PNG 由 `npm run drawings:v067` 從 active geometry 重現；HTML 直接內嵌 SVG，L3 另有預設勾選的「太陽能板」控制。
+- v0.6.7 SVG／PNG 由 `npm run build:drawings` 從 active geometry 重現；HTML 直接內嵌 SVG，L3 另有預設勾選的「太陽能板」控制。
 - 3D Viewer 提供獨立「泳池剖視」：固定由 Y0 長邊觀察並允許稍微向下旋轉，暫時隱藏近側立面／地坪，以斜底、水體剖面及 X3 淺水 1.20 m → X28 深水 1.50 m 標示呈現深度變化；離開剖視後須完整恢復一般場景。
 - 3D Viewer、日照 HTML、圖面與圖集皆顯示 model version、active revision、SITE-XY 或 model hash。
 - v0.5.0 舊圖可留在歷史資料夾，但不得出現在現行 HTML current tab。

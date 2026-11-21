@@ -5,9 +5,9 @@ import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { createServer } from 'vite';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../../../../..');
 const vite = await createServer({
-  root: resolve(repoRoot, 'reference'),
+  root: resolve(repoRoot, 'web'),
   appType: 'custom',
   optimizeDeps: { noDiscovery: true },
   server: { middlewareMode: true, hmr: false },
@@ -18,7 +18,7 @@ const {
   ENHANCED_QUALITY_PROFILES,
   TONE_MAPPING_PROFILES,
   getToneMappingProfile,
-} = await vite.ssrLoadModule('/src/3d-viewer/rendering/enhanced/index.ts');
+} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts');
 test.after(async () => vite.close());
 
 function environmentTarget() {
@@ -224,7 +224,7 @@ test('medium and low frame pipelines render directly without changing interactio
 
 test('high AO composition ends with OutputPass so the beauty buffer reaches the screen', async () => {
   const source = await readFile(
-    resolve(repoRoot, 'reference/src/3d-viewer/rendering/enhanced/frame-effect-pipeline.ts'),
+    resolve(repoRoot, 'web/src/views/3d-viewer/rendering/enhanced/frame-effect-pipeline.ts'),
     'utf8',
   );
   assert.match(source, /new OutputPass\(\)/);

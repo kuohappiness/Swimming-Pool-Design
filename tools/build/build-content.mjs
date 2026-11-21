@@ -1,11 +1,11 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { deriveReferenceGeometry } from './reference-geometry.mjs';
-import { buildViewerModel, hashData } from './viewer-data.mjs';
-import { resolveActiveGeometry } from './active-geometry.mjs';
+import { deriveReferenceGeometry } from '../../core/geometry/drawing-geometry.mjs';
+import { buildViewerModel, hashData } from '../../core/viewer/viewer-data.mjs';
+import { resolveActiveGeometry } from '../../core/geometry/active-geometry.mjs';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const TOKEN_PATTERN = /\{\{(model|active|derived):([A-Za-z0-9_.]+)\|([a-zA-Z]+)\}\}/g;
 const SCENE_PATTERN = /^<!--\s*scene:([a-z0-9-]+)\s*-->$/;
 
@@ -156,8 +156,8 @@ export function compilePublicContent(markdown, model, sceneManifest) {
 export async function buildPublicContent({ root = repoRoot } = {}) {
   const [modelText, markdown, manifestText, registryText] = await Promise.all([
     readFile(resolve(root, 'model/project-model.json'), 'utf8'),
-    readFile(resolve(root, 'docs/public/swimming-pool-renovation-design-concept.md'), 'utf8'),
-    readFile(resolve(root, 'reference/src/3d-viewer/scene-manifest.json'), 'utf8'),
+    readFile(resolve(root, 'content/design-concept.md'), 'utf8'),
+    readFile(resolve(root, 'web/src/views/3d-viewer/scene-manifest.json'), 'utf8'),
     readFile(resolve(root, 'model/analysis-registry.json'), 'utf8').catch(() => '{}'),
   ]);
   const model = JSON.parse(modelText);
@@ -165,7 +165,7 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
   const analysisRegistry = JSON.parse(registryText);
   const content = compilePublicContent(markdown, model, sceneManifest);
   const viewerModel = buildViewerModel(model, analysisRegistry);
-  const outputDirectory = resolve(root, 'reference/generated');
+  const outputDirectory = resolve(root, 'web/src/generated');
   await mkdir(outputDirectory, { recursive: true });
   await Promise.all([
     writeFile(resolve(outputDirectory, 'concept-content.json'), `${JSON.stringify(content, null, 2)}\n`),

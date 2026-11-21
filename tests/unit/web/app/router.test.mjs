@@ -5,21 +5,21 @@ import { constants } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const [indexHtml, routerSource, bootstrapSource, viteSource, appShellSource] = await Promise.all([
-  readFile(resolve(repoRoot, 'reference/index.html'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/app/router.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/app/bootstrap.ts'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/index.html'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/app/router.ts'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/app/bootstrap.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'vite.config.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'reference/src/app/app-shell.ts'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/app/app-shell.ts'), 'utf8'),
 ]);
 
 test('public site has one HTML entry and four query views', async () => {
   assert.match(indexHtml, /src="\/src\/app\/bootstrap\.ts"/);
   assert.doesNotMatch(indexHtml, /src\/3d-viewer\/main|src\/solar-study\/main|src\/main\.ts/);
-  await assert.rejects(access(resolve(repoRoot, 'reference/solar-study/index.html'), constants.F_OK));
-  await assert.rejects(access(resolve(repoRoot, 'reference/3d-viewer/index.html'), constants.F_OK));
-  assert.match(viteSource, /input:\s*resolve\(referenceRoot,\s*'index\.html'\)/);
+  await assert.rejects(access(resolve(repoRoot, 'web/solar-study/index.html'), constants.F_OK));
+  await assert.rejects(access(resolve(repoRoot, 'web/3d-viewer/index.html'), constants.F_OK));
+  assert.match(viteSource, /input:\s*resolve\(webRoot,\s*'index\.html'\)/);
   assert.doesNotMatch(viteSource, /solarStudy:|viewer3d:|atlas:/);
   for (const view of ['design-concept', 'solar-study', 'drawings', '3d-viewer']) {
     assert.match(routerSource, new RegExp(`'${view}'`));

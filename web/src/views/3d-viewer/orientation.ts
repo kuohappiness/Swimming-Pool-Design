@@ -3,7 +3,7 @@ import {
   normalizeBearingDegrees as normalizeCanonicalBearing,
   type NorthPlanDirection,
   type SiteOrientationReferenceSystem,
-} from '../../../scripts/site-orientation.mjs';
+} from '../../../../core/geometry/site-orientation.mjs';
 
 export interface ViewerOrientation {
   bearingFromTrueNorth: number;

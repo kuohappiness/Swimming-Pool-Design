@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright-core';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../..');
 const port = 4174;
 const origin = `http://127.0.0.1:${port}`;
 const outputDirectory = resolve(repoRoot, 'test-results');

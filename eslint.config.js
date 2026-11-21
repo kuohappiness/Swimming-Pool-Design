@@ -15,7 +15,8 @@ export default tseslint.config(
       'source-materials/**',
       'docs/**',
       'reference/drafts/**',
-      'reference/generated/**',
+      'web/src/generated/**',
+      'drawings/**',
     ],
   },
   js.configs.recommended,
@@ -29,16 +30,16 @@ export default tseslint.config(
     },
   },
   {
-    files: ['reference/src/**/*.ts'],
+    files: ['web/src/**/*.ts'],
     languageOptions: { globals: globals.browser },
   },
   {
-    files: ['scripts/**/*.mjs', 'tests/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],
+    files: ['core/**/*.mjs', 'tools/**/*.mjs', 'scripts/**/*.mjs', 'tests/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },
   {
     // Browser scripts pass callbacks to page.evaluate, which run in the page.
-    files: ['scripts/*-e2e.mjs', 'scripts/capture-*.mjs'],
+    files: ['tests/e2e/*.mjs', 'tools/capture/*.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 );

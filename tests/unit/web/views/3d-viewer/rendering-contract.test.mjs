@@ -4,19 +4,19 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { createServer } from 'vite';
-import { validateTaskConcurrency } from '../scripts/check-docs.mjs';
+import { validateTaskConcurrency } from '../../../../../tools/check/check-docs.mjs';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../../../../..');
 
 async function withRenderingModule(run) {
   const vite = await createServer({
-    root: resolve(repoRoot, 'reference'),
+    root: resolve(repoRoot, 'web'),
     appType: 'custom',
     optimizeDeps: { noDiscovery: true },
     server: { middlewareMode: true, hmr: { port: 0 } },
   });
   try {
-    await run(await vite.ssrLoadModule('/src/3d-viewer/rendering/index.ts'));
+    await run(await vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'));
   } finally {
     await vite.close();
   }
@@ -59,7 +59,7 @@ test('baseline material registry exposes unique semantic materials without chang
 
 test('baseline environment and frame pipeline preserve direct-render behavior and are idempotent', async () => {
   const vite = await createServer({
-    root: resolve(repoRoot, 'reference'),
+    root: resolve(repoRoot, 'web'),
     appType: 'custom',
     optimizeDeps: { noDiscovery: true },
     server: { middlewareMode: true, hmr: { port: 0 } },
@@ -70,9 +70,9 @@ test('baseline environment and frame pipeline preserve direct-render behavior an
       { BaselineFrameEffectPipeline },
       { BASELINE_QUALITY_PROFILE },
     ] = await Promise.all([
-      vite.ssrLoadModule('/src/3d-viewer/rendering/baseline-environment.ts'),
-      vite.ssrLoadModule('/src/3d-viewer/rendering/baseline-frame-pipeline.ts'),
-      vite.ssrLoadModule('/src/3d-viewer/rendering/quality-profile.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/rendering/baseline-environment.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/rendering/baseline-frame-pipeline.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/rendering/quality-profile.ts'),
     ]);
 
     const scene = new THREE.Scene();
@@ -168,8 +168,8 @@ test('docs task concurrency accepts only the approved isolated 0.7/0.8 pairing',
 
 test('main and scene factory use rendering contracts instead of concrete material or direct render setup', async () => {
   const [mainSource, sceneSource] = await Promise.all([
-    readFile(resolve(repoRoot, 'reference/src/3d-viewer/main.ts'), 'utf8'),
-    readFile(resolve(repoRoot, 'reference/src/3d-viewer/scene-factory.ts'), 'utf8'),
+    readFile(resolve(repoRoot, 'web/src/views/3d-viewer/main.ts'), 'utf8'),
+    readFile(resolve(repoRoot, 'web/src/views/3d-viewer/scene-factory.ts'), 'utf8'),
   ]);
   assert.match(mainSource, /createBaselineRenderingRuntime/);
   assert.match(mainSource, /rendering\.environment\.apply/);

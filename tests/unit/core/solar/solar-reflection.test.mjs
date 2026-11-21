@@ -12,7 +12,7 @@ import {
   projectShadowFootprint,
   reflectSolarRay,
   rotatePlanPoint,
-} from '../scripts/solar-reflection.mjs';
+} from '../../../../core/solar/solar-reflection.mjs';
 
 test('azimuth helpers normalize wraparound without changing angular distance', () => {
   assert.equal(normalizeAzimuth(-10), 350);

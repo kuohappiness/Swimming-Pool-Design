@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { buildViewerModel, hashData } from '../scripts/viewer-data.mjs';
-import { adaptWalkthroughSource } from '../reference/src/3d-viewer/walkthrough/adapters/viewer-model-adapter.ts';
-import { WALKTHROUGH_CONFIG } from '../reference/src/3d-viewer/walkthrough/walkthrough-config.ts';
+import { buildViewerModel, hashData } from '../../../../../../core/viewer/viewer-data.mjs';
+import { adaptWalkthroughSource } from '../../../../../../web/src/views/3d-viewer/walkthrough/adapters/viewer-model-adapter.ts';
+import { WALKTHROUGH_CONFIG } from '../../../../../../web/src/views/3d-viewer/walkthrough/walkthrough-config.ts';
 
-const modelUrl = new URL('../model/project-model.json', import.meta.url);
-const registryUrl = new URL('../model/analysis-registry.json', import.meta.url);
+const modelUrl = new URL('../../../../../../model/project-model.json', import.meta.url);
+const registryUrl = new URL('../../../../../../model/analysis-registry.json', import.meta.url);
 
 async function loadCanonicalInputs() {
   const [modelBytes, registryText] = await Promise.all([

@@ -1,11 +1,11 @@
-import type { ProjectModel, SheetRender } from './types';
-import { deriveSiteOrientation } from '../../scripts/site-orientation.mjs';
+import type { ProjectModel, SheetRender } from '../../shared/types';
+import { deriveSiteOrientation } from '../../../../core/geometry/site-orientation.mjs';
 
-const siteImage = new URL('../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
-import l1Svg from '../drafts/v0.6.7/DRAW-L1-PLAN-v0.6.7.svg?raw';
-import l2Svg from '../drafts/v0.6.7/DRAW-L2-PLAN-v0.6.7.svg?raw';
-import l3Svg from '../drafts/v0.6.7/DRAW-L3-PLAN-v0.6.7.svg?raw';
-import sectionSvg from '../drafts/v0.6.7/DRAW-LONGITUDINAL-SECTION-v0.6.7.svg?raw';
+const siteImage = new URL('../../../../source-materials/site/SRC-SITE-001_google-maps-satellite.png', import.meta.url).href;
+import l1Svg from '../../../../drawings/current/DRAW-L1-PLAN.svg?raw';
+import l2Svg from '../../../../drawings/current/DRAW-L2-PLAN.svg?raw';
+import l3Svg from '../../../../drawings/current/DRAW-L3-PLAN.svg?raw';
+import sectionSvg from '../../../../drawings/current/DRAW-LONGITUDINAL-SECTION.svg?raw';
 
 function reviewDrawing(id: string, title: string, svgSource: string, note: string, model: ProjectModel): SheetRender {
   const orientation = deriveSiteOrientation(model.referenceSystem);

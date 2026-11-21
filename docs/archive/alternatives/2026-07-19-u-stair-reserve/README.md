@@ -3,8 +3,8 @@
 - 方案代號：`ALT-ST-U-01`
 - 記錄日期：2026-07-19
 - 狀態：備用方案／未納入現行模型
-- 可縮放圖面：[折返樓梯平面與剖面簡圖](./u-stair-feasibility-sketch.html)
-- 圖片版本：[折返樓梯平面與剖面簡圖 PNG](./u-stair-feasibility-sketch.png)
+- 可縮放圖面：[折返樓梯平面與剖面簡圖](u-stair-feasibility-sketch.html)
+- 圖片版本：[折返樓梯平面與剖面簡圖 PNG](u-stair-feasibility-sketch.png)
 
 ## 1. 設計前提
 

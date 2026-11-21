@@ -3,17 +3,17 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createServer } from 'vite';
-import { buildViewerModel } from '../scripts/viewer-data.mjs';
-import { adaptWalkthroughSource } from '../reference/src/3d-viewer/walkthrough/adapters/viewer-model-adapter.ts';
+import { buildViewerModel } from '../../../../../core/viewer/viewer-data.mjs';
+import { adaptWalkthroughSource } from '../../../../../web/src/views/3d-viewer/walkthrough/adapters/viewer-model-adapter.ts';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../../../../..');
 const [projectModel, analysisRegistry] = await Promise.all([
   readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
   readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
 ]);
 const viewerModel = buildViewerModel(projectModel, analysisRegistry);
 const vite = await createServer({
-  root: resolve(repoRoot, 'reference'),
+  root: resolve(repoRoot, 'web'),
   appType: 'custom',
   optimizeDeps: { noDiscovery: true },
   server: { middlewareMode: true, hmr: false },
@@ -23,9 +23,9 @@ const [
   { createBaselineSceneRenderingDependencies },
   { EnhancedVisualAssetAdapter, getEnhancedQualityProfile },
 ] = await Promise.all([
-  vite.ssrLoadModule('/src/3d-viewer/scene-factory.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/rendering/index.ts'),
-  vite.ssrLoadModule('/src/3d-viewer/rendering/enhanced/index.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts'),
 ]);
 test.after(async () => vite.close());
 

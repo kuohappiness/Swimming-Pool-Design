@@ -9,10 +9,10 @@ import {
   evaluateHorizontalScan,
   evaluatePoolSurfaceSensitivity,
   evaluateSolarCandidate,
-} from '../scripts/solar-angle-analysis.mjs';
-import { resolveActiveGeometry } from '../scripts/active-geometry.mjs';
+} from '../../../../core/solar/solar-angle-analysis.mjs';
+import { resolveActiveGeometry } from '../../../../core/geometry/active-geometry.mjs';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 
 test('reads solar geometry only from the active SITE-XY revision', () => {

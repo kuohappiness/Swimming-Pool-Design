@@ -9,7 +9,7 @@ import {
   reflectSolarRay,
   rotatePlanPoint,
 } from './solar-reflection.mjs';
-import { resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
+import { resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active-geometry.mjs';
 
 export const SUMMER_DATES = [[2026, 5, 21], [2026, 6, 21], [2026, 7, 21], [2026, 8, 21]];
 export const WINTER_DATES = [[2026, 11, 21], [2026, 12, 21], [2027, 1, 21], [2027, 2, 21]];
@@ -583,6 +583,6 @@ function buildCliReport(model) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const model = JSON.parse(await readFile(new URL('../model/project-model.json', import.meta.url), 'utf8'));
+  const model = JSON.parse(await readFile(new URL('../../model/project-model.json', import.meta.url), 'utf8'));
   console.log(JSON.stringify(buildCliReport(model), null, 2));
 }

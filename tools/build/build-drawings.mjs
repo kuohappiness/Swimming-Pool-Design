@@ -1,14 +1,14 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { resolveActiveGeometry } from './active-geometry.mjs';
-import { deriveSiteOrientation } from './site-orientation.mjs';
+import { resolveActiveGeometry } from '../../core/geometry/active-geometry.mjs';
+import { deriveSiteOrientation } from '../../core/geometry/site-orientation.mjs';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(import.meta.dirname, '../..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const active = resolveActiveGeometry(model);
 const siteOrientation = deriveSiteOrientation(model.referenceSystem);
 const versionSlug = `v${model.modelVersion}`;
-const outputRoot = resolve(repoRoot, 'reference/drafts', versionSlug);
+const outputRoot = resolve(repoRoot, 'drawings/current');
 const scale = 36;
 const originX = 105;
 const originY = 790;
@@ -283,10 +283,10 @@ function sectionDrawing() {
 }
 
 const drawings = [
-  [`DRAW-L1-PLAN-${versionSlug}.svg`, l1Plan()],
-  [`DRAW-L2-PLAN-${versionSlug}.svg`, l2Plan()],
-  [`DRAW-L3-PLAN-${versionSlug}.svg`, l3Plan()],
-  [`DRAW-LONGITUDINAL-SECTION-${versionSlug}.svg`, sectionDrawing()],
+  ['DRAW-L1-PLAN.svg', l1Plan()],
+  ['DRAW-L2-PLAN.svg', l2Plan()],
+  ['DRAW-L3-PLAN.svg', l3Plan()],
+  ['DRAW-LONGITUDINAL-SECTION.svg', sectionDrawing()],
 ];
 await mkdir(outputRoot, { recursive: true });
 await Promise.all(drawings.map(([name, svg]) => writeFile(resolve(outputRoot, name), `${svg}\n`, 'utf8')));

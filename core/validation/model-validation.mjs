@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { geometryEntities, resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
-import { deriveSiteOrientation } from './site-orientation.mjs';
+import { geometryEntities, resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active-geometry.mjs';
+import { deriveSiteOrientation } from '../geometry/site-orientation.mjs';
 
 const TOLERANCE = 0.002;
 const closeTo = (actual, expected, tolerance = TOLERANCE) => Number.isFinite(actual)

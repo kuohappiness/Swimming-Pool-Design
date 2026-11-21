@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { createServer } from 'vite';
 
 const vite = await createServer({
-  root: resolve(import.meta.dirname, '..', 'reference'),
+  root: resolve(import.meta.dirname, '../../../../..', 'web'),
   appType: 'custom',
   optimizeDeps: { noDiscovery: true },
   server: { middlewareMode: true, hmr: false },
@@ -13,7 +13,7 @@ const vite = await createServer({
 const [
   { EnhancedDetailLevelAdapter, getEnhancedQualityProfile, markVisualDetail },
 ] = await Promise.all([
-  vite.ssrLoadModule('/src/3d-viewer/rendering/enhanced/index.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts'),
 ]);
 test.after(async () => vite.close());
 

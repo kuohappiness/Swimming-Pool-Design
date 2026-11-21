@@ -1,5 +1,5 @@
-import type { ProjectModel } from './types';
-import type { PlanBounds } from '../../scripts/reference-geometry.mjs';
+import type { ProjectModel } from '../../shared/types';
+import type { PlanBounds } from '../../../../core/geometry/drawing-geometry.mjs';
 
 export const PLAN = { x: 112, y: 128, scale: 26 };
 

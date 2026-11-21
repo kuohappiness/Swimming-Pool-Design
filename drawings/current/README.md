@@ -2,10 +2,10 @@
 
 本資料夾保存由 `GEO-0.6.7` 重現的三張 current 平面圖與一張縱向剖面圖。所有圖面均為概念設計、非施工圖。
 
-- `DRAW-L1-PLAN-v0.6.7.svg`／`.png`
-- `DRAW-L2-PLAN-v0.6.7.svg`／`.png`
-- `DRAW-L3-PLAN-v0.6.7.svg`／`.png`
-- `DRAW-LONGITUDINAL-SECTION-v0.6.7.svg`／`.png`
+- `DRAW-L1-PLAN.svg`／`.png`
+- `DRAW-L2-PLAN.svg`／`.png`
+- `DRAW-L3-PLAN.svg`／`.png`
+- `DRAW-LONGITUDINAL-SECTION.svg`／`.png`
 - model／active geometry：`0.6.7`／`GEO-0.6.7`
 - owner：`TASK-052`
 
@@ -14,5 +14,5 @@
 重現：
 
 ```powershell
-npm run drawings:v067
+npm run build:drawings
 ```

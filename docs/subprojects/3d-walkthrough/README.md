@@ -24,7 +24,7 @@
 ## 預定程式結構
 
 ```text
-reference/src/3d-viewer/walkthrough/
+web/src/views/3d-viewer/walkthrough/
 ├─ index.ts
 ├─ types.ts
 ├─ walkthrough-config.ts
@@ -49,7 +49,7 @@ reference/src/3d-viewer/walkthrough/
    └─ viewer-model-adapter.ts
 ```
 
-測試分為純邏輯／資料隔離測試與瀏覽器行為測試；可重新產生的衍生資料只能放在 `reference/generated/`，不得寫回 `model/`。
+測試分為純邏輯／資料隔離測試與瀏覽器行為測試；可重新產生的衍生資料只能放在 `web/src/generated/`，不得寫回 `model/`。
 
 ## 文件所有權
 

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveActiveGeometry, resolveGeometryEntity, sitePointToThree } from '../scripts/active-geometry.mjs';
-import { deriveReferenceGeometry } from '../scripts/reference-geometry.mjs';
-import { validateModel, validateSourceFiles } from '../scripts/reference-validation.mjs';
+import { resolveActiveGeometry, resolveGeometryEntity, sitePointToThree } from '../../../../core/geometry/active-geometry.mjs';
+import { deriveReferenceGeometry } from '../../../../core/geometry/drawing-geometry.mjs';
+import { validateModel, validateSourceFiles } from '../../../../core/validation/model-validation.mjs';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const readJson = async (path) => JSON.parse(await readFile(resolve(repoRoot, path), 'utf8'));
 const model = await readJson('model/project-model.json');
 
@@ -237,7 +237,7 @@ test('ST-01 scheme E connects the +0.30 m deck directly to L2', () => {
 
 test('current sheet registry and atlas source contain only latest v0.6.7 inline SVG drawings', async () => {
   assert.deepEqual(model.sheets.map(({ id }) => id), ['REF-001', 'V067-L1', 'V067-L2', 'V067-L3', 'V067-SECTION']);
-  const sheetsSource = await readFile(resolve(repoRoot, 'reference/src/sheets.ts'), 'utf8');
+  const sheetsSource = await readFile(resolve(repoRoot, 'web/src/views/drawings/sheets.ts'), 'utf8');
   for (const id of ['V067-L1', 'V067-L2', 'V067-L3', 'V067-SECTION']) assert.match(sheetsSource, new RegExp(id));
   assert.doesNotMatch(sheetsSource, /V23-|v0\.5\.0\/DRAW/);
   assert.match(sheetsSource, /\.svg\?raw/);
@@ -250,7 +250,7 @@ test('current sheet registry and atlas source contain only latest v0.6.7 inline 
 test('all four reproducible drawings carry active revision and SITE-XY metadata', async () => {
   const names = ['DRAW-L1-PLAN', 'DRAW-L2-PLAN', 'DRAW-L3-PLAN', 'DRAW-LONGITUDINAL-SECTION'];
   for (const name of names) {
-    const base = resolve(repoRoot, 'reference/drafts/v0.6.7', `${name}-v0.6.7`);
+    const base = resolve(repoRoot, 'drawings/current', name);
     const svg = await readFile(`${base}.svg`, 'utf8');
     await access(`${base}.png`);
     assert.match(svg, /data-model-version="0\.6\.7"/);
@@ -303,11 +303,11 @@ test('all four reproducible drawings carry active revision and SITE-XY metadata'
 
 test('active geometry consumers do not hardcode a legacy study selector', async () => {
   const paths = [
-    'scripts/reference-geometry.mjs',
-    'scripts/viewer-data.mjs',
-    'scripts/solar-angle-analysis.mjs',
-    'scripts/solar-energy-analysis.mjs',
-    'scripts/generate-current-drawings.mjs',
+    'core/geometry/drawing-geometry.mjs',
+    'core/viewer/viewer-data.mjs',
+    'core/solar/solar-angle-analysis.mjs',
+    'core/solar/solar-energy-analysis.mjs',
+    'tools/build/build-drawings.mjs',
   ];
   for (const path of paths) {
     const source = await readFile(resolve(repoRoot, path), 'utf8');
