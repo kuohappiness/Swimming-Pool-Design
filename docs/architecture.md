@@ -34,12 +34,14 @@ Swimming-Pool-Design/
 │     ├─ generated/          build:content 的產物，不入庫
 │     └─ views/<view id>/    每個分頁一個資料夾；影像衍生檔放該頁的 assets/
 ├─ tools/                    命令列工具，不被網站匯入
+│  ├─ section.mjs            只印文件的一節或一列（見 agents/workflow.md 第 5 節）
 │  ├─ build/                 build-content、build-drawings、render-drawing-png、build-copy、clean-dist
-│  ├─ check/                 check-docs、check-model
+│  ├─ check/                 check-docs、check-model；status-line、workflow-docs（狀態行與 roadmap、backlog 分節）、
+│  │                         legacy-status-docs.json（舊格式任務說明的凍結清單）
 │  ├─ analysis/              solar-optimize
 │  └─ capture/               capture-viewer-quality
 ├─ tests/
-│  ├─ unit/                  core/、web/ 底下對應原始碼位置的子資料夾
+│  ├─ unit/                  core/、web/、tools/ 底下對應原始碼位置的子資料夾
 │  ├─ e2e/                   web.e2e.mjs、3d-viewer.e2e.mjs
 │  └─ fixtures/              測試與工具讀取的固定資料
 ├─ source-materials/         原始來源，只增不改
@@ -50,13 +52,13 @@ Swimming-Pool-Design/
    ├─ site-and-sources.md    基地與來源登錄
    ├─ design-basis.md        設計基準
    ├─ decisions.md           DEC、已關閉的舊 OPEN、設計風險
-   ├─ backlog.md             尚無答案的 OPEN
-   ├─ roadmap.md             TASK 狀態、依賴與驗收
+   ├─ backlog.md             待處理與已轉出的 OPEN
+   ├─ roadmap.md             現在在哪裡、等觸發點、已完成
    ├─ architecture.md        本文件
    ├─ agents/                workflow.md（工作流程與發布）
    ├─ contracts/             model.md、drawings.md、solar-study.md、3d-viewer.md
    ├─ analysis/              專題分析
-   ├─ tasks/                 進行中的任務說明（設計與實作計畫）
+   ├─ tasks/                 任務說明，標題下寫狀態行；做完不搬
    ├─ releases/              發布紀錄
    └─ archive/               封存區：README.md（舊路徑對照、已刪除清單）、specs/、alternatives/、
                              analysis/、subprojects/、legacy-models/、deliverables/
@@ -66,7 +68,7 @@ Swimming-Pool-Design/
 
 ## 2. 每類資訊放哪裡
 
-每一類資訊只有一個 owner。其他文件可以摘要，但必須連回 owner，且不得另設可漂移的狀態或完整答案。`roadmap.md` 是 TASK 狀態唯一來源，不是設計知識庫。
+每一類資訊只有一個 owner。其他文件可以摘要，但必須連回 owner，且不得另設可漂移的狀態或完整答案。每件工作的狀態只寫在它入口（任務說明）的狀態行，`roadmap.md` 的狀態板照抄並由檢查比對；roadmap 不是設計知識庫。
 
 | 資訊 | 唯一 owner |
 | --- | --- |
@@ -74,15 +76,15 @@ Swimming-Pool-Design/
 | 基地、方位證據、來源、像素、雜湊 | [site-and-sources.md](site-and-sources.md) |
 | 當前有效數值與空間意圖 | [design-basis.md](design-basis.md) |
 | DEC、取代歷史、已關閉的舊 OPEN 與設計風險 | [decisions.md](decisions.md) |
-| 尚無答案的 OPEN | [backlog.md](backlog.md) |
+| 尚無答案的 OPEN 與已轉出的去向 | [backlog.md](backlog.md) |
 | 模型 schema、座標、溯源與跨輸出不變條件 | [contracts/model.md](contracts/model.md) |
-| 收件、變更、驗證、部署、版本與發布流程 | [agents/workflow.md](agents/workflow.md) |
-| TASK 狀態、依賴、目標版本與驗收入口 | [roadmap.md](roadmap.md) |
+| 工作路線、狀態行、連結、收件、驗證、部署、版本與發布流程 | [agents/workflow.md](agents/workflow.md) |
+| 現在在做什麼、等觸發點的工作、已完成的工作 | [roadmap.md](roadmap.md) |
+| 一件工作的狀態、規格、驗收與結果 | `docs/tasks/<任務>.md` 的狀態行與內文 |
 | 資料夾結構、檔案位置、分層、路由、名詞與文件生命週期 | 本文件 |
 | 專題分析的輸入、方法、比較表與限制 | `docs/analysis/<topic>.md` |
 | 個別現行輸出行為 | `docs/contracts/<output>.md` |
-| 核准設計及實作步驟 | `docs/tasks/` |
-| 已完成／被取代規格 | `docs/archive/specs/` |
+| 2026-11-22 以前完成或被取代的舊格式規格 | `docs/archive/specs/`，不再新增 |
 | 已發布版本證據 | `docs/releases/<version>.md` |
 | 公開設計理念的敘事文字 | `content/design-concept.md` |
 | 公開網站四分頁的可見文字版本快照 | `content/website-copy.md`；屬衍生備份，不取代各頁資料 owner |
@@ -99,7 +101,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 | 新增的東西 | 放在 |
 | --- | --- |
 | 網站與工具都會用到的運算 | `core/<領域>/` |
-| 命令列工具 | `tools/build/`、`tools/check/`、`tools/analysis/` 或 `tools/capture/` |
+| 命令列工具 | `tools/build/`、`tools/check/`、`tools/analysis/` 或 `tools/capture/`；查文件的 `tools/section.mjs` 是唯一放在 `tools/` 根目錄的工具 |
 | 新分頁 | `web/src/views/<view id>/`，步驟見第 5 節 |
 | 分頁專用的影像 | `web/src/views/<view id>/assets/`，由 `source-materials/` 衍生 |
 | 共用的品牌素材 | `web/src/shared/assets/brand/` |
@@ -107,7 +109,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 | 單元測試 | `tests/unit/` 下對應原始碼位置的子資料夾，檔名是受測模組名加 `.test.mjs` |
 | 瀏覽器測試 | `tests/e2e/<對象>.e2e.mjs` |
 | 使用者提供的原始來源 | `source-materials/site/` 或 `source-materials/concepts/`，命名與登錄見 [agents/workflow.md](agents/workflow.md) 第 2 節 |
-| 任務說明 | `docs/tasks/<日期>-<主題>-<design 或 implementation-plan>.md` |
+| 任務說明 | `docs/tasks/<YYYY-MM-DD>-<主題>.md`，寫法見 [agents/workflow.md](agents/workflow.md) 第 2.4 節 |
 | 專題分析 | `docs/analysis/<主題>.md` |
 
 ## 4. 分層與依賴方向
@@ -227,42 +229,22 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 ## 8. 文件生命週期
 
+一件事從點子到完成的路線、每類文件的寫法、狀態行與連結，見 [工作流程與發布](agents/workflow.md)。本節只列分類與檢查。
+
 ### 8.1 分類
 
-- `DEC`：已確認或已被取代的設計答案，在 decisions.md。
-- `OPEN`：尚缺關鍵輸入，無法形成唯一答案的問題，在 backlog.md。
-- `TASK`：答案或修法已知，等待執行與驗證的工作，在 roadmap.md。
-- `SPEC`：核准的設計或實作計畫，在 `docs/tasks/`。
+- `DEC`：已確認或已被取代的設計答案，以及改不回來、跨全專案的規則，在 decisions.md。
+- `OPEN`：尚缺關鍵輸入，無法形成唯一答案的問題，在 backlog.md 的〈待處理〉；談成或做成任務後搬到〈已轉出〉。
+- 任務說明：答案或修法已知、交付實作的工作，在 `docs/tasks/`，狀態寫在標題下的狀態行，做完不搬；roadmap 的狀態板照抄。`TASK-NNN` 編號接著用，寫在 roadmap 那一列的「工作」欄。
 - `RELEASE`：已發布版本的不可變證據，在 `docs/releases/`。
 
-修法已知的缺陷不得長期留在 OPEN。設計答案進 DEC，執行進 TASK。
+修法已知的缺陷不得長期留在 OPEN。設計答案進 DEC，執行進任務說明。
 
-### 8.2 Task 狀態
+### 8.2 2026-11-22 以前的舊格式
 
-允許 `queued`、`ready`、`in_progress`、`blocked`、`done`。預設同一時間最多一項 `in_progress`。
+- roadmap〈已完成〉下方的舊任務表保留原文，狀態欄只用 `queued`、`ready`、`in_progress`、`blocked`、`done`；舊的平行開發例外（DEC-120）仍由檢查器驗證舊表。
+- `docs/archive/specs/` 的舊規格保留日期、類型、狀態、任務、目標版本、完成日期等欄位，只修斷鏈或明顯文字錯誤，不改寫當時決策；清單在 `tools/check/legacy-status-docs.json`，不再新增。
 
-只有在 DEC 與 active specs 明確核准平行工作流、不同目標版本使用獨立 branch／worktree、檔案所有權互斥，且共用整合檔案仍由單一 integration task 管理時，才可改為「每個目標版本最多一項 `in_progress`」。平行例外必須由文件檢查器驗證；在相應 validator task 完成前仍沿用全域單一 `in_progress`。
+### 8.3 檢查
 
-- `queued`：依賴尚未完成。
-- `ready`：可直接開始。
-- `in_progress`：目前主動執行工作；若使用已核准平行例外，須屬不同目標版本與隔離工作區。
-- `blocked`：已有明確阻塞證據。
-- `done`：驗收條件已通過；不得只因寫完規格而完成。
-
-### 8.3 任務說明與封存
-
-`docs/tasks/` 的任務說明必須有固定欄位：
-
-```text
-- 日期：YYYY-MM-DD
-- 類型：design | implementation-plan
-- 狀態：draft | approved | in_progress
-- 任務：TASK-NNN
-- 目標版本：x.y.z
-```
-
-封存到 `docs/archive/specs/` 的規格使用 `completed` 或 `superseded`，並增加 `完成日期`。任務完成後，design 與 implementation plan 一起封存；封存文件只允許修正斷鏈或明顯文字錯誤，不改寫當時決策。
-
-### 8.4 檢查
-
-`npm run check:docs` 檢查本地 Markdown 連結、ID 宣告（OPEN 只能在 backlog.md）、TASK 狀態、任務說明欄位、任務說明是否被 TASK 引用，以及 `.claude/skills/` 與 `.agents/skills/` 兩份 skill 是否逐位元組相同。模型來源檔案與雜湊另由 `npm run check:model` 檢查。
+`npm run check:docs` 檢查本地 Markdown 連結、ID 宣告（OPEN 只能在 backlog.md，TASK 編號不重複）、任務說明的狀態行、roadmap 三節與狀態板是否和狀態行一致、backlog 兩節與「→」的格式、舊格式規格的欄位，以及 `.claude/skills/` 與 `.agents/skills/` 兩份 skill 是否逐位元組相同。模型來源檔案與雜湊另由 `npm run check:model` 檢查。
