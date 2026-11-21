@@ -9,7 +9,6 @@ import {
   reflectSolarRay,
   rotatePlanPoint,
 } from './solar-reflection.mjs';
-import { deriveReferenceGeometry } from './reference-geometry.mjs';
 import { resolveActiveGeometry, resolveGeometryEntity } from './active-geometry.mjs';
 
 export const SUMMER_DATES = [[2026, 5, 21], [2026, 6, 21], [2026, 7, 21], [2026, 8, 21]];
@@ -382,11 +381,6 @@ export function evaluateContinuousWarmSeasonEnvelope(model, options = {}) {
     results,
   };
 }
-
-const levelElevation = (model, id) => {
-  const level = model?.referenceSystem?.levels?.find((candidate) => candidate.id === id);
-  return finite(level?.elevation, `referenceSystem.levels.${id}.elevation`);
-};
 
 export function activeSolarStudyGeometry(model) {
   const active = resolveActiveGeometry(model);

@@ -50,7 +50,7 @@ function inlineMarkdown(value) {
     .replace(/&lt;br\s*\/?&gt;/gi, '<br>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/  $/, '<br>');
+    .replace(/ {2}$/, '<br>');
 }
 
 function markdownToHtml(lines) {

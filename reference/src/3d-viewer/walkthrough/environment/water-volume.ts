@@ -88,7 +88,6 @@ export class WaterVolume {
     eyeHeight: number,
     hysteresis: number,
   ): WaterlineState {
-    const site = this.worldPointToSite(position);
     const horizontal = this.containsHorizontal(position);
     const bottomElevation = this.bottomWorldElevation(position);
     const bodyCentre = position.y - eyeHeight * 0.5;

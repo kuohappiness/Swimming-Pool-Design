@@ -140,18 +140,6 @@ function tag(object: THREE.Object3D, info: Omit<SelectableInfo, 'object'>, selec
   selectables.push({ object, ...info });
 }
 
-function addWallSegments(
-  group: THREE.Group,
-  spans: Array<[number, number]>,
-  z: number,
-  height: number,
-  material: THREE.Material,
-) {
-  for (const [start, end] of spans) {
-    group.add(box([end - start, height, 0.14], [(start + end) / 2, height / 2, z], material));
-  }
-}
-
 function addFacadeWallWithOpenings(
   group: THREE.Group,
   x: number,
