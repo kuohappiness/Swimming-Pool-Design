@@ -2,7 +2,7 @@
 
 - 類型：output-contract
 - 狀態：active／v0.9.4（V067 圖面內容不變）
-- Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
+- Owner：[模型契約](model.md)
 - 入口：`/?view=drawings`
 
 ## 必要輸出

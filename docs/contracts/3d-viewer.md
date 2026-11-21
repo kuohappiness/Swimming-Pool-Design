@@ -2,7 +2,7 @@
 
 - 類型：output-contract
 - 狀態：active／v0.9.7
-- Owner：[05｜模型契約](../05_MODEL_CONTRACT.md)
+- Owner：[模型契約](model.md)
 - 入口：`/?view=3d-viewer`
 
 ## 資料來源與同步

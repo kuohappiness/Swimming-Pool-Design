@@ -5,8 +5,8 @@ Use this checklist whenever the user provides an image, plan, measurement, CAD f
 ## 1. Preserve the source
 
 - Copy the original bytes; do not resize, rotate, crop, annotate, or recompress the registered source.
-- Use `source-materials/site/` for maps, aerial images, survey-like references, and site photos.
-- Use `source-materials/concepts/` for sketches, mood images, diagrams, and concept drawings.
+- Use `source-materials/site/` for maps, aerial images and survey-like references, and `source-materials/site/photos/` for site photos.
+- Use `source-materials/concepts/` for mood images, diagrams, and concept drawings, and `source-materials/concepts/hand-sketches/` only for hand sketches.
 - Add new categories only when repeated sources justify them.
 
 Naming pattern:
@@ -31,7 +31,7 @@ Calculate and record:
 - intended project use
 - copyright or attribution context
 
-Register these facts in `docs/02_SITE_AND_SOURCES.md`.
+Register these facts in `docs/site-and-sources.md`.
 
 ## 3. Separate observation from interpretation
 
@@ -41,10 +41,10 @@ Do not claim that a sketch confirms a dimension merely because its shape appears
 
 ## 4. Route design impact
 
-- A source registry change belongs only in `02_SITE_AND_SOURCES.md`.
-- A new or revised numeric planning value belongs in `03_DESIGN_BASIS.md`.
-- A user-confirmed choice or newly discovered conflict belongs in `04_DECISIONS_AND_OPEN_ITEMS.md`.
-- A change to shared model behavior belongs in `docs/05_MODEL_CONTRACT.md`; output-specific behavior belongs in the affected `docs/contracts/` file.
+- A source registry change belongs only in `docs/site-and-sources.md`.
+- A new or revised numeric planning value belongs in `docs/design-basis.md`.
+- A user-confirmed choice belongs in `docs/decisions.md`; a newly discovered unresolved conflict belongs in `docs/backlog.md`.
+- A change to shared model behavior belongs in `docs/contracts/model.md`; output-specific behavior belongs in the affected `docs/contracts/` file.
 
 Link between owners instead of copying the same explanation into all four.
 

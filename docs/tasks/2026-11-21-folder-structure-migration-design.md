@@ -6,7 +6,7 @@
 - 任務：TASK-107～TASK-110
 - 目標版本：repository structure（不另發版）
 - 核准：使用者 2026-11-21 21:45（台北時間）於專案對話同意全部建議
-- 決策：[DEC-147](../04_DECISIONS_AND_OPEN_ITEMS.md)
+- 決策：[DEC-147](../decisions.md)
 - 逐檔清單：[資料夾架構調整清單](2026-11-21-folder-structure-migration-inventory.md)
 
 ## 1. 目標
@@ -20,7 +20,7 @@
 ## 2. 不變的事
 
 - 建築設計、模型數值、幾何雜湊、日照分析結果。
-- 公開網址與 view id：`/`、`?view=solar-study`、`?view=drawings`、`?view=3d-viewer`（[DEC-125](../04_DECISIONS_AND_OPEN_ITEMS.md)）。
+- 公開網址與 view id：`/`、`?view=solar-study`、`?view=drawings`、`?view=3d-viewer`（[DEC-125](../decisions.md)）。
 - `DEC`、`OPEN`、`TASK`、`SRC` 編號；原始來源的檔名、內容與 SHA-256。
 - Git 歷史：不改寫、不 force push。26 份發布紀錄記錄的 commit 編號必須持續有效。
 - 封存文件（`docs/archive/`）與發布紀錄（`docs/releases/<version>.md`）的內文不改寫；只修正 `check:docs` 會驗證的 Markdown 連結。

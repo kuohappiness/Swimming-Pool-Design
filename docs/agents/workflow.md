@@ -1,4 +1,4 @@
-# 06｜工作流程與發布
+# 工作流程與發布
 
 ## 1. 工作鏈
 
@@ -16,14 +16,14 @@ validator + tests + build
 現行輸出與 release 記錄
 ```
 
-來源先入庫、設計答案先進 owner、執行狀態只進 [07｜Active Work](07_ACTIVE_WORK.md)。文件責任與生命週期見 [DOCUMENT_OWNERSHIP](governance/DOCUMENT_OWNERSHIP.md)。
+來源先入庫、設計答案先進 owner、執行狀態只進 [進度與任務](../roadmap.md)。文件責任、檔案位置與生命週期見 [架構](../architecture.md)。
 
 ## 2. 新來源資料
 
-1. 保留原始檔，不覆蓋既有來源。
+1. 保留原始檔，不覆蓋既有來源。基地資料放 `source-materials/site/`（現場照片放 `photos/`），概念資料放 `source-materials/concepts/`（手繪稿放 `hand-sketches/`）。
 2. 依 `SRC-<類型>-<序號>_<描述>.<副檔名>` 命名。
 3. 記錄像素、格式、SHA-256、用途與限制。
-4. 更新 [02｜基地與來源](02_SITE_AND_SOURCES.md) 與模型 `sources`。
+4. 更新 [基地與來源](../site-and-sources.md) 與模型 `sources`。
 5. 若改變設計，另更新設計基準及 DEC／OPEN；若需要實作，建立或更新 TASK。
 
 ## 3. 設計與實作變更
@@ -31,10 +31,10 @@ validator + tests + build
 1. 先判斷內容是 DEC、OPEN、TASK、SPEC 或 RELEASE。
 2. 更新唯一 owner，不在 README 或規格另建第二份狀態。
 3. 設計答案確認後，更新 DEC、設計基準及模型契約。
-4. 需要執行時，於 `07_ACTIVE_WORK.md` 建立穩定 TASK ID，連結 owner、核准規格與驗收。
+4. 需要執行時，於 `roadmap.md` 建立穩定 TASK ID，連結 owner、`docs/tasks/` 的核准規格與驗收。
 5. 只有 `in_progress` 任務可以主動修改實作；預設同一時間最多一項。只有依文件治理契約核准、通過 validator 且使用獨立 branch／worktree 與互斥檔案所有權的不同目標版本，才可各有一項 `in_progress`；共用整合檔案仍只由單一 integration task 修改。
 6. 修改模型或 consumer，執行相稱的 validator、測試、build 與視覺檢查。
-7. 驗證完成後將 TASK 設為 `done`，規格移至 `docs/archive/specs/`。
+7. 驗證完成後將 TASK 設為 `done`，規格由 `docs/tasks/` 移至 `docs/archive/specs/`。
 8. 形成版本時建立 `docs/releases/<version>.md`，記錄範圍、驗證證據與 commit。
 
 ## 4. 本機操作
@@ -53,7 +53,7 @@ git diff --check
 
 `npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/web/`。`npm run dev` 只聽本機；要用手機連線測試時改用 `npm run dev:lan`。`npm run test:e2e` 需要本機的 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定瀏覽器路徑。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
 
-每個 PR 由 `.github/workflows/ci.yml` 自動執行上列檢查與金鑰掃描，彙總檢查「全部檢查通過」是合併前的必要條件（[DEC-148](04_DECISIONS_AND_OPEN_ITEMS.md)）。
+每個 PR 由 `.github/workflows/ci.yml` 自動執行上列檢查與金鑰掃描，彙總檢查「全部檢查通過」是合併前的必要條件（[DEC-148](../decisions.md)）。
 
 ## 5. GitHub Pages
 
@@ -70,7 +70,7 @@ git diff --check
 - 開發中的後續版本不得預先改寫正式套件／模型版本；runtime 相容性以 schema、active revision、coordinate system 與 hash 契約判定，不以尚未發布的目標版號硬編碼。
 - 不同目標版本可以在隔離分支平行開發，但正式發布保持版本順序；後續版本在前一版本發布後合併其正式基線，再執行完整回歸。
 - Git commit 是可追溯變更；Git tag 只在明確要求時建立。
-- `versions/V02`、`versions/V03` 是不可變歷史快照，不延續為現行模型版號。
+- `docs/archive/legacy-models/` 的 V02、V03 是不可變歷史快照，不延續為現行模型版號。
 - PATCH：不改幾何語意；MINOR：新增相容能力或完成一組新設計；MAJOR：座標、單位或 schema 的不相容變更。
 
 ## 7. 提交與發布門檻

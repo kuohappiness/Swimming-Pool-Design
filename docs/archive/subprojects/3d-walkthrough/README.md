@@ -6,11 +6,11 @@
 
 - 目標版本：`0.7.0`
 - 階段：`TASK-053` 資料邊界與模組骨架已完成；`TASK-054` camera mode／雙平台輸入可開始
-- 任務：[TASK-053～TASK-058](../../07_ACTIVE_WORK.md)
-- 決策：[DEC-117／DEC-118](../../04_DECISIONS_AND_OPEN_ITEMS.md)
-- 核准設計：[3D Walkthrough MVP 子專案架構](../../archive/specs/2026-07-24-3d-walkthrough-mvp-design.md)
-- 實作計畫：[3D Walkthrough MVP Implementation Plan](../../archive/specs/2026-07-24-3d-walkthrough-mvp-implementation-plan.md)
-- 現行輸出契約：[3D Viewer 契約](../../contracts/3d-viewer.md)
+- 任務：[TASK-053～TASK-058](../../../roadmap.md)
+- 決策：[DEC-117／DEC-118](../../../decisions.md)
+- 核准設計：[3D Walkthrough MVP 子專案架構](../../specs/2026-07-24-3d-walkthrough-mvp-design.md)
+- 實作計畫：[3D Walkthrough MVP Implementation Plan](../../specs/2026-07-24-3d-walkthrough-mvp-implementation-plan.md)
+- 現行輸出契約：[3D Viewer 契約](../../../contracts/3d-viewer.md)
 
 ## 固定邊界
 

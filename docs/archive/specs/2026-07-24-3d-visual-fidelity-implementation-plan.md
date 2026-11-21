@@ -6,7 +6,7 @@
 - 完成日期：2026-07-24
 - 任務：TASK-059～TASK-065
 - 目標版本：0.8.0
-- 依據：[核准設計](2026-07-24-3d-visual-fidelity-design.md)、[DEC-119／DEC-120](../../04_DECISIONS_AND_OPEN_ITEMS.md)
+- 依據：[核准設計](2026-07-24-3d-visual-fidelity-design.md)、[DEC-119／DEC-120](../../decisions.md)
 
 ## 1. Goal
 

@@ -17,11 +17,8 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'test-results/**',
-      'deliverables/**',
-      'versions/**',
       'source-materials/**',
       'docs/**',
-      'reference/drafts/**',
       'web/src/generated/**',
       'drawings/**',
     ],
@@ -65,7 +62,7 @@ export default tseslint.config(
     rules: { 'no-restricted-syntax': 'off' },
   },
   {
-    files: ['core/**/*.mjs', 'tools/**/*.mjs', 'scripts/**/*.mjs', 'tests/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],
+    files: ['core/**/*.mjs', 'tools/**/*.mjs', 'tests/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },
   {

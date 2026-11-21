@@ -51,7 +51,7 @@
 
 ## 4. 核准示意圖
 
-![OPEN-010 玻璃屋頂與 L2 分層交界示意](open-010-layered-envelope-concept.svg)
+![OPEN-010 玻璃屋頂與 L2 分層交界示意](assets/open-010-layered-envelope-concept.svg)
 
 本圖左側採水平與垂直同尺度，忠實表達 4.5°；右側節點為非比例放大，只說明荷重分離、遮簷、陰影縫、活動接縫與雙層泛水的層次，不是施工詳圖。
 

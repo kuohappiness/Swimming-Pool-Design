@@ -1,4 +1,4 @@
-# 01｜專案簡報
+# 專案簡報
 
 ## 1. 專案目的
 
@@ -53,4 +53,4 @@
 
 ## 7. 權威文件
 
-本文件只負責目的、範圍與成功條件。基地證據見 [02_SITE_AND_SOURCES](02_SITE_AND_SOURCES.md)，設計數值見 [03_DESIGN_BASIS](03_DESIGN_BASIS.md)，決策狀態見 [04_DECISIONS_AND_OPEN_ITEMS](04_DECISIONS_AND_OPEN_ITEMS.md)。
+本文件只負責目的、範圍與成功條件。基地證據見 [基地與來源](site-and-sources.md)，設計數值見 [設計基準](design-basis.md)，決策狀態見 [決策](decisions.md)。

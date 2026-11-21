@@ -6,13 +6,13 @@
 
 - 目標版本：`0.8.0`
 - 階段：`TASK-059`～`TASK-065` 已完成並發布為 0.8.0
-- 任務：[TASK-059～TASK-065](../../07_ACTIVE_WORK.md)
-- 決策：[DEC-119／DEC-120](../../04_DECISIONS_AND_OPEN_ITEMS.md)
-- 完成設計：[3D Viewer 視覺擬真升級架構](../../archive/specs/2026-07-24-3d-visual-fidelity-design.md)
-- 完成計畫：[Visual Fidelity Implementation Plan](../../archive/specs/2026-07-24-3d-visual-fidelity-implementation-plan.md)
-- 發布紀錄：[Release 0.8.0](../../releases/0.8.0.md)
+- 任務：[TASK-059～TASK-065](../../../roadmap.md)
+- 決策：[DEC-119／DEC-120](../../../decisions.md)
+- 完成設計：[3D Viewer 視覺擬真升級架構](../../specs/2026-07-24-3d-visual-fidelity-design.md)
+- 完成計畫：[Visual Fidelity Implementation Plan](../../specs/2026-07-24-3d-visual-fidelity-implementation-plan.md)
+- 發布紀錄：[Release 0.8.0](../../../releases/0.8.0.md)
 - 0.7 依賴：[3D Walkthrough 子專案](../3d-walkthrough/README.md)
-- 現行輸出契約：[3D Viewer 契約](../../contracts/3d-viewer.md)
+- 現行輸出契約：[3D Viewer 契約](../../../contracts/3d-viewer.md)
 
 ## 固定邊界
 

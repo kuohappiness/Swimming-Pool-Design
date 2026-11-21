@@ -1,6 +1,6 @@
 # Document Ownership Adapter
 
-The formal and current ownership contract is [docs/governance/DOCUMENT_OWNERSHIP.md](../../../docs/governance/DOCUMENT_OWNERSHIP.md). Read it before moving facts, changing DEC／OPEN／TASK state, or refactoring documents. Do not reproduce its owner map here.
+The formal and current ownership contract is [docs/architecture.md](../../../../docs/architecture.md). Read it before moving facts, changing DEC／OPEN／TASK state, or refactoring documents. Do not reproduce its owner map here.
 
 ## Repository Procedure
 
@@ -9,8 +9,8 @@ The formal and current ownership contract is [docs/governance/DOCUMENT_OWNERSHIP
 3. Replace duplicated details elsewhere with an ID and link.
 4. Preserve a superseded DEC when it explains an existing artifact.
 5. Use OPEN only when the answer still needs material input; use TASK when the answer or fix is known.
-6. Put implementation progress only in `docs/07_ACTIVE_WORK.md`.
-7. Move completed or superseded specs to `docs/archive/specs/`; never append active work to an archived plan.
+6. Put implementation progress only in `docs/roadmap.md`.
+7. Move completed or superseded task specs from `docs/tasks/` to `docs/archive/specs/`; never append active work to an archived plan.
 
 ## Conflict Handling
 

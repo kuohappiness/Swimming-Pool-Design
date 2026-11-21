@@ -1,4 +1,4 @@
-# 05｜模型契約
+# 模型契約
 
 ## 1. 單一來源
 
@@ -102,7 +102,7 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 | `Z-L3-TERRACE-01` | X38.428～X41／Y0～Y5.392 |
 | `RF-PV-RES-01` | X27.722～X40.75／Y0.25～Y13.25 |
 
-四間廁所、儲物、水處理與藥劑分間的 bounds 以 [03｜設計基準](03_DESIGN_BASIS.md)為準。0.8.2 另要求每個 L1 WC 隔間明列 `fixtureType`、`fixtureCenter` 與 `fixtureFacing`；全案必須正好 8 座 WC、坐式 4 座／蹲式 4 座，且 fixture center 必須位於其隔間 bounds 內。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
+四間廁所、儲物、水處理與藥劑分間的 bounds 以 [設計基準](../design-basis.md)為準。0.8.2 另要求每個 L1 WC 隔間明列 `fixtureType`、`fixtureCenter` 與 `fixtureFacing`；全案必須正好 8 座 WC、坐式 4 座／蹲式 4 座，且 fixture center 必須位於其隔間 bounds 內。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
 
 ## 4. 衍生層與輸出
 
@@ -170,8 +170,8 @@ v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Vie
 
 相關輸出契約：
 
-- [空間參照圖集](contracts/reference-atlas.md)
-- [太陽研究](contracts/solar-study.md)
-- [3D Viewer](contracts/3d-viewer.md)
+- [空間參照圖集](drawings.md)
+- [太陽研究](solar-study.md)
+- [3D Viewer](3d-viewer.md)
 
 本契約管理概念資料一致性，不取代建築、結構、機電、消防、無障礙、材料或施工專業驗證。

@@ -6,7 +6,7 @@
 - 完成日期：2026-07-25
 - 任務：TASK-067～TASK-074
 - 目標版本：0.8.2
-- 依據：[核准設計](2026-07-25-building-first-realism-design.md)、[DEC-122～DEC-124](../../04_DECISIONS_AND_OPEN_ITEMS.md)
+- 依據：[核准設計](2026-07-25-building-first-realism-design.md)、[DEC-122～DEC-124](../../decisions.md)
 
 ## 1. 全域限制
 

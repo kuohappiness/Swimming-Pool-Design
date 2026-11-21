@@ -6,7 +6,7 @@
 - 完成日期：2026-07-24
 - 任務：TASK-053～TASK-058
 - 目標版本：0.7.0
-- 依據：[核准設計](2026-07-24-3d-walkthrough-mvp-design.md)、[DEC-117／DEC-118](../../04_DECISIONS_AND_OPEN_ITEMS.md)
+- 依據：[核准設計](2026-07-24-3d-walkthrough-mvp-design.md)、[DEC-117／DEC-118](../../decisions.md)
 
 ## 1. Goal
 

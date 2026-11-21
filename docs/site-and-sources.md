@@ -1,4 +1,4 @@
-# 02｜基地與來源
+# 基地與來源
 
 ## 1. 基地識別
 
@@ -38,12 +38,12 @@
 | SRC-CONCEPT-009 | `source-materials/concepts/SRC-CONCEPT-009_longitudinal-section-correction-annotated.png` | 使用者在 `REF-401` 圖面以紅色斜線標示屋頂概念位置、以綠框圈出入口戶外區；隨附文字另指出 `EXT-L2-01` 外牆為鏡面反射牆並應有一些傾斜 | 2216 × 1130 | `3CD710CEC62E32F2209EFA731FCF0EBFDA38A978BD0925A504481EE563175034` |
 | SRC-CONCEPT-010 | `source-materials/concepts/SRC-CONCEPT-010_l1-plan-v2.0.jpeg` | 使用者手繪「俯視圖－1F V2.0」；標示 33 m 泳池主體、右側 8 m 機能翼、男女廁、戶外區、2 m 退縮、門與樓梯 | 3840 × 2110 | `467B4CFB573A5250FCF5D5D74D02AF4D696071B35FCA0C1D96817DFFCA99BD08` |
 | SRC-CONCEPT-011 | `source-materials/concepts/SRC-CONCEPT-011_longitudinal-section-v2.0.jpeg` | 使用者手繪「剖面圖 V2.0」；表達 33 m 泳池主體、右側 8 m 機能翼、L1 廁所、L2 更衣室、外傾鏡牆、玻璃屋頂、雨水回收、2 m 退縮與 1F 至 2F 樓梯 | 3840 × 2747 | `3612C211F9AC06C6E9E8B40210C8282B7088DD81691D36F237C75E483329EB8B` |
-| SRC-CONCEPT-012 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-012_campus-survey-01.jpeg` | 校園場勘 1；操場、校舍與基地周邊廣角現況；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；6,141,202 bytes | `484B5D2B066CE9EDA45316EBEE85E443EE7C4D9928679E30BAFE6D409BEE0E2C` |
-| SRC-CONCEPT-013 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-013_campus-survey-02.jpeg` | 校園場勘 2；球場側既有泳池建物、樹木與入口；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；6,091,749 bytes | `95EE7532DA5F45F82A2905D84496F602B1D4BE9517C192AF10333896FEE4EF29` |
-| SRC-CONCEPT-014 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-014_campus-survey-03.jpeg` | 校園場勘 3；戶外樓梯、樹木與建物端部；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；8,024,325 bytes | `8A4596D3F36FAD00EFC4C787F973F6EAE1E6AA255A4484660BC39E965E59C37E` |
-| SRC-CONCEPT-015 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-015_campus-survey-04.jpeg` | 校園場勘 4；鄰近校舍、連通棚架與建物端部；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；6,874,744 bytes | `E773D1A0AF3152AD5DCAEAE20C881DE2B87B3F3ED6A8A87546BD39DC6F5AF499` |
-| SRC-CONCEPT-016 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-016_campus-survey-05.jpeg` | 校園場勘 5；既有建物、戶外樓梯、老樹與鋪面；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；8,384,281 bytes | `ADB7A6F8F8D2AEDF31254F8FFEC204992B0B311DF3907E4484FB7E7A59863600` |
-| SRC-CONCEPT-017 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-017_campus-survey-06.jpeg` | 校園場勘 6；老樹遮蔭下的既有泳池長向立面；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；8,969,290 bytes | `E0FD617289DB8048E64C3A883480A1114CCDD7579FFC103D7D610F3BB2786809` |
+| SRC-CONCEPT-012 | `source-materials/site/photos/SRC-CONCEPT-012_campus-survey-01.jpeg` | 校園場勘 1；操場、校舍與基地周邊廣角現況；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；6,141,202 bytes | `484B5D2B066CE9EDA45316EBEE85E443EE7C4D9928679E30BAFE6D409BEE0E2C` |
+| SRC-CONCEPT-013 | `source-materials/site/photos/SRC-CONCEPT-013_campus-survey-02.jpeg` | 校園場勘 2；球場側既有泳池建物、樹木與入口；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；6,091,749 bytes | `95EE7532DA5F45F82A2905D84496F602B1D4BE9517C192AF10333896FEE4EF29` |
+| SRC-CONCEPT-014 | `source-materials/site/photos/SRC-CONCEPT-014_campus-survey-03.jpeg` | 校園場勘 3；戶外樓梯、樹木與建物端部；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；8,024,325 bytes | `8A4596D3F36FAD00EFC4C787F973F6EAE1E6AA255A4484660BC39E965E59C37E` |
+| SRC-CONCEPT-015 | `source-materials/site/photos/SRC-CONCEPT-015_campus-survey-04.jpeg` | 校園場勘 4；鄰近校舍、連通棚架與建物端部；保存來源，不在 0.9.1 HTML 呈現 | image/jpeg；8064 × 4536；6,874,744 bytes | `E773D1A0AF3152AD5DCAEAE20C881DE2B87B3F3ED6A8A87546BD39DC6F5AF499` |
+| SRC-CONCEPT-016 | `source-materials/site/photos/SRC-CONCEPT-016_campus-survey-05.jpeg` | 校園場勘 5；既有建物、戶外樓梯、老樹與鋪面；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；8,384,281 bytes | `ADB7A6F8F8D2AEDF31254F8FFEC204992B0B311DF3907E4484FB7E7A59863600` |
+| SRC-CONCEPT-017 | `source-materials/site/photos/SRC-CONCEPT-017_campus-survey-06.jpeg` | 校園場勘 6；老樹遮蔭下的既有泳池長向立面；用於 0.9.1 ORIGIN 現場起點 | image/jpeg；8064 × 4536；8,969,290 bytes | `E0FD617289DB8048E64C3A883480A1114CCDD7579FFC103D7D610F3BB2786809` |
 | SRC-CONCEPT-018 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-018_overhead-plan-sketch.jpeg` | 早期手繪俯視圖；可見泳池、服務空間、戶外區、樓梯與手寫尺度；用於 0.9.1 ORIGIN | image/jpeg；1484 × 2701；EXIF 8；278,985 bytes | `66B1C3004ACF2EA94B3C3A6B265D891DCDFD4B89C1B79B5BF522B7CEF6F4F855` |
 | SRC-CONCEPT-019 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-019_section-sketch.jpeg` | 早期手繪剖面；可見玻璃屋頂、鏡牆、泳池、雨水回收與服務空間；用於 0.9.1 ORIGIN | image/jpeg；1990 × 2782；EXIF 8；408,483 bytes | `A7FE1423B62A1B291DB11A8EFD5B60DB8BB1F793F5008D8EF541F803D3BFA865` |
 | SRC-CONCEPT-020 | `source-materials/concepts/hand-sketches/SRC-CONCEPT-020_early-3d-concept-sketch.jpeg` | 早期三維示意；使用者註記為哥哥協助，呈現泳池、入口、服務中心與傾斜屋頂；用於 0.9.1 ORIGIN | image/jpeg；1993 × 2830；EXIF 8；505,764 bytes | `14D424520AD7B9AB927C5697487F7840D2D7413A5C690A3A415E7A2004FF3390` |
@@ -79,7 +79,7 @@
 4. 手繪圖表達的空間意圖。
 5. 歷史 Viewer 或 DXF。
 
-手繪不是按比例施工圖；標註圖只證明決策位置與意圖，精確尺寸由 [03_DESIGN_BASIS](03_DESIGN_BASIS.md) 管理。
+手繪不是按比例施工圖；標註圖只證明決策位置與意圖，精確尺寸由 [設計基準](design-basis.md) 管理。
 
 ## 5. 公開與署名
 
@@ -93,4 +93,4 @@
 - 新資料應新增修訂紀錄，再由單一模型切換至新值，不覆寫來源歷史。
 - 校址中心座標不是泳池局部測量點；正式日照分析可用測量座標取代，但不得在頁面另寫第二套位置資料。
 
-來源新增程序見 [06_WORKFLOW_AND_RELEASES](06_WORKFLOW_AND_RELEASES.md)。
+來源新增程序見 [工作流程與發布](agents/workflow.md)。
