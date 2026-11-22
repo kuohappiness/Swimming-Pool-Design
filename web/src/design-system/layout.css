@@ -101,6 +101,7 @@ a {
   position: relative;
   display: grid;
   place-items: center;
+  min-width: 44px;
   min-height: 44px;
   padding: 0 18px;
   color: var(--site-muted);
