@@ -26,6 +26,22 @@
           <button class="reset-button" type="button" data-reset-view>重設視角</button>
         </div>
       </section>
+      <section class="light-control" data-light-control hidden>
+        <p class="section-kicker">LIGHT</p>
+        <h2>日照時刻</h2>
+        <div class="light-field">
+          <label for="light-date">日期 <output for="light-date" data-light-date-label></output></label>
+          <input id="light-date" type="range" min="1" max="365" step="1" data-light-date>
+        </div>
+        <div class="light-terms" data-light-terms role="group" aria-label="節氣"></div>
+        <div class="light-field">
+          <label for="light-time">時刻 <output for="light-time" data-light-time-label></output></label>
+          <input id="light-time" type="range" min="0" max="1430" step="10" data-light-time>
+        </div>
+        <div class="light-weather" data-light-weather role="group" aria-label="天氣"></div>
+        <p class="light-status" data-light-status></p>
+        <button class="light-now" type="button" data-light-now>用現在的時間</button>
+      </section>
       <section class="quality-control">
         <p class="section-kicker">QUALITY</p>
         <label for="quality-select">畫質</label>

@@ -26,7 +26,7 @@
 - `materials/concrete-*`：專案自製的 CC0 清水模 base-color／normal／roughness 代理。
 - `materials/pool-tile-*`、`materials/deck-*`：專案自製的 CC0 池磚與池畔 base-color／normal 代理。
 - `materials/water-normal.svg`：專案自製的 CC0 可降級水面 normal 代理。
-- `environments/courtyard-sky.svg`：專案自製的 CC0 等距長方形程序天空參照；TASK-062 可選擇轉為 PMREM environment，缺失時仍須回復 baseline。
+- `environments/courtyard-sky.svg`：專案自製的 CC0 等距長方形程序天空參照；TASK-062 可選擇轉為 PMREM environment，缺失時仍須回復 baseline。TASK-152 起，倒影與間接光改由程式算出來的天空產生（`rendering/lighting/`，沒有檔案資產），這張圖只在第一份光照狀態算出來之前當作備援。
 - `models/`：留給 TASK-063 的輕量、已登錄尺度參照資產。
 
 資產均為概念即時視覺化用途；清水模模板、玻璃、鋼材、防滑、防水、耐氯胺、鏡面與光電實際規格仍由既有 OPEN／專業驗證管理。

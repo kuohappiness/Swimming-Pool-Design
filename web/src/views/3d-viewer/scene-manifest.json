@@ -12,7 +12,8 @@
       },
       "camera": { "position": [34, 29, -39], "target": [0, 3.3, 0], "fov": 40 },
       "layers": ["site", "l1", "water", "l2", "l3", "roof", "energy", "circulation", "annotations"],
-      "environment": "day"
+      "environment": "day",
+      "lighting": { "month": 3, "day": 20, "time": "08:30", "weather": "clear" }
     },
     {
       "id": "light",
@@ -25,7 +26,8 @@
       },
       "camera": { "position": [35, 20, -24], "target": [0, 6.8, -7], "fov": 35 },
       "layers": ["site", "l1", "water", "l2", "l3", "roof", "energy", "annotations"],
-      "environment": "winter-light"
+      "environment": "winter-light",
+      "lighting": { "month": 12, "day": 21, "time": "09:30", "weather": "clear" }
     },
     {
       "id": "rain",
@@ -38,7 +40,8 @@
       },
       "camera": { "position": [25, 14, 36], "target": [0, 3.0, 12], "fov": 39 },
       "layers": ["site", "l1", "water", "roof", "rain", "annotations"],
-      "environment": "rain"
+      "environment": "rain",
+      "lighting": { "month": 6, "day": 10, "time": "14:00", "weather": "rain" }
     },
     {
       "id": "people",
@@ -51,7 +54,8 @@
       },
       "camera": { "position": [-30, 15, 34], "target": [-3, 3.0, 0], "fov": 40 },
       "layers": ["site", "l1", "water", "l2", "circulation", "annotations"],
-      "environment": "day"
+      "environment": "day",
+      "lighting": { "month": 5, "day": 15, "time": "15:30", "weather": "clear" }
     },
     {
       "id": "time",
@@ -64,7 +68,8 @@
       },
       "camera": { "position": [12, 22, -42], "target": [0, 4.6, -8], "fov": 40 },
       "layers": ["site", "l1", "l2", "l3", "roof", "energy", "circulation", "annotations"],
-      "environment": "soft"
+      "environment": "soft",
+      "lighting": { "month": 6, "day": 21, "time": "07:30", "weather": "clear" }
     }
   ]
 }
