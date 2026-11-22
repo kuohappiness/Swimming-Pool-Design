@@ -36,6 +36,7 @@ const routes = [
   { id: 'design-concept', label: '設計理念', url: '/' },
   { id: 'solar-study', label: '日照研究', url: '/?view=solar-study' },
   { id: 'water-cycle', label: '水循環', url: '/?view=water-cycle' },
+  { id: 'swim-class', label: '一堂游泳課', url: '/?view=swim-class' },
   { id: 'design-process', label: '設計歷程', url: '/?view=design-process' },
   { id: 'drawings', label: '圖面設計', url: '/?view=drawings' },
   {

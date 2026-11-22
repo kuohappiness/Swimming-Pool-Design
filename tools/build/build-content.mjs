@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { deriveReferenceGeometry } from '../../core/geometry/drawing-geometry.mjs';
 import { buildViewerModel, hashData } from '../../core/viewer/viewer-data.mjs';
 import { resolveActiveGeometry } from '../../core/geometry/active-geometry.mjs';
+import { buildSwimClassData } from '../../core/geometry/class-route.mjs';
 import { buildWaterCycleData } from '../../core/water/roof-rainfall.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -13,6 +14,7 @@ const SECTION_PATTERN = /^<!--\s*section:([a-z0-9-]+)\s*-->$/;
 export const ABOUT_SECTION_IDS = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'];
 export const DESIGN_PROCESS_SECTION_IDS = ['overview', 'timeline', 'versions', 'pivots', 'corrections', 'open'];
 export const WATER_CYCLE_SECTION_IDS = ['overview', 'rainfall', 'roof', 'path', 'seasons', 'open'];
+export const SWIM_CLASS_SECTION_IDS = ['overview', 'route', 'water', 'care', 'open'];
 export const RAINFALL_SOURCE_PATH = 'source-materials/data/SRC-DATA-001_cwa-taichung-climate-normals-1991-2020.json';
 const RECORD_PATTERN = /\{\{record:([a-z0-9.-]+)\|([^{}|]+)\}\}/g;
 
@@ -287,6 +289,11 @@ export function waterCycleDataFor(model, rainfallSource) {
   });
 }
 
+/** The swim-class page's plan and figures, read from the active first floor. */
+export function swimClassDataFor(model) {
+  return buildSwimClassData(resolveActiveGeometry(model));
+}
+
 export async function buildPublicContent({ root = repoRoot } = {}) {
   const [
     modelText,
@@ -294,6 +301,7 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
     aboutMarkdown,
     designProcessMarkdown,
     waterCycleMarkdown,
+    swimClassMarkdown,
     rainfallText,
     manifestText,
     registryText,
@@ -303,6 +311,7 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
     readFile(resolve(root, 'content/about.md'), 'utf8'),
     readFile(resolve(root, 'content/design-process.md'), 'utf8'),
     readFile(resolve(root, 'content/water-cycle.md'), 'utf8'),
+    readFile(resolve(root, 'content/swim-class.md'), 'utf8'),
     readFile(resolve(root, RAINFALL_SOURCE_PATH), 'utf8'),
     readFile(resolve(root, 'web/src/views/3d-viewer/scene-manifest.json'), 'utf8'),
     readFile(resolve(root, 'model/analysis-registry.json'), 'utf8').catch(() => '{}'),
@@ -326,6 +335,13 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
     WATER_CYCLE_SECTION_IDS,
     { data: waterCycleData },
   );
+  const swimClassData = swimClassDataFor(model);
+  const swimClassContent = compileSectionedContent(
+    swimClassMarkdown,
+    model,
+    SWIM_CLASS_SECTION_IDS,
+    { data: swimClassData },
+  );
   const viewerModel = buildViewerModel(model, analysisRegistry);
   const outputDirectory = resolve(root, 'web/src/generated');
   await mkdir(outputDirectory, { recursive: true });
@@ -341,9 +357,23 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
       `${JSON.stringify(waterCycleContent, null, 2)}\n`,
     ),
     writeFile(resolve(outputDirectory, 'water-cycle-data.json'), `${JSON.stringify(waterCycleData, null, 2)}\n`),
+    writeFile(
+      resolve(outputDirectory, 'swim-class-content.json'),
+      `${JSON.stringify(swimClassContent, null, 2)}\n`,
+    ),
+    writeFile(resolve(outputDirectory, 'swim-class-data.json'), `${JSON.stringify(swimClassData, null, 2)}\n`),
     writeFile(resolve(outputDirectory, 'viewer-model.json'), `${JSON.stringify(viewerModel, null, 2)}\n`),
   ]);
-  return { content, aboutContent, designProcessContent, waterCycleContent, waterCycleData, viewerModel };
+  return {
+    content,
+    aboutContent,
+    designProcessContent,
+    waterCycleContent,
+    waterCycleData,
+    swimClassContent,
+    swimClassData,
+    viewerModel,
+  };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

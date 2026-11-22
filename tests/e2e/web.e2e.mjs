@@ -18,7 +18,7 @@ const chromeCandidates = [
 ].filter(Boolean);
 
 // Registry order (router.ts viewDefinitions), which the footer's previous/next links follow.
-const pageOrder = ['design-concept', 'solar-study', 'water-cycle', 'design-process', 'drawings', '3d-viewer', 'about'];
+const pageOrder = ['design-concept', 'solar-study', 'water-cycle', 'swim-class', 'design-process', 'drawings', '3d-viewer', 'about'];
 
 const routes = [
   { id: 'design-concept', url: '/' },
@@ -26,6 +26,7 @@ const routes = [
   { id: 'drawings', url: '/?view=drawings' },
   { id: '3d-viewer', url: '/?view=3d-viewer&quality=low&adaptive=off' },
   { id: 'water-cycle', url: '/?view=water-cycle', group: 'topics' },
+  { id: 'swim-class', url: '/?view=swim-class', group: 'topics' },
   { id: 'design-process', url: '/?view=design-process', group: 'topics' },
   { id: 'about', url: '/?view=about' },
 ];
@@ -288,7 +289,7 @@ try {
   assert.equal(shareResponse.ok(), true, 'share card is not published next to index.html');
   await iconPage.close();
 
-  for (const viewId of ['design-concept', 'solar-study', 'water-cycle', 'design-process', 'drawings', 'about']) {
+  for (const viewId of ['design-concept', 'solar-study', 'water-cycle', 'swim-class', 'design-process', 'drawings', 'about']) {
     const metrics = routeScriptMetrics.get(viewId) ?? [];
     assert.equal(
       metrics.some(({ decodedBodySize }) => decodedBodySize > 500_000),
@@ -576,6 +577,165 @@ try {
   await waterCycleMobile.screenshot({ path: resolve(outputDirectory, 'public-water-cycle-mobile.png') });
   await waterCycleMobile.close();
 
+  const swimClass = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  trackErrors(swimClass, errors);
+  await swimClass.goto(`${origin}/?view=swim-class`, { waitUntil: 'networkidle' });
+  await waitForView(swimClass, 'swim-class');
+  assert.match(await swimClass.title(), /^一堂游泳課｜.+概念設計$/);
+  const swimSectionIds = ['route', 'water', 'care', 'open'].map((id) => `swim-${id}`);
+  assert.deepEqual(
+    await swimClass.locator('.swim-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    swimSectionIds,
+  );
+  assert.deepEqual(
+    await swimClass.locator('.swim-index a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    swimSectionIds.map((id) => `#${id}`),
+  );
+  assert.equal(await swimClass.locator('h1').count(), 1);
+  // Both plans are drawn from the active geometry, and every marker sits inside the place it stands for.
+  const plans = await swimClass.locator('.swim-group').evaluateAll((groups) => groups.map((group) => {
+    const canvas = group.querySelector('.swim-plan-canvas').getBoundingClientRect();
+    const boxOf = (element) => {
+      const box = element.getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, x: box.left + box.width / 2, y: box.top + box.height / 2 };
+    };
+    return {
+      group: group.dataset.swimGroup,
+      revision: group.querySelector('.swim-plan').dataset.swimRevision,
+      label: group.querySelector('.swim-plan svg').getAttribute('aria-label'),
+      ratio: canvas.width / canvas.height,
+      canvas: { left: canvas.left, right: canvas.right, top: canvas.top, bottom: canvas.bottom },
+      pool: boxOf(group.querySelector('.swim-plan-pool')),
+      platform: boxOf(group.querySelector('.swim-plan-platform')),
+      markers: [...group.querySelectorAll('.swim-plan-marker')].map((marker) => {
+        const places = [...group.querySelectorAll('.swim-plan-place')]
+          .filter((place) => (place.dataset.swimKeys ?? '').split(' ').includes(marker.dataset.swimKey))
+          .map(boxOf);
+        return { key: marker.dataset.swimKey, badge: marker.textContent.trim(), ...boxOf(marker), places };
+      }),
+      locators: [...group.querySelectorAll('.swim-locate')].map((button) => ({
+        key: button.dataset.swimKey,
+        badge: button.querySelector('[aria-hidden]').textContent.trim(),
+        pressed: button.getAttribute('aria-pressed'),
+        name: button.textContent.replace(/\s+/g, ' ').trim(),
+      })),
+      routePoints: group.querySelector('.swim-plan-route')?.points.length ?? 0,
+    };
+  }));
+  assert.deepEqual(plans.map(({ group }) => group), ['route', 'care']);
+  // The model line sits in the collapsed 技術資料 block, so read its text rather than the rendered text.
+  const footerGeometry = await swimClass.locator('.site-footer-meta').textContent();
+  for (const plan of plans) {
+    assert.match(plan.revision, /^GEO-\d+\.\d+\.\d+$/);
+    assert.ok(footerGeometry.includes(plan.revision), `${plan.group} plan revision ${plan.revision} differs from the footer`);
+    assert.ok(plan.label.length > 20);
+    assert.equal(plan.markers.length, 5);
+    assert.deepEqual(plan.locators.map(({ badge }) => badge), plan.markers.map(({ badge }) => badge));
+    assert.deepEqual(plan.locators.map(({ pressed }) => pressed), ['true', 'false', 'false', 'false', 'false']);
+    assert.ok(plan.locators.every(({ name }) => /在平面圖上標出「.+」$/.test(name)));
+    // The teaching platform is inside the pool, and the pool is inside the plan.
+    assert.ok(plan.platform.left >= plan.pool.left - 1 && plan.platform.right <= plan.pool.right + 1);
+    assert.ok(plan.platform.top >= plan.pool.top - 1 && plan.platform.bottom <= plan.pool.bottom + 1);
+    assert.ok(plan.pool.left > plan.canvas.left && plan.pool.right < plan.canvas.right);
+    for (const marker of plan.markers) {
+      assert.ok(marker.x >= plan.canvas.left && marker.x <= plan.canvas.right, `${marker.key} leaves the plan`);
+      assert.ok(marker.y >= plan.canvas.top && marker.y <= plan.canvas.bottom, `${marker.key} leaves the plan`);
+    }
+  }
+  const [routePlan, carePlan] = plans;
+  assert.deepEqual(routePlan.markers.map(({ badge }) => badge), ['1', '2', '3', '4', '5']);
+  assert.deepEqual(carePlan.markers.map(({ badge }) => badge), ['A', 'B', 'C', 'D', 'E']);
+  assert.equal(routePlan.routePoints, 5);
+  assert.equal(carePlan.routePoints, 0);
+  // Stops that stand inside their own place: entry, corridor, rinse gate and assembly area.
+  for (const index of [0, 1, 3, 4]) {
+    const marker = routePlan.markers[index];
+    assert.equal(marker.places.length, 1);
+    const [place] = marker.places;
+    assert.ok(
+      marker.x >= place.left - 1 && marker.x <= place.right + 1 && marker.y >= place.top - 1 && marker.y <= place.bottom + 1,
+      `route marker ${marker.badge} is drawn outside its place`,
+    );
+  }
+  // Pointing at a step, or pressing its button, selects the marker and the place on the same plan only.
+  await swimClass.locator('.swim-step').nth(3).hover();
+  assert.deepEqual(
+    await swimClass.locator('[data-swim-group="route"] .is-active').evaluateAll((elements) =>
+      elements.map((element) => element.dataset.swimKey ?? element.dataset.swimKeys).sort()),
+    ['route-4', 'route-4', 'route-4', 'route-4'],
+  );
+  await swimClass.locator('[data-swim-group="care"] .swim-locate').nth(1).focus();
+  await swimClass.keyboard.press('Tab');
+  await swimClass.keyboard.press('Enter');
+  assert.equal(await swimClass.locator('[data-swim-group="care"]').getAttribute('data-swim-active'), 'care-3');
+  assert.equal(await swimClass.locator('[data-swim-group="route"]').getAttribute('data-swim-active'), 'route-4');
+  assert.equal(await swimClass.locator('[data-swim-group="care"] .swim-locate[aria-pressed="true"]').count(), 1);
+  assert.equal(
+    await swimClass.locator('.swim-section a[href^="http"]').evaluateAll((links) =>
+      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener')),
+    true,
+  );
+  assert.deepEqual(
+    await swimClass.locator('.swim-section a:not([href^="http"])').evaluateAll((links) =>
+      links.map((link) => link.getAttribute('href'))),
+    ['?view=drawings', '?view=3d-viewer#people', './'],
+    'swim-class in-site links must point to registered views',
+  );
+  await swimClass.screenshot({ path: resolve(outputDirectory, 'public-swim-class-desktop.png'), fullPage: true });
+  await swimClass.close();
+
+  const swimClassMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  trackErrors(swimClassMobile, errors);
+  await swimClassMobile.goto(`${origin}/?view=swim-class#swim-route`, { waitUntil: 'networkidle' });
+  await waitForView(swimClassMobile, 'swim-class');
+  await swimClassMobile.waitForFunction(() => {
+    const target = document.querySelector('#swim-route');
+    const masthead = document.querySelector('.site-masthead');
+    if (!target || !masthead) return false;
+    const top = target.getBoundingClientRect().top;
+    return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
+  });
+  assert.equal(
+    await swimClassMobile.locator('.swim-index a, .swim-locate').evaluateAll((targets) =>
+      targets.every((target) => target.getBoundingClientRect().height >= 44 && target.getBoundingClientRect().width >= 44)),
+    true,
+    'swim-class tap targets are smaller than 44px at 390px',
+  );
+  assert.equal(
+    await swimClassMobile.locator('.swim-steps').evaluate((list) =>
+      getComputedStyle(list).gridTemplateColumns.trim().split(/\s+/).length),
+    1,
+    'route steps should stack into one column on a phone',
+  );
+  // The plan is wider than a phone: it scrolls inside its own box, stays under the header while the steps
+  // scroll, and a tapped step brings its marker into view without widening the page.
+  for (const index of [4, 2, 0]) {
+    const button = swimClassMobile.locator('[data-swim-group="route"] .swim-locate').nth(index);
+    await button.scrollIntoViewIfNeeded();
+    await button.tap();
+    const state = await swimClassMobile.locator('[data-swim-group="route"]').evaluate((group, key) => {
+      const scroller = group.querySelector('.swim-plan-scroll').getBoundingClientRect();
+      const marker = group.querySelector(`.swim-plan-marker[data-swim-key="${key}"]`);
+      const box = marker.getBoundingClientRect();
+      const masthead = document.querySelector('.site-masthead').getBoundingClientRect();
+      const plan = group.querySelector('.swim-plan').getBoundingClientRect();
+      return {
+        active: marker.classList.contains('is-active'),
+        visible: box.left >= scroller.left - 1 && box.right <= scroller.right + 1,
+        planTop: plan.top,
+        planBottom: plan.bottom,
+        mastheadBottom: masthead.bottom,
+        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    }, `route-${index + 1}`);
+    assert.equal(state.active, true, `step ${index + 1} did not select its marker`);
+    assert.equal(state.visible, true, `marker ${index + 1} is scrolled out of the plan box`);
+    assert.ok(state.planTop >= state.mastheadBottom - 1 && state.planBottom < 844, `plan is not visible while step ${index + 1} is tapped`);
+    assert.equal(state.pageOverflow, 0);
+  }
+  await swimClassMobile.screenshot({ path: resolve(outputDirectory, 'public-swim-class-mobile.png') });
+  await swimClassMobile.close();
+
   const designProcess = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   trackErrors(designProcess, errors);
   await designProcess.goto(`${origin}/?view=design-process`, { waitUntil: 'networkidle' });
@@ -645,7 +805,7 @@ try {
   );
   assert.equal(
     await designProcess.locator('.process-section a:not([href^="http"]):not(.process-version-media)').evaluateAll((links) =>
-      links.every((link) => ['./', '?view=solar-study', '?view=drawings', '?view=3d-viewer', '?view=about']
+      links.every((link) => ['./', '?view=solar-study', '?view=swim-class', '?view=drawings', '?view=3d-viewer', '?view=about']
         .includes(link.getAttribute('href')))),
     true,
     'design-process in-site links must point to registered views',

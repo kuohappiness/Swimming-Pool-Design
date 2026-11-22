@@ -12,7 +12,7 @@
 ## 公開網站
 
 - [設計理念](https://kuohappiness.github.io/Swimming-Pool-Design/)
-- 四向專題：[日照研究](https://kuohappiness.github.io/Swimming-Pool-Design/?view=solar-study)、[水循環](https://kuohappiness.github.io/Swimming-Pool-Design/?view=water-cycle)、[設計歷程](https://kuohappiness.github.io/Swimming-Pool-Design/?view=design-process)
+- 四向專題：[日照研究](https://kuohappiness.github.io/Swimming-Pool-Design/?view=solar-study)、[水循環](https://kuohappiness.github.io/Swimming-Pool-Design/?view=water-cycle)、[一堂游泳課](https://kuohappiness.github.io/Swimming-Pool-Design/?view=swim-class)、[設計歷程](https://kuohappiness.github.io/Swimming-Pool-Design/?view=design-process)
 - [圖面](https://kuohappiness.github.io/Swimming-Pool-Design/?view=drawings)
 - [3D](https://kuohappiness.github.io/Swimming-Pool-Design/?view=3d-viewer)
 - [關於](https://kuohappiness.github.io/Swimming-Pool-Design/?view=about)
