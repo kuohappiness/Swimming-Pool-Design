@@ -1,0 +1,496 @@
+.view-intro--water-cycle {
+  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.view-intro--water-cycle > p + p {
+  margin-top: .8rem;
+}
+
+.water-index,
+.water-sections {
+  width: var(--site-page);
+  margin: 0 auto;
+}
+
+.water-index {
+  border-block: 1px solid var(--site-line-strong);
+}
+
+.water-index ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 clamp(1rem, 3vw, 2.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: water-index;
+}
+
+.water-index li {
+  counter-increment: water-index;
+}
+
+.water-index a {
+  display: inline-flex;
+  gap: .6rem;
+  align-items: center;
+  min-height: 48px;
+  color: var(--site-ink);
+  font-size: .92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.water-index a::before {
+  color: var(--site-terracotta);
+  font-family: var(--site-mono);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  content: counter(water-index, decimal-leading-zero);
+}
+
+.water-index a:hover {
+  color: var(--site-water);
+}
+
+.water-sections {
+  display: grid;
+  gap: clamp(3.5rem, 7vw, 6.5rem);
+  padding-top: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.water-section,
+.water-card,
+.water-step {
+  scroll-margin-top: calc(var(--site-header-height) + 1rem);
+}
+
+.water-section-header {
+  max-width: 52rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.water-section h2 {
+  margin: 0 0 .8rem;
+  color: var(--site-water);
+  font-family: var(--site-serif);
+  font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.water-section h3 {
+  margin: 0 0 .4rem;
+  color: var(--site-ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.water-section p {
+  margin: 0;
+  color: var(--site-ink);
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+.water-section p + p {
+  margin-top: .8rem;
+}
+
+.water-section a {
+  color: var(--site-water);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
+}
+
+.water-section-intro p {
+  color: var(--site-muted);
+}
+
+/* Monthly rainfall chart */
+
+.water-chart {
+  max-width: 60rem;
+  margin: 0 0 clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.water-chart-caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .15rem 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.water-chart-caption strong {
+  color: var(--site-ink);
+  font-size: 1rem;
+}
+
+.water-chart-caption span {
+  color: var(--site-muted);
+  font-size: .82rem;
+}
+
+.water-chart-plot {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  grid-template-rows: clamp(13rem, 30vw, 18rem) auto;
+  column-gap: .5rem;
+}
+
+.water-chart-axis,
+.water-chart-area {
+  position: relative;
+}
+
+.water-chart-axis span {
+  position: absolute;
+  right: 0;
+  bottom: var(--water-level);
+  color: var(--site-muted);
+  font-size: .75rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transform: translateY(50%);
+}
+
+.water-chart-gridline {
+  position: absolute;
+  right: 0;
+  bottom: var(--water-level);
+  left: 0;
+  border-top: 1px solid var(--site-line);
+  opacity: .55;
+}
+
+.water-chart-gridline:first-child {
+  border-top-color: var(--site-line-strong);
+  opacity: 1;
+}
+
+/* A quiet band behind the warm-season months; the label names it once, at the top. */
+.water-chart-season {
+  position: absolute;
+  top: -1.1rem;
+  bottom: 0;
+  left: calc((var(--water-first) - 1) / 12 * 100%);
+  width: calc((var(--water-last) - var(--water-first) + 1) / 12 * 100%);
+  border-inline: 1px dashed var(--site-line);
+  background: color-mix(in srgb, var(--site-water) 6%, transparent);
+  color: var(--site-muted);
+  font-size: .75rem;
+  line-height: 1.1rem;
+  text-align: center;
+}
+
+.water-chart-columns,
+.water-chart-months {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.water-chart-columns {
+  position: absolute;
+  inset: 0;
+}
+
+/* The whole month slot is the hover and tap target, not just the thin bar. */
+.water-chart-column {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  cursor: default;
+}
+
+.water-chart-bar {
+  position: absolute;
+  bottom: 0;
+  width: min(24px, 56%);
+  height: var(--water-level);
+  border-radius: 4px 4px 0 0;
+  background: var(--site-water);
+}
+
+.water-chart-column:hover .water-chart-bar,
+.water-chart-column[data-water-active] .water-chart-bar {
+  background: var(--site-deep);
+}
+
+.water-chart-value {
+  position: absolute;
+  bottom: calc(var(--water-level) + .3rem);
+  color: var(--site-ink);
+  font-size: .75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.water-chart-tip {
+  position: absolute;
+  bottom: calc(var(--water-level) + .6rem);
+  left: 50%;
+  z-index: 2;
+  display: none;
+  gap: .1rem;
+  min-width: max-content;
+  padding: .55rem .7rem;
+  border: 1px solid var(--site-line-strong);
+  border-radius: var(--site-radius);
+  background: var(--site-white);
+  box-shadow: 0 6px 18px rgb(23 40 41 / 14%);
+  color: var(--site-ink);
+  font-size: .82rem;
+  line-height: 1.5;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.water-chart-column:hover .water-chart-tip,
+.water-chart-column[data-water-active] .water-chart-tip {
+  display: grid;
+}
+
+/* Keep the tooltip inside the plot at both ends of the year. */
+.water-chart-column:nth-child(-n + 3) .water-chart-tip {
+  left: 0;
+  transform: none;
+}
+
+.water-chart-column:nth-last-child(-n + 3) .water-chart-tip {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.water-chart-tip span {
+  color: var(--site-muted);
+}
+
+.water-chart-months {
+  grid-column: 2;
+  padding-top: .5rem;
+  color: var(--site-muted);
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.water-chart-table {
+  margin-top: 1.1rem;
+  border-block: 1px solid var(--site-line);
+}
+
+.water-chart-table summary {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  color: var(--site-water);
+  font-size: .92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.water-chart-table-scroll {
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.water-chart-table table {
+  width: 100%;
+  min-width: 24rem;
+  border-collapse: collapse;
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.water-chart-table th,
+.water-chart-table td {
+  padding: .5rem .75rem .5rem 0;
+  border-top: 1px solid var(--site-line);
+  color: var(--site-ink);
+  font-weight: 400;
+  text-align: right;
+}
+
+.water-chart-table thead th {
+  border-top: 0;
+  color: var(--site-muted);
+  font-size: .82rem;
+}
+
+.water-chart-table th:first-child {
+  text-align: left;
+}
+
+.water-chart-table tfoot th,
+.water-chart-table tfoot td {
+  border-top-color: var(--site-line-strong);
+  font-weight: 700;
+}
+
+/* Headline figures for the roof */
+
+.water-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 3vw, 2.5rem);
+  max-width: 60rem;
+  margin: 0;
+}
+
+.water-figure {
+  padding-top: .9rem;
+  border-top: 2px solid var(--site-water);
+}
+
+.water-figure dt {
+  color: var(--site-muted);
+  font-size: .88rem;
+  line-height: 1.6;
+}
+
+.water-figure dd {
+  margin: .25rem 0 0;
+  color: var(--site-ink);
+  font-family: var(--site-serif);
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.water-section p.water-estimate-note {
+  margin: 1rem 0 clamp(1.75rem, 3vw, 2.5rem);
+  color: var(--site-muted);
+  font-size: .85rem;
+}
+
+/* The path of a raindrop */
+
+.water-path {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.25rem, 2.5vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.water-step {
+  position: relative;
+  padding-top: 1rem;
+  border-top: 1px solid var(--site-line-strong);
+}
+
+/* The arrowhead closes each step's rule and points at the next step. */
+.water-step:not(:last-child)::after {
+  position: absolute;
+  top: -5px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border-top: 1px solid var(--site-line-strong);
+  border-right: 1px solid var(--site-line-strong);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.water-section p.water-step-number {
+  margin-bottom: .35rem;
+  color: var(--site-terracotta);
+  font-family: var(--site-mono);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.6;
+}
+
+.water-step p:not(.water-step-number) {
+  font-size: .95rem;
+  line-height: 1.85;
+}
+
+/* Explanatory cards */
+
+.water-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 clamp(1.5rem, 4vw, 4rem);
+  max-width: 76rem;
+}
+
+.water-cards--rainfall,
+.water-cards--seasons,
+.water-cards--open {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.water-card {
+  padding: 1.1rem 0 1.4rem;
+  border-top: 1px solid var(--site-line);
+}
+
+@media (max-width: 1000px) {
+  .water-path {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .water-cards--rainfall,
+  .water-cards--seasons,
+  .water-cards--open {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .water-path,
+  .water-cards,
+  .water-cards--rainfall,
+  .water-cards--seasons,
+  .water-cards--open,
+  .water-figures {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .water-figures {
+    gap: 1.25rem;
+  }
+
+  /* Stacked steps read downwards, so the arrowhead moves to the bottom-left of each step. */
+  .water-step {
+    padding: 0 0 1.25rem 1.25rem;
+    border-top: 0;
+    border-left: 1px solid var(--site-line-strong);
+  }
+
+  .water-step:not(:last-child)::after {
+    top: auto;
+    right: auto;
+    bottom: -1px;
+    left: -5px;
+    transform: rotate(135deg);
+  }
+
+  .water-chart-plot {
+    grid-template-columns: 1.9rem minmax(0, 1fr);
+    column-gap: .35rem;
+  }
+
+  .water-chart-months span {
+    display: none;
+  }
+
+  .water-chart-months::after {
+    grid-column: 1 / -1;
+    padding-top: .2rem;
+    font-size: .75rem;
+    content: "月份";
+  }
+}

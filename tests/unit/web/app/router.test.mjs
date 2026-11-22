@@ -14,14 +14,14 @@ const [indexHtml, routerSource, bootstrapSource, viteSource, appShellSource] = a
   readFile(resolve(repoRoot, 'web/src/app/app-shell.ts'), 'utf8'),
 ]);
 
-test('public site has one HTML entry and six query views', async () => {
+test('public site has one HTML entry and seven query views', async () => {
   assert.match(indexHtml, /src="\/src\/app\/bootstrap\.ts"/);
   assert.doesNotMatch(indexHtml, /src\/3d-viewer\/main|src\/solar-study\/main|src\/main\.ts/);
   await assert.rejects(access(resolve(repoRoot, 'web/solar-study/index.html'), constants.F_OK));
   await assert.rejects(access(resolve(repoRoot, 'web/3d-viewer/index.html'), constants.F_OK));
   assert.match(viteSource, /input:\s*resolve\(webRoot,\s*'index\.html'\)/);
   assert.doesNotMatch(viteSource, /solarStudy:|viewer3d:|atlas:/);
-  for (const view of ['design-concept', 'solar-study', 'design-process', 'drawings', '3d-viewer', 'about']) {
+  for (const view of ['design-concept', 'solar-study', 'water-cycle', 'design-process', 'drawings', '3d-viewer', 'about']) {
     assert.match(routerSource, new RegExp(`'${view}'`));
     assert.match(bootstrapSource, new RegExp(`'${view}'`));
   }

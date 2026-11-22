@@ -29,9 +29,9 @@ docs/tasks/<任務>.md ……… 規格與驗收；標題下寫狀態行；roadm
 
 ### 2.1 新來源
 
-1. 保留原始檔，不覆蓋既有來源。基地資料放 `source-materials/site/`（現場照片放 `photos/`），概念資料放 `source-materials/concepts/`（手繪稿放 `hand-sketches/`）。
+1. 保留原始檔，不覆蓋既有來源。基地資料放 `source-materials/site/`（現場照片放 `photos/`），概念資料放 `source-materials/concepts/`（手繪稿放 `hand-sketches/`），公開統計資料放 `source-materials/data/`。
 2. 依 `SRC-<類型>-<序號>_<描述>.<副檔名>` 命名。
-3. 記錄像素、格式、SHA-256、用途與限制。
+3. 記錄像素、格式、SHA-256、用途與限制。公開統計資料另在檔內寫明提供者、測站或資料集編號、統計期間、取得日期、網址與使用條款；從網頁表格轉錄的要寫明是轉錄，不是原始位元組。
 4. 更新 [基地與來源](../site-and-sources.md) 與模型 `sources`。網站要用的影像另做衍生檔放在 `web/` 內，同樣記下尺寸與雜湊。
 5. 若改變設計，另更新設計基準及 DEC、OPEN；若需要實作，開一份任務說明。
 
@@ -140,7 +140,7 @@ git diff --check
 
 ## 7. GitHub Pages
 
-公開首頁是 `https://kuohappiness.github.io/Swimming-Pool-Design/`；設計理念使用根網址，日照研究、設計歷程、圖面設計、3D 展示與關於分別使用 `?view=solar-study`、`?view=design-process`、`?view=drawings`、`?view=3d-viewer`、`?view=about`。`.github/workflows/deploy-pages.yml` 在 `main` push 或人工觸發時：
+公開首頁是 `https://kuohappiness.github.io/Swimming-Pool-Design/`；設計理念使用根網址，日照研究、水循環、設計歷程、圖面設計、3D 展示與關於分別使用 `?view=solar-study`、`?view=water-cycle`、`?view=design-process`、`?view=drawings`、`?view=3d-viewer`、`?view=about`。`.github/workflows/deploy-pages.yml` 在 `main` push 或人工觸發時：
 
 - 以 lockfile 安裝依賴並執行 `npm run build`。
 - 只上傳 `dist/web/`；`dist/` 不納入 Git 歷史。
