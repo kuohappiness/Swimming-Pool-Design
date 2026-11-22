@@ -1,21 +1,21 @@
-# 空間參照圖集契約
+# 圖面契約
 
 - 類型：output-contract
-- 狀態：active／v0.9.4（V067 圖面內容不變）
+- 狀態：active（圖號自 TASK-130 起不含版號，DEC-170）
 - Owner：[模型契約](model.md)
 - 入口：`/?view=drawings`
 
 ## 必要輸出
 
-0.9.0 共用 App Shell 內的 `web/src/views/drawings/sheets.ts` 只顯示：
+共用 App Shell 內的 `web/src/views/drawings/sheets.ts` 只顯示下列五張；圖號即網址錨點（例如 `?view=drawings#L1`），圖名只登錄在模型的 `sheets`：
 
-- `REF-001`：`SRC-SITE-001` 原始衛星底圖、MODEL 0.6.7、ACTIVE GEO-0.6.7、SITE-XY 與北向。
-- `V067-L1`：內嵌 `DRAW-L1-PLAN.svg`。
-- `V067-L2`：內嵌 `DRAW-L2-PLAN.svg`。
-- `V067-L3`：內嵌 `DRAW-L3-PLAN.svg`。
-- `V067-SECTION`：內嵌 `DRAW-LONGITUDINAL-SECTION.svg`。
+- `SITE` 基地衛星與方位圖：`SRC-SITE-001` 衛星底圖衍生檔、現行 MODEL 與 ACTIVE 幾何版本、SITE-XY 與北向。
+- `L1` 1F 平面圖：內嵌 `DRAW-L1-PLAN.svg`。
+- `L2` 2F 平面圖：內嵌 `DRAW-L2-PLAN.svg`。
+- `L3` 3F 平面圖：內嵌 `DRAW-L3-PLAN.svg`。
+- `SECTION` 縱向剖面圖：內嵌 `DRAW-LONGITUDINAL-SECTION.svg`。
 
-公開 shell 顯示 `MODEL 0.9.4` 與 `ACTIVE GEO-0.8.2`；V067 SVG／PNG 本體仍是不可變的 `v0.6.7`／`GEO-0.6.7` 完稿，不因展示層發布改寫。0.9.1 的 ORIGIN 與 3D 資訊精修、0.9.2 的文字與留白調整、0.9.3 的手機目錄滑動提示與滿版顯示，以及 0.9.4 的公開文案精修都不改圖冊內容。
+圖號與圖名不含版號；版本只出現在圖面標題欄與 metadata。去版號前的舊錨點 `#REF-001`、`#V067-L1`、`#V067-L2`、`#V067-L3`、`#V067-SECTION` 由 `retiredSheetIds` 轉到對應的新圖號，網址同時改寫成新錨點，外部舊連結不失效。
 
 現行 HTML 不得出現 V2.1、V2.2、V2.3 或其他 v0.5.0 current tab。舊圖可留在歷史資料夾，不由 current atlas 載入。
 
@@ -26,13 +26,14 @@
 - L3：X35／Y6.75 支點、水平 +25.5°、面池牆與鏡面共面外傾 +23.0°、完整屋頂及淡藍透明高覆蓋率太陽能排布；L3／屋頂／鏡牆／光電只用一個共同 transform，0.5 m／2.5 m SITE-XY 格線須在填色上方保持可讀。
 - 剖面：X／Z 同尺度；0.5 m／2.5 m SITE-XZ 格線及數值標籤、池畔 +0.30 m、L2 +3.30 m／完整天花、L3 +6.88 m／完整屋頂、X0.5／X29／X41 牆、投影 `EN-01`、玻璃屋簷／雨水回收及 ST-01 方案 E。
 
-每張圖須保留 `v0.6.7`、`GEO-0.6.7`、`SITE-XY` 與「非施工圖」聲明。SVG 由 `npm run build:drawings` 重現，PNG 必須由同一 SVG render 產生。SVG 內的 class 一律帶 `dw-` 前綴（駝峰改連字號，例如 `dw-title-box`），內嵌 `<style>` 的文字規則只作用於外層 `dw-sheet` 群組，網站內嵌圖面時不會影響頁面其他元素（TASK-165）。現行 HTML 必須內嵌 SVG，不得以 PNG `<image>` 取代；`V067-L3` 另提供獨立、預設勾選的「太陽能板」控制，取消時隱藏整個 `RF-PV-RES-01` group。
+每張圖須保留現行模型版本、幾何版本、`SITE-XY` 與「非施工圖」聲明。SVG 由 `npm run build:drawings` 重現，PNG 必須由同一 SVG render 產生。SVG 內的 class 一律帶 `dw-` 前綴（駝峰改連字號，例如 `dw-title-box`），內嵌 `<style>` 的文字規則只作用於外層 `dw-sheet` 群組，網站內嵌圖面時不會影響頁面其他元素（TASK-165）。現行 HTML 必須內嵌 SVG，不得以 PNG `<image>` 取代；`L3` 另提供獨立、預設勾選的「太陽能板」控制，取消時隱藏整個 `RF-PV-RES-01` group。
 
 ## 驗收
 
-- model sheet registry 恰為 `REF-001`、`V067-L1`、`V067-L2`、`V067-L3`、`V067-SECTION`。
+- model sheet registry 恰為 `SITE`、`L1`、`L2`、`L3`、`SECTION`，圖名不含版號或「最新」。
+- 舊錨點 `#V067-L1` 等開啟對應圖面，並改寫為新錨點。
 - 四張 SVG 均入庫，metadata 與 active model 一致；PNG 由 `npm run build:drawings` 轉出，不入庫。
-- Viewer 與 solar-study 最新圖面連結都指向 `#V067-L1`。
+- 3D 頁與日照研究頁的圖面連結都指向 `?view=drawings#L1`。
 - 320 px 以上可操作；圖片以 `preserveAspectRatio` 顯示且不裁掉圖框。
 - 手機預設符合畫面顯示完整圖框，可切回原圖尺寸水平檢視；目錄、圖層控制與構件詳情仍可依序操作。
 - 手機目錄以端點感知的左右漸層提示可水平滑動；工作區、工具列、模型資訊與縮放圖面須撐滿可用寬度，且不得造成整頁水平溢出。
