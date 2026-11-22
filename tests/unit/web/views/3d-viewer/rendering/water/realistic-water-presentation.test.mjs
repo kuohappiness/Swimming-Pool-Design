@@ -279,6 +279,53 @@ test('each frame feeds the sun, sky and time; reduced motion freezes the surface
   assert.ok(uniforms.uSunDirection.value.distanceTo(localSun) < 1e-6);
   assert.ok(Math.abs(uniforms.uSunDirection.value.length() - 1) < 1e-6);
 
+  // 天光有算出來的值時，水用整片天空的照度：半球光只是其中一部分，其餘在環境貼圖裡，水不吃環境貼圖。
+  ambient.intensity = 0.36;
+  ambient.userData.skyIrradiance = 1;
+  water.updateFrame(frame({ camera, elapsedSeconds: 4.5 }));
+  assert.ok(uniforms.uSkyColor.value.equals(ambient.color.clone()));
+  delete ambient.userData.skyIrradiance;
+
+  // 還沒有陰影貼圖（第一個畫面、省電級）時，水裡每一點都照得到太陽。
+  assert.equal(uniforms.uSunShadow.value.x, 0);
+  const fallbackShadowMap = uniforms.uSunShadowMap.value;
+  assert.equal(fallbackShadowMap.isDepthTexture, true);
+  // 有了之後，池底、水面反光與水下光束查同一張太陽陰影貼圖。
+  const depthTexture = new THREE.DepthTexture(2048, 2048);
+  depthTexture.compareFunction = THREE.LessEqualCompare;
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 30;
+  sun.shadow.camera.far = 90;
+  sun.shadow.map = { depthTexture };
+  water.updateFrame(frame({ camera, elapsedSeconds: 5 }));
+  assert.equal(uniforms.uSunShadowMap.value, depthTexture);
+  assert.equal(uniforms.uSunShadow.value.x, 1);
+  // 深度偏移 3 公分、取樣半徑 2 格，都換成陰影貼圖自己的單位。
+  assert.ok(Math.abs(uniforms.uSunShadow.value.y - 0.03 / 60) < 1e-9);
+  assert.ok(Math.abs(uniforms.uSunShadow.value.z - 2 / 2048) < 1e-12);
+  const shadowPoint = new THREE.Vector3(10, basin.waterLevel, 6);
+  assert.ok(
+    shadowPoint.clone().applyMatrix4(uniforms.uSunShadowMatrix.value).distanceTo(
+      shadowPoint.clone().applyMatrix4(graph.water.surface.matrixWorld).applyMatrix4(sun.shadow.matrix),
+    ) < 1e-9,
+  );
+  // 不是深度比較用的陰影貼圖（其他陰影類型）、主光關掉或不投影時，水不查陰影。
+  depthTexture.compareFunction = null;
+  water.updateFrame(frame({ camera, elapsedSeconds: 5.5 }));
+  assert.equal(uniforms.uSunShadow.value.x, 0);
+  assert.equal(uniforms.uSunShadowMap.value, fallbackShadowMap);
+  depthTexture.compareFunction = THREE.LessEqualCompare;
+  sun.castShadow = false;
+  water.updateFrame(frame({ camera, elapsedSeconds: 6 }));
+  assert.equal(uniforms.uSunShadow.value.x, 0);
+  sun.castShadow = true;
+  sun.visible = false;
+  water.updateFrame(frame({ camera, elapsedSeconds: 6.5 }));
+  assert.equal(uniforms.uSunShadow.value.x, 0);
+  sun.visible = true;
+  sun.shadow.map = null;
+
   water.updateFrame(frame({ camera, elapsedSeconds: 9, reducedMotion: true }));
   assert.equal(uniforms.uTime.value, 0);
 

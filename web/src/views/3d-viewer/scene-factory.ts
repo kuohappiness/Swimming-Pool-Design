@@ -32,11 +32,31 @@ export interface ViewerSceneOptions {
   readonly batchStaticGeometry?: boolean;
 }
 
+export interface LayerDependent {
+  readonly object: THREE.Object3D;
+  /** 這些圖層全部顯示時才顯示 `object`；`object` 本身掛在其中一個圖層底下。 */
+  readonly layers: readonly string[];
+}
+
+/** 依圖層目前的開關更新「要好幾個圖層都開著才畫」的構件。 */
+export function syncLayerDependents(
+  graph: Pick<ViewerSceneGraph, 'layerGroups' | 'layerDependents'>,
+): void {
+  for (const { object, layers } of graph.layerDependents) {
+    object.visible = layers.every((id) => graph.layerGroups.get(id)?.visible === true);
+  }
+}
+
 export interface ViewerSceneGraph {
   scene: THREE.Scene;
   worldRoot: THREE.Group;
   siteRoot: THREE.Group;
   layerGroups: Map<string, THREE.Group>;
+  /**
+   * 要同時開著好幾個圖層才畫的構件。例如 3F 屋頂放在「屋頂」圖層，但 3F 量體關掉時
+   * 它不該單獨懸在半空。圖層開關變動後呼叫 `syncLayerDependents`。
+   */
+  layerDependents: LayerDependent[];
   selectables: SelectableInfo[];
   staticBatch: StaticBatchReport | null;
   lights: { sun: THREE.DirectionalLight; ambient: THREE.HemisphereLight };
@@ -102,60 +122,6 @@ function boxWithOpening(
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   return mesh;
-}
-
-/**
- * 地面格線，但跳過 opening（父座標系）範圍內的線段。外觀與材質沿用 `THREE.GridHelper`，
- * 只換掉線段：中央的兩條線用 centreColor，其餘用 gridColor。
- */
-function gridWithOpening(
-  size: number,
-  divisions: number,
-  centreColor: THREE.ColorRepresentation,
-  gridColor: THREE.ColorRepresentation,
-  position: [number, number, number],
-  opening: { x1: number; x2: number; z1: number; z2: number },
-) {
-  const half = size / 2;
-  const step = size / divisions;
-  const centre = divisions / 2;
-  const x1 = opening.x1 - position[0];
-  const x2 = opening.x2 - position[0];
-  const z1 = opening.z1 - position[2];
-  const z2 = opening.z2 - position[2];
-  const positions: number[] = [];
-  const colors: number[] = [];
-  const colour = new THREE.Color();
-  /** 一條線被開口切成一段或兩段；from、to 是線在自己方向上要跳過的範圍。 */
-  const spans = (crossesOpening: boolean, from: number, to: number): Array<[number, number]> => {
-    if (!crossesOpening) return [[-half, half]];
-    const result: Array<[number, number]> = [];
-    if (from > -half) result.push([-half, Math.max(from, -half)]);
-    if (to < half) result.push([Math.min(to, half), half]);
-    return result;
-  };
-  for (let index = 0; index <= divisions; index += 1) {
-    const offset = -half + index * step;
-    colour.set(index === centre ? centreColor : gridColor);
-    // 沿 x 方向的線（z 固定）。
-    for (const [from, to] of spans(offset > z1 && offset < z2, x1, x2)) {
-      positions.push(from, 0, offset, to, 0, offset);
-      colors.push(colour.r, colour.g, colour.b, colour.r, colour.g, colour.b);
-    }
-    // 沿 z 方向的線（x 固定）。
-    for (const [from, to] of spans(offset > x1 && offset < x2, z1, z2)) {
-      positions.push(offset, 0, from, offset, 0, to);
-      colors.push(colour.r, colour.g, colour.b, colour.r, colour.g, colour.b);
-    }
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  const grid = new THREE.GridHelper(size, divisions, centreColor, gridColor);
-  grid.geometry.dispose();
-  grid.geometry = geometry;
-  grid.position.set(...position);
-  return grid;
 }
 
 function quad(vertices: number[], material: THREE.Material) {
@@ -343,6 +309,7 @@ export function createViewerScene(
   siteRoot.userData.coordinateAdapter = structuredClone(model.referenceSystem.coordinateAdapter);
   worldRoot.add(siteRoot);
   const layerGroups = new Map<string, THREE.Group>();
+  const layerDependents: LayerDependent[] = [];
   for (const modelLayer of model.layers) {
     const group = new THREE.Group();
     group.name = `layer:${modelLayer.id}`;
@@ -602,6 +569,8 @@ export function createViewerScene(
     poolX0, waterLevel, poolZ1,
   ], waterMaterial);
   waterSurface.name = 'POOL-01-WATER-SURFACE';
+  // 水面不擋陽光；池底受不受光由水的著色器自己查陰影（查的是光線穿出水面的那一點）。
+  waterSurface.castShadow = false;
   waterSurface.userData.waterStateSource = 'walkthrough-main-pool-water';
   waterSurface.userData.waterSurfaceElevation = waterLevel;
   poolGroup.add(waterSurface);
@@ -1362,6 +1331,7 @@ export function createViewerScene(
   ], l3Material);
   l3RoofRotationGroup.add(l3RoofMesh);
   layer('roof').add(l3RoofRotationGroup);
+  layerDependents.push({ object: l3RoofRotationGroup, layers: ['roof', 'l3'] });
   tag(l3RoofMesh, {
     entityId: l3Roof.entityId,
     label: '3F 完整旋轉屋頂／天花板',
@@ -1467,14 +1437,6 @@ export function createViewerScene(
   }, selectables);
 
   const annotations = layer('annotations');
-  // 格線貼在地坪上，泳池開口內不畫：否則格線會懸在池水中間，潛到水裡就看得到。
-  const grid = gridWithOpening(58, 29, 0x637179, 0xb8c0c2, [centreX - 8, 0.018, centreZ], {
-    x1: groundOpening.minX,
-    x2: groundOpening.maxX,
-    z1: groundOpening.minZ,
-    z2: groundOpening.maxZ,
-  });
-  annotations.add(grid);
   const localAxis = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0),
     new THREE.Vector3(centreX, 0.26, centreZ),
@@ -1555,9 +1517,20 @@ export function createViewerScene(
   for (const selectable of selectables) {
     selectable.bounds = new THREE.Box3().setFromObject(selectable.object);
   }
+  // 透明的東西不擋陽光：玻璃屋頂、玻璃牆、水膜與半透明的分區標示如果投影，
+  // 整個池廳都會落在「玻璃的影子」裡。影子只來自框料、牆、樓板這些不透光的構件。
+  siteRoot.traverse((object) => {
+    if (!(object instanceof THREE.Mesh) || !object.castShadow) return;
+    const meshMaterials = Array.isArray(object.material) ? object.material : [object.material];
+    if (meshMaterials.some((material) => material.transparent)) object.castShadow = false;
+  });
   const staticBatch = options.batchStaticGeometry
     ? batchStaticMeshes(siteRoot, {
-        toggleUnits: [...layerGroups.values(), ...cutawayHiddenObjects],
+        toggleUnits: [
+          ...layerGroups.values(),
+          ...layerDependents.map(({ object }) => object),
+          ...cutawayHiddenObjects,
+        ],
         exclude: [waterSurface, cutawayAnnotations],
         selectionOwners: selectables.map(({ object }) => object),
       })
@@ -1570,6 +1543,7 @@ export function createViewerScene(
     worldRoot,
     siteRoot,
     layerGroups,
+    layerDependents,
     selectables,
     staticBatch,
     lights: { sun, ambient },

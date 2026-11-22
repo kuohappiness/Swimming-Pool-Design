@@ -33,6 +33,12 @@ uniform vec3 uSubmergedBoxMax[MAXIMUM_SUBMERGED_BOXES];
 // rgb 是表面顏色；a 為 1 時改用池體的磁磚（教學平台和池底貼同一種磚）。
 uniform vec4 uSubmergedBoxFinish[MAXIMUM_SUBMERGED_BOXES];
 
+// 太陽的陰影貼圖（和場景其他材質用的是同一張）。沒有陰影時綁的是一張 1×1 的備用貼圖，uSunShadow.x 為 0。
+uniform highp sampler2DShadow uSunShadowMap;
+uniform mat4 uSunShadowMatrix;  // 水面網格的物件座標轉到陰影貼圖座標
+// x 強度（0 不查陰影）、y 深度偏移、z 取樣半徑（貼圖座標）。
+uniform vec3 uSunShadow;
+
 const float WATER_IOR = 1.333;
 const float NO_HIT = 1.0e9;
 const float CAUSTIC_MAXIMUM_GAIN = 4.0;
@@ -168,6 +174,43 @@ vec3 waterTransmittance(float distance) {
   return exp(-uAbsorption * max(distance, 0.0));
 }
 
+// 靜水面上一點照不照得到太陽：1 照得到，0 在屋架、牆或 3F 量體的影子裡。
+// taps 為 1 時只取一次（光束與微粒用），否則取四次，影子邊緣比較柔。
+float sunVisibilityAtSurface(vec2 surface, int taps) {
+  if (uSunShadow.x <= 0.0) return 1.0;
+  vec4 projected = uSunShadowMatrix * vec4(surface.x, uWaterLevel, surface.y, 1.0);
+  vec3 coordinate = projected.xyz / projected.w;
+  if (coordinate.x < 0.0 || coordinate.x > 1.0 || coordinate.y < 0.0 || coordinate.y > 1.0 || coordinate.z > 1.0) {
+    return 1.0;
+  }
+  coordinate.z -= uSunShadow.y;
+  float lit;
+  if (taps <= 1) {
+    lit = texture(uSunShadowMap, coordinate);
+  } else {
+    float radius = uSunShadow.z;
+    lit = 0.25 * (
+      texture(uSunShadowMap, coordinate + vec3(radius, radius * 0.4, 0.0))
+      + texture(uSunShadowMap, coordinate + vec3(-radius * 0.4, radius, 0.0))
+      + texture(uSunShadowMap, coordinate + vec3(-radius, -radius * 0.4, 0.0))
+      + texture(uSunShadowMap, coordinate + vec3(radius * 0.4, -radius, 0.0))
+    );
+  }
+  return mix(1.0, lit, uSunShadow.x);
+}
+
+// 水裡一點照不照得到太陽。陽光在水面折射過，所以從這一點沿折射後的方向回推到水面，
+// 查光線穿出水面的那個位置；回推到池外代表光線被池壁擋住（池壁在池底留下的影子）。
+float sunVisibility(vec3 position, int taps) {
+  vec3 towardSun = -refract(-uSunDirection, vec3(0.0, 1.0, 0.0), 1.0 / WATER_IOR);
+  float depth = max(uWaterLevel - position.y, 0.0);
+  vec2 entry = position.xz + towardSun.xz * (depth / max(towardSun.y, 0.2));
+  vec2 inside = min(entry - uPoolMin, uPoolMax - entry);
+  float withinPool = smoothstep(-0.03, 0.03, min(inside.x, inside.y));
+  if (withinPool <= 0.0) return 0.0;
+  return withinPool * sunVisibilityAtSurface(entry, taps);
+}
+
 // 池底或池壁的焦散倍率，1 代表沒有聚光也沒有散光。
 // 從落點往太陽方向回推到水面，用那裡的位置取樣，光網才會隨太陽角度斜斜地落在池壁上。
 float poolCaustic(vec3 position) {
@@ -191,8 +234,12 @@ vec3 shadePoolBasin(BasinHit hit) {
   vec3 towardSun = -refract(-uSunDirection, vec3(0.0, 1.0, 0.0), 1.0 / WATER_IOR);
   float sunAbove = smoothstep(0.0, 0.08, uSunDirection.y);
   float sunPath = depth / max(towardSun.y, 0.2);
-  vec3 direct = uSunColor * sunAbove * max(dot(hit.normal, towardSun), 0.0)
-    * waterTransmittance(sunPath) * poolCaustic(hit.position);
+  float facingSun = max(dot(hit.normal, towardSun), 0.0);
+  vec3 direct = vec3(0.0);
+  if (facingSun * sunAbove > 0.0) {
+    direct = uSunColor * sunAbove * facingSun * waterTransmittance(sunPath)
+      * poolCaustic(hit.position) * sunVisibility(hit.position, 4);
+  }
   vec3 diffuse = uSkyColor * waterTransmittance(depth) * (0.55 + 0.45 * hit.normal.y);
 
   // 池壁還會被照亮的池底打亮：池底把收到的光漫射出來，池壁大約看得到半個池底。

@@ -9,6 +9,7 @@ import vertexShader from './shaders/underwater-motes.vert.glsl?raw';
 const SHARED_UNIFORM_NAMES = Object.freeze([
   'uPoolMin', 'uPoolMax', 'uWaterLevel', 'uShallowBottom', 'uDeepBottom', 'uTime',
   'uSunDirection', 'uSunColor', 'uSkyColor', 'uAbsorption', 'uCaustics', 'uCausticLayers',
+  'uSunShadowMap', 'uSunShadowMatrix', 'uSunShadow',
 ] as const);
 
 export const UNDERWATER_MOTES_NAME = 'realistic:underwater-motes';

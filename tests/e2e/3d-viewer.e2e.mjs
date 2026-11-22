@@ -544,6 +544,15 @@ try {
     assert.ok(batchedMeshes * 4 < sourceMeshes, `${budget.label}: static batching left ${batchedMeshes} of ${sourceMeshes} meshes`);
     // Only the upper tiers redraw the scene for a planar water reflection; medium keeps the probe.
     assert.equal(await shell.getAttribute('data-water-reflection'), budget.quality === 'high' ? 'planar' : 'probe');
+    // The sky (TASK-152) is one more draw call inside the same budgets, and from medium up
+    // reflections and indirect light are generated from it instead of the fixed sky image.
+    assert.equal(await shell.getAttribute('data-sky'), 'dome');
+    assert.equal(await shell.getAttribute('data-environment-source'), 'sky');
+    // Shadow edges soften with the distance to whatever casts them; the filter is patched into
+    // three.js' shadow shader, so this also proves the patch still fits the installed version.
+    assert.equal(await shell.getAttribute('data-shadow-filter'), 'distance-soft');
+    // The overview shows 3F, so its roof is drawn.
+    assert.equal(await shell.getAttribute('data-layer-dependents-hidden'), '0');
     await page.close();
   }
 
@@ -697,6 +706,180 @@ try {
   });
   await qualityContext.close();
 
+  // Real sun (DEC-191): the light comes from the site, its bearing, the date, the time and the
+  // weather. Scenes carry their own moment; the control and the URL change it.
+  const sun = await browser.newPage({ viewport: { width: 1100, height: 900 } });
+  trackErrors(sun);
+  const sunShell = sun.locator('[data-viewer-shell]');
+  const waitForSun = () => sun.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+    undefined,
+    { timeout: 120_000 },
+  );
+  const sunState = () => sunShell.evaluate((shell) => ({
+    moment: shell.dataset.lightingMoment,
+    weather: shell.dataset.weather,
+    altitude: Number(shell.dataset.sunAltitude),
+    azimuth: Number(shell.dataset.sunAzimuth),
+    key: shell.dataset.keyLight,
+    phase: shell.dataset.dayPhase,
+    scene: shell.dataset.scene,
+  }));
+  const sunParameters = () => sun.evaluate(() => {
+    const parameters = new URLSearchParams(location.search);
+    return { time: parameters.get('time'), weather: parameters.get('weather'), hash: location.hash };
+  });
+  const setRange = (selector, value) => sun.locator(selector).evaluate((input, next) => {
+    input.value = String(next);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }, value);
+  // The year is "this year at the school" (UTC+8), whatever time zone the test machine is in.
+  const siteNow = () => new Date(Date.now() + 8 * 3_600_000);
+  const siteYear = siteNow().getUTCFullYear();
+  await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off#light`, { waitUntil: 'networkidle' });
+  await waitForSun();
+  assert.equal(await sunShell.getAttribute('data-real-sun'), 'true');
+  // The sky dome is drawn on every enhanced tier; the saver tier has no environment map to regenerate.
+  assert.equal(await sunShell.getAttribute('data-sky'), 'dome');
+  assert.equal(await sunShell.getAttribute('data-environment-source'), 'none');
+  assert.equal(await sunShell.getAttribute('data-layer-dependents-hidden'), '0');
+  assert.equal(await sun.locator('[data-light-control]').isVisible(), true);
+  const winterMorning = await sunState();
+  assert.equal(winterMorning.moment, `${siteYear}-12-21T09:30`);
+  assert.equal(winterMorning.weather, 'clear');
+  assert.equal(winterMorning.key, 'sun');
+  assert.equal(winterMorning.phase, 'day');
+  // Winter solstice 09:30 at 24.1°N: the sun is about 31° high in the south-east.
+  assert.ok(winterMorning.altitude > 28 && winterMorning.altitude < 34, `altitude ${winterMorning.altitude}`);
+  assert.ok(winterMorning.azimuth > 132 && winterMorning.azimuth < 146, `azimuth ${winterMorning.azimuth}`);
+  assert.equal(await sun.locator('[data-light-date-label]').innerText(), '12月21日（冬至）');
+  assert.equal(await sun.locator('[data-light-time-label]').innerText(), '09:30');
+  assert.match(await sun.locator('[data-light-status]').innerText(), /^太陽高度 \d+°，在東南方$/);
+  assert.deepEqual(
+    await sun.locator('[data-light-terms] button').evaluateAll((buttons) => buttons.map(
+      (button) => [button.textContent, button.getAttribute('aria-pressed')],
+    )),
+    [['春分', 'false'], ['夏至', 'false'], ['秋分', 'false'], ['冬至', 'true']],
+  );
+  assert.deepEqual(
+    await sun.locator('[data-light-weather] button').evaluateAll((buttons) => buttons.map(
+      (button) => [button.textContent, button.getAttribute('aria-pressed')],
+    )),
+    [['晴', 'true'], ['陰', 'false'], ['雨', 'false']],
+  );
+  // On the scene's own moment the URL stays clean.
+  assert.deepEqual(await sunParameters(), { time: null, weather: null, hash: '#light' });
+
+  // Dragging the time moves the sun and puts the moment in the URL.
+  await setRange('[data-light-time]', 990);
+  const winterAfternoon = await sunState();
+  assert.equal(winterAfternoon.moment, `${siteYear}-12-21T16:30`);
+  assert.ok(winterAfternoon.azimuth > 225 && winterAfternoon.azimuth < 250, `azimuth ${winterAfternoon.azimuth}`);
+  assert.ok(winterAfternoon.altitude > 3 && winterAfternoon.altitude < 15, `altitude ${winterAfternoon.altitude}`);
+  assert.equal(await sun.locator('[data-light-time]').getAttribute('aria-valuetext'), '16:30');
+  assert.deepEqual(await sunParameters(), {
+    time: `${siteYear}-12-21T16:30`, weather: 'clear', hash: '#light',
+  });
+  // The sliders work from the keyboard: one step is ten minutes, or one day.
+  await sun.locator('[data-light-time]').focus();
+  await sun.keyboard.press('ArrowRight');
+  assert.equal((await sunState()).moment, `${siteYear}-12-21T16:40`);
+  await sun.locator('[data-light-date]').focus();
+  await sun.keyboard.press('ArrowLeft');
+  assert.equal((await sunState()).moment, `${siteYear}-12-20T16:40`);
+  assert.equal(await sun.locator('[data-light-date-label]').innerText(), '12月20日');
+  assert.equal(
+    await sun.locator('[data-light-terms] button[data-term="winter-solstice"]').getAttribute('aria-pressed'),
+    'false',
+  );
+
+  // Solar-term shortcuts change the date and keep the time; weather changes the light, not the sun.
+  await sun.locator('[data-light-terms] button[data-term="summer-solstice"]').click();
+  const summerEvening = await sunState();
+  assert.equal(summerEvening.moment, `${siteYear}-06-21T16:40`);
+  assert.ok(summerEvening.altitude > winterAfternoon.altitude + 15, `altitude ${summerEvening.altitude}`);
+  assert.ok(summerEvening.azimuth > 275 && summerEvening.azimuth < 295, `azimuth ${summerEvening.azimuth}`);
+  assert.equal(await sun.locator('[data-light-date]').getAttribute('aria-valuetext'), '6月21日（夏至）');
+  await sun.locator('[data-light-weather] button[data-weather="rain"]').click();
+  const summerRain = await sunState();
+  assert.equal(summerRain.weather, 'rain');
+  assert.equal(summerRain.altitude, summerEvening.altitude);
+  assert.equal(
+    await sun.locator('[data-light-weather] button[data-weather="rain"]').getAttribute('aria-pressed'),
+    'true',
+  );
+
+  // Night: the key light hands over to the moon and the status line says so.
+  await setRange('[data-light-time]', 1320);
+  const summerNight = await sunState();
+  assert.equal(summerNight.phase, 'night');
+  assert.equal(summerNight.key, 'moon');
+  assert.ok(summerNight.altitude < -6);
+  assert.equal(await sun.locator('[data-light-status]').innerText(), '夜間，太陽在地平線下');
+  await sun.screenshot({ path: resolve(outputDirectory, 'viewer-sun-night.png') });
+
+  // The URL is a deep link: a reload comes back to the same light.
+  assert.deepEqual(await sunParameters(), {
+    time: `${siteYear}-06-21T22:00`, weather: 'rain', hash: '#light',
+  });
+  await sun.reload({ waitUntil: 'networkidle' });
+  await waitForSun();
+  assert.deepEqual(
+    { ...(await sunState()), altitude: 0, azimuth: 0 },
+    { ...summerNight, altitude: 0, azimuth: 0 },
+  );
+  assert.equal(await sun.locator('[data-light-time-label]').innerText(), '22:00');
+
+  // "Reset view" resets the camera only; choosing a scene goes back to the scene's own moment.
+  await sun.locator('[data-reset-view]').click();
+  assert.equal((await sunState()).moment, `${siteYear}-06-21T22:00`);
+  await activateScene(sun, '向雨');
+  const rainScene = await sunState();
+  assert.equal(rainScene.scene, 'rain');
+  assert.equal(rainScene.weather, 'rain');
+  assert.equal(rainScene.phase, 'day');
+  assert.deepEqual(await sunParameters(), { time: null, weather: null, hash: '#rain' });
+  // The rain scene hides 3F, so the 3F roof (which lives in the roof layer) is hidden with it
+  // instead of floating above the pool hall; switching 3F back on brings it back.
+  assert.equal(await sunShell.getAttribute('data-layer-dependents-hidden'), '1');
+  await sun.locator('[data-layer-list] input[value="l3"]').evaluate((input) => {
+    input.checked = true;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  assert.equal(await sunShell.getAttribute('data-layer-dependents-hidden'), '0');
+  await sun.locator('[data-layer-list] input[value="l3"]').evaluate((input) => {
+    input.checked = false;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  assert.equal(await sunShell.getAttribute('data-layer-dependents-hidden'), '1');
+
+  // "Now" is the wall clock at the school.
+  await sun.locator('[data-light-now]').click();
+  const [nowDate, nowTime] = (await sunState()).moment.split('T');
+  const [nowHour, nowMinute] = nowTime.split(':').map(Number);
+  const expectedNow = siteNow();
+  assert.equal(nowDate, expectedNow.toISOString().slice(0, 10));
+  const minutesApart = Math.abs(
+    nowHour * 60 + nowMinute - (expectedNow.getUTCHours() * 60 + expectedNow.getUTCMinutes()),
+  );
+  assert.ok(minutesApart <= 2, `now is ${minutesApart} minutes off`);
+
+  // `weather=night` is shorthand for a clear evening; malformed values are ignored, not guessed.
+  await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off&weather=night#overview`, { waitUntil: 'networkidle' });
+  await waitForSun();
+  const nightAlias = await sunState();
+  assert.equal(nightAlias.moment.slice(11), '21:00');
+  assert.equal(nightAlias.weather, 'clear');
+  assert.equal(nightAlias.key, 'moon');
+  await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off&time=noon&weather=snow#people`, { waitUntil: 'networkidle' });
+  await waitForSun();
+  const ignored = await sunState();
+  assert.equal(ignored.scene, 'people');
+  assert.equal(ignored.phase, 'day');
+  assert.equal(ignored.weather, 'clear');
+  assert.deepEqual(await sunParameters(), { time: null, weather: null, hash: '#people' });
+  await sun.close();
+
   const explicitBaseline = await browser.newPage({ viewport: { width: 900, height: 700 } });
   trackErrors(explicitBaseline);
   await explicitBaseline.goto(`${origin}/?view=3d-viewer&rendering=baseline`, { waitUntil: 'networkidle' });
@@ -715,6 +898,11 @@ try {
     await explicitBaseline.locator('[data-enter-walkthrough]').isEnabled(),
     true,
   );
+  // The baseline path keeps its fixed scene moods and offers no time control.
+  assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-real-sun'), 'false');
+  assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-sky'), 'none');
+  assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-shadow-filter'), 'fixed');
+  assert.equal(await explicitBaseline.locator('[data-light-control]').isHidden(), true);
   await explicitBaseline.close();
 
   const requiredAssetFallback = await browser.newPage({ viewport: { width: 900, height: 700 } });
