@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { resolveActiveGeometry } from '../../core/geometry/active-geometry.mjs';
-import { deriveSiteOrientation } from '../../core/geometry/site-orientation.mjs';
+import { NORTH_PLAN_DIRECTION_LABELS, deriveSiteOrientation } from '../../core/geometry/site-orientation.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
@@ -26,7 +26,7 @@ function shell(title, subtitle, body, drawingId) {
   <title id="title">${title} ${versionSlug}</title><desc id="desc">${subtitle}。概念設計，非施工圖。</desc>${style}
   <rect width="1920" height="1080" fill="#fff"/><text x="72" y="66" class="title">${title}</text><text x="74" y="98" class="subtitle">${subtitle}</text>
   ${body}
-  <g transform="translate(60 962)"><rect width="1800" height="78" class="titleBox"/><line x1="1020" y1="0" x2="1020" y2="78" stroke="#263746"/><line x1="1320" y1="0" x2="1320" y2="78" stroke="#263746"/><line x1="1570" y1="0" x2="1570" y2="78" stroke="#263746"/><text x="20" y="27" class="small">國立臺中教育大學附設實驗國民小學游泳池翻修</text><text x="20" y="58" class="label">${title}</text><text x="1040" y="25" class="tiny">圖號</text><text x="1040" y="55" class="label">${drawingId}</text><text x="1340" y="25" class="tiny">模型／幾何</text><text x="1340" y="55" class="label">${model.modelVersion}／${active.id}</text><text x="1590" y="25" class="tiny">狀態</text><text x="1590" y="55" class="label">概念設計 · 非施工圖</text></g>
+  <g transform="translate(60 962)"><rect width="1800" height="78" class="titleBox"/><line x1="1020" y1="0" x2="1020" y2="78" stroke="#263746"/><line x1="1320" y1="0" x2="1320" y2="78" stroke="#263746"/><line x1="1570" y1="0" x2="1570" y2="78" stroke="#263746"/><text x="20" y="27" class="small">國立臺中教育大學附設實驗國民小學游泳池改建</text><text x="20" y="58" class="label">${title}</text><text x="1040" y="25" class="tiny">圖號</text><text x="1040" y="55" class="label">${drawingId}</text><text x="1340" y="25" class="tiny">模型／幾何</text><text x="1340" y="55" class="label">${model.modelVersion}／${active.id}</text><text x="1590" y="25" class="tiny">狀態</text><text x="1590" y="55" class="label">概念設計 · 非施工圖</text></g>
   </svg>`;
 }
 
@@ -52,7 +52,7 @@ function rect(entity, className, label = '') {
 }
 
 function northArrow() {
-  return `<g data-north-plan-direction="${siteOrientation.northPlanDirection}" data-north-rotation="${siteOrientation.svgNorthArrowRotation}" transform="translate(1690 190) rotate(${siteOrientation.svgNorthArrowRotation})"><line x1="0" y1="52" x2="0" y2="-38" stroke="#c4553f" stroke-width="4"/><path d="M0 -58L-10 -34H10Z" fill="#c4553f"/><text x="0" y="-70" text-anchor="middle" class="label">N</text></g><text x="1540" y="286" class="tiny">真北＝${siteOrientation.northPlanDirection}；圖面右＝+X＝${siteOrientation.positiveXAxisBearingFromTrueNorth}°</text>`;
+  return `<g data-north-plan-direction="${siteOrientation.northPlanDirection}" data-north-rotation="${siteOrientation.svgNorthArrowRotation}" transform="translate(1690 190) rotate(${siteOrientation.svgNorthArrowRotation})"><line x1="0" y1="52" x2="0" y2="-38" stroke="#c4553f" stroke-width="4"/><path d="M0 -58L-10 -34H10Z" fill="#c4553f"/><text x="0" y="-70" text-anchor="middle" class="label">N</text></g><text x="1540" y="286" class="tiny">真北＝${NORTH_PLAN_DIRECTION_LABELS[siteOrientation.northPlanDirection]}；圖面右＝+X＝${siteOrientation.positiveXAxisBearingFromTrueNorth}°</text>`;
 }
 
 function sectionGrid(sx, sz) {

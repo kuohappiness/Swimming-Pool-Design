@@ -3,6 +3,14 @@ const RADIANS = Math.PI / 180;
 export const SITE_ORIENTATION_COORDINATE_SYSTEM = 'SITE-XY';
 export const SITE_POSITIVE_X_DIRECTION = 'pool-remote-to-service-core';
 
+/** 圖面上真北所在方位的中文說明，供圖面產生器與圖面頁共用。 */
+export const NORTH_PLAN_DIRECTION_LABELS = Object.freeze({
+  'upper-left': '圖面左上',
+  'upper-right': '圖面右上',
+  'lower-left': '圖面左下',
+  'lower-right': '圖面右下',
+});
+
 const finite = (value, label) => {
   if (!Number.isFinite(value)) throw new TypeError(`${label} must be finite.`);
   return value;

@@ -27,6 +27,7 @@ export interface DerivedSiteOrientation {
 
 export const SITE_ORIENTATION_COORDINATE_SYSTEM: 'SITE-XY';
 export const SITE_POSITIVE_X_DIRECTION: 'pool-remote-to-service-core';
+export const NORTH_PLAN_DIRECTION_LABELS: Readonly<Record<NorthPlanDirection, string>>;
 export function normalizeBearingDegrees(value: number): number;
 export function deriveSiteOrientation(
   referenceSystem: SiteOrientationReferenceSystem,

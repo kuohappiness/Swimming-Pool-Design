@@ -297,6 +297,8 @@ test('all four reproducible drawings carry active revision and SITE-XY metadata'
       assert.match(svg, /data-north-plan-direction="lower-right"/);
       // 143° since the TASK-113 handedness fix (+X bearing 307°); the stale 0.6.7 drawings still showed 127°.
       assert.match(svg, /data-north-rotation="143"/);
+      // The visible note must stay in Chinese; the drawings page rewrites only text that starts with 真北＝圖面.
+      assert.match(svg, /真北＝圖面右下；圖面右＝\+X＝307°/);
     }
     if (name === 'DRAW-L1-PLAN') {
       assert.doesNotMatch(svg, /data-privacy-screen="true"/);
