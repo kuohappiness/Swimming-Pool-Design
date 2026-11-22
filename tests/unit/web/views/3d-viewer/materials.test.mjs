@@ -22,10 +22,12 @@ const [
   },
   { createViewerScene },
   { BaselineVisualAssetAdapter },
+  { createGlossyFilmMaterial, patchGlossyFilmFragmentShader, GLOSSY_FILM_PROGRAM_KEY },
 ] = await Promise.all([
   vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/rendering/baseline-visual-assets.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/glossy-film-material.ts'),
 ]);
 test.after(async () => vite.close());
 
@@ -104,12 +106,21 @@ test('enhanced PBR registry shares semantic material and texture instances with 
     assert.equal(basin.map.userData.metresPerRepeat, 0.25);
     assert.equal(basin.map.repeat.x, 4);
 
+    // 玻璃不用 transmission（DEC-190）：改成一次混合的薄膜材質，倒影不被不透明度打折。
     const glass = registry.get('safety-glass');
-    assert.ok(glass instanceof THREE.MeshPhysicalMaterial);
+    assert.ok(glass instanceof THREE.MeshStandardMaterial);
     assert.equal(glass.depthWrite, false);
     assert.equal(glass.transparent, true);
-    assert.equal(glass.transmission, 0.74);
-    assert.ok(glass.thickness > 0);
+    assert.equal(glass.premultipliedAlpha, true);
+    assert.equal(glass.forceSinglePass, true);
+    assert.equal(glass.side, THREE.DoubleSide);
+    assert.equal(glass.opacity, 0.08);
+    assert.equal(glass.customProgramCacheKey(), GLOSSY_FILM_PROGRAM_KEY);
+    assert.equal(registry.get('roof-glass').customProgramCacheKey(), GLOSSY_FILM_PROGRAM_KEY);
+    const wet = registry.get('wet-surface');
+    assert.equal(wet.customProgramCacheKey(), GLOSSY_FILM_PROGRAM_KEY);
+    assert.equal(wet.side, THREE.FrontSide);
+    assert.ok(wet.envMapIntensity < 1);
 
     const steel = registry.get('structural-steel');
     assert.ok(steel instanceof THREE.MeshStandardMaterial);
@@ -133,18 +144,68 @@ test('quality fallback changes only visual channels and restores the high tier',
     assert.ok(water.normalMap);
     assert.equal(concrete.map.anisotropy, 8);
 
+    const highGlassColor = glass.color.clone();
     registry.setQuality(ENHANCED_QUALITY_PROFILES.low);
     assert.equal(water.normalMap, null);
-    assert.equal(glass.transmission, 0);
+    // 低畫質沒有環境貼圖，玻璃改用較濃的色片。
+    assert.equal(glass.opacity, 0.3);
+    assert.ok(glass.color.g > highGlassColor.g);
     assert.equal(concrete.map.anisotropy, 1);
     assert.equal(registry.get('exposed-concrete-l1'), concrete);
 
     registry.setQuality(ENHANCED_QUALITY_PROFILES.high);
     assert.ok(water.normalMap);
-    assert.equal(glass.transmission, 0.74);
+    assert.equal(glass.opacity, 0.08);
+    assert.ok(glass.color.equals(highGlassColor));
     assert.equal(concrete.map.anisotropy, 8);
   } finally {
     registry.dispose();
+  }
+});
+
+test('no enhanced material asks three.js for the transmission pass at any quality', async () => {
+  const { registry } = await createRegistry();
+  try {
+    for (const quality of ['high', 'medium', 'low']) {
+      registry.setQuality(ENHANCED_QUALITY_PROFILES[quality]);
+      for (const id of registry.semanticIds) {
+        const material = registry.get(id);
+        assert.ok(
+          !(material.transmission > 0),
+          `${id} uses transmission on ${quality}; it would redraw the whole opaque scene`,
+        );
+      }
+    }
+  } finally {
+    registry.dispose();
+  }
+});
+
+test('glossy film material patches the standard shader and refuses an unknown one', () => {
+  const material = createGlossyFilmMaterial({ color: 0x336699, roughness: 0.1, opacity: 0.2 });
+  try {
+    assert.equal(material.transparent, true);
+    assert.equal(material.depthWrite, false);
+    assert.equal(material.side, THREE.FrontSide);
+    assert.equal(material.envMapIntensity, 1);
+
+    const shader = { fragmentShader: THREE.ShaderLib.physical.fragmentShader };
+    material.onBeforeCompile(shader);
+    assert.doesNotMatch(shader.fragmentShader, /#include <opaque_fragment>/);
+    assert.match(shader.fragmentShader, /filmFresnel/);
+    // 倒影（totalSpecular）不乘不透明度；沒有環境貼圖時不加菲涅耳。
+    assert.match(shader.fragmentShader, /totalDiffuse \* diffuseColor\.a \+ totalSpecular/);
+    assert.match(shader.fragmentShader, /#ifdef USE_ENVMAP\s+float filmCos/);
+    // 色調映射、色彩空間、霧與預乘照 three.js 的標準順序留在後面。
+    const order = ['filmAlpha', '#include <tonemapping_fragment>', '#include <colorspace_fragment>',
+      '#include <fog_fragment>', '#include <premultiplied_alpha_fragment>']
+      .map((token) => shader.fragmentShader.lastIndexOf(token));
+    assert.ok(order.every((index) => index >= 0));
+    assert.deepEqual(order, [...order].sort((a, b) => a - b));
+
+    assert.throws(() => patchGlossyFilmFragmentShader('void main() {}'), /opaque_fragment/);
+  } finally {
+    material.dispose();
   }
 });
 

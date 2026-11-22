@@ -83,7 +83,7 @@ test('shed order is fixed and each tier only sheds what it has switched on', () 
   ]);
   assert.deepEqual(sheddableSteps(REALISM_TIERS.ultra), SHED_ORDER);
   assert.deepEqual(sheddableSteps(REALISM_TIERS.high), SHED_ORDER.filter((step) => step !== 'ambient-occlusion'));
-  assert.deepEqual(sheddableSteps(REALISM_TIERS.medium), ['water-reflection-resolution', 'people-animation']);
+  assert.deepEqual(sheddableSteps(REALISM_TIERS.medium), ['people-animation']);
   assert.deepEqual(sheddableSteps(REALISM_TIERS.saver), []);
 });
 

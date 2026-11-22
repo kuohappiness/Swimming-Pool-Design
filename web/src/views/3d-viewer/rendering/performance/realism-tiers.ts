@@ -123,7 +123,9 @@ export const REALISM_TIERS: Readonly<Record<RealismTierId, RealismTier>> = Objec
     minimumResolutionScale: 0.7,
     shadowCascades: 1,
     shadowMapSize: 1024,
-    waterReflectionScale: 0.35,
+    // 平面倒影要把場景多畫一次，實測會讓這一級的繪製呼叫從 145 變成 285，超過上限 200；
+    // 中級是手機自動選級的最高級，所以只用探針（探針已依池廳大小修正視差）。
+    waterReflectionScale: 0,
     waterRefraction: false,
     caustics: 'scrolling',
     mirrorReflection: 'probe',

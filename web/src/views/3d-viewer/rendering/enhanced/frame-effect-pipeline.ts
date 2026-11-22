@@ -10,6 +10,9 @@ import {
 } from '../quality-profile';
 import { getToneMappingProfile } from './tone-mapping';
 
+/** 像素比的下限：防呆用，正常情況由畫質分級的最低解析度比例把關。 */
+const MINIMUM_PIXEL_RATIO = 0.5;
+
 export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
   readonly id = 'enhanced-frame-effects';
   private readonly renderer: THREE.WebGLRenderer;
@@ -24,6 +27,7 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
   private activeScene: THREE.Scene | null = null;
   private activeCamera: THREE.Camera | null = null;
   private disposed = false;
+  private sceneRenderer: ((scene: THREE.Scene, camera: THREE.Camera) => boolean) | null = null;
   private readonly ambientOcclusionResolutionScale = 0.5;
 
   constructor(renderer: THREE.WebGLRenderer, initialQuality: RenderQualityProfile) {
@@ -40,12 +44,21 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     if (this.disposed) return;
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
-    this.pixelRatio = Math.min(Math.max(1, pixelRatio), this.quality.pixelRatioCap);
+    // 動態解析度（DEC-190）會把像素比降到 1 以下，所以下限不是 1。
+    this.pixelRatio = Math.min(Math.max(MINIMUM_PIXEL_RATIO, pixelRatio), this.quality.pixelRatioCap);
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(this.width, this.height, false);
     this.composer?.setPixelRatio(this.pixelRatio);
     this.composer?.setSize(this.width, this.height);
     this.resizeAmbientOcclusionTargets();
+  }
+
+  /**
+   * 讓別人接手畫某些畫面（鏡頭在水裡時的水下畫面）。接手的一方有畫就回傳 true；
+   * 回傳 false 時管線照常畫。曝光與色調映射的設定在呼叫它之前已經套好。
+   */
+  setSceneRenderer(render: ((scene: THREE.Scene, camera: THREE.Camera) => boolean) | null) {
+    this.sceneRenderer = render;
   }
 
   render(scene: THREE.Scene, camera: THREE.Camera) {
@@ -56,7 +69,7 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     if (this.usesAmbientOcclusion) {
       this.ensureComposer(scene, camera);
       this.composer!.render();
-    } else {
+    } else if (!this.sceneRenderer?.(scene, camera)) {
       this.renderer.render(scene, camera);
     }
   }
