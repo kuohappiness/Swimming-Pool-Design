@@ -35,6 +35,9 @@ export interface UnderwaterViewOptions {
 }
 
 export const MAXIMUM_SHAFT_STEPS = 16;
+/** 取樣 14 次時光束取焦散圖樣的第幾層縮圖；次數每減半就再模糊一層。 */
+const SHAFT_BASE_LOD = 1.5;
+const SHAFT_REFERENCE_STEPS = 14;
 
 const SHARED_UNIFORM_NAMES = Object.freeze([...POOL_BASIN_UNIFORM_NAMES, 'uWaves'] as const);
 /** 近裁面的四個角與中心（裁剪座標），用來判斷鏡頭有沒有碰到水。 */
@@ -84,6 +87,7 @@ export class ScreenUnderwaterView implements UnderwaterView {
       uShaftSteps: { value: 0 },
       // 光束在清水裡本來就淡；再強整片水會發白。
       uShaftStrength: { value: 0.07 },
+      uShaftLod: { value: SHAFT_BASE_LOD },
     };
     for (const name of SHARED_UNIFORM_NAMES) {
       const shared = options.waterUniforms[name];
@@ -113,6 +117,9 @@ export class ScreenUnderwaterView implements UnderwaterView {
       throw new RangeError(`Underwater shaft steps must be an integer within [0, ${MAXIMUM_SHAFT_STEPS}].`);
     }
     this.material.uniforms.uShaftSteps.value = steps;
+    this.material.uniforms.uShaftLod.value = steps > 0
+      ? SHAFT_BASE_LOD + Math.max(0, Math.log2(SHAFT_REFERENCE_STEPS / steps))
+      : SHAFT_BASE_LOD;
   }
 
   render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): boolean {

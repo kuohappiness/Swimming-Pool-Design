@@ -590,6 +590,15 @@ try {
       reducedMotion,
       waterColorHandled: () => rendering.visualAssets.handlesUnderwaterView === true,
     });
+    // 鏡頭是否在池水裡：水下的水色跟著鏡頭，不跟著移動狀態（移動狀態有遲滯）。
+    const poolBasin = getViewerPoolBasinShape(model);
+    const eyeInBasin = new THREE.Vector3();
+    const eyeInPoolWater = () => {
+      graph.water.surface.worldToLocal(eyeInBasin.copy(camera.position));
+      return eyeInBasin.y < poolBasin.waterLevel
+        && eyeInBasin.x > poolBasin.minX && eyeInBasin.x < poolBasin.maxX
+        && eyeInBasin.z > poolBasin.minZ && eyeInBasin.z < poolBasin.maxZ;
+    };
     shell.dataset.reducedMotion = String(reducedMotion);
     walkthroughQuality.textContent = qualitySession.tier.label;
     shell.dataset.performanceProfile = rendering.quality.id;
@@ -912,7 +921,7 @@ try {
             || player.movementMode === 'swimming-underwater';
           returnPoolsideButton.hidden = !swimming;
           swimControls.hidden = !swimming || activeInput !== touchInput;
-          underwaterEffects.update(player.movementMode);
+          underwaterEffects.update(player.movementMode, eyeInPoolWater());
           rendering.visualAssets.setWalkthroughState?.({
             movementMode: player.movementMode,
             waterSurfaceElevation: graph.water.surfaceElevation,

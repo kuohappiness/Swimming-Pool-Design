@@ -13,6 +13,7 @@ uniform mat4 uViewToBasin;        // 鏡頭座標轉到水面網格的物件座�
 uniform vec4 uWaves[4];           // 與水面頂點著色器相同的長波，水線才會跟著水面起伏
 uniform int uShaftSteps;          // 光束沿視線取樣幾次；0 不畫光束
 uniform float uShaftStrength;
+uniform float uShaftLod;           // 光束取焦散圖樣的哪一層縮圖；取樣次數越少要越模糊，才不會出現雜點
 
 varying vec2 vUv;
 
@@ -42,12 +43,12 @@ float interleavedGradientNoise(vec2 pixel) {
   return fract(52.9829189 * fract(dot(pixel, vec2(0.06711056, 0.00583715))));
 }
 
-// 光束用的焦散倍率：取較模糊的層，空氣中的光柱邊緣本來就比池底的光網柔和。
+// 光束用的焦散倍率：取較模糊的層，水裡的光柱邊緣本來就比池底的光網柔和。
 float shaftGain(vec3 position, vec3 towardSun) {
   float depth = max(uWaterLevel - position.y, 0.0);
   vec2 entry = position.xz + towardSun.xz * (depth / max(towardSun.y, 0.2));
-  float first = textureLod(uCaustics, (entry + uCausticLayers[0].zw * uTime) * uCausticLayers[0].x, 1.5).r;
-  float second = textureLod(uCaustics, (entry + uCausticLayers[1].zw * uTime) * uCausticLayers[1].x, 1.5).r;
+  float first = textureLod(uCaustics, (entry + uCausticLayers[0].zw * uTime) * uCausticLayers[0].x, uShaftLod).r;
+  float second = textureLod(uCaustics, (entry + uCausticLayers[1].zw * uTime) * uCausticLayers[1].x, uShaftLod).r;
   return min(first, second) * CAUSTIC_MAXIMUM_GAIN * CAUSTIC_ENERGY_COMPENSATION;
 }
 

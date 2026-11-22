@@ -45,13 +45,17 @@ export class UnderwaterEffects {
     this.shell.dataset.underwaterFog = 'false';
   }
 
-  update(mode: MovementMode) {
+  /**
+   * @param eyeSubmerged 鏡頭是否真的在水面下。移動狀態有遲滯（剛下潛或剛浮出時狀態和畫面差一點），
+   *   水色霧要跟著鏡頭，不然頭已經出水了整個池廳還罩著一層水色。沒給時退回用移動狀態判斷。
+   */
+  update(mode: MovementMode, eyeSubmerged?: boolean) {
     if (this.disposed) return;
     const nextUnderwater = mode === 'swimming-underwater';
     this.shell.dataset.waterMode = swimming(mode) ? mode : 'dry';
     this.shell.dataset.underwater = String(nextUnderwater);
     // 水色由繪圖端處理與否可能在潛水途中改變（寫實水面晚一點才載入、畫質被調降），每次都對一次。
-    this.syncFog(nextUnderwater && !this.options.waterColorHandled?.());
+    this.syncFog((eyeSubmerged ?? nextUnderwater) && !this.options.waterColorHandled?.());
     if (nextUnderwater === this.underwater) return;
     this.underwater = nextUnderwater;
     try {

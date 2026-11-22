@@ -310,8 +310,12 @@ try {
     );
     assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'), 'true');
     // The software renderer runs the saver tier, which has no underwater view of its own:
-    // the walkthrough tints the water with scene fog instead.
-    assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater-fog'), 'true');
+    // the walkthrough tints the water with scene fog instead, once the camera itself is under.
+    await desktop.waitForFunction(
+      () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-underwater-fog') === 'true',
+      undefined,
+      { timeout: 5_000 },
+    );
     await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-walkthrough-underwater.png') });
   } finally {
     await desktop.keyboard.up('c');
@@ -589,7 +593,8 @@ try {
 
   // Underwater view (TASK-151): on the medium tier and up the frame is drawn through the
   // underwater pass while the camera is in the water, and the walkthrough adds no fog of its own.
-  const diving = await browser.newPage({ viewport: { width: 900, height: 560 }, deviceScaleFactor: 1 });
+  // Wider than 900 px so the walkthrough takes the keyboard rather than the touch controls.
+  const diving = await browser.newPage({ viewport: { width: 960, height: 560 }, deviceScaleFactor: 1 });
   trackErrors(diving);
   await diving.goto(`${origin}/?view=3d-viewer&quality=medium&adaptive=off`, { waitUntil: 'networkidle' });
   const divingShell = diving.locator('[data-viewer-shell]');
@@ -627,7 +632,8 @@ try {
           && shell?.getAttribute('data-underwater-view') === 'true';
       },
       undefined,
-      { timeout: 20_000 },
+      // The view state is published every 30 frames, which the software renderer takes a while over.
+      { timeout: 60_000 },
     );
     assert.equal(await divingShell.getAttribute('data-underwater-fog'), 'false');
     await diving.screenshot({ path: resolve(outputDirectory, 'viewer-underwater-view.png') });
