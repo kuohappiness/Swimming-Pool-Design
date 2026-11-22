@@ -17,6 +17,7 @@
     "build:copy": "node tools/build/build-copy.mjs",
     "check:docs": "node tools/check/check-docs.mjs",
     "check:model": "node tools/check/check-model.mjs",
+    "check:assets": "node tools/check/check-assets.mjs",
     "pretest": "npm run build:content",
     "test": "node --test \"tests/unit/**/*.test.mjs\"",
     "pretypecheck": "npm run build:content",
@@ -25,7 +26,7 @@
     "test:e2e": "node tests/e2e/web.e2e.mjs && node tests/e2e/3d-viewer.e2e.mjs",
     "capture:viewer-quality": "npm run build && node tools/capture/capture-viewer-quality.mjs",
     "clean:dist": "node tools/build/clean-dist.mjs",
-    "build": "npm run build:content && npm run check:docs && npm run check:model && npm test && npm run typecheck && npm run clean:dist && vite build"
+    "build": "npm run build:content && npm run check:docs && npm run check:model && npm run check:assets && npm test && npm run typecheck && npm run clean:dist && vite build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

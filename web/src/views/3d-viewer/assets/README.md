@@ -8,6 +8,7 @@
 - 所有檔案必須有可追溯 source、author、license、SHA-256 與 byte size。
 - visual assets 不得進入 walkthrough collision，也不得改寫 `model/project-model.json`。
 - 缺少 optional 資產時回復 baseline rendering；必要資產缺失則停用 enhanced mode 並顯示診斷。
+- 入庫上限由 `npm run check:assets` 檢查（DEC-190）：整個資料夾 70 MB、單張貼圖 4 MB、單一模型 2 MB；只收 `.ktx2`、`.glb`、`.ogg`、`.mp3`、`.json`、`.md` 與既有的 `.svg` 代理圖樣；資料夾與檔名用英文小寫加連字號。上限數字只寫在 `core/viewer/render-budgets.mjs`。
 - texture repeat 以公尺尺度設定；本目錄的圖樣只是概念視覺代理，不宣稱實際材料樣板或性能。
 
 ## 目前測試資產
