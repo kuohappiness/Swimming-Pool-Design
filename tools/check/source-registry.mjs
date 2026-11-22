@@ -1,7 +1,8 @@
 // 來源登錄的三方一致（TASK-121）：docs/site-and-sources.md 的來源表、模型 `sources` 與檔案本身。
 // 檔案雜湊與位元組數由 check:model 的 validateSourceFiles 對檔案比；這裡比文件表與模型，兩邊必須逐列一致。
 
-const sourceRowPattern = /^\|\s*(SRC-(?:SITE|CONCEPT)-\d{3})\s*\|/;
+// 有檔案的來源類別都要對上模型；SRC-REG 是法規登錄，沒有檔案也不進模型。
+const sourceRowPattern = /^\|\s*(SRC-(?!REG-)[A-Z]+-\d{3})\s*\|/;
 
 function stripCode(cell) {
   return cell.replace(/`/g, '').trim();

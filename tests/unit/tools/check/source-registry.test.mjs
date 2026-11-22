@@ -27,6 +27,12 @@ test('source table rows parse into path, pixel size, byte size and hash', () => 
   assert.equal(photo.byteSize, 6141202);
 });
 
+test('source table covers every file-backed category but not the regulation registry', () => {
+  const extra = `${table}\n| SRC-DATA-001 | \`source-materials/data/c.json\` | 氣候 | JSON；2,028 bytes；12 個月 | \`${hash}\` |\n| SRC-REG-001 | 建築技術規則 | 第 33 條 | 110 年版 | — | 2026-11-21 | 已讀條文 |`;
+  assert.deepEqual(parseSourceTable(extra).map(({ id }) => id), ['SRC-SITE-001', 'SRC-CONCEPT-012', 'SRC-DATA-001']);
+  assert.equal(parseSourceTable(extra)[2].byteSize, 2028);
+});
+
 test('source registry accepts a table that matches the model', () => {
   assert.deepEqual(validateSourceRegistry({ text: table, source: 'doc', model: model() }), []);
 });
