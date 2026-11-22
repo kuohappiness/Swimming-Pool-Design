@@ -87,6 +87,11 @@ test('Viewer package derives all major geometry from the active revision', () =>
   assert.deepEqual(viewer.geometry.l2.stairChangingDivider.spanX, [32, 41]);
   assert.deepEqual(viewer.geometry.l2.stairChangingDivider.openings, []);
   assert.equal(viewer.geometry.l2.ceiling.continuous, true);
+  assert.equal(viewer.geometry.l1.poolUse.decisionId, 'DEC-157');
+  assert.equal(viewer.geometry.l1.poolUse.entryVestibule.floorElevation, 0);
+  assert.equal(viewer.geometry.l1.poolUse.classRoute.length, 5);
+  assert.equal(viewer.geometry.pool.teachingPlatform.decisionId, 'DEC-158');
+  assert.equal('storage' in viewer.geometry.l1.zones, false);
   assert.deepEqual(viewer.geometry.l2.stairToL3.bounds, { x1: 32.5, x2: 41, y1: 0.5, y2: 2 });
   assert.equal(viewer.geometry.l2.stairToL3.axis, '+x');
   assert.equal(viewer.geometry.l2.stairToL3.designIntent, 'suspended-floating-stair');

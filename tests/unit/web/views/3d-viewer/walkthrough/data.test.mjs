@@ -69,9 +69,12 @@ test('walkthrough adapter exposes the complete MVP semantic descriptors', async 
     'POOL-01',
     'RF-L3-01',
     'RF-PV-RES-01',
+    'RMP-L1-ENTRY-01',
     'SITE-01',
     'ST-01',
     'ST-02',
+    'STP-L1-ENTRY-01',
+    'Z-L1-ENTRY-01',
     'Z-L3-ARRIVAL-01',
     'Z-L3-TERRACE-01',
   ]);
@@ -79,6 +82,7 @@ test('walkthrough adapter exposes the complete MVP semantic descriptors', async 
   assert.deepEqual(walkthrough.surfaces.map(({ id }) => id), [
     'site-ground',
     'l1-pool-deck',
+    'l1-entry-vestibule',
     'l2-floor',
     'l3-rotated-floor',
     'l3-fixed-extension',
@@ -93,7 +97,14 @@ test('walkthrough adapter exposes the complete MVP semantic descriptors', async 
   })), [
     { entityId: 'ST-01', lowerElevation: 0.3, upperElevation: 3.3 },
     { entityId: 'ST-02', lowerElevation: 3.3, upperElevation: 6.88 },
+    { entityId: 'RMP-L1-ENTRY-01', lowerElevation: 0, upperElevation: 0.3 },
+    { entityId: 'STP-L1-ENTRY-01', lowerElevation: 0, upperElevation: 0.3 },
   ]);
+  assert.deepEqual(
+    walkthrough.surfaces.find(({ id }) => id === 'l1-pool-deck').exclusions,
+    ['POOL-01', 'Z-L1-ENTRY-01', 'RMP-L1-ENTRY-01', 'STP-L1-ENTRY-01'],
+  );
+  assert.equal(walkthrough.surfaces.find(({ id }) => id === 'l1-entry-vestibule').elevation, 0);
   assert.deepEqual(walkthrough.waterVolumes[0], {
     id: 'main-pool-water',
     kind: 'water-volume',

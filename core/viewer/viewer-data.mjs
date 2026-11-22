@@ -149,6 +149,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         deckElevation: confirmed(active.levels.poolDeckElevation, []),
         laneCount: active.l1.pool.laneBands.length - 1,
         laneBands: structuredClone(active.l1.pool.laneBands),
+        teachingPlatform: structuredClone(active.l1.pool.teachingPlatform),
       },
       l1: {
         bounds: structuredClone(building.bounds),
@@ -165,6 +166,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         zones: structuredClone(active.l1.zones),
         toiletEntrances: structuredClone(active.l1.toiletEntrances),
         structuralStrategy: structuredClone(active.l1.structuralStrategy),
+        poolUse: structuredClone(active.l1.poolUse),
       },
       l2: {
         ...structuredClone(active.l2),

@@ -9,10 +9,10 @@
 
 Viewer 只接受：
 
-- `web/src/generated/viewer-model.json`：由 active `GEO-0.8.2` 產生。
+- `web/src/generated/viewer-model.json`：由 active `GEO-0.10.0` 產生。
 - `web/src/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.9.7` 與 `modelHash`。viewer model 另須包含 `schemaVersion=1.5.0`、`activeGeometryRevisionId=GEO-0.8.2`、`geometryRevision=0.8.2`、`coordinateSystemId=SITE-XY`、唯一 `referenceSystem.siteOrientation`、`referenceSystem.siteLocation`（校址經緯度與時區，3D 太陽位置的輸入）及每個 bounded entity 的 canonical `entityBounds`。不得輸出第二份 world bearing 或 `northArrowPlanDirection`。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.10.0` 與 `modelHash`。viewer model 另須包含 `schemaVersion=1.5.0`、`activeGeometryRevisionId=GEO-0.10.0`、`geometryRevision=0.10.0`、`coordinateSystemId=SITE-XY`、唯一 `referenceSystem.siteOrientation`、`referenceSystem.siteLocation`（校址經緯度與時區，3D 太陽位置的輸入）及每個 bounded entity 的 canonical `entityBounds`。不得輸出第二份 world bearing 或 `northArrowPlanDirection`。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 
@@ -22,7 +22,9 @@ Viewer 只接受：
 - `WORLD-BEARING-ROOT` 只讀 `referenceSystem.siteOrientation` 一次。canonical 307°是從真北順時針量到 SITE +X 的羅盤方位角；在 SITE Y→Three −Z adapter 下，root 的 Three.js Y 軸旋轉由共用函式推導為 `90°−307°=143°`，不得直接把羅盤值寫成 `−307°`或建立本地 override。
 - L1／L2／屋頂固定；L3 主矩形在獨立 group 以 X35／Y6.75 水平旋轉 +25.5°，新增正交三角擴板與到達翼保持 SITE-XY 不旋轉。
 - L3 面池承載牆與 `F-MIR-01` 共面，共同向池側外傾 +23.0°；顯示偏移只可小到避免 z-fighting。
-- L1 表達 25 × 8.5 m 池體、1.2→1.5 m 斜底、四間獨立廁所、儲物、水處理、藥劑分間與右側緩坡。
+- L1 表達 25 × 8.5 m 池體、1.2→1.5 m 斜底、四間獨立廁所、無障礙暨親子室、管理暨急救室、水處理、藥劑分間與右側緩坡。
+- `DEC-157` 的一堂課動線由 `pool-use-details.ts` 表達：±0.00 換鞋玄關（Y0 玻璃與 `EN-01` 在此落到 ±0.00）、1:12 坡道與兩階、+0.30 m 乾式廊道與 1.1 m 低牆、梯底洗腳池與 3 支沖身、AED、集合區、救生椅、X31 兩室的門與面池窗、教具推車與移動式升降椅。Y0 帶的部分（`CUTAWAY-HIDE-Y0-POOL-DECK`、`CUTAWAY-HIDE-Y0-POOL-USE`）隨泳池剖視隱藏。漫遊時玄關是 ±0.00 的地面，坡道與兩階是由 ±0.00 到 +0.30 m 的斜面。
+- `DEC-158` 的可移除教學平台 `POOL-PLAT-01` 在水面下 `topWaterDepth`，屬 `water` 圖層，泳池剖視可見。
 - L1 西端外牆退至 X0.5，`EN-01` 位於 X1～X3；L1 Y0 的 X0.5～X31 為安全玻璃，只有 X31～X39 服務本體是自然灰清水模。X0～X0.5 顯示傾斜玻璃突出屋簷／雨水回收，X31～X39／Y13.5～Y14.5 顯示後側透明玻璃屋簷。四間廁所立面仍依 active `toiletEntrances` 切出 1.00 m 無門板洞口。
 - 廁所內裝須可辨識具盆深、座圈／沖水五金或腳踏區的 WC、具盆深／龍頭／鏡面／排水的洗手槽、具沖水與感應細節的小便斗，以及具有門板、五金與離地腳座的 WC 隔間；四個入口不設遮擋版，可直接面向洗手台。全 L1 必須正好 8 座 WC、坐式 4 座／蹲式 4 座：泳池男廁依資料順序為坐式、蹲式；泳池女廁為坐式、蹲式、蹲式；操場男廁為坐式；操場女廁為蹲式、坐式，且靠 X39 入口者為坐式。男廁洗手台貼 Y0、女廁洗手台貼 Y7.5，所有 WC 隔間貼 Y3.5；泳池男廁其中一座小便斗位於 X31 且避開入口。操場男廁須顯示 1 WC＋2 小便斗＋2 洗手槽，操場女廁須顯示 2 WC＋2 洗手槽。
 - L2／L3 基準板為 12 × 13.5 m；L2 +3.30 m、L3 +6.88 m。
@@ -33,7 +35,7 @@ Viewer 只接受：
 - `ST-01` 為 X20.5～X29／Y0.5～Y2.0（Y0 側）、1.50 m 淨寬、20 級高／18 踏面、2.70＋3.10＋2.70 m，從 +0.30 m 直接接 L2；Viewer 只讀 active canonical bounds，不保留 `originY` fallback，且必須用薄踏步、封閉踢面、兩道連續鋼箱梯梁與開放梯下表達懸空設計，不得以逐階落地實心箱體代替。
 - L1～L3 不透明服務中心使用自然灰清水模材質；玻璃屋頂與 L3 鏡牆維持獨立材質。
 - 固定屋頂為 29 m／5°／+4.00→+6.537 m。
-- 結構支承整合於 X32.5／X35.5 隔間／設備／立面帶，不使用孤立突兀核心柱；玻璃不承重。
+- 結構支承整合於 X34／X35.5 隔間／設備／立面帶（X34 由 `DEC-157` 從 X32.5 移來，待結構驗證），不使用孤立突兀核心柱；玻璃不承重。
 - 高位設備只在固定支承帶，不隨旋轉 L3 懸挑。
 
 23° 外傾、轉換結構、設備容量、避難與所有材料僅為概念工作值；Viewer 必須顯示專業驗證限制。
