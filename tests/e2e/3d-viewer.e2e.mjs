@@ -1288,7 +1288,7 @@ try {
 
   const atlasDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   trackErrors(atlasDesktop);
-  await atlasDesktop.goto(`${origin}/?view=drawings#REF-001`, { waitUntil: 'networkidle' });
+  await atlasDesktop.goto(`${origin}/?view=drawings#SITE`, { waitUntil: 'networkidle' });
   assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 5);
   assert.equal(await atlasDesktop.locator('#detail-panel').count(), 0);
   assert.equal(await atlasDesktop.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
@@ -1300,17 +1300,17 @@ try {
   await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-site-latest.png'), fullPage: true });
 
   for (const [sheetId, entityId, screenshotName] of [
-    ['V067-L1', 'F-L1-Y0-01', 'atlas-v067-l1.png'],
-    ['V067-L2', 'F-L2-Y0-01', 'atlas-v067-l2.png'],
-    ['V067-L3', 'RF-PV-RES-01', 'atlas-v067-l3.png'],
-    ['V067-SECTION', 'W-L3-X41-01', 'atlas-v067-section.png'],
+    ['L1', 'F-L1-Y0-01', 'atlas-l1.png'],
+    ['L2', 'F-L2-Y0-01', 'atlas-l2.png'],
+    ['L3', 'RF-PV-RES-01', 'atlas-l3.png'],
+    ['SECTION', 'W-L3-X41-01', 'atlas-section.png'],
   ]) {
     await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).click();
     assert.equal(await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).getAttribute('aria-current'), 'page');
     assert.equal(await atlasDesktop.locator(`.review-drawing[data-sheet-id="${sheetId}"]`).count(), 1);
     assert.equal(await atlasDesktop.locator('.review-drawing image').count(), 0);
     assert.equal(await atlasDesktop.locator(`.review-drawing [data-entity="${entityId}"]`).count(), 1);
-    if (sheetId !== 'V067-SECTION') {
+    if (sheetId !== 'SECTION') {
       assert.equal(
         await atlasDesktop.locator('.review-drawing [data-north-plan-direction]').getAttribute('data-north-plan-direction'),
         expectedSiteOrientation.northPlanDirection,
@@ -1320,7 +1320,7 @@ try {
         `${expectedSiteOrientation.svgNorthArrowRotation}`,
       );
     }
-    if (sheetId === 'V067-L3') {
+    if (sheetId === 'L3') {
       assert.equal(await atlasDesktop.locator('#toggle-pv').isChecked(), true);
       await atlasDesktop.locator('#toggle-pv').uncheck();
       assert.equal(await atlasDesktop.locator('[data-entity="RF-PV-RES-01"]').isHidden(), true);
@@ -1334,10 +1334,12 @@ try {
 
   const atlasMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   trackErrors(atlasMobile);
+  // A retired, versioned anchor still opens its sheet and is rewritten to the version-free id (DEC-170).
   await atlasMobile.goto(`${origin}/?view=drawings#V067-L1`, { waitUntil: 'networkidle' });
+  assert.equal(await atlasMobile.evaluate(() => location.hash), '#L1');
   assert.equal(await atlasMobile.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
   assert.equal(await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
-  assert.equal(await atlasMobile.locator('.review-drawing[data-sheet-id="V067-L1"]').count(), 1);
+  assert.equal(await atlasMobile.locator('.review-drawing[data-sheet-id="L1"]').count(), 1);
   assert.equal(await atlasMobile.locator('.review-drawing [data-entity="F-L1-Y0-01"]').count(), 1);
   assert.equal(await atlasMobile.locator('#sheet-stage').getAttribute('class'), 'sheet-stage fit-sheet');
   assert.equal(
@@ -1355,7 +1357,7 @@ try {
     true,
   );
   await atlasMobile.locator('#fit-sheet').click();
-  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-v067-l1-mobile.png'), fullPage: true });
+  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-l1-mobile.png'), fullPage: true });
   await atlasMobile.close();
 
   assert.equal(browserErrors.length, 0, browserErrors.join('\n'));

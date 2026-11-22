@@ -1,7 +1,7 @@
 import rawModel from '../../../../model/project-model.json';
 import type { ProjectModel, SheetRender } from '../../shared/types';
 import { escapeHtml } from './geometry';
-import { renderSheets } from './sheets';
+import { renderSheets, retiredSheetIds } from './sheets';
 
 const model = rawModel as unknown as ProjectModel;
 const sheets = renderSheets(model);
@@ -29,21 +29,21 @@ modelVersion.textContent = `MODEL ${model.modelVersion}`;
 projectName.textContent = model.project.name;
 disclaimer.textContent = model.project.disclaimer;
 
-let activeSheetId = location.hash.slice(1).toUpperCase();
-if (!sheets.some((sheet) => sheet.id === activeSheetId)) activeSheetId = sheets[0].id;
-
-function displaySheetTitle(sheet: SheetRender): string {
-  if (sheet.id === 'REF-001') return '基地衛星與方位圖';
-  const definition = model.sheets.find((item) => item.id === sheet.id);
-  return definition?.title ?? sheet.title ?? sheet.id;
+/** 由網址錨點找圖號；去版號前的舊圖號（#V067-L1 等）轉到現行圖號。 */
+function sheetIdFromHash(): string | undefined {
+  const requested = decodeURIComponent(location.hash.slice(1)).toUpperCase();
+  const id = retiredSheetIds[requested] ?? requested;
+  return sheets.some((sheet) => sheet.id === id) ? id : undefined;
 }
 
+let activeSheetId = sheetIdFromHash() ?? sheets[0].id;
+
 function sheetMeta(sheet: SheetRender): string {
-  const title = displaySheetTitle(sheet);
-  const pvToggle = sheet.id === 'V067-L3'
+  const title = sheet.title ?? sheet.id;
+  const pvToggle = sheet.id === 'L3'
     ? '<label><input id="toggle-pv" type="checkbox" checked /> 太陽能板</label>'
     : '';
-  const note = sheet.id === 'REF-001'
+  const note = sheet.id === 'SITE'
     ? `MODEL ${model.modelVersion} · ACTIVE ${model.activeGeometryRevisionId}`
     : sheet.note;
   return `<div class="sheet-toolbar">
@@ -59,30 +59,15 @@ function sheetMeta(sheet: SheetRender): string {
   <p class="sheet-note">${escapeHtml(note)}</p>`;
 }
 
-function sheetTabCopy(sheet: SheetRender): { version: string; title: string } {
-  const title = displaySheetTitle(sheet);
-  const versionedId = /^V(\d)(\d)(\d)-(.+)$/.exec(sheet.id);
-  if (!versionedId) {
-    return { version: sheet.id, title: title.replace('參照圖', '') };
-  }
-  return {
-    version: `V${versionedId[1]}.${versionedId[2]}.${versionedId[3]} - ${versionedId[4]}`,
-    title: title
-      .replace(/^v\d+\.\d+\.\d+｜/i, '')
-      .replace('最新', '')
-      .replaceAll(' ', ''),
-  };
-}
 
 function renderTabs(): void {
   tabs.innerHTML = sheets.map((sheet) => {
-    const copy = sheetTabCopy(sheet);
     return `<button
     type="button"
     class="sheet-tab ${sheet.id === activeSheetId ? 'active' : ''}"
     data-sheet="${sheet.id}"
     aria-current="${sheet.id === activeSheetId ? 'page' : 'false'}"
-  ><span>${escapeHtml(copy.version)}</span>${escapeHtml(copy.title)}</button>`;
+  ><span>${escapeHtml(sheet.id)}</span>${escapeHtml(sheet.title ?? sheet.id)}</button>`;
   }).join('');
 
   tabs.querySelectorAll<HTMLButtonElement>('[data-sheet]').forEach((button) => {
@@ -136,8 +121,8 @@ function bindSheetControls(): void {
 }
 
 function handleHashChange(): void {
-  const requested = location.hash.slice(1).toUpperCase();
-  if (sheets.some((sheet) => sheet.id === requested)) setActiveSheet(requested);
+  const id = sheetIdFromHash();
+  if (id) setActiveSheet(id);
 }
 
 window.addEventListener('hashchange', handleHashChange);
