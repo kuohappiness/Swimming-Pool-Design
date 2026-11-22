@@ -2,13 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { ABOUT_SECTION_IDS, compileSectionedContent } from '../../../../tools/build/build-content.mjs';
+import {
+  ABOUT_SECTION_IDS,
+  DESIGN_PROCESS_SECTION_IDS,
+  compileSectionedContent,
+  injectRecordQuotes,
+  readRecords,
+  recordKeysIn,
+  recordPathFor,
+} from '../../../../tools/build/build-content.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../../../..');
-const [modelText, aboutMarkdown] = await Promise.all([
+const [modelText, aboutMarkdown, designProcessMarkdown] = await Promise.all([
   readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
   readFile(resolve(repoRoot, 'content/about.md'), 'utf8'),
+  readFile(resolve(repoRoot, 'content/design-process.md'), 'utf8'),
 ]);
+const designProcessRecords = await readRecords(repoRoot, designProcessMarkdown);
 const model = JSON.parse(modelText);
 const clone = () => structuredClone(model);
 const activeRevision = model.geometryRevisions.find(({ id }) => id === model.activeGeometryRevisionId);
@@ -109,4 +119,78 @@ test('about page copy carries no hand-typed design dimensions', () => {
   // Lengths and elevations must come from model tokens; general angles such as 90° are definitions, not design values.
   const withoutTokens = aboutMarkdown.replace(/\{\{[^}]+\}\}/g, '');
   assert.doesNotMatch(withoutTokens, /(?<![A-Za-z0-9.])\d+(\.\d+)?\s*(m²|m³|m|公尺|公分)(?![A-Za-z])/u);
+});
+
+test('record quotes render only when the cited record really contains them', () => {
+  const records = { '0.3.0': '2F 水平旋轉 +9.5°、鏡牆外傾 +8.5°', sources: '標示 33 m 泳池主體' };
+  assert.equal(
+    injectRecordQuotes('轉 {{record:0.3.0|9.5°}}，主體 {{record:sources|33 m}}。', records),
+    '轉 9.5°，主體 33 m。',
+  );
+  assert.throws(() => injectRecordQuotes('{{record:0.3.0|12°}}', records), /does not appear in docs\/releases\/0\.3\.0\.md/);
+  assert.throws(() => injectRecordQuotes('{{record:0.5.0|20.5 × 7.5 m}}', records), /was not provided/);
+  assert.throws(() => injectRecordQuotes('{{record:notes|1 m}}', records), /Unknown record key/);
+  assert.deepEqual(recordKeysIn('{{record:0.3.0|a}} {{record:sources|b}} {{record:0.3.0|c}}'), ['0.3.0', 'sources']);
+  assert.equal(recordPathFor('0.6.0'), 'docs/releases/0.6.0.md');
+  assert.equal(recordPathFor('sources'), 'docs/site-and-sources.md');
+  // A page that quotes a record cannot be compiled without that record.
+  const page = ['<!-- section:a -->', '## 標題', '', '舊值 {{record:0.3.0|9.5°}}。'].join('\n');
+  assert.throws(() => compileSectionedContent(page, clone(), ['a']), /was not provided/);
+  assert.match(compileSectionedContent(page, clone(), ['a'], { records }).sections[0].html, /舊值 9\.5°。/);
+});
+
+test('design process copy compiles against the model and the records it quotes', () => {
+  const compiled = compileSectionedContent(
+    designProcessMarkdown,
+    clone(),
+    DESIGN_PROCESS_SECTION_IDS,
+    { records: designProcessRecords },
+  );
+  assert.deepEqual(compiled.sections.map(({ id }) => id), DESIGN_PROCESS_SECTION_IDS);
+  const bySection = Object.fromEntries(compiled.sections.map((section) => [section.id, section]));
+  assert.equal(bySection.overview.items.length, 0);
+  assert.ok(bySection.overview.html.length > 0);
+  assert.ok(bySection.timeline.items.length >= 6);
+  for (const { title } of bySection.timeline.items) {
+    assert.match(title, /^[^｜]+｜[^｜]+$/, `timeline title needs "<when>｜<name>": ${title}`);
+  }
+  // The page shows two drawings in three versions each: one paragraph with a bold stage label per image.
+  assert.equal(bySection.versions.items.length, 2);
+  for (const { title, html } of bySection.versions.items) {
+    assert.deepEqual(
+      [...html.matchAll(/<p><strong>([^<]+)<\/strong>/g)].map((match) => match[1]),
+      ['第一版手繪', '第二版手繪', '現行圖面'],
+      `version item "${title}" must describe the three versions in order`,
+    );
+    assert.equal(html.match(/<p>/g).length, 3);
+  }
+  assert.ok(bySection.pivots.items.length >= 5);
+  assert.ok(bySection.corrections.items.length >= 3);
+  assert.ok(bySection.open.items.length >= 4);
+  const html = compiled.sections.map((section) => section.html + section.items.map((item) => item.html).join('')).join('');
+  assert.doesNotMatch(html, /\{\{|\}\}/);
+  for (const [, href] of html.matchAll(/href="([^"]+)"/g)) {
+    assert.match(
+      href,
+      /^(\.\/|\?view=(solar-study|drawings|3d-viewer|about)|https:\/\/github\.com\/kuohappiness\/Swimming-Pool-Design(\/|$))/,
+      `unexpected link target in design process copy: ${href}`,
+    );
+  }
+  // Current values follow the model: change the roof pitch and the page changes with it.
+  const changed = clone();
+  changed.geometryRevisions.find(({ id }) => id === changed.activeGeometryRevisionId).roof.pitch = 6;
+  const recompiled = compileSectionedContent(
+    designProcessMarkdown,
+    changed,
+    DESIGN_PROCESS_SECTION_IDS,
+    { records: designProcessRecords },
+  );
+  assert.notEqual(recompiled.contentHash, compiled.contentHash);
+});
+
+test('design process copy carries no hand-typed measurement', () => {
+  // Current values are model tokens and superseded values are record quotes, so nothing with a unit is typed by hand.
+  const withoutTokens = designProcessMarkdown.replace(/\{\{[^}]+\}\}/g, '');
+  assert.doesNotMatch(withoutTokens, /(?<![A-Za-z0-9.])\d+(\.\d+)?\s*(m²|m³|m|公尺|公分|°|度|kWh|%)(?![A-Za-z])/u);
+  assert.ok(recordKeysIn(designProcessMarkdown).length >= 3);
 });

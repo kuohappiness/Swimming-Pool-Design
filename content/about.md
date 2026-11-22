@@ -187,7 +187,7 @@
 
 ### 泳池有多大、多深？
 
-池體長 {{derived:poolLength|metre}}、寬 {{derived:poolWidth|metre}}，配置三條水道。池底是一道斜面，水深從淺端的 {{active:l1.pool.shallowDepth|metre}} 連續加深到深端的 {{active:l1.pool.deepDepth|metre}}。在[3D 展示](?view=3d-viewer)可以切換到泳池剖視觀察。
+池體長 {{derived:poolLength|metre}}、寬 {{derived:poolWidth|metre}}，配置兩條標準水道和一條教學帶。池底是一道斜面，水深從淺端的 {{active:l1.pool.shallowDepth|metre}} 連續加深到深端的 {{active:l1.pool.deepDepth|metre}}。在[3D](?view=3d-viewer)可以切換到泳池剖視觀察。
 
 ### 為什麼只有三樓要旋轉？
 

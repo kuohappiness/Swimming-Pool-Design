@@ -10,6 +10,8 @@ const TOKEN_PATTERN = /\{\{(model|active|derived):([A-Za-z0-9_.]+)\|([a-zA-Z]+)\
 const SCENE_PATTERN = /^<!--\s*scene:([a-z0-9-]+)\s*-->$/;
 const SECTION_PATTERN = /^<!--\s*section:([a-z0-9-]+)\s*-->$/;
 export const ABOUT_SECTION_IDS = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'];
+export const DESIGN_PROCESS_SECTION_IDS = ['overview', 'timeline', 'versions', 'pivots', 'corrections', 'open'];
+const RECORD_PATTERN = /\{\{record:([a-z0-9.-]+)\|([^{}|]+)\}\}/g;
 
 const escapeHtml = (value) => String(value)
   .replaceAll('&', '&amp;')
@@ -45,6 +47,30 @@ export function injectModelTokens(markdown, model) {
   const unresolved = output.match(/\{\{[^}]+\}\}/g);
   if (unresolved) throw new TypeError(`Unresolved model token: ${unresolved[0]}`);
   return output;
+}
+
+/** Repo path of the record a `{{record:<key>|<quote>}}` token cites: a release version or `sources`. */
+export function recordPathFor(key) {
+  if (/^\d+\.\d+\.\d+$/.test(key)) return `docs/releases/${key}.md`;
+  if (key === 'sources') return 'docs/site-and-sources.md';
+  throw new TypeError(`Unknown record key: ${key}`);
+}
+
+export function recordKeysIn(markdown) {
+  return [...new Set([...markdown.matchAll(RECORD_PATTERN)].map((match) => match[1]))];
+}
+
+/**
+ * Superseded values are not in the model, so copy quotes them from the record that owns them:
+ * `{{record:0.3.0|9.5°}}` renders as `9.5°` only if that text really appears in docs/releases/0.3.0.md.
+ */
+export function injectRecordQuotes(markdown, records = {}) {
+  return markdown.replace(RECORD_PATTERN, (_, key, quote) => {
+    const record = records[key];
+    if (typeof record !== 'string') throw new TypeError(`Record ${recordPathFor(key)} was not provided for quote "${quote}".`);
+    if (!record.includes(quote)) throw new TypeError(`Quote "${quote}" does not appear in ${recordPathFor(key)}.`);
+    return quote;
+  });
 }
 
 function inlineMarkdown(value) {
@@ -159,9 +185,10 @@ export function compilePublicContent(markdown, model, sceneManifest) {
  * Compiles a page written as `<!-- section:id -->` blocks. Each section starts with one `##` title;
  * text before the first `###` is the section intro, and every `###` opens one item (a glossary term,
  * a question, a sub-topic). The section list must match `sectionIds` exactly and in order.
+ * `records` maps record keys to the text of the cited documents, for `{{record:…}}` quotes.
  */
-export function compileSectionedContent(markdown, model, sectionIds) {
-  const renderedMarkdown = injectModelTokens(markdown, model);
+export function compileSectionedContent(markdown, model, sectionIds, { records } = {}) {
+  const renderedMarkdown = injectModelTokens(injectRecordQuotes(markdown, records), model);
   const sectionLines = new Map();
   let currentSection = null;
   for (const line of renderedMarkdown.split(/\r?\n/)) {
@@ -217,11 +244,19 @@ export function compileSectionedContent(markdown, model, sectionIds) {
   return { ...compiled, contentHash: hashData(compiled) };
 }
 
+/** Reads every record that the Markdown quotes, keyed the way `injectRecordQuotes` expects. */
+export async function readRecords(root, markdown) {
+  const keys = recordKeysIn(markdown);
+  const texts = await Promise.all(keys.map((key) => readFile(resolve(root, recordPathFor(key)), 'utf8')));
+  return Object.fromEntries(keys.map((key, index) => [key, texts[index]]));
+}
+
 export async function buildPublicContent({ root = repoRoot } = {}) {
-  const [modelText, markdown, aboutMarkdown, manifestText, registryText] = await Promise.all([
+  const [modelText, markdown, aboutMarkdown, designProcessMarkdown, manifestText, registryText] = await Promise.all([
     readFile(resolve(root, 'model/project-model.json'), 'utf8'),
     readFile(resolve(root, 'content/design-concept.md'), 'utf8'),
     readFile(resolve(root, 'content/about.md'), 'utf8'),
+    readFile(resolve(root, 'content/design-process.md'), 'utf8'),
     readFile(resolve(root, 'web/src/views/3d-viewer/scene-manifest.json'), 'utf8'),
     readFile(resolve(root, 'model/analysis-registry.json'), 'utf8').catch(() => '{}'),
   ]);
@@ -230,15 +265,26 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
   const analysisRegistry = JSON.parse(registryText);
   const content = compilePublicContent(markdown, model, sceneManifest);
   const aboutContent = compileSectionedContent(aboutMarkdown, model, ABOUT_SECTION_IDS);
+  const records = await readRecords(root, designProcessMarkdown);
+  const designProcessContent = compileSectionedContent(
+    designProcessMarkdown,
+    model,
+    DESIGN_PROCESS_SECTION_IDS,
+    { records },
+  );
   const viewerModel = buildViewerModel(model, analysisRegistry);
   const outputDirectory = resolve(root, 'web/src/generated');
   await mkdir(outputDirectory, { recursive: true });
   await Promise.all([
     writeFile(resolve(outputDirectory, 'concept-content.json'), `${JSON.stringify(content, null, 2)}\n`),
     writeFile(resolve(outputDirectory, 'about-content.json'), `${JSON.stringify(aboutContent, null, 2)}\n`),
+    writeFile(
+      resolve(outputDirectory, 'design-process-content.json'),
+      `${JSON.stringify(designProcessContent, null, 2)}\n`,
+    ),
     writeFile(resolve(outputDirectory, 'viewer-model.json'), `${JSON.stringify(viewerModel, null, 2)}\n`),
   ]);
-  return { content, aboutContent, viewerModel };
+  return { content, aboutContent, designProcessContent, viewerModel };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
