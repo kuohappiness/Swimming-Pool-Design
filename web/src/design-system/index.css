@@ -1,0 +1,12 @@
+/*
+ * 設計系統的唯一入口。層的先後在這裡定一次：後面的層蓋過前面的層，
+ * 不看選擇器權重。各分頁的 view.css 不放進層，所以一定蓋過這裡的規則；
+ * 分頁要調整共用外觀時不需要加重選擇器，也不需要 !important。
+ */
+@layer reset, tokens, base, layout, components;
+
+@import './reset.css' layer(reset);
+@import './tokens.css' layer(tokens);
+@import './typography.css' layer(base);
+@import './layout.css' layer(layout);
+@import './components.css' layer(components);

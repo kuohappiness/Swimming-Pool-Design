@@ -14,6 +14,7 @@
 | TASK-151 3D 寫實升級階段二：水 | 實作中 | 教學平台折射等 TASK-118 合併後補上；泳者折射、即時焦散、涉水漣漪與溢水溝水流待排（步驟 1 至 6 已合併） | Claude | [入口](tasks/2026-11-22-3d-realism-water.md) |
 | TASK-119 改建文案與專業檢核揭露更新 | 待審 | 使用者審閱 PR 後合併 | 使用者 | [入口](tasks/2026-11-22-renovation-copy-rewrite.md) |
 | TASK-120 專案簡報與現行圖面更新 | 待審 | 使用者審閱 PR 後合併 | 使用者 | [入口](tasks/2026-11-22-brief-and-drawings-refresh.md) |
+| TASK-170 樣式打底：設計系統分層、分頁樣式不外溢 | 待審 | 使用者審閱 PR 後合併 | 使用者 | [入口](tasks/2026-11-22-style-foundation.md) |
 
 ## 等觸發點
 
