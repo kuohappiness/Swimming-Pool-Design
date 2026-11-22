@@ -221,7 +221,6 @@ export class RealisticWaterPresentation {
     this.underwaterView.setShaftSteps(detail.shaftSteps);
   }
 
-  /** 這一級畫質有沒有平面倒影（沒有時只用探針）。 */
   /**
    * 池廳中央的反射探針，給池館室內的反射共用（`rendering/enhanced/hall-reflection.ts`）。
    * 沒有池廳尺寸或還沒拍過時為 null。
@@ -239,6 +238,7 @@ export class RealisticWaterPresentation {
     };
   }
 
+  /** 這一級畫質有沒有平面倒影（沒有時只用探針）。 */
   get usesPlanarReflection(): boolean {
     return this.planar !== null;
   }

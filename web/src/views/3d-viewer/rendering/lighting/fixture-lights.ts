@@ -4,7 +4,7 @@ import { SUN_ZENITH_INTENSITY, type LinearColor, type SunLighting } from './sun-
 /**
  * 池館的燈具照明（TASK-152 步驟 5）：池廳與 2F 的天花燈、池壁上的水下燈。
  *
- * 燈具的位置來自場景的燈具配置（`pool-hall-details.ts`、`interior-details.ts`，視覺用、
+ * 燈具的位置來自燈具配置（`fixture-layout.ts`，場景畫的燈具網格用同一份；視覺用、
  * 不是機電設計），光通量是讓池廳平均照度落在學校訓練池常見範圍的估計值。
  * 實際的燈具數量、配置、照度與水下燈的安全電壓仍待機電專業設計（`OPEN-009`）。
  *
@@ -92,8 +92,10 @@ export type FixtureQualityTier = keyof typeof FIXTURE_COUNT_BY_TIER;
 /** 著色器的陣列大小。 */
 export const FIXTURE_ZONE_SLOTS = 2;
 export const FIXTURE_LIGHT_SLOTS = 24;
-export const WATER_FIXTURE_SLOTS = 12;
 export const POOL_LIGHT_SLOTS = 12;
+
+/** 光從空氣進到水裡，大多數角度的穿透率。 */
+const AIR_TO_WATER_TRANSMISSION = 0.97;
 
 function normaliseLuminance(color: LinearColor): LinearColor {
   const luminance = 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2];
@@ -297,12 +299,13 @@ const LIGHTS_MAPS = '#include <lights_fragment_maps>';
 const COMMON = '#include <common>';
 
 /**
- * 加在 three.js 光照迴圈之後：每一盞燈當成朝下的朗伯點光源，用材質自己的 BRDF 算（池畔、
- * 不鏽鋼才會有燈的高光）。位置與範圍在世界座標判斷，所以倒影與探針畫面也正確；
- * 方向再換回這一次的 view 座標給 BRDF。補光加在間接漫射，朝下的面拿到最多。
+ * 加在 three.js 光照迴圈之後、環境光之前：每一盞燈是朝下的朗伯點光源，只算漫射，加進材質的
+ * 間接漫射照度（和環境遮蔽一起作用）。燈的高光不在這裡算：池廳裡的構件反射池廳探針，探針拍得到
+ * 發亮的燈具（`rendering/enhanced/hall-reflection.ts`），再算一次高光就重複了。
+ * 位置與範圍在世界座標判斷，所以倒影與探針畫面也正確。補光朝下的面拿到最多。
  */
 const FIXTURE_LIGHTS_APPLY = /* glsl */`
-#if defined( RE_Direct )
+#if defined( RE_IndirectDiffuse )
 	if ( uFixtureActive > 0.0 ) {
 		vec3 fixtureWorld = ( vec4( geometryPosition - viewMatrix[ 3 ].xyz, 0.0 ) * viewMatrix ).xyz;
 		vec3 fixtureSite = ( uFixtureWorldToSite * vec4( fixtureWorld, 1.0 ) ).xyz;
@@ -312,8 +315,8 @@ const FIXTURE_LIGHTS_APPLY = /* glsl */`
 			if ( fixtureCount <= 0 ) continue;
 			float reach = fixtureZoneReach( zone, fixtureSite );
 			if ( reach <= 0.0 ) continue;
-			irradiance += uFixtureZoneFill[ zone ] * reach * ( 0.35 + 0.65 * ( 0.5 - 0.5 * fixtureNormalWorld.y ) );
 			int firstFixture = int( uFixtureZoneRange[ zone ].x );
+			float fixtureIrradiance = 0.0;
 			for ( int index = 0; index < FIXTURE_LIGHT_SLOTS; index ++ ) {
 				if ( index >= fixtureCount ) break;
 				vec4 fixture = uFixtureLights[ firstFixture + index ];
@@ -321,13 +324,11 @@ const FIXTURE_LIGHTS_APPLY = /* glsl */`
 				float distanceSquared = max( dot( toFixture, toFixture ), 0.09 );
 				vec3 towardFixture = toFixture * inversesqrt( distanceSquared );
 				// 燈具朝下：離開正下方越遠越暗，燈具上方完全照不到。
-				float emission = towardFixture.y;
-				if ( emission <= 0.0 ) continue;
-				directLight.direction = normalize( ( viewMatrix * vec4( towardFixture, 0.0 ) ).xyz );
-				directLight.color = uFixtureColor * ( fixture.w * emission * reach / distanceSquared );
-				directLight.visible = true;
-				RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
+				fixtureIrradiance += fixture.w * max( towardFixture.y, 0.0 )
+					* max( dot( fixtureNormalWorld, towardFixture ), 0.0 ) / distanceSquared;
 			}
+			irradiance += uFixtureColor * ( fixtureIrradiance * reach )
+				+ uFixtureZoneFill[ zone ] * reach * ( 0.35 + 0.65 * ( 0.5 - 0.5 * fixtureNormalWorld.y ) );
 		}
 	}
 #endif
@@ -363,9 +364,11 @@ export function installFixtureLights(material: THREE.Material, uniforms: Fixture
 
 /** 場景上給水讀的燈光（世界座標）。 */
 export interface WorldFixtureLights {
-  /** 照到池水的天花燈：世界座標位置與光強度（場景單位）。 */
-  readonly ceiling: readonly { readonly position: THREE.Vector3; readonly intensity: number }[];
-  readonly ceilingColor: THREE.Color;
+  /**
+   * 天花燈照在水面（剛進到水裡）的照度，已乘燈色與入水的穿透率（場景單位）。池面上方的燈排得均勻，
+   * 水面的照度近似一致，水裡只用這一個平均值，不逐盞計算。
+   */
+  readonly ceilingIrradiance: THREE.Color;
   readonly pool: readonly { readonly position: THREE.Vector3; readonly aim: THREE.Vector3; readonly intensity: number }[];
   readonly poolColor: THREE.Color;
   /** 水下燈透鏡的亮度（場景單位，已乘燈色前）與半徑（公尺）。 */
@@ -384,9 +387,8 @@ export function publishSceneFixtureLights(scene: THREE.Scene, lights: WorldFixtu
 export function readSceneFixtureLights(scene: THREE.Scene | null | undefined): WorldFixtureLights | null {
   const candidate = scene?.userData[SCENE_KEY] as Partial<WorldFixtureLights> | null | undefined;
   return candidate
-    && Array.isArray(candidate.ceiling)
+    && (candidate.ceilingIrradiance as THREE.Color | undefined)?.isColor === true
     && Array.isArray(candidate.pool)
-    && (candidate.ceilingColor as THREE.Color | undefined)?.isColor === true
     && (candidate.poolColor as THREE.Color | undefined)?.isColor === true
     && (candidate.waterIrradiance as THREE.Color | undefined)?.isColor === true
     && typeof candidate.lensLuminance === 'number'
@@ -396,9 +398,7 @@ export function readSceneFixtureLights(scene: THREE.Scene | null | undefined): W
 }
 
 export interface WaterLightUniforms {
-  readonly uWaterFixtureCount: THREE.IUniform<number>;
-  readonly uWaterFixtures: THREE.IUniform<THREE.Vector4[]>;
-  readonly uWaterFixtureColor: THREE.IUniform<THREE.Color>;
+  readonly uWaterCeilingIrradiance: THREE.IUniform<THREE.Color>;
   readonly uPoolLightCount: THREE.IUniform<number>;
   readonly uPoolLights: THREE.IUniform<THREE.Vector4[]>;
   readonly uPoolLightAims: THREE.IUniform<THREE.Vector3[]>;
@@ -409,16 +409,14 @@ export interface WaterLightUniforms {
 }
 
 export const WATER_LIGHT_UNIFORM_NAMES = Object.freeze([
-  'uWaterFixtureCount', 'uWaterFixtures', 'uWaterFixtureColor',
+  'uWaterCeilingIrradiance',
   'uPoolLightCount', 'uPoolLights', 'uPoolLightAims', 'uPoolLightColor', 'uPoolLightLens',
   'uWaterLightIrradiance',
 ] as const satisfies readonly (keyof WaterLightUniforms)[]);
 
 export function createWaterLightUniforms(): WaterLightUniforms {
   return {
-    uWaterFixtureCount: { value: 0 },
-    uWaterFixtures: { value: filled(WATER_FIXTURE_SLOTS, () => new THREE.Vector4()) },
-    uWaterFixtureColor: { value: new THREE.Color(0, 0, 0) },
+    uWaterCeilingIrradiance: { value: new THREE.Color(0, 0, 0) },
     uPoolLightCount: { value: 0 },
     uPoolLights: { value: filled(POOL_LIGHT_SLOTS, () => new THREE.Vector4()) },
     uPoolLightAims: { value: filled(POOL_LIGHT_SLOTS, () => new THREE.Vector3(0, 0, 1)) },
@@ -446,19 +444,13 @@ export function writeWaterLightUniforms(
   toSpace: THREE.Matrix4,
 ): void {
   if (!lights) {
-    uniforms.uWaterFixtureCount.value = 0;
+    uniforms.uWaterCeilingIrradiance.value.setRGB(0, 0, 0);
     uniforms.uPoolLightCount.value = 0;
     uniforms.uPoolLightLens.value.x = 0;
     uniforms.uWaterLightIrradiance.value.setRGB(0, 0, 0);
     return;
   }
-  const ceiling = lights.ceiling.slice(0, WATER_FIXTURE_SLOTS);
-  ceiling.forEach((fixture, index) => {
-    uniforms.uWaterFixtures.value[index]!.set(fixture.position.x, fixture.position.y, fixture.position.z, 1)
-      .applyMatrix4(toSpace).setW(fixture.intensity);
-  });
-  uniforms.uWaterFixtureCount.value = ceiling.length;
-  uniforms.uWaterFixtureColor.value.copy(lights.ceilingColor);
+  uniforms.uWaterCeilingIrradiance.value.copy(lights.ceilingIrradiance);
   const pool = lights.pool.slice(0, POOL_LIGHT_SLOTS);
   pool.forEach((light, index) => {
     uniforms.uPoolLights.value[index]!.set(light.position.x, light.position.y, light.position.z, 1)
@@ -547,7 +539,6 @@ export class FixtureLights {
     this.surfaceStrength = on ? smoothstep(SURFACE_LIGHT_RATIO.from, SURFACE_LIGHT_RATIO.to, ratio) : 0;
 
     let slot = 0;
-    const ceiling: { position: THREE.Vector3; intensity: number }[] = [];
     let waterLux = 0;
     this.layout.zones.forEach((zone, index) => {
       const visible = on && this.objectVisible(zone.anchorName);
@@ -568,7 +559,6 @@ export class FixtureLights {
         this.world.set(fixture.position[0], fixture.position[1] - EMITTER_OFFSET, fixture.position[2]);
         this.siteRoot.localToWorld(this.world);
         uniforms.uFixtureLights.value[slot]!.set(this.world.x, this.world.y, this.world.z, intensity);
-        if (zone.reachesWater) ceiling.push({ position: this.world.clone(), intensity });
         slot += 1;
       }
       const fill = averageFloorIlluminance(zone) * scale * FLOOR_REFLECTANCE * this.surfaceStrength;
@@ -583,7 +573,7 @@ export class FixtureLights {
     uniforms.uFixtureActive.value = on && slot > 0 && this.surfaceStrength > 0 ? 1 : 0;
 
     this.updateEmitters(on, scale);
-    this.publishWater(on, scale, ceiling, waterLux);
+    this.publishWater(on, scale, waterLux);
   }
 
   private updateEmitters(on: boolean, scale: number): void {
@@ -599,12 +589,7 @@ export class FixtureLights {
     }
   }
 
-  private publishWater(
-    on: boolean,
-    scale: number,
-    ceiling: { position: THREE.Vector3; intensity: number }[],
-    ceilingWaterLux: number,
-  ): void {
+  private publishWater(on: boolean, scale: number, ceilingWaterLux: number): void {
     const poolVisible = on && this.layout.poolLights.length > 0 && this.objectVisible(this.layout.poolLightAnchorName);
     if (!on) {
       publishSceneFixtureLights(this.scene, null);
@@ -628,9 +613,11 @@ export class FixtureLights {
       (ceilingWaterLux * CEILING_FIXTURE_COLOR[1] + poolLux * POOL_LIGHT_COLOR[1]) * scale * this.surfaceStrength,
       (ceilingWaterLux * CEILING_FIXTURE_COLOR[2] + poolLux * POOL_LIGHT_COLOR[2]) * scale * this.surfaceStrength,
     );
+    const ceiling = ceilingWaterLux * scale * this.surfaceStrength * AIR_TO_WATER_TRANSMISSION;
     publishSceneFixtureLights(this.scene, Object.freeze({
-      ceiling,
-      ceilingColor: new THREE.Color().setRGB(...CEILING_FIXTURE_COLOR),
+      ceilingIrradiance: new THREE.Color().setRGB(
+        ceiling * CEILING_FIXTURE_COLOR[0], ceiling * CEILING_FIXTURE_COLOR[1], ceiling * CEILING_FIXTURE_COLOR[2],
+      ),
       pool: pool.map((light) => ({ ...light, intensity: light.intensity * this.surfaceStrength })),
       poolColor: new THREE.Color().setRGB(...POOL_LIGHT_COLOR),
       lensLuminance: poolVisible && lens ? lens.lumens / (Math.PI * lensArea) * scale : 0,

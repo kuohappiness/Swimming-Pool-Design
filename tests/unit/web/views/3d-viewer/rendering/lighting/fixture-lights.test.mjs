@@ -133,7 +133,7 @@ test('fewer lights on lower tiers keep the same total flux and centre', () => {
   assert.throws(() => lights.aggregateFixtures(hall.fixtures, 0), /positive integer/);
 });
 
-test('the lights are injected after three.js’s own lights and before its environment light', () => {
+test('the lights add diffuse light after three.js’s own lights and before its environment light', () => {
   const uniforms = lights.createFixtureLightUniforms();
   const material = new THREE.MeshStandardMaterial();
   assert.equal(lights.installFixtureLights(material, uniforms), true);
@@ -143,13 +143,18 @@ test('the lights are injected after three.js’s own lights and before its envir
   const source = shader.fragmentShader;
   const apply = source.indexOf('if ( uFixtureActive > 0.0 )');
   assert.ok(source.indexOf('float fixtureZoneReach(') > 0 && source.indexOf('float fixtureZoneReach(') < apply);
-  assert.ok(source.indexOf('#include <lights_fragment_begin>') < apply, 'irradiance and directLight already exist');
+  assert.ok(source.indexOf('#include <lights_fragment_begin>') < apply, 'irradiance already exists');
   assert.ok(apply < source.indexOf('#include <lights_fragment_maps>'));
+  // 只加漫射：燈的高光來自池廳探針照出的發光面，這裡不再算一次。
+  const block = source.slice(source.lastIndexOf('#if', apply), source.indexOf('#endif', apply));
+  assert.match(block, /^#if defined\( RE_IndirectDiffuse \)/);
+  assert.match(block, /irradiance \+= uFixtureColor \* \( fixtureIrradiance \* reach \)/);
+  assert.doesNotMatch(block, /RE_Direct/);
   assert.equal(shader.uniforms.uFixtureLights, uniforms.uFixtureLights, 'shared, not copied');
   assert.ok(material.customProgramCacheKey().endsWith('|fixture-lights'));
-  // three.js 的光照片段仍宣告了注入要用的變數。
+  // three.js 的光照片段仍宣告了注入要用的變數，間接漫射也仍由 irradiance 算出。
   assert.match(THREE.ShaderChunk.lights_fragment_begin, /vec3 irradiance = /);
-  assert.match(THREE.ShaderChunk.lights_fragment_begin, /IncidentLight directLight;/);
+  assert.match(THREE.ShaderChunk.lights_fragment_end, /RE_IndirectDiffuse\( irradiance,/);
   assert.equal(lights.installFixtureLights(new THREE.MeshBasicMaterial(), uniforms), false);
 });
 
@@ -178,7 +183,11 @@ test('at night the fixtures light their zones in world space; by day they are of
   assert.ok(emitter.material.emissiveIntensity > 1, 'the fixture face glows at night');
   const water = lights.readSceneFixtureLights(graph.scene);
   assert.ok(water);
-  assert.equal(water.ceiling.length, 12, 'only the hall reaches the water');
+  // 水裡只用池廳（不含 2F）地面的平均照度，乘燈色與入水穿透率。
+  const ceilingLux = lights.averageFloorIlluminance(layout.zones[0]) * lights.fixtureLuxScale(at('19:30')) * 0.97;
+  water.ceilingIrradiance.toArray().forEach((value, channel) => {
+    assert.ok(Math.abs(value - ceilingLux * lights.CEILING_FIXTURE_COLOR[channel]) < 1e-9, `channel ${channel}`);
+  });
   assert.equal(water.pool.length, layout.poolLights.length);
   assert.ok(water.lensLuminance > 0 && water.waterIrradiance.r > 0);
 
@@ -203,6 +212,7 @@ test('at night the fixtures light their zones in world space; by day they are of
   assert.equal(uniforms.uFixtureZoneRange.value[0].y, 0);
   assert.equal(uniforms.uFixtureZoneRange.value[1].y, 12);
   assert.equal(lights.readSceneFixtureLights(graph.scene).pool.length, 0);
+  assert.deepEqual(lights.readSceneFixtureLights(graph.scene).ceilingIrradiance.toArray(), [0, 0, 0]);
   graph.scene.getObjectByName(layoutModule.POOL_HALL_DETAILS_NAME).visible = true;
 
   // 中畫質每區 6 盞、總光量不變。
@@ -214,7 +224,6 @@ test('at night the fixtures light their zones in world space; by day they are of
 
 test('the water shader declares the same slots and shares the light uniforms', () => {
   const chunk = readFileSync(resolve(repoRoot, 'web/src/views/3d-viewer/rendering/water/shaders/pool-basin.glsl'), 'utf8');
-  assert.match(chunk, new RegExp(`#define WATER_FIXTURE_SLOTS ${lights.WATER_FIXTURE_SLOTS}\\b`));
   assert.match(chunk, new RegExp(`#define POOL_LIGHT_SLOTS ${lights.POOL_LIGHT_SLOTS}\\b`));
   for (const name of lights.WATER_LIGHT_UNIFORM_NAMES) {
     assert.ok(POOL_BASIN_UNIFORM_NAMES.includes(name), name);
@@ -235,22 +244,19 @@ test('the water shader declares the same slots and shares the light uniforms', (
   const position = siteRoot.localToWorld(new THREE.Vector3(10, -0.3, 4));
   const aim = new THREE.Vector3(0, 0, 1).transformDirection(siteRoot.matrixWorld);
   lights.writeWaterLightUniforms(uniforms, {
-    ceiling: [{ position: siteRoot.localToWorld(new THREE.Vector3(9, 4.6, 2.1)), intensity: 8 }],
-    ceilingColor: new THREE.Color(1, 0.9, 0.8),
+    ceilingIrradiance: new THREE.Color(0.4, 0.35, 0.3),
     pool: [{ position, aim, intensity: 1.2 }],
     poolColor: new THREE.Color(0.9, 1, 1),
     lensLuminance: 26,
     lensRadius: 0.14,
     waterIrradiance: new THREE.Color(0.3, 0.3, 0.3),
   }, toLocal);
-  assert.equal(uniforms.uWaterFixtureCount.value, 1);
-  assert.ok(new THREE.Vector3().copy(uniforms.uWaterFixtures.value[0]).distanceTo(new THREE.Vector3(9, 4.6, 2.1)) < 1e-9);
-  assert.equal(uniforms.uWaterFixtures.value[0].w, 8);
+  assert.deepEqual(uniforms.uWaterCeilingIrradiance.value.toArray(), [0.4, 0.35, 0.3]);
   assert.ok(new THREE.Vector3().copy(uniforms.uPoolLights.value[0]).distanceTo(new THREE.Vector3(10, -0.3, 4)) < 1e-9);
   assert.ok(uniforms.uPoolLightAims.value[0].distanceTo(new THREE.Vector3(0, 0, 1)) < 1e-9);
   assert.deepEqual(uniforms.uPoolLightLens.value.toArray(), [26, 0.14]);
   lights.writeWaterLightUniforms(uniforms, null, toLocal);
-  assert.equal(uniforms.uWaterFixtureCount.value, 0);
+  assert.deepEqual(uniforms.uWaterCeilingIrradiance.value.toArray(), [0, 0, 0]);
   assert.equal(uniforms.uPoolLightCount.value, 0);
   assert.equal(uniforms.uPoolLightLens.value.x, 0);
 });

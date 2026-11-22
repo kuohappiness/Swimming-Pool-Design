@@ -93,8 +93,22 @@ void main() {
 
   vec3 viewDirection = normalize(vLocalPosition - uCameraLocal);  // 由鏡頭指向水面
   bool cameraAbove = uCameraLocal.y >= vLocalPosition.y;
-  vec3 color;
 
+  // 水裡看到的只追一條光線：從空氣看是折射進水的那條，從水裡看是全反射往下的那條。
+  // 池底著色與水中光暈都只算一次（著色器裡也只有一份，軟體繪圖時省很多）。
+  vec3 intoBasin;
+  if (cameraAbove) {
+    intoBasin = refract(viewDirection, refractionNormal, AIR_TO_WATER);
+  } else {
+    // 全反射照出來的是幾公尺外的池底；和折射一樣用較平滑的波紋，鏡面才不會碎成雜訊。
+    intoBasin = reflect(viewDirection, -refractionNormal);
+    intoBasin.y = -abs(intoBasin.y);
+  }
+  BasinHit hit = intersectBasin(vLocalPosition, intoBasin);
+  vec3 inWater = applyWaterColumn(shadePoolBasin(hit), hit.distance)
+    + poolLightGlow(vLocalPosition, intoBasin, hit.distance);
+
+  vec3 color;
   if (cameraAbove) {
     // 從空氣看水：部分反射天空與建築，其餘折射進水裡看到池底。
     float cosine = dot(-viewDirection, normal);
@@ -113,32 +127,21 @@ void main() {
       reflection = mix(reflection, planar.rgb, planar.a * uPlanarStrength);
     }
 
-    vec3 refracted = refract(viewDirection, refractionNormal, AIR_TO_WATER);
-    BasinHit hit = intersectBasin(vLocalPosition, refracted);
-    vec3 refraction = applyWaterColumn(shadePoolBasin(hit), hit.distance)
-      + poolLightGlow(vLocalPosition, refracted, hit.distance);
-
     float sunAbove = smoothstep(0.0, 0.08, uSunDirection.y);
     float glint = pow(max(dot(reflected, uSunDirection), 0.0), uSunGlintSharpness);
     vec3 sunGlint = uSunColor * sunAbove * glint * (uSunGlintSharpness + 2.0) * 0.0795775;
     // 影子裡的水面沒有太陽的反光。
     if (glint > 1.0e-4) sunGlint *= sunVisibilityAtSurface(vLocalPosition.xz, 4);
 
-    color = mix(refraction, reflection, fresnel) + sunGlint * fresnel;
+    color = mix(inWater, reflection, fresnel) + sunGlint * fresnel;
   } else {
-    // 從水裡往上看：超過臨界角時水面像鏡子（全反射），照出池底；
+    // 從水裡往上看：超過臨界角時水面像鏡子（全反射），照出池底（inWater）；
     // 臨界角以內是一圈能看到水面上方的「斯涅爾窗」。
     vec3 downNormal = -normal;
     vec3 refracted = refract(viewDirection, downNormal, WATER_IOR);
-    // 全反射照出來的是幾公尺外的池底；和折射一樣用較平滑的波紋，鏡面才不會碎成雜訊。
-    vec3 reflected = reflect(viewDirection, -refractionNormal);
-    reflected.y = -abs(reflected.y);
-    BasinHit hit = intersectBasin(vLocalPosition, reflected);
-    vec3 internal = applyWaterColumn(shadePoolBasin(hit), hit.distance)
-      + poolLightGlow(vLocalPosition, reflected, hit.distance);
 
     if (dot(refracted, refracted) < 1.0e-6) {
-      color = internal;
+      color = inWater;
     } else {
       // 由水到空氣的反射率：以折射角計算，接近臨界角時迅速升到 1。
       float fresnel = fresnelSchlick(dot(refracted, normal));
@@ -146,7 +149,7 @@ void main() {
       float sunAbove = smoothstep(0.0, 0.08, uSunDirection.y);
       float disc = pow(max(dot(refracted, uSunDirection), 0.0), uSunGlintSharpness * 0.25);
       if (disc > 1.0e-4) above += uSunColor * sunAbove * disc * 4.0 * sunVisibilityAtSurface(vLocalPosition.xz, 4);
-      color = mix(above, internal, fresnel);
+      color = mix(above, inWater, fresnel);
     }
     // 鏡頭到水面這一段的水色由場景的水下霧處理（最後的 fog_fragment），其他水下物件也是同一套，
     // 這裡不重複計算；池體剖面視角從池外往上看時也就不會多一層水色。
