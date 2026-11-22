@@ -23,7 +23,7 @@ Swimming-Pool-Design/
 │  ├─ solar/                 solar-reflection、pool-footprint、solar-angle-analysis、solar-energy-analysis
 │  ├─ viewer/                viewer-data、render-budgets（3D 畫質分級與資產的成本上限）
 │  └─ validation/            model-validation
-├─ content/                  網站文案原始檔 design-concept.md、公開文字快照 website-copy.md
+├─ content/                  網站文案原始檔 design-concept.md、about.md；公開文字快照 website-copy.md
 ├─ drawings/
 │  └─ current/               現行圖面 DRAW-*.svg，檔名不帶版號；PNG 由 build:drawings 產生，不入庫
 ├─ web/                      網站（Vite root），產出到 dist/web/
@@ -91,7 +91,8 @@ Swimming-Pool-Design/
 | 2026-11-22 以前完成或被取代的舊格式規格 | `docs/archive/specs/`，不再新增 |
 | 已發布版本證據 | `docs/releases/<version>.md` |
 | 公開設計理念的敘事文字 | `content/design-concept.md` |
-| 公開網站四分頁的可見文字版本快照 | `content/website-copy.md`；屬衍生備份，不取代各頁資料 owner |
+| 關於頁的說明、名詞解釋與常見問題 | `content/about.md`；名詞與問答只摘要 owner 文件的答案並連回去，不另立設計答案 |
+| 公開網站各分頁的可見文字版本快照 | `content/website-copy.md`；屬衍生備份，不取代各頁資料 owner |
 | 唯一的設計模型 | `model/project-model.json` |
 | 原始來源檔 | `source-materials/`，登錄在 site-and-sources.md |
 | 舊成果、過時索引與舊交付物 | `docs/archive/`，對照見 [archive/README.md](archive/README.md) |
@@ -131,7 +132,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 三個輸入與衍生資料夾：
 
-- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`，網站只讀編譯結果。編譯結果不入庫，`npm install`、`dev`、`test`、`typecheck` 與 `build` 都會先自動產生。
+- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`（`concept-content.json`、`about-content.json`），網站只讀編譯結果。文案裡的站內連結寫 `./` 或 `?view=<view id>`，`check:docs` 會比對路由登錄表。編譯結果不入庫，`npm install`、`dev`、`test`、`typecheck` 與 `build` 都會先自動產生。
 - `drawings/current/`：現行圖面，由 `npm run build:drawings` 自模型產生，網站以原始 SVG 內嵌。SVG 入庫；同時產生的 PNG 需要瀏覽器才能轉出，不入庫。
 - `source-materials/`：原始來源，只有 `tools/` 可讀。網站需要的影像必須先成為 `web/` 內的衍生檔，並在[基地與來源](site-and-sources.md)記下對應的來源編號、尺寸與雜湊。
 
@@ -154,7 +155,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 - **殼層：** `web/src/app/app-shell.ts` 擁有頁首、主導覽、頁尾與主要內容容器。view 不得自行產生第二組導覽或頁尾。
 - **頁面模組契約：** 每個 view 在 `web/src/views/<view id>/index.ts` 匯出 `mount(container)` 並回傳 `destroy()`。`bootstrap.ts` 以動態 import 載入，一次只掛載一個 view；切換分頁是整頁重新載入。
 
-現行四個 view：
+現行五個 view：
 
 | view id | 導覽標籤 | 網址 |
 | --- | --- | --- |
@@ -162,19 +163,21 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 | `solar-study` | 日照研究 | `?view=solar-study` |
 | `drawings` | 圖面設計 | `?view=drawings` |
 | `3d-viewer` | 3D 展示 | `?view=3d-viewer` |
+| `about` | 關於 | `?view=about` |
 
 頁內狀態目前放在 hash：
 
 - 設計理念：章節錨點，例如 `#concept-light`；載入後會扣掉頁首高度再捲動。
 - 圖面：圖號，例如 `#REF-001`、`#V067-L1`。
 - 3D：場景 id，`#overview`、`#light`、`#rain`、`#people`、`#time`。另接受 `quality`（`ultra`、`high`、`medium`、`saver`，舊連結的 `low` 視為 `saver`；優先於畫質選單記住的選擇），以及診斷用參數 `adaptive`、`rendering`、`water`、`batch`、`forceFallback`。
+- 關於：章節錨點 `#about-<節 id>`（`project`、`reading`、`sources`、`glossary`、`faq`、`downloads`）與項目錨點 `#about-<節 id>-<序號>`；指到常見問題的某一題時會自動展開。
 
 新增分頁的步驟：
 
 1. 在 `router.ts` 的 `viewIds` 與 `viewDefinitions` 登錄。
 2. 在 `bootstrap.ts` 的 `loaders` 加入動態 import。
 3. 建立 `web/src/views/<view id>/`，含 `index.ts` 與 `view.css`；頁面有大段靜態 HTML 時另放 `template.html`（目前 `solar-study`、`3d-viewer` 有）。
-4. 文案放 `content/<view id>.md`。
+4. 文案放 `content/<view id>.md`；分節的說明頁用 `<!-- section:id -->` 寫法，由 `compileSectionedContent` 編譯（關於頁是第一個例子）。
 5. 更新測試與本文件的名詞對照表。
 
 規則：
@@ -195,7 +198,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 頁名與 view id 以 `web/src/app/router.ts` 為準；`tests/unit/web/app/glossary.test.mjs` 會比對下表與路由登錄表。停用舊稱不再用於新文件、介面與程式。
 
-頁名指路由登錄表的 `label`。`title` 是瀏覽器分頁的主標（例如重新定向、向光而轉、建築圖冊、走入建築），不是頁名，文件與介面不得用它指稱頁面。
+頁名指路由登錄表的 `label`。`title` 是瀏覽器分頁的主標（例如重新定向、向光而轉、建築圖冊、走入建築、關於這個專案），不是頁名，文件與介面不得用它指稱頁面。
 
 | 中文頁名 | 英文小標 | view id | 資料夾 | 停用舊稱 |
 | --- | --- | --- | --- | --- |
@@ -203,6 +206,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 | 日照研究 | SOLAR STUDY | `solar-study` | `web/src/views/solar-study/` | 冬夏日照互動研究、日照互動研究 |
 | 圖面設計 | DRAWING ATLAS | `drawings` | `web/src/views/drawings/` | 空間參照圖集、Reference Atlas、reference atlas、圖集、建築圖集 |
 | 3D 展示 | SPATIAL EXPERIENCE | `3d-viewer` | `web/src/views/3d-viewer/` | 3D Viewer（僅指頁名；view id 與 `contracts/3d-viewer.md` 檔名不變） |
+| 關於 | ABOUT | `about` | `web/src/views/about/` | 關於與資料 |
 
 設計狀態用語：
 
