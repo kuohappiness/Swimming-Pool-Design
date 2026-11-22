@@ -36,6 +36,11 @@ blockquote {
   font-size: .884rem;
 }
 
+/* 頁尾這一行含單位「m」，不能轉成大寫。 */
+.site-footer-meta {
+  text-transform: none;
+}
+
 .view-intro h1 {
   max-width: 980px;
   margin: .4em 0 .45em;

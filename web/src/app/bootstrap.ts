@@ -1,7 +1,4 @@
-import '../design-system/tokens.css';
-import '../design-system/typography.css';
-import '../design-system/layout.css';
-import '../design-system/components.css';
+import '../design-system/index.css';
 import { mountAppShell } from './app-shell';
 import { resolveView, type ViewId } from './router';
 import type { MountedView, ViewModule } from './view-contract';
