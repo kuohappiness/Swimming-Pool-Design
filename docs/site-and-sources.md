@@ -65,7 +65,7 @@
 
 原始 PNG 保留於來源資料夾；圖面頁 `REF-001` 的底圖使用衍生檔 `web/src/views/drawings/assets/site-satellite.webp`（1612 × 1430、333,948 bytes、SHA-256 `0A5CBCBB663BACF1C4EFBA4CA08B05239C3EE9A90E63DE4EDF89958954B49999`），由原始 PNG 直接轉為 WebP（品質 85），像素尺寸不變，與原始檔的 PSNR 40.0 dB，畫質與先前的 JPEG 衍生檔（40.5 dB、467,853 bytes）相當。2026-11-22 TASK-161 以它取代該 JPEG 衍生檔，縮小圖面頁首次載入。
 
-`SRC-SITE-004` 於 2026-07-20 由使用者提供，原始檔完整保存，未裁切、縮放或重新壓縮。圖面可直接觀察到紅色框與上下兩個綠色框；框線語意依使用者隨附說明登錄為：紅框是目前泳池本體，上方綠框是廁所＋女生更衣室，下方綠框是男生更衣室。此圖已取代 `REF-001` HTML 內顯示的舊衛星空照圖；`SRC-SITE-001`／`SRC-SITE-002` 仍保留為歷史來源，不以新檔覆寫既有證據。彩框只確認現況位置與用途，不提供地籍邊界或精確尺寸。
+`SRC-SITE-004` 於 2026-07-20 由使用者提供，原始檔完整保存，未裁切、縮放或重新壓縮。圖面可直接觀察到紅色框與上下兩個綠色框；框線語意依使用者隨附說明登錄為：紅框是目前泳池本體，上方綠框是廁所＋女生更衣室，下方綠框是男生更衣室。收件時記為取代當時 `REF-001` HTML 的舊衛星空照圖；現行圖面頁 `REF-001` 的底圖是 `SRC-SITE-001` 的衍生檔（見上段），`SRC-SITE-004` 目前沒有網頁引用（2026-11-22 以像素比對確認，TASK-121）。`SRC-SITE-001`／`SRC-SITE-002` 仍保留，不以新檔覆寫既有證據。彩框只確認現況位置與用途，不提供地籍邊界或精確尺寸。
 
 `SRC-SITE-005` 於 2026-07-25 由使用者提供；原始透明 PNG 保留於來源資料夾，頁首使用 `web/src/shared/assets/brand/school-emblem-header.webp`（96 × 96、4,688 bytes、SHA-256 `CC44D1B1785885EC31076433B56068A8102267913715FF6968AE9B360AD800FB`）衍生檔：頁首只以 32 × 32 CSS 像素顯示，96 像素足夠三倍密度螢幕；2026-11-22 TASK-161 由先前 256 × 256 的 PNG 衍生檔（71,133 bytes）縮小並轉為 WebP（品質 90、保留透明）。
 
@@ -87,6 +87,16 @@
 
 來源圖可直接存於公開 repo；個別影像是否在 HTML 呈現仍依來源登錄與使用者指示。Google Maps 截圖保留原有品牌、指南針及比例尺；地圖資料與影像權利歸 Google 及適用資料提供者，彩框與箭頭為使用者註記。本 repo 只把它保存為概念設計來源證據。
 
+第三方素材（TASK-121 整理）：
+
+| 素材 | 權利歸屬 | 網站上的署名 |
+| --- | --- | --- |
+| `SRC-SITE-001`、`002`、`004` Google Maps 衛星截圖 | Google 與影像、地圖資料提供者 | 圖面頁 `REF-001` 底圖衍生檔保留截圖原有的 Google Maps 標誌與「圖像 © 2026 Airbus、CNES / Airbus、Maxar Technologies、地圖資料 ©2026 Google」署名列（2026-11-22 檢視確認）。衍生檔不得裁掉這一列。 |
+| `SRC-SITE-003` PVGIS 氣象年資料 | European Commission JRC | 日照研究頁〈研究方法、來源與專業限制〉寫明採用 PVGIS TMY 並連到 PVGIS 說明 |
+| `SRC-SITE-005` 校徽 | 學校 | 頁首識別用途；repo 內沒有學校同意使用校徽或校名的紀錄 |
+
+國外指南（例如 Sport England、CDC MAHC）只作為技術參考，不具臺灣法規效力；法規與技術參考的登錄見〈法規來源〉。
+
 ## 6. 已知限制
 
 - 沒有正式地籍邊界、現況測量、CAD、結構或機電圖。
@@ -94,5 +104,32 @@
 - 307° 有向方位是本專案 confirmed canonical data；+X 永遠由泳池遠端指向服務核心，−X 127°、真北圖面方向及各 runtime transform 均由它推導。任何未來變更都必須先形成新決策並只修改 canonical 欄位，不得建立 consumer override。
 - 新資料應新增修訂紀錄，再由單一模型切換至新值，不覆寫來源歷史。
 - 校址中心座標不是泳池局部測量點；正式日照分析可用測量座標取代，但不得在頁面另寫第二套位置資料。
+
+## 7. 法規來源
+
+法規與技術參考用 `SRC-REG-<三位序號>` 登錄（`DEC-160`）。這些來源沒有存進 repo 的檔案，表內記錄實際讀到的版本與網址；[合規對照](analysis/compliance.md) 每一列都要引用這裡的編號。
+
+狀態只用四種：
+
+- **已讀條文**：讀到官方或轉載的條文原文，版本與日期寫在表內。
+- **版本待補**：讀到條文，但沒有發布日期或文號，或讀到的不是現行版。
+- **未能覆核**：官方網站擋下自動讀取，沒有讀到原文。合規對照引用這類來源時只能寫「待認定」。
+- **國外參考**：國外指南，只作技術參考，不具臺灣法規效力。
+
+| 編號 | 名稱 | 條次 | 讀到的版本 | 網址 | 查核日 | 狀態 |
+| --- | --- | --- | --- | --- | --- | --- |
+| SRC-REG-001 | 建築技術規則建築設計施工編 | 第 33～36、38、39 條 | 大學網站轉載本，民國 110 年 10 月 7 日修正。官方現行版為民國 115 年 2 月 23 日修正，該次只改第 140～142、144 條 | [轉載本 PDF](https://esh.pccu.edu.tw/var/file/19/1019/img/625/233133101.pdf)；[全國法規資料庫](https://law.moj.gov.tw/LawClass/LawAll.aspx?PCode=D0070115) | 2026-11-21 | 已讀條文 |
+| SRC-REG-002 | 建築技術規則建築設計施工編 | 第 167、167-1～167-7、170 條 | 國土管理署兩份修正條文 PDF，均無日期；兩份在部分數量表上不一致 | [修正條文 PDF 一](https://www.nlma.gov.tw/uploads/files/b31c7f8a0573dbc10e20d61756634008.pdf)；[修正條文 PDF 二](https://www.nlma.gov.tw/uploads/files/7ba126b5f2c14971a205aa1826643252.pdf) | 2026-11-21 | 版本待補 |
+| SRC-REG-003 | 建築技術規則建築設計施工編 | 第 90-1、95 條 | 沒有讀到 | [全國法規資料庫](https://law.moj.gov.tw/LawClass/LawAll.aspx?PCode=D0070115) | 2026-11-21 | 未能覆核 |
+| SRC-REG-004 | 建築技術規則建築設備編 | 第 37 條（衛生設備數量） | 沒有讀到 | [全國法規資料庫](https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=D0070116&flno=37) | 2026-11-21 | 未能覆核 |
+| SRC-REG-005 | 建築物無障礙設施設計規範 | 通路高差、坡道 | 沒有讀到官方原文 | — | 2026-11-21 | 未能覆核 |
+| SRC-REG-006 | 國民中小學設備基準 | 二、（二）1.（2）D 游泳池 | 教育部 91 年 6 月編印版，學校網站轉載；現行版沒有取得 | [91 年版 PDF](https://www.ttsh.tp.edu.tw/wp-content/uploads/doc/g114/國民中小學設備基準.pdf) | 2026-11-21 | 版本待補 |
+| SRC-REG-007 | 游泳池管理規範 | 第七、八、九點 | 修正前全文（地方機關轉載）與第八、九點修正對照表，均無發布日期與文號 | [修正前全文](https://www.xizhi.police.ntpc.gov.tw/dl-17382-48773833-9495-4e2d-bc9b-36f8d9d5742b.html)；[第八、九點修正對照表](https://sports.tainan.gov.tw/app_tnsport/views/web/upload_file/MES-1695784150463.pdf) | 2026-11-21 | 版本待補 |
+| SRC-REG-008 | 臺中市營業衛生自治條例 | 第 15 條（游泳業） | 臺中市政府衛生局 PDF，無日期；條文只寫營業場所，是否適用學校泳池沒有寫明 | [條文 PDF](https://www.health.taichung.gov.tw/media/193280/332714321884.pdf) | 2026-11-21 | 版本待補 |
+| SRC-REG-009 | 教育部國民及學前教育署補助高級中等以下學校游泳池作業要點 | 二、四、九 | 民國 114 年 9 月 10 日，臺教國署國字第 1145504838A 號令 | [教育部主管法規](https://edu.law.moe.gov.tw/LawContent.aspx?id=GL002365) | 2026-11-21 | 已讀條文 |
+| SRC-REG-010 | Sport England Swimming Pools Design Guidance | Appendix 2 Servicing the building | 2013 | [PDF](https://sportengland-production-files.s3.eu-west-2.amazonaws.com/s3fs-public/swimming-pools-2013-appendix-2-servicing-the-building.pdf?VersionId=E7Icoi3F4WCodG39.Vpt5zBGp9UjJun1) | 2026-11-21 | 國外參考 |
+| SRC-REG-011 | CDC Model Aquatic Health Code | 化學品儲存、設備房 | 2024 年第 5 版 | [PDF](https://www.cdc.gov/model-aquatic-health-code/media/pdfs/2024/11/5th-Ed-MAHC-Code-508.pdf) | 2026-11-21 | 國外參考 |
+
+未能覆核的條文要由使用者或專業者以瀏覽器開官方頁面確認後，才能把狀態改成已讀條文。
 
 來源新增程序見 [工作流程與發布](agents/workflow.md)。

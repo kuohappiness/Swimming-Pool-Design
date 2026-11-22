@@ -1,6 +1,7 @@
 import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { validateSourceRegistry } from './source-registry.mjs';
 import { entryStatus, validateBacklog, validateRoadmap } from './workflow-docs.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -210,6 +211,8 @@ for (const id of tableDeclarations(decisionContent, 'OPEN')) {
   errors.push(`${decisionPath}: ${id} belongs in ${backlogPath}`);
 }
 ensureUnique(tableDeclarations(sourceContent, 'SRC-(?:SITE|CONCEPT)'), 'SRC', sourcePath);
+const canonicalModel = JSON.parse(await readFile(path.join(repoRoot, 'model', 'project-model.json'), 'utf8'));
+errors.push(...validateSourceRegistry({ text: sourceContent, source: sourcePath, model: canonicalModel }));
 
 const taskRows = taskContent
   .split(/\r?\n/)
