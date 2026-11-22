@@ -9,6 +9,7 @@ import type { MountedView, ViewModule } from './view-contract';
 const loaders: Record<ViewId, () => Promise<ViewModule>> = {
   'design-concept': () => import('../views/design-concept'),
   'solar-study': () => import('../views/solar-study'),
+  'design-process': () => import('../views/design-process'),
   'drawings': () => import('../views/drawings'),
   '3d-viewer': () => import('../views/3d-viewer'),
   'about': () => import('../views/about'),
