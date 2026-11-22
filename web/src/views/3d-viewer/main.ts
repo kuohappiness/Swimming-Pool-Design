@@ -4,7 +4,7 @@ import rawViewerModel from '../../generated/viewer-model.json';
 import rawConceptContent from '../../generated/concept-content.json';
 import { adaptViewerData, formatDegrees, formatElevation } from './model-adapter';
 import { getViewerPoolBasinShape, getViewerPoolHallShape } from './pool-state';
-import { createViewerScene, type SelectableInfo } from './scene-factory';
+import { createViewerScene, syncLayerDependents, type SelectableInfo } from './scene-factory';
 import { deriveViewerOrientation } from './orientation';
 import { setupSelection } from './interactions';
 import { createBaselineRenderingRuntime, type ViewerRenderingRuntime } from './rendering';
@@ -32,6 +32,7 @@ import {
   type LightingState,
 } from './rendering/lighting/lighting-state';
 import { deriveShadowFocus, toSceneLighting } from './rendering/lighting/scene-lighting';
+import { installSoftShadows } from './rendering/lighting/soft-shadows';
 import { formatSolarMoment } from './rendering/lighting/solar-moment';
 import { computeSunLighting, describeSunLighting } from './rendering/lighting/sun-lighting';
 import { FrameStatistics } from './frame-statistics';
@@ -445,6 +446,7 @@ try {
       input.addEventListener('change', () => {
         const group = graph.layerGroups.get(modelLayer.id);
         if (group) group.visible = input.checked;
+        syncLayerDependents(graph);
         requestShadowRefresh();
       });
       layerInputs.set(modelLayer.id, input);
@@ -511,6 +513,12 @@ try {
     const realSunAvailable = typeof rendering.environment.applyLighting === 'function';
     shell.dataset.realSun = String(realSunAvailable);
     shell.dataset.sky = 'none';
+    // 影子邊緣隨距離變柔的過濾要在材質第一次編譯之前裝好；裝不上（three.js 改版）就維持固定半徑。
+    const restoreSoftShadows = realSunAvailable
+      ? installSoftShadows({ depthRangeMetres: shadowFocus.radius * 2 })
+      : null;
+    rendering.environment.setSoftShadows?.(restoreSoftShadows !== null);
+    shell.dataset.shadowFilter = restoreSoftShadows ? 'distance-soft' : 'fixed';
     let lightingState: LightingState | null = null;
     let scenePresetLighting: LightingState | null = null;
     let lastReflectionRefresh = Number.NEGATIVE_INFINITY;
@@ -608,6 +616,7 @@ try {
         const input = layerInputs.get(id);
         if (input) input.checked = group.visible;
       }
+      syncLayerDependents(graph);
       camera.position.set(...config.camera.position);
       camera.fov = config.camera.fov;
       camera.updateProjectionMatrix();
@@ -864,6 +873,7 @@ try {
           const input = layerInputs.get(id);
           if (input) input.checked = visible;
         }
+        syncLayerDependents(graph);
         setPoolCutaway(snapshot.cutaway);
         camera.position.copy(snapshot.cameraPosition);
         camera.fov = snapshot.fov;
@@ -1157,6 +1167,7 @@ try {
       if (reflectionRefreshTimer !== null) window.clearTimeout(reflectionRefreshTimer);
       if (environmentRefreshTimer !== null) window.clearTimeout(environmentRefreshTimer);
       lightingControl?.dispose();
+      restoreSoftShadows?.();
       renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
       await cameraModeManager.dispose();
       desktopInput.dispose();

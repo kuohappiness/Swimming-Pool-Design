@@ -81,6 +81,8 @@ body {
 }
 
 .site-view--3d-viewer .viewer-shell {
+  grid-template-columns: 250px minmax(420px, 1fr);
+  grid-template-areas: "controls viewport";
   height: min(760px, calc(100dvh - var(--site-header-height) - 150px));
   min-height: 560px;
   background: #e7e7e1;
@@ -183,11 +185,6 @@ body {
 
 .site-view--3d-viewer .controls-panel {
   padding-top: 0;
-}
-
-.site-view--3d-viewer .viewer-shell {
-  grid-template-columns: 250px minmax(420px, 1fr);
-  grid-template-areas: "controls viewport";
 }
 
 .site-view--3d-viewer .layer-toggle {

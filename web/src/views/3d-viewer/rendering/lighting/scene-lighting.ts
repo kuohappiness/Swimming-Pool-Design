@@ -15,6 +15,8 @@ export interface SceneLighting {
   readonly moonDirection: THREE.Vector3;
   readonly keyColor: LinearColor;
   readonly keyIntensity: number;
+  /** 主光源看起來的半徑（弧度）；影子邊緣的柔度由它決定。 */
+  readonly keyAngularRadius: number;
   readonly skyColor: LinearColor;
   readonly groundColor: LinearColor;
   readonly skyIntensity: number;
@@ -73,6 +75,7 @@ export function toSceneLighting(
     moonDirection: siteDirectionToWorld(lighting.moonDirection, siteRoot),
     keyColor: lighting.key.color,
     keyIntensity: lighting.key.intensity,
+    keyAngularRadius: lighting.key.angularRadius,
     skyColor: lighting.sky.color,
     groundColor: lighting.sky.groundColor,
     skyIntensity: lighting.sky.intensity,

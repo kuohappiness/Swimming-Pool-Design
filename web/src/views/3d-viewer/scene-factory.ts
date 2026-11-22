@@ -32,11 +32,31 @@ export interface ViewerSceneOptions {
   readonly batchStaticGeometry?: boolean;
 }
 
+export interface LayerDependent {
+  readonly object: THREE.Object3D;
+  /** 這些圖層全部顯示時才顯示 `object`；`object` 本身掛在其中一個圖層底下。 */
+  readonly layers: readonly string[];
+}
+
+/** 依圖層目前的開關更新「要好幾個圖層都開著才畫」的構件。 */
+export function syncLayerDependents(
+  graph: Pick<ViewerSceneGraph, 'layerGroups' | 'layerDependents'>,
+): void {
+  for (const { object, layers } of graph.layerDependents) {
+    object.visible = layers.every((id) => graph.layerGroups.get(id)?.visible === true);
+  }
+}
+
 export interface ViewerSceneGraph {
   scene: THREE.Scene;
   worldRoot: THREE.Group;
   siteRoot: THREE.Group;
   layerGroups: Map<string, THREE.Group>;
+  /**
+   * 要同時開著好幾個圖層才畫的構件。例如 3F 屋頂放在「屋頂」圖層，但 3F 量體關掉時
+   * 它不該單獨懸在半空。圖層開關變動後呼叫 `syncLayerDependents`。
+   */
+  layerDependents: LayerDependent[];
   selectables: SelectableInfo[];
   staticBatch: StaticBatchReport | null;
   lights: { sun: THREE.DirectionalLight; ambient: THREE.HemisphereLight };
@@ -289,6 +309,7 @@ export function createViewerScene(
   siteRoot.userData.coordinateAdapter = structuredClone(model.referenceSystem.coordinateAdapter);
   worldRoot.add(siteRoot);
   const layerGroups = new Map<string, THREE.Group>();
+  const layerDependents: LayerDependent[] = [];
   for (const modelLayer of model.layers) {
     const group = new THREE.Group();
     group.name = `layer:${modelLayer.id}`;
@@ -548,6 +569,8 @@ export function createViewerScene(
     poolX0, waterLevel, poolZ1,
   ], waterMaterial);
   waterSurface.name = 'POOL-01-WATER-SURFACE';
+  // 水面不擋陽光；池底受不受光由水的著色器自己查陰影（查的是光線穿出水面的那一點）。
+  waterSurface.castShadow = false;
   waterSurface.userData.waterStateSource = 'walkthrough-main-pool-water';
   waterSurface.userData.waterSurfaceElevation = waterLevel;
   poolGroup.add(waterSurface);
@@ -1308,6 +1331,7 @@ export function createViewerScene(
   ], l3Material);
   l3RoofRotationGroup.add(l3RoofMesh);
   layer('roof').add(l3RoofRotationGroup);
+  layerDependents.push({ object: l3RoofRotationGroup, layers: ['roof', 'l3'] });
   tag(l3RoofMesh, {
     entityId: l3Roof.entityId,
     label: '3F 完整旋轉屋頂／天花板',
@@ -1493,9 +1517,20 @@ export function createViewerScene(
   for (const selectable of selectables) {
     selectable.bounds = new THREE.Box3().setFromObject(selectable.object);
   }
+  // 透明的東西不擋陽光：玻璃屋頂、玻璃牆、水膜與半透明的分區標示如果投影，
+  // 整個池廳都會落在「玻璃的影子」裡。影子只來自框料、牆、樓板這些不透光的構件。
+  siteRoot.traverse((object) => {
+    if (!(object instanceof THREE.Mesh) || !object.castShadow) return;
+    const meshMaterials = Array.isArray(object.material) ? object.material : [object.material];
+    if (meshMaterials.some((material) => material.transparent)) object.castShadow = false;
+  });
   const staticBatch = options.batchStaticGeometry
     ? batchStaticMeshes(siteRoot, {
-        toggleUnits: [...layerGroups.values(), ...cutawayHiddenObjects],
+        toggleUnits: [
+          ...layerGroups.values(),
+          ...layerDependents.map(({ object }) => object),
+          ...cutawayHiddenObjects,
+        ],
         exclude: [waterSurface, cutawayAnnotations],
         selectionOwners: selectables.map(({ object }) => object),
       })
@@ -1508,6 +1543,7 @@ export function createViewerScene(
     worldRoot,
     siteRoot,
     layerGroups,
+    layerDependents,
     selectables,
     staticBatch,
     lights: { sun, ambient },

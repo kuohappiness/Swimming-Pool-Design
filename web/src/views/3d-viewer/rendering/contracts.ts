@@ -92,6 +92,8 @@ export interface EnvironmentEffect {
    * 這一步比其他更新貴，呼叫端在光線停止變化之後才呼叫。
    */
   refreshEnvironment?(): boolean;
+  /** 距離柔化的陰影過濾有沒有裝進著色器；沒有時陰影一律用固定半徑。 */
+  setSoftShadows?(available: boolean): void;
   /** 診斷用：倒影與間接光目前的來源。 */
   readonly environmentSource?: 'sky' | 'fixed' | 'none';
   setQuality(profile: RenderQualityProfile): void;

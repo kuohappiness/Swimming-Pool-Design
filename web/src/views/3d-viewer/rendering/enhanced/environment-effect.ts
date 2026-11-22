@@ -3,6 +3,7 @@ import type { EnvironmentId } from '../../scenes';
 import type { EnvironmentEffect, EnvironmentTarget } from '../contracts';
 import { aimKeyLight, type SceneLighting } from '../lighting/scene-lighting';
 import { SkyDome } from '../lighting/sky-dome';
+import { PLAIN_SHADOW_RADIUS_TEXELS, shadowFilterRadius } from '../lighting/soft-shadows';
 import type { RenderQualityProfile } from '../quality-profile';
 import { getToneMappingProfile } from './tone-mapping';
 
@@ -133,6 +134,7 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
   /** 由天空產生的環境貼圖，以及產生它那一刻的天光強度。 */
   private skyEnvironment: { map: THREE.Texture; skyIntensity: number } | null = null;
   private skyEnvironmentStale = false;
+  private softShadows = false;
   private disposed = false;
 
   private constructor(
@@ -200,6 +202,7 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
       this.quality.shadowMapSize,
       this.quality.shadowMapSize,
     );
+    target.lights.sun.shadow.radius = PLAIN_SHADOW_RADIUS_TEXELS;
     target.lights.sun.shadow.bias = -0.00015;
     target.lights.sun.shadow.normalBias = this.quality.id === 'high' ? 0.025 : 0.04;
     target.lights.sun.shadow.camera.near = 1;
@@ -219,6 +222,13 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     this.writeLighting(lighting, target);
   }
 
+  /** 距離柔化的陰影過濾裝好了沒有；沒裝時負的 `shadow.radius` 沒有意義，所以一律用固定半徑。 */
+  setSoftShadows(available: boolean) {
+    if (this.disposed || this.softShadows === available) return;
+    this.softShadows = available;
+    if (this.currentLighting && this.currentTarget) this.writeLighting(this.currentLighting, this.currentTarget);
+  }
+
   private environmentIntensity() {
     return this.quality.id === 'high' ? 0.64 : 0.46;
   }
@@ -228,9 +238,23 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     lights.sun.color.setRGB(...lighting.keyColor);
     lights.sun.intensity = lighting.keyIntensity;
     aimKeyLight(lights.sun, lighting);
+    // 影子邊緣：高畫質依遮蔽物的距離與天氣決定柔度，其餘級別用固定半徑。
+    if (this.quality.shadows && this.quality.shadowMapSize > 0) {
+      lights.sun.shadow.radius = shadowFilterRadius({
+        angularRadius: lighting.keyAngularRadius,
+        coverageMetres: lighting.shadowFocus.radius * 2,
+        mapSize: this.quality.shadowMapSize,
+        distanceSoftening: this.softShadows && this.quality.id === 'high',
+      });
+    }
     lights.ambient.color.setRGB(...lighting.skyColor);
     lights.ambient.groundColor.setRGB(...lighting.groundColor);
-    lights.ambient.intensity = lighting.skyIntensity;
+    // 天空的漫射光由半球光和環境貼圖一起提供：有環境貼圖時它已經照亮了一部分，半球光只補剩下的，
+    // 兩者加起來才是算出來的天光；否則同一片天空會被算兩次，影子裡太亮、整個畫面發白。
+    const environmentShare = this.quality.id === 'low' ? 0 : this.environmentIntensity();
+    lights.ambient.intensity = lighting.skyIntensity * (1 - environmentShare);
+    // 水的著色器不吃環境貼圖，它要的是整片天空的照度。
+    lights.ambient.userData.skyIrradiance = lighting.skyIntensity;
     if (scene.background instanceof THREE.Color) scene.background.setRGB(...lighting.horizon);
     else scene.background = new THREE.Color().setRGB(...lighting.horizon);
     // 霧固定用同一個物件：漫遊的水下霧會暫時換掉 scene.fog 並記住原本那一個，

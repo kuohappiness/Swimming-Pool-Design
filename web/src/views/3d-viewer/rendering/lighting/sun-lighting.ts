@@ -65,6 +65,11 @@ export interface SunLighting {
     readonly direction: SiteVector;
     readonly color: LinearColor;
     readonly intensity: number;
+    /**
+     * 光源看起來的半徑（弧度），決定影子邊緣多柔：晴天的日面很小，影子邊緣利；
+     * 隔著雲層時整片雲都在發光，影子糊成一片。
+     */
+    readonly angularRadius: number;
   };
   /** 天光（半球光）：上方是天空的顏色，下方是地面反上來的顏色。 */
   readonly sky: {
@@ -126,10 +131,24 @@ export function atmosphericTransmittance(altitudeDegrees: number): LinearColor {
 const ZENITH_TRANSMITTANCE = atmosphericTransmittance(90);
 const ZENITH_LUMINANCE = luminance(ZENITH_TRANSMITTANCE);
 
-/** 太陽在天頂、晴天時主光源的強度（three.js 的光強單位）。階段三步驟 3 會連同曝光一起校正。 */
-export const SUN_ZENITH_INTENSITY = 3.3;
-/** 晴天正午天光的強度。 */
-export const SKY_NOON_INTENSITY = 1.5;
+/**
+ * 太陽在天頂、晴天時主光源的強度（three.js 的光強單位：垂直照在表面上的照度）。
+ *
+ * 和下面的天光是一組：晴天時直射光大約是天空漫射光的四到五倍，影子裡才會明顯比陽光下暗。
+ * 兩者的比例取自晴天的實測量級（都市有霾時直射與漫射約 4:1 到 7:1），絕對值配合曝光決定。
+ */
+export const SUN_ZENITH_INTENSITY = 4.5;
+/**
+ * 晴天正午，整片天空照在水平面上的漫射照度。場景裡這份光由半球光與環境貼圖一起提供，
+ * 兩者加起來等於這個數字（怎麼分在 `environment-effect.ts`）。
+ */
+export const SKY_NOON_INTENSITY = 1;
+
+/**
+ * 晴天時日面（與月面）看起來的半徑。實際約 0.27°；這裡放大到 0.4°，
+ * 因為陰影貼圖一格約 4 公分，照實際大小算出來的半影在多數地方不到一格，看不出遠近的差別。
+ */
+const CLEAR_SOURCE_RADIUS_DEGREES = 0.4;
 
 /** 各種天氣下，直射陽光與天光各剩多少，以及曝光與霧的遠近。 */
 const WEATHER_FACTORS: Readonly<Record<Weather, {
@@ -137,12 +156,14 @@ const WEATHER_FACTORS: Readonly<Record<Weather, {
   readonly sky: number;
   /** 陽光與天光被雲層染成灰白的程度，0 到 1。 */
   readonly grey: number;
+  /** 主光源看起來的半徑（度）。 */
+  readonly sourceRadiusDegrees: number;
   readonly exposure: number;
   readonly fog: { readonly near: number; readonly far: number };
 }>> = Object.freeze({
-  clear: Object.freeze({ sun: 1, sky: 1, grey: 0, exposure: 0.9, fog: Object.freeze({ near: 72, far: 148 }) }),
-  overcast: Object.freeze({ sun: 0.1, sky: 0.86, grey: 0.85, exposure: 1.05, fog: Object.freeze({ near: 62, far: 132 }) }),
-  rain: Object.freeze({ sun: 0.035, sky: 0.62, grey: 1, exposure: 0.95, fog: Object.freeze({ near: 48, far: 112 }) }),
+  clear: Object.freeze({ sun: 1, sky: 1, grey: 0, sourceRadiusDegrees: CLEAR_SOURCE_RADIUS_DEGREES, exposure: 0.75, fog: Object.freeze({ near: 72, far: 148 }) }),
+  overcast: Object.freeze({ sun: 0.1, sky: 0.95, grey: 0.85, sourceRadiusDegrees: 3, exposure: 1.35, fog: Object.freeze({ near: 62, far: 132 }) }),
+  rain: Object.freeze({ sun: 0.035, sky: 0.6, grey: 1, sourceRadiusDegrees: 4.5, exposure: 1.5, fog: Object.freeze({ near: 48, far: 112 }) }),
 });
 
 /** 太陽在天頂時直射光的顏色：相對於天光略暖的白。 */
@@ -151,8 +172,11 @@ const CLOUD_GREY: LinearColor = [0.78, 0.8, 0.82];
 const SKY_DAY: LinearColor = [0.8, 0.9, 1];
 const SKY_DUSK: LinearColor = [0.92, 0.66, 0.5];
 const SKY_NIGHT: LinearColor = [0.2, 0.27, 0.46];
-const GROUND_DAY: LinearColor = [0.2, 0.17, 0.12];
-const GROUND_NIGHT: LinearColor = [0.03, 0.035, 0.05];
+/**
+ * 地面把照到它的陽光與天光反射回來的比例，給朝下的面（屋簷、樓板底）當補光。
+ * 池畔、水面與基地地坪的折衷值，視覺用，不是材料量測值。
+ */
+const GROUND_BOUNCE: LinearColor = [0.3, 0.28, 0.25];
 const HORIZON_DAY: LinearColor = [0.65, 0.72, 0.75];
 const HORIZON_DUSK: LinearColor = [0.8, 0.62, 0.5];
 const HORIZON_NIGHT: LinearColor = [0.012, 0.018, 0.035];
@@ -163,7 +187,9 @@ const MOON_ALTITUDE = 48;
  * 夜裡的天光：城市夜空的散射光。比真實的夜晚亮，因為池館的燈具照明還沒做（階段三步驟 5），
  * 現在只靠它讓量體在夜裡仍然讀得出來。
  */
-const SKY_NIGHT_INTENSITY = 0.26;
+const SKY_NIGHT_INTENSITY = 0.3;
+/** 入夜後曝光拉高的倍數，像眼睛適應暗處。對晴天的曝光而言。 */
+const NIGHT_EXPOSURE_GAIN = 2.2;
 /** 主光源的最低仰角：再低，影子會長到看不出形狀，陰影貼圖也用不上。 */
 const MINIMUM_KEY_ALTITUDE = 2;
 
@@ -221,18 +247,28 @@ export function computeSunLighting(input: SunLightingInput): SunLighting {
       direction: moonDirection,
       color: mixColor(MOON_COLOR, CLOUD_GREY, weather.grey * 0.6),
       intensity: moonIntensity,
+      angularRadius: weather.sourceRadiusDegrees * RADIANS,
     }
     : {
       source: 'sun' as const,
       direction: siteDirection(Math.max(altitude, MINIMUM_KEY_ALTITUDE), azimuth, bearing),
       color: sunTint,
       intensity: sunIntensity,
+      angularRadius: weather.sourceRadiusDegrees * RADIANS,
     };
 
   // 暖色只加一點：背景目前是單一顏色，整片染成橘紅並不像黃昏；真正的天空漸層在天空那一步做。
   const clearSky = mixColor(mixColor(SKY_NIGHT, SKY_DAY, daylight), SKY_DUSK, dusk * 0.35);
   const skyColor = mixColor(clearSky, scaleColor(CLOUD_GREY, mix(0.35, 1, daylight)), weather.grey * daylight);
   const skyIntensity = mix(SKY_NIGHT_INTENSITY, SKY_NOON_INTENSITY * weather.sky, daylight);
+  // 朝下的面看到的是被照亮的地面：地面收到的天光加上陽光的水平分量，再乘上反射比例。
+  // 半球光把這個顏色再乘上天光強度，所以這裡先除回去。
+  const keyOnGround = key.intensity * Math.max(0, key.direction.z) / Math.max(skyIntensity, 1e-3);
+  const groundColor: LinearColor = [
+    GROUND_BOUNCE[0] * (skyColor[0] + key.color[0] * keyOnGround),
+    GROUND_BOUNCE[1] * (skyColor[1] + key.color[1] * keyOnGround),
+    GROUND_BOUNCE[2] * (skyColor[2] + key.color[2] * keyOnGround),
+  ];
   const clearHorizon = mixColor(mixColor(HORIZON_NIGHT, HORIZON_DAY, daylight), HORIZON_DUSK, dusk * 0.35);
   const horizon = mixColor(
     clearHorizon,
@@ -252,13 +288,13 @@ export function computeSunLighting(input: SunLightingInput): SunLighting {
     key: Object.freeze(key),
     sky: Object.freeze({
       color: skyColor,
-      groundColor: mixColor(GROUND_NIGHT, GROUND_DAY, daylight),
+      groundColor,
       intensity: skyIntensity,
     }),
     horizon,
     fog: weather.fog,
     // 入夜後把曝光拉高一點，像眼睛適應暗處；完整的曝光適應在鏡頭效果那一步做。
-    exposure: weather.exposure * mix(1.5, 1, daylight),
+    exposure: weather.exposure * mix(NIGHT_EXPOSURE_GAIN, 1, daylight),
   });
 }
 
