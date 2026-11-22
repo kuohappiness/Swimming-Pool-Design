@@ -77,6 +77,8 @@ jobs:
         run: npm run check:docs
       - name: Model sources and hashes
         run: npm run check:model
+      - name: 3D asset size and naming limits
+        run: npm run check:assets
       - name: Unit tests
         run: npm test
 

@@ -6,3 +6,5 @@
 *.webp binary
 *.docx binary
 *.dxf binary
+*.ktx2 binary
+*.glb binary

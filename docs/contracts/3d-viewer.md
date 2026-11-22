@@ -55,7 +55,7 @@ Viewer 必須由 `?view=3d-viewer` 的 view-level dynamic import 才載入 Three
 - high／medium／low 只可改 pixel ratio、shadow、texture anisotropy、environment、surface detail、水面、動畫與 postprocess 成本。新增細節以 `essential | reduced | full` 單調分級：low 只保留輪廓與必要辨識，medium 增加操作／構造層次，high 顯示全部五金、接縫、排水、焦散與可動視覺；quality 不得改 camera、scene ID、layer visibility、selection、canonical bounds、collision、player position、water simulation 或 movement mode。所有 quality-controlled detail 必須標示 `visualOnly=true` 與 `collisionExcluded=true`。
 - hardware desktop／mobile 的 runtime 目標為平均 50／30 FPS；software renderer 從 low 啟動。headless SwiftShader 只用同機 v0.6.7 baseline 的 80% 作相對防退化門檻，不得冒充硬體 FPS。
 - renderer 必須公開平均／p95 frame time、draw calls、triangles、shader programs／compile、drawing buffer、陰影更新模式與 context restore diagnostic；靜態陰影圖可在首次繪製後快取，但場景、圖層、剖視、畫質或 context 改變必須要求重算，context restore 不得重建 canonical 或 collision state。
-- 所有 runtime asset 必須是 repository-local 且具有 manifest provenance、license、SHA-256、byte size、quality tier 與 required／optional 分類；正式頁面不得存取外部 asset origin。
+- 所有 runtime asset 必須是 repository-local 且具有 manifest provenance、license、SHA-256、byte size、quality tier 與 required／optional 分類；正式頁面不得存取外部 asset origin。資產的單檔容量、資料夾總量、副檔名與命名由 `npm run check:assets` 檢查，上限寫在 `core/viewer/render-budgets.mjs`（[DEC-190](../decisions.md)）。資產清單的唯一來源是 `web/src/views/3d-viewer/assets/asset-manifest.json`；KTX2 壓縮貼圖須由 `npm run build:textures` 產生並記錄轉檔設定與來源雜湊，轉碼器隨網站打包，不得改由外部網域載入。
 
 圖層固定為 `site`、`l1`、`water`、`l2`、`l3`、`roof`、`circulation`、`rain`、`energy`、`annotations`。桌機與觸控支援 orbit、pan、zoom、一般固定視角、圖層切換與構件選取；canvas 與等價控制須可鍵盤操作。選取只更新下拉選單與右側資訊面板，3D 畫布不得顯示 `BoxHelper` 或其他外接選取框。390 × 844 不得水平溢出。
 
