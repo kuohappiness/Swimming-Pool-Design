@@ -26,6 +26,12 @@
   --site-space-6: 6rem;
   --site-radius: 4px;
   --site-header-height: 76px;
+  /* 群組第二層頁籤的高度；在群組內的頁面加到頁首高度上（layout.css）。 */
+  --site-subnav-height: 44px;
+}
+
+:root[data-nav-group] {
+  --site-header-height: calc(76px + var(--site-subnav-height));
 }
 
 @media (max-width: 720px) {
@@ -34,5 +40,9 @@
     --site-space-5: 2.75rem;
     --site-space-6: 4rem;
     --site-header-height: 116px;
+  }
+
+  :root[data-nav-group] {
+    --site-header-height: calc(116px + var(--site-subnav-height));
   }
 }
