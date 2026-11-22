@@ -230,6 +230,37 @@ test('underwater effects degrade safely and touch swim buttons remain active whi
   effects.dispose();
   assert.equal('underwater' in shell.dataset, false);
 
+  // 寫實水面自己處理水下的水色時，這裡不再替場景加霧；途中換手（畫質被調降）也要跟上。
+  let handled = true;
+  const handledEffects = new UnderwaterEffects(shell, scene, {
+    quality: 'high',
+    reducedMotion: false,
+    waterColorHandled: () => handled,
+  });
+  handledEffects.update('swimming-underwater');
+  assert.equal(scene.fog, originalFog);
+  assert.equal(shell.dataset.underwater, 'true');
+  assert.equal(shell.dataset.underwaterFog, 'false');
+  handled = false;
+  handledEffects.update('swimming-underwater');
+  assert.ok(scene.fog instanceof THREE.FogExp2);
+  assert.equal(shell.dataset.underwaterFog, 'true');
+  handled = true;
+  handledEffects.update('swimming-underwater');
+  assert.equal(scene.fog, originalFog);
+  handled = false;
+  handledEffects.update('swimming-underwater');
+  // 水色霧跟著鏡頭：狀態還是水下但頭已經出水時不加霧，狀態是水面但鏡頭在水下時要加。
+  handledEffects.update('swimming-underwater', false);
+  assert.equal(scene.fog, originalFog);
+  assert.equal(shell.dataset.underwater, 'true', 'the movement state is still reported as it is');
+  handledEffects.update('swimming-surface', true);
+  assert.ok(scene.fog instanceof THREE.FogExp2);
+  assert.equal(shell.dataset.underwater, 'false');
+  handledEffects.dispose();
+  assert.equal(scene.fog, originalFog);
+  assert.equal('underwaterFog' in shell.dataset, false);
+
   class TestTarget extends EventTarget {
     setPointerCapture() {}
   }

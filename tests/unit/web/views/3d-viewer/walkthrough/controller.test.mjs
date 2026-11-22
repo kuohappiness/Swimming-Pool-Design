@@ -19,7 +19,6 @@ const [
   { PlayerController, advancePlayerFrame },
   { WALKTHROUGH_CONFIG },
   {
-    AdaptiveFrameTimeMonitor,
     adaptRenderQualityProfile,
     getWalkthroughCapabilityProfile,
   },
@@ -344,31 +343,9 @@ test('walkthrough keys leave browser shortcuts and focused controls alone', () =
   desktop.dispose();
 });
 
-test('frame-time adaptation only degrades rendering capabilities and preserves simulation inputs', () => {
-  const monitor = new AdaptiveFrameTimeMonitor('high', {
-    minimumSamples: 10,
-    sampleWindow: 20,
-    slowFrameRatio: 0.3,
-  });
-  for (let sample = 0; sample < 20; sample += 1) {
-    assert.equal(monitor.observe(16), null);
-  }
-  assert.equal(monitor.currentTier, 'high');
-
-  let degraded = null;
-  for (let sample = 0; sample < 20; sample += 1) {
-    degraded = monitor.observe(32) ?? degraded;
-  }
-  assert.equal(degraded, 'medium');
-  assert.equal(monitor.currentTier, 'medium');
-  for (let sample = 0; sample < 20; sample += 1) {
-    degraded = monitor.observe(40) ?? degraded;
-  }
-  assert.equal(degraded, 'low');
-  assert.equal(monitor.currentTier, 'low');
-  for (let sample = 0; sample < 100; sample += 1) monitor.observe(8);
-  assert.equal(monitor.currentTier, 'low', 'quality must not oscillate upward in one session');
-
+// 幀時間的觀測與降級改由 rendering/performance 的 FrameGovernor 負責（DEC-190），
+// 測試在 rendering/performance/frame-governor.test.mjs；這裡只留畫質設定的換算。
+test('lowering the pipeline profile only changes rendering capabilities', () => {
   const high = {
     id: 'high',
     pixelRatioCap: 2,
@@ -425,7 +402,9 @@ test('walkthrough UI and selection lifecycle expose stable accessibility hooks',
   assert.match(main, /new SafeSpawnRegistry/);
   assert.match(main, /new WalkMovement/);
   assert.match(main, /new SafeSpawnAreaRegistry/);
-  assert.match(main, /new AdaptiveFrameTimeMonitor/);
+  // 畫質的自動調整改由 QualitySession 與 FrameGovernor 負責（DEC-190）。
+  assert.match(main, /new QualitySession/);
+  assert.match(main, /qualitySession\.observe\(frameStatistics\.snapshot\(\)\)/);
   assert.match(main, /recoverToNearest/);
   assert.match(main, /selectionController\.suspend\(\)/);
   assert.match(main, /selectionController\.resume\(\)/);

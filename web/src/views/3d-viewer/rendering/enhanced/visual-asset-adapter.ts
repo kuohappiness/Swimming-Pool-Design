@@ -9,10 +9,20 @@ import type { RenderQualityProfile } from '../quality-profile';
 import { EnhancedDetailLevelAdapter } from './detail-level';
 import { EnhancedSurfaceDetailAdapter } from './surface-details';
 import { EnhancedWaterPresentation } from './water-presentation';
+import {
+  RealisticWaterPresentation,
+  type RealisticWaterOptions,
+} from '../water/realistic-water-presentation';
+import { WATER_SURFACE_NAME } from '../water/water-surface';
 
 export interface EnhancedVisualAssetAdapterOptions {
   readonly createOptionalAssets?: (siteBounds: THREE.Box3) => THREE.Group;
+  /** 有給才啟用寫實水面；沒給（或貼圖載入失敗）時維持原本的水。 */
+  readonly realisticWater?: RealisticWaterOptions;
 }
+
+/** 目前畫面上的水是哪一種，寫在水面網格的 userData.waterPresentation。 */
+export type WaterPresentationStatus = 'legacy' | 'realistic-loading' | 'realistic' | 'legacy-fallback';
 
 function disposeGroup(group: THREE.Group) {
   const geometries = new Set<THREE.BufferGeometry>();
@@ -124,6 +134,13 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   private readonly surfaceDetails: EnhancedSurfaceDetailAdapter;
   private readonly detailLevels: EnhancedDetailLevelAdapter;
   private readonly water: EnhancedWaterPresentation;
+  private readonly realisticWater: RealisticWaterPresentation | null;
+  private waterStatus: WaterPresentationStatus = 'legacy';
+  private waterFailure: string | null = null;
+  private underwaterFrame = false;
+  private context: VisualAssetContext | null = null;
+  /** 寫實水面載入並換上（或確定退回）後才完成；沒有啟用寫實水面時立刻完成。 */
+  waterReady: Promise<void> = Promise.resolve();
   private readonly createOptionalAssets: (siteBounds: THREE.Box3) => THREE.Group;
   private profile: RenderQualityProfile;
   private optionalAssets: THREE.Group | null = null;
@@ -140,11 +157,23 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.surfaceDetails = new EnhancedSurfaceDetailAdapter(initialProfile);
     this.detailLevels = new EnhancedDetailLevelAdapter(initialProfile);
     this.water = new EnhancedWaterPresentation(initialProfile);
+    this.realisticWater = options.realisticWater
+      ? new RealisticWaterPresentation(initialProfile, options.realisticWater)
+      : null;
     this.createOptionalAssets = options.createOptionalAssets ?? createProceduralScaleAssets;
   }
 
   get assetStatus() {
     return this.status;
+  }
+
+  get waterPresentation(): WaterPresentationStatus {
+    return this.waterStatus;
+  }
+
+  /** 寫實水面沒能啟用的原因；正常時是 null。 */
+  get waterDiagnostic(): string | null {
+    return this.waterFailure;
   }
 
   attach(context: VisualAssetContext) {
@@ -153,6 +182,9 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.surfaceDetails.attach(context);
     this.detailLevels.attach(context);
     this.water.attach(context);
+    this.context = context;
+    this.setWaterStatus(this.realisticWater ? 'realistic-loading' : 'legacy');
+    if (this.realisticWater) this.waterReady = this.startRealisticWater(this.realisticWater, context);
     context.siteRoot.traverse((object) => {
       if (!(object instanceof THREE.Mesh) || !object.name.startsWith('visual-only:POOL-01-caustic:')) return;
       this.caustics.push({
@@ -180,16 +212,45 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.surfaceDetails.setQuality(profile);
     this.detailLevels.setQuality(profile);
     this.water.setQuality(profile);
+    this.realisticWater?.setQuality(profile);
     this.applyQuality();
   }
 
   setWalkthroughState(state: VisualWalkthroughState) {
     this.water.setWalkthroughState(state);
+    this.realisticWater?.setWalkthroughState(state);
+  }
+
+  invalidateLighting() {
+    this.realisticWater?.invalidateReflection();
+  }
+
+  /** 鏡頭在水裡時由寫實水面畫出水下畫面；其他時候回傳 false，由繪圖管線照常畫。 */
+  renderFrame(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): boolean {
+    this.underwaterFrame = !this.disposed && this.waterStatus === 'realistic'
+      && (this.realisticWater?.renderUnderwaterView(renderer, scene, camera) ?? false);
+    return this.underwaterFrame;
+  }
+
+  get underwaterViewActive(): boolean {
+    return this.underwaterFrame;
+  }
+
+  get waterReflection(): 'planar' | 'probe' | 'none' {
+    if (this.waterStatus !== 'realistic' || !this.realisticWater) return 'none';
+    return this.realisticWater.usesPlanarReflection ? 'planar' : 'probe';
+  }
+
+  get handlesUnderwaterView(): boolean {
+    return this.waterStatus === 'realistic' && Boolean(this.realisticWater?.handlesUnderwaterView);
   }
 
   updateFrame(state: VisualFrameState) {
     if (this.disposed) return;
     this.water.updateFrame(state);
+    this.realisticWater?.updateFrame(state);
+    // 寫實水面的焦散在著色器裡，舊的滑動光帶已隱藏，不必再移動。
+    if (this.waterStatus === 'realistic') return;
     if (state.reducedMotion || this.profile.id !== 'high') return;
     for (const { mesh, baseX, phase } of this.caustics) {
       mesh.position.x = baseX + Math.sin(state.elapsedSeconds * 0.55 + phase * Math.PI * 2) * 0.12;
@@ -201,13 +262,43 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.disposed = true;
     if (this.optionalAssets) disposeGroup(this.optionalAssets);
     this.optionalAssets = null;
-    for (const { mesh, baseX } of this.caustics) mesh.position.x = baseX;
+    for (const { mesh, baseX } of this.caustics) {
+      mesh.position.x = baseX;
+      mesh.visible = true;
+    }
     this.caustics.length = 0;
+    this.realisticWater?.dispose();
     this.water.dispose();
+    this.context = null;
     this.detailLevels.dispose();
     this.surfaceDetails.dispose();
     this.status = 'disposed';
     this.attached = false;
+  }
+
+  private async startRealisticWater(water: RealisticWaterPresentation, context: VisualAssetContext) {
+    try {
+      await water.load();
+      if (this.disposed) return;
+      // 先把舊的水拆掉（它會把原本的材質還回去），寫實水面再接手同一個網格。
+      this.water.dispose();
+      water.activate(context);
+      for (const { mesh, baseX } of this.caustics) {
+        mesh.position.x = baseX;
+        mesh.visible = false;
+      }
+      this.setWaterStatus('realistic');
+    } catch (error) {
+      if (this.disposed) return;
+      this.waterFailure = error instanceof Error ? error.message : 'Realistic water could not be created.';
+      this.setWaterStatus('legacy-fallback');
+    }
+  }
+
+  private setWaterStatus(status: WaterPresentationStatus) {
+    this.waterStatus = status;
+    const surface = this.context?.siteRoot.getObjectByName(WATER_SURFACE_NAME);
+    if (surface) surface.userData.waterPresentation = status;
   }
 
   private applyQuality() {

@@ -3,14 +3,27 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import rawViewerModel from '../../generated/viewer-model.json';
 import rawConceptContent from '../../generated/concept-content.json';
 import { adaptViewerData, formatDegrees, formatElevation } from './model-adapter';
+import { getViewerPoolBasinShape, getViewerPoolHallShape } from './pool-state';
 import { createViewerScene, type SelectableInfo } from './scene-factory';
 import { deriveViewerOrientation } from './orientation';
 import { setupSelection } from './interactions';
 import { createBaselineRenderingRuntime, type ViewerRenderingRuntime } from './rendering';
+import {
+  BENCHMARK_FRAMES,
+  BENCHMARK_TIME_LIMIT_MILLISECONDS,
+  effectivePixelRatio,
+  estimateDisplayIntervalMilliseconds,
+  QUALITY_CHOICES,
+  QualitySession,
+  renderQualityProfileForTier,
+  summarizeBenchmarkRun,
+  type RealismTier,
+  type ShedStep,
+} from './rendering/performance';
+import { BASELINE_QUALITY_PROFILE, type RenderQualityProfile, type RenderQualityTier } from './rendering/quality-profile';
 import { getViewerScene, viewerScenes } from './scenes';
 import { FrameStatistics } from './frame-statistics';
 import {
-  AdaptiveFrameTimeMonitor,
   adaptRenderQualityProfile,
   advancePlayerFrame,
   adaptWalkthroughSource,
@@ -67,6 +80,8 @@ const walkthroughArea = required<HTMLElement>('[data-walkthrough-area]');
 const walkthroughAreaSelect = required<HTMLSelectElement>('[data-walkthrough-area-select]');
 const walkthroughNotice = required<HTMLElement>('[data-walkthrough-notice]');
 const walkthroughQuality = required<HTMLElement>('[data-walkthrough-quality]');
+const qualitySelect = required<HTMLSelectElement>('[data-quality-select]');
+const qualityStatus = required<HTMLElement>('[data-quality-status]');
 const returnPoolsideButton = required<HTMLButtonElement>('[data-return-poolside]');
 const returnSafeButton = required<HTMLButtonElement>('[data-return-safe]');
 const exitWalkthroughButton = required<HTMLButtonElement>('[data-exit-walkthrough]');
@@ -95,8 +110,35 @@ function supportsWebGL() {
   }
 }
 
+/**
+ * 載入期間記錄 requestAnimationFrame 的間隔，用來估計螢幕更新率（見 display-interval.ts）。
+ * 回傳的函式停止記錄並交出估計值。
+ */
+function sampleDisplayInterval() {
+  const intervals: number[] = [];
+  let previous: number | null = null;
+  let handle = requestAnimationFrame(function tick(time) {
+    if (previous !== null) intervals.push(time - previous);
+    previous = time;
+    handle = requestAnimationFrame(tick);
+  });
+  return () => {
+    cancelAnimationFrame(handle);
+    return estimateDisplayIntervalMilliseconds(intervals);
+  };
+}
+
+function qualityStorage() {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 async function bootstrap() {
 const bootstrapStartedAt = performance.now();
+const finishDisplayIntervalSampling = sampleDisplayInterval();
 try {
   const { model } = adaptViewerData(rawViewerModel, rawConceptContent);
   const orientation = deriveViewerOrientation(model.referenceSystem);
@@ -121,6 +163,9 @@ try {
   required<HTMLElement>('[data-orientation-arrow]').textContent = northGlyph;
 
   if (!supportsWebGL()) {
+    finishDisplayIntervalSampling();
+    qualitySelect.replaceChildren(new Option('WebGL 靜態模式', ''));
+    qualityStatus.textContent = '靜態模式沒有畫質選項。';
     walkthroughEntry.hidden = true;
     const renderFallbackContent = (sceneId: string) => {
       sceneNav.querySelectorAll<HTMLButtonElement>('button').forEach((button) => {
@@ -158,7 +203,21 @@ try {
     shell.dataset.softwareRenderer = String(softwareRenderer);
     const renderingParameters = new URLSearchParams(location.search);
     const baselineRenderingRequested = renderingParameters.get('rendering') === 'baseline';
-    const adaptiveQualityEnabled = renderingParameters.get('adaptive') !== 'off';
+    const qualitySession = new QualitySession({
+      requested: renderingParameters.get('quality'),
+      softwareRenderer,
+      deviceClass: matchMedia('(pointer: coarse)').matches || innerWidth <= 640 ? 'mobile' : 'desktop',
+      adaptive: renderingParameters.get('adaptive') !== 'off',
+      storage: qualityStorage(),
+      // 調節器在解析度與級別之間能單獨調的效果：目前只有水面平面倒影的解析度，
+      // 而且只有寫實水面才有平面倒影。
+      availableShedSteps: baselineRenderingRequested || renderingParameters.get('water') === 'legacy'
+        ? []
+        : ['water-reflection-resolution'],
+    });
+    // 繪圖管線內部仍以舊的三級決定材質與貼圖版本；四級的設定由 renderQualityProfileForTier 蓋上去。
+    let pipelineProfileFor: (tier: RenderQualityTier) => RenderQualityProfile =
+      (tier) => adaptRenderQualityProfile(BASELINE_QUALITY_PROFILE, tier);
     let rendering: ViewerRenderingRuntime;
     if (!baselineRenderingRequested) {
       try {
@@ -166,17 +225,10 @@ try {
           createEnhancedRenderingRuntime,
           getEnhancedQualityProfile,
         } = await import('./rendering/enhanced');
-        const requestedQuality = renderingParameters.get('quality');
-        const initialQuality = requestedQuality === 'high'
-          || requestedQuality === 'medium'
-          || requestedQuality === 'low'
-          ? requestedQuality
-          : softwareRenderer
-            ? 'low'
-            : matchMedia('(pointer: coarse)').matches || innerWidth <= 640
-              ? 'medium'
-              : 'high';
-        const previewQuality = getEnhancedQualityProfile(initialQuality);
+        const previewQuality = renderQualityProfileForTier(
+          getEnhancedQualityProfile(qualitySession.tier.legacyTier),
+          qualitySession.tier,
+        );
         const simulateOptionalEnvironmentFailure =
           renderingParameters.get('simulateOptionalAssetFailure') === 'environment';
         const simulateRequiredMaterialFailure =
@@ -184,29 +236,32 @@ try {
         rendering = await createEnhancedRenderingRuntime(
           renderer,
           previewQuality,
-          simulateOptionalEnvironmentFailure || simulateRequiredMaterialFailure
-            ? {
-                ...(simulateOptionalEnvironmentFailure
-                  ? {
-                      environmentTextureLoader: {
-                        load: async () => {
-                          throw new TypeError('Simulated optional environment asset failure.');
-                        },
-                      },
-                    }
-                  : {}),
-                ...(simulateRequiredMaterialFailure
-                  ? {
-                      materialTextureSourceLoader: {
-                        loadTexture: async () => {
-                          throw new TypeError('Simulated required material asset failure.');
-                        },
-                      },
-                    }
-                  : {}),
-              }
-            : undefined,
+          {
+            // water=legacy 保留原本的水，方便對照與排查。
+            ...(renderingParameters.get('water') === 'legacy'
+              ? {}
+              : { poolBasin: getViewerPoolBasinShape(model), poolHall: getViewerPoolHallShape(model) }),
+            ...(simulateOptionalEnvironmentFailure
+              ? {
+                  environmentTextureLoader: {
+                    load: async () => {
+                      throw new TypeError('Simulated optional environment asset failure.');
+                    },
+                  },
+                }
+              : {}),
+            ...(simulateRequiredMaterialFailure
+              ? {
+                  materialTextureSourceLoader: {
+                    loadTexture: async () => {
+                      throw new TypeError('Simulated required material asset failure.');
+                    },
+                  },
+                }
+              : {}),
+          },
         );
+        pipelineProfileFor = getEnhancedQualityProfile;
         shell.dataset.renderingMode = 'enhanced';
       } catch (enhancedError) {
         console.error(enhancedError);
@@ -247,6 +302,8 @@ try {
     renderer.shadowMap.autoUpdate = false;
     const requestShadowRefresh = () => {
       if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
+      // 光線或可見物件變了，水面的倒影也要重拍。
+      rendering.visualAssets.invalidateLighting?.();
     };
     requestShadowRefresh();
     shell.dataset.shadowUpdateMode = 'on-demand-static-scene';
@@ -306,7 +363,7 @@ try {
     shell.dataset.visualAssetAdapter = rendering.visualAssets.id;
     shell.dataset.renderQuality = rendering.quality.id;
     shell.dataset.environmentDiagnostic = rendering.environment.diagnostic ?? 'none';
-    shell.dataset.adaptiveQuality = String(adaptiveQualityEnabled);
+    shell.dataset.adaptiveQuality = String(qualitySession.controller.adaptive);
     shell.dataset.contextRestores = '0';
     shell.dataset.coordinateAdapter = model.referenceSystem.coordinateAdapter.adapterId;
     shell.dataset.siteYToThree = model.referenceSystem.coordinateAdapter.siteY;
@@ -531,10 +588,19 @@ try {
     const underwaterEffects = new UnderwaterEffects(shell, graph.scene, {
       quality: rendering.quality.id === 'low' ? 'low' : 'high',
       reducedMotion,
+      waterColorHandled: () => rendering.visualAssets.handlesUnderwaterView === true,
     });
+    // 鏡頭是否在池水裡：水下的水色跟著鏡頭，不跟著移動狀態（移動狀態有遲滯）。
+    const poolBasin = getViewerPoolBasinShape(model);
+    const eyeInBasin = new THREE.Vector3();
+    const eyeInPoolWater = () => {
+      graph.water.surface.worldToLocal(eyeInBasin.copy(camera.position));
+      return eyeInBasin.y < poolBasin.waterLevel
+        && eyeInBasin.x > poolBasin.minX && eyeInBasin.x < poolBasin.maxX
+        && eyeInBasin.z > poolBasin.minZ && eyeInBasin.z < poolBasin.maxZ;
+    };
     shell.dataset.reducedMotion = String(reducedMotion);
-    const frameTimeMonitor = new AdaptiveFrameTimeMonitor(rendering.quality.id);
-    walkthroughQuality.textContent = rendering.quality.id.toUpperCase();
+    walkthroughQuality.textContent = qualitySession.tier.label;
     shell.dataset.performanceProfile = rendering.quality.id;
 
     const resolveEntrancePose = () => {
@@ -730,27 +796,33 @@ try {
       announceWalkthrough(`已跳至${area.label}`);
     });
 
-    const applyPerformanceTier = (tier: 'high' | 'medium' | 'low') => {
-      const profile = adaptRenderQualityProfile(rendering.quality, tier);
-      const capability = getWalkthroughCapabilityProfile(tier, reducedMotion);
-      rendering.setQuality(profile);
-      renderer.shadowMap.enabled = capability.shadows;
+    // 四級畫質（DEC-190）套到畫面：繪圖管線的設定，加上漫遊用的陰影、鏡頭阻尼與水下效果。
+    const applyRealismTier = (tier: RealismTier, shed: readonly ShedStep[] = []) => {
+      const legacyTier = tier.legacyTier;
+      const capability = getWalkthroughCapabilityProfile(legacyTier, reducedMotion);
+      rendering.setQuality(renderQualityProfileForTier(pipelineProfileFor(legacyTier), tier, shed));
+      renderer.shadowMap.enabled = rendering.quality.shadows;
       requestShadowRefresh();
       controls.enableDamping = capability.cameraMotion;
       underwaterEffects.setQuality(capability.underwaterEffect === 'essential' ? 'low' : 'high');
-      walkthroughQuality.textContent = tier.toUpperCase();
-      shell.dataset.performanceProfile = tier;
+      walkthroughQuality.textContent = tier.label;
+      shell.dataset.renderQuality = rendering.quality.id;
+      shell.dataset.performanceProfile = legacyTier;
       shell.dataset.cameraMotion = String(capability.cameraMotion);
       shell.dataset.underwaterEffect = capability.underwaterEffect;
     };
-    applyPerformanceTier(rendering.quality.id);
+    applyRealismTier(qualitySession.tier);
 
     const resize = () => {
       const rect = canvasHost.getBoundingClientRect();
       rendering.framePipeline.resize(
         rect.width,
         rect.height,
-        Math.min(devicePixelRatio, rendering.quality.pixelRatioCap),
+        effectivePixelRatio(
+          devicePixelRatio,
+          qualitySession.tier,
+          qualitySession.controller.state.resolutionScale,
+        ),
       );
       camera.aspect = Math.max(1, rect.width) / Math.max(1, rect.height);
       camera.updateProjectionMatrix();
@@ -765,24 +837,74 @@ try {
     shell.dataset.shaderCompileMs = (performance.now() - shaderCompileStartedAt).toFixed(2);
     shell.dataset.shaderPrograms = String(renderer.info.programs?.length ?? 0);
     shell.dataset.renderingInitMs = (performance.now() - bootstrapStartedAt).toFixed(2);
-    let previousFrameTime = performance.now();
     let elapsedFrameTime = 0;
     let renderedFrames = 0;
+    let peakDrawCalls = 0;
     const frameStatistics = new FrameStatistics();
-    const statisticsStart = performance.now();
+
+    // 啟動檢測：連畫幾幀，每幀讀回一個像素逼顯示卡把工作做完，量到的才是真正的繪製時間
+    // （只看 requestAnimationFrame 的間隔會被螢幕同步鎖住）。載入畫面還蓋著，使用者看不到。
+    const runStartupBenchmark = () => {
+      const pixel = new Uint8Array(4);
+      const frames: number[] = [];
+      const startedAt = performance.now();
+      let timedOut = false;
+      for (let frame = 0; frame < BENCHMARK_FRAMES; frame += 1) {
+        const frameStartedAt = performance.now();
+        rendering.visualAssets.updateFrame?.({
+          deltaSeconds: 1 / 60,
+          elapsedSeconds: frame / 60,
+          reducedMotion,
+          camera,
+        });
+        rendering.framePipeline.render(graph.scene, camera);
+        graphicsContext.readPixels(
+          0, 0, 1, 1, graphicsContext.RGBA, graphicsContext.UNSIGNED_BYTE, pixel,
+        );
+        const frameEndedAt = performance.now();
+        frames.push(frameEndedAt - frameStartedAt);
+        if (frameEndedAt - startedAt > BENCHMARK_TIME_LIMIT_MILLISECONDS) {
+          timedOut = frame + 1 < BENCHMARK_FRAMES;
+          break;
+        }
+      }
+      return summarizeBenchmarkRun(frames, timedOut);
+    };
+
+    qualitySelect.replaceChildren(
+      ...QUALITY_CHOICES.map((choice) => new Option(choice.label, choice.value)),
+    );
+    qualitySession.start({
+      applyTier: applyRealismTier,
+      applyResolution: () => {
+        resize();
+        // 換了畫質之後，舊的幀時間不能拿來判斷新的畫質。
+        frameStatistics.reset();
+      },
+      runBenchmark: runStartupBenchmark,
+      announce: announceWalkthrough,
+      publish: (snapshot) => {
+        qualitySelect.value = snapshot.choice;
+        qualityStatus.textContent = snapshot.description;
+        shell.dataset.realismTier = snapshot.tier;
+        shell.dataset.realismTierSource = snapshot.source;
+        shell.dataset.resolutionScale = snapshot.resolutionScale.toFixed(2);
+        shell.dataset.displayIntervalMs = snapshot.displayIntervalMilliseconds?.toFixed(2) ?? 'unknown';
+        shell.dataset.benchmarkMedianMs = snapshot.benchmark?.medianMilliseconds.toFixed(2) ?? 'none';
+      },
+    }, finishDisplayIntervalSampling());
+    const handleQualityChoice = () => qualitySession.choose(qualitySelect.value);
+    qualitySelect.disabled = false;
+    qualitySelect.addEventListener('change', handleQualityChoice);
+
+    let previousFrameTime = performance.now();
+    let previousQualityObservation = previousFrameTime;
+    const statisticsStart = previousFrameTime;
     renderer.setAnimationLoop(() => {
       const currentFrameTime = performance.now();
       const frameDelta = (currentFrameTime - previousFrameTime) / 1000;
       previousFrameTime = currentFrameTime;
       elapsedFrameTime += Math.min(frameDelta, 0.1);
-      const degradedTier = adaptiveQualityEnabled
-        ? frameTimeMonitor.observe(frameDelta * 1000)
-        : null;
-      if (degradedTier) {
-        applyPerformanceTier(degradedTier);
-        resize();
-        announceWalkthrough(`畫質已調整為 ${degradedTier.toUpperCase()}，移動與碰撞維持不變`);
-      }
       renderedFrames += 1;
       if (cameraModeManager.state === 'walkthrough') {
         const intent = activeInput.readIntent();
@@ -799,7 +921,7 @@ try {
             || player.movementMode === 'swimming-underwater';
           returnPoolsideButton.hidden = !swimming;
           swimControls.hidden = !swimming || activeInput !== touchInput;
-          underwaterEffects.update(player.movementMode);
+          underwaterEffects.update(player.movementMode, eyeInPoolWater());
           rendering.visualAssets.setWalkthroughState?.({
             movementMode: player.movementMode,
             waterSurfaceElevation: graph.water.surfaceElevation,
@@ -829,27 +951,41 @@ try {
       });
       renderer.info.reset();
       rendering.framePipeline.render(graph.scene, camera);
+      peakDrawCalls = Math.max(peakDrawCalls, renderer.info.render.calls);
       const frameEnd = performance.now();
       frameStatistics.observe(
         (frameEnd - statisticsStart) / 1000,
         frameDelta * 1000,
         frameEnd - currentFrameTime,
       );
+      // 幀率調節器（DEC-190）：統計每十幀看一次；幀率很低時改成至少每 0.25 秒看一次，
+      // 免得兩次觀測相隔太久被當成分頁切到背景。
+      if (renderedFrames % 10 === 0 || frameEnd - previousQualityObservation >= 250) {
+        previousQualityObservation = frameEnd;
+        qualitySession.observe(frameStatistics.snapshot());
+      }
       if (renderedFrames === 1 || renderedFrames % 30 === 0) {
-        const statistics = frameTimeMonitor.statistics();
-        shell.dataset.frameAverageMs = statistics.averageMilliseconds.toFixed(2);
-        shell.dataset.frameP95Ms = statistics.p95Milliseconds.toFixed(2);
-        shell.dataset.frameSamples = String(statistics.samples);
-        shell.dataset.renderedFrames = String(renderedFrames);
         const observation = frameStatistics.snapshot();
+        shell.dataset.frameAverageMs = observation.intervalAverageMilliseconds.toFixed(2);
+        shell.dataset.frameP95Ms = observation.intervalP95Milliseconds.toFixed(2);
+        shell.dataset.frameSamples = String(observation.samples);
+        shell.dataset.renderedFrames = String(renderedFrames);
         shell.dataset.frameIntervalP95Ms = observation.intervalP95Milliseconds.toFixed(2);
         shell.dataset.frameWorkP95Ms = observation.workP95Milliseconds.toFixed(2);
         shell.dataset.drawCalls = String(renderer.info.render.calls);
+        // 鏡頭移動時平面倒影會把場景多畫一次；這段期間最多的一幀記在這裡，公布後歸零。
+        shell.dataset.drawCallsPeak = String(peakDrawCalls);
+        peakDrawCalls = 0;
+        shell.dataset.waterReflection = rendering.visualAssets.waterReflection ?? 'none';
+        shell.dataset.underwaterView = String(rendering.visualAssets.underwaterViewActive === true);
         shell.dataset.triangles = String(renderer.info.render.triangles);
         shell.dataset.lines = String(renderer.info.render.lines);
         shell.dataset.geometries = String(renderer.info.memory.geometries);
         shell.dataset.textures = String(renderer.info.memory.textures);
         shell.dataset.shaderPrograms = String(renderer.info.programs?.length ?? 0);
+        shell.dataset.waterPresentation = String(
+          graph.water.surface.userData.waterPresentation ?? 'baseline',
+        );
       }
     });
     renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
@@ -864,6 +1000,7 @@ try {
       runtimeDisposed = true;
       renderer.setAnimationLoop(null);
       resizeObserver.disconnect();
+      qualitySelect.removeEventListener('change', handleQualityChoice);
       renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
       await cameraModeManager.dispose();
       desktopInput.dispose();
@@ -886,6 +1023,7 @@ try {
     shell.dataset.poolDeckElevation = formatElevation(model.geometry.pool.deckElevation.value);
   }
 } catch (error) {
+  finishDisplayIntervalSampling();
   console.error(error);
   showFailure(error);
 }

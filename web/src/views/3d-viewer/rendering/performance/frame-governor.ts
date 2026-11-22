@@ -15,6 +15,13 @@ import {
  *
  * 級別本身自動只降不升（升級要下載更大的資產，交給使用者手動選）；
  * 同一級裡的解析度與效果可以雙向調整。
+ *
+ * 幀間隔變長不一定是畫面太重：50 Hz 的螢幕、瀏覽器的省電模式都會把更新率鎖在 60 fps 以下，
+ * 這時降畫質救不回幀率，只會白白變糊。呼叫端在啟動時量到螢幕更新間隔就交給調節器，底線跟著
+ * 放寬。中途才被鎖住的情況只能靠結果判斷：降到最低一級、全部卸載後仍然掉幀，而每幀實際工作
+ * 時間明明很短，就判定是更新率被鎖住，把這一級的解析度與效果還原、底線放寬到實際的間隔，
+ * 並通知呼叫端（由它決定要不要把自動降下來的級別也升回去）。不在更早的階段下這個判斷，
+ * 是因為螢幕同步會把 20 ms 和 30 ms 的幀都顯示成 33 ms，中途看不出降畫質有沒有幫助。
  */
 
 export interface FrameObservation {
@@ -43,7 +50,9 @@ export type FrameGovernorAction =
   | 'shed'
   | 'restore'
   | 'raise-resolution'
-  | 'lower-tier';
+  | 'lower-tier'
+  /** 降到底仍然掉幀、工作時間卻很短：判定是螢幕或瀏覽器限制了更新率，這一級已還原。 */
+  | 'display-limited';
 
 export interface FrameGovernorChange extends FrameGovernorState {
   readonly action: FrameGovernorAction;
@@ -67,6 +76,13 @@ export interface FrameGovernorOptions {
   /** 全部卸載後仍低於底線多久才建議降一級。 */
   readonly exhaustedSeconds?: number;
   readonly minimumSamples?: number;
+  /**
+   * 這一級的效果裡，畫面上真的做得到開關的那些；沒列的不會排進卸載順序。
+   * 省略時代表這一級開著的效果都能卸載。
+   */
+  readonly availableSteps?: readonly ShedStep[];
+  /** 啟動時量到的螢幕更新間隔（毫秒）；比幀率底線長時，底線跟著放寬。 */
+  readonly displayIntervalMilliseconds?: number | null;
 }
 
 /** 幀間隔超過底線這個比例才算掉幀，容許計時抖動。 */
@@ -79,9 +95,14 @@ const PROBATION_FACTOR = 2;
 const MAXIMUM_BACKOFF_FACTOR = 16;
 /** 兩次觀測相隔超過這個秒數（分頁被切到背景）就重新計時。 */
 const OBSERVATION_GAP_SECONDS = 1;
+/** 每幀工作時間佔幀間隔不到這個比例，才可能是更新率被鎖住（而不是真的忙不過來）。 */
+export const DISPLAY_LIMITED_WORK_RATIO = 0.4;
+/** 幀間隔比放寬後的底線短到這個比例以下，代表限制解除，底線收回原值。 */
+const DISPLAY_LIMIT_RELEASE_RATIO = 0.9;
 
 export class FrameGovernor {
   readonly tier: RealismTier;
+  /** 設計上的幀率底線（DEC-190），不含螢幕更新率的放寬。 */
   readonly floorMilliseconds: number;
   readonly targetMilliseconds: number;
 
@@ -102,13 +123,18 @@ export class FrameGovernor {
   private lastRestore: number | null = null;
   private backoffFactor = 1;
   private tierChangeSuggested = false;
+  private displayInterval: number | null = null;
 
   constructor(options: FrameGovernorOptions) {
     const target = FRAME_TARGETS[options.deviceClass];
     this.tier = options.tier;
     this.floorMilliseconds = 1000 / target.floorFps;
     this.targetMilliseconds = 1000 / target.targetFps;
-    this.sheddable = sheddableSteps(options.tier);
+    const available = options.availableSteps;
+    this.sheddable = available
+      ? Object.freeze(sheddableSteps(options.tier).filter((step) => available.includes(step)))
+      : sheddableSteps(options.tier);
+    this.displayIntervalMilliseconds = options.displayIntervalMilliseconds ?? null;
     this.resolutionStep = options.resolutionStep ?? 0.1;
     this.overBudgetSeconds = options.overBudgetSeconds ?? 1.5;
     this.headroomSeconds = options.headroomSeconds ?? 10;
@@ -125,6 +151,20 @@ export class FrameGovernor {
       resolutionScale: this.resolutionScale,
       shed: Object.freeze(this.sheddable.slice(0, this.shedCount)),
     });
+  }
+
+  /** 螢幕或瀏覽器限制的更新間隔；沒有限制（或還不知道）時是 null。 */
+  get displayIntervalMilliseconds(): number | null {
+    return this.displayInterval;
+  }
+
+  set displayIntervalMilliseconds(value: number | null) {
+    this.displayInterval = value !== null && Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  /** 實際用來判斷掉幀的底線：設計底線與螢幕更新間隔取較長的。 */
+  get effectiveFloorMilliseconds(): number {
+    return Math.max(this.floorMilliseconds, this.displayInterval ?? 0);
   }
 
   /** 下一次恢復需要連續多少秒的餘裕（恢復失敗後會拉長）。 */
@@ -151,7 +191,15 @@ export class FrameGovernor {
       return null;
     }
 
-    const over = observation.intervalP95Milliseconds > this.floorMilliseconds * OVER_BUDGET_TOLERANCE;
+    if (
+      this.displayInterval !== null
+      && observation.intervalP95Milliseconds < this.displayInterval * DISPLAY_LIMIT_RELEASE_RATIO
+    ) {
+      this.displayInterval = null;
+    }
+
+    const over = observation.intervalP95Milliseconds
+      > this.effectiveFloorMilliseconds * OVER_BUDGET_TOLERANCE;
     const headroom = !over
       && observation.workP95Milliseconds < this.targetMilliseconds * HEADROOM_WORK_RATIO;
 
@@ -161,7 +209,7 @@ export class FrameGovernor {
       const exhausted = this.isExhausted();
       const wait = exhausted ? this.exhaustedSeconds : this.overBudgetSeconds;
       if (timeSeconds - this.overSince < wait) return null;
-      return exhausted ? this.suggestLowerTier(timeSeconds) : this.degrade(timeSeconds);
+      return exhausted ? this.suggestLowerTier(observation) : this.degrade(timeSeconds);
     }
 
     this.overSince = null;
@@ -181,6 +229,16 @@ export class FrameGovernor {
   private isExhausted(): boolean {
     return this.shedCount >= this.sheddable.length
       && this.resolutionScale <= this.tier.minimumResolutionScale;
+  }
+
+  private concludeDisplayLimited(observation: FrameObservation): FrameGovernorChange {
+    this.displayInterval = observation.intervalP95Milliseconds;
+    this.resolutionScale = 1;
+    this.shedCount = 0;
+    this.lastRestore = null;
+    this.tierChangeSuggested = false;
+    this.settle(observation.timeSeconds);
+    return this.change('display-limited', null);
   }
 
   private clearTimers(): void {
@@ -227,9 +285,16 @@ export class FrameGovernor {
     return this.change('raise-resolution', null);
   }
 
-  private suggestLowerTier(timeSeconds: number): FrameGovernorChange | null {
+  private suggestLowerTier(observation: FrameObservation): FrameGovernorChange | null {
     const lower = lowerRealismTier(this.tier.id);
-    this.settle(timeSeconds);
+    if (
+      !lower
+      && observation.workP95Milliseconds
+        < observation.intervalP95Milliseconds * DISPLAY_LIMITED_WORK_RATIO
+    ) {
+      return this.concludeDisplayLimited(observation);
+    }
+    this.settle(observation.timeSeconds);
     if (!lower || this.tierChangeSuggested) return null;
     this.tierChangeSuggested = true;
     return Object.freeze({ ...this.state, action: 'lower-tier', step: null, tier: lower });

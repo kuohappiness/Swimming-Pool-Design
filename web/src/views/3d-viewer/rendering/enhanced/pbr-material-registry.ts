@@ -5,6 +5,7 @@ import {
   assertRenderQualityProfile,
   type RenderQualityProfile,
 } from '../quality-profile';
+import { createGlossyFilmMaterial } from './glossy-film-material';
 import {
   EnhancedTextureLoader,
   REQUIRED_MATERIAL_TEXTURE_IDS,
@@ -14,6 +15,23 @@ import {
 export interface EnhancedPbrMaterialRegistryOptions {
   readonly quality: RenderQualityProfile;
   readonly textureSourceLoader?: TextureSourceLoader;
+}
+
+/**
+ * 玻璃的外觀：tint 是玻璃本身的顏色；opacity 是每一層表面擋掉多少背景；scatter 是玻璃自己
+ * 被燈照亮的比例（真的玻璃幾乎不會，數值大了整片會發白）。方盒玻璃前後兩面各算一次。
+ * 低畫質沒有環境貼圖，拿不到倒影，改用較濃的色片讓外牆仍然看得出來。
+ */
+const GLASS_LOOK = {
+  'roof-glass': { tint: 0xb9e9ef, roughness: 0.12, opacity: 0.1, scatter: 0.14 },
+  'safety-glass': { tint: 0xa8dce5, roughness: 0.09, opacity: 0.08, scatter: 0.14 },
+} as const;
+const LOW_TIER_GLASS = { opacity: 0.3, scatter: 1 } as const;
+// 濕地面都在室內，倒影照到的是天花板，比環境貼圖的天空暗。
+const WET_FILM = { tint: 0x9fc3c7, roughness: 0.08, opacity: 0.2, scatter: 0.15, reflectionIntensity: 0.4 } as const;
+
+function filmColor(tint: number, scatter: number) {
+  return new THREE.Color(tint).multiplyScalar(scatter);
 }
 
 export class EnhancedPbrMaterialRegistry implements MaterialRegistry {
@@ -56,7 +74,7 @@ export class EnhancedPbrMaterialRegistry implements MaterialRegistry {
     this.textureLoader.setQuality(this.quality);
     this.baseline.setQuality(this.quality);
 
-    const water = this.overrides.get('water') as THREE.MeshPhysicalMaterial;
+    const water = this.overrides.get('water') as THREE.MeshStandardMaterial;
     if (water) {
       water.normalMap = this.quality.enhancedWater
         ? this.optionalTexture('material-water-normal-v1')
@@ -65,10 +83,10 @@ export class EnhancedPbrMaterialRegistry implements MaterialRegistry {
       water.needsUpdate = true;
     }
     for (const id of ['roof-glass', 'safety-glass'] as const) {
-      const glass = this.overrides.get(id) as THREE.MeshPhysicalMaterial;
-      glass.transmission = this.quality.id === 'low' ? 0 : id === 'safety-glass' ? 0.74 : 0.62;
-      glass.opacity = this.quality.id === 'low' ? 0.48 : 0.32;
-      glass.needsUpdate = true;
+      const glass = this.overrides.get(id) as THREE.MeshStandardMaterial;
+      const look = this.quality.id === 'low' ? LOW_TIER_GLASS : GLASS_LOOK[id];
+      glass.opacity = look.opacity;
+      glass.color.copy(filmColor(GLASS_LOOK[id].tint, look.scatter));
     }
   }
 
@@ -106,23 +124,14 @@ export class EnhancedPbrMaterialRegistry implements MaterialRegistry {
       roughnessMap: concreteRoughness,
       metalness: 0,
     });
-    const roofGlass = new THREE.MeshPhysicalMaterial({
-      color: 0xb9e9ef,
-      roughness: 0.12,
-      metalness: 0,
-      transmission: 0.62,
-      thickness: 0.018,
-      ior: 1.5,
-      transparent: true,
-      opacity: 0.32,
+    const glass = (id: keyof typeof GLASS_LOOK) => createGlossyFilmMaterial({
+      color: filmColor(GLASS_LOOK[id].tint, GLASS_LOOK[id].scatter),
+      roughness: GLASS_LOOK[id].roughness,
+      opacity: GLASS_LOOK[id].opacity,
       side: THREE.DoubleSide,
-      depthWrite: false,
     });
-    const safetyGlass = roofGlass.clone();
-    safetyGlass.color.set(0xa8dce5);
-    safetyGlass.roughness = 0.09;
-    safetyGlass.transmission = 0.74;
-    safetyGlass.thickness = 0.024;
+    const roofGlass = glass('roof-glass');
+    const safetyGlass = glass('safety-glass');
 
     this.overrides.set('exposed-concrete-l1', concrete(0xc3c0b9, 0.9));
     this.overrides.set('exposed-concrete-l2', concrete(0xb5b2ab, 0.88));
@@ -134,15 +143,12 @@ export class EnhancedPbrMaterialRegistry implements MaterialRegistry {
     }));
     this.overrides.set('roof-glass', roofGlass);
     this.overrides.set('safety-glass', safetyGlass);
-    this.overrides.set('water', new THREE.MeshPhysicalMaterial({
+    this.overrides.set('water', new THREE.MeshStandardMaterial({
       color: 0x2f94ac,
       roughness: 0.1,
       metalness: 0,
-      transmission: 0.52,
-      thickness: 0.42,
-      ior: 1.333,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.64,
       side: THREE.DoubleSide,
       depthWrite: false,
     }));
@@ -198,13 +204,11 @@ export class EnhancedPbrMaterialRegistry implements MaterialRegistry {
       roughness: 0.48,
       metalness: 0.28,
     }));
-    this.overrides.set('wet-surface', new THREE.MeshPhysicalMaterial({
-      color: 0x9fc3c7,
-      roughness: 0.08,
-      transmission: 0.08,
-      transparent: true,
-      opacity: 0.2,
-      depthWrite: false,
+    this.overrides.set('wet-surface', createGlossyFilmMaterial({
+      color: filmColor(WET_FILM.tint, WET_FILM.scatter),
+      roughness: WET_FILM.roughness,
+      opacity: WET_FILM.opacity,
+      reflectionIntensity: WET_FILM.reflectionIntensity,
     }));
     this.overrides.set('interior-tile', new THREE.MeshStandardMaterial({
       color: 0xdce6e3,

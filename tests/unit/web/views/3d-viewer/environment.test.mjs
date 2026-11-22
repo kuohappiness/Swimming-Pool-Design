@@ -222,6 +222,31 @@ test('medium and low frame pipelines render directly without changing interactio
   assert.equal(renderer.calls.filter(([name]) => name === 'render').length, 1);
 });
 
+test('a scene renderer can take a frame over, and the pipeline draws when it declines', () => {
+  const renderer = rendererFixture();
+  const pipeline = new EnhancedFrameEffectPipeline(renderer, ENHANCED_QUALITY_PROFILES.medium);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera();
+  // The underwater view draws the whole frame itself while the camera is in the water.
+  const taken = [];
+  let takeOver = true;
+  pipeline.setSceneRenderer((passScene, passCamera) => {
+    taken.push([passScene, passCamera]);
+    return takeOver;
+  });
+  pipeline.render(scene, camera);
+  assert.deepEqual(taken, [[scene, camera]]);
+  assert.equal(renderer.calls.some(([name]) => name === 'render'), false, 'the frame is not drawn twice');
+  takeOver = false;
+  pipeline.render(scene, camera);
+  assert.deepEqual(renderer.calls.at(-1), ['render', scene, camera]);
+  pipeline.setSceneRenderer(null);
+  pipeline.render(scene, camera);
+  assert.equal(taken.length, 2);
+  assert.equal(renderer.calls.filter(([name]) => name === 'render').length, 2);
+  pipeline.dispose();
+});
+
 test('high AO composition ends with OutputPass so the beauty buffer reaches the screen', async () => {
   const source = await readFile(
     resolve(repoRoot, 'web/src/views/3d-viewer/rendering/enhanced/frame-effect-pipeline.ts'),
