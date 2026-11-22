@@ -11,6 +11,7 @@ const loaders: Record<ViewId, () => Promise<ViewModule>> = {
   'solar-study': () => import('../views/solar-study'),
   'drawings': () => import('../views/drawings'),
   '3d-viewer': () => import('../views/3d-viewer'),
+  'about': () => import('../views/about'),
 };
 
 function restoreHashTarget(): void {

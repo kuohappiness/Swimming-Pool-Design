@@ -186,8 +186,28 @@ for (const relativePath of markdownFiles) {
   contents.set(relativePath, await readFile(path.join(repoRoot, relativePath), 'utf8'));
 }
 
+// 網站文案（content/）裡的站內連結是網址，不是檔案路徑：`./` 是首頁，`?view=<view id>` 必須是路由登錄表裡的分頁。
+const routerSource = await readFile(path.join(repoRoot, 'web/src/app/router.ts'), 'utf8');
+const registeredViewIds = new Set(
+  [...(routerSource.match(/export const viewIds = \[([^\]]*)\]/)?.[1] ?? '').matchAll(/'([^']+)'/g)].map(([, id]) => id),
+);
+if (registeredViewIds.size === 0) errors.push('web/src/app/router.ts: viewIds could not be read');
+
+function isSiteRouteLink(relativePath, target) {
+  if (!relativePath.split(path.sep).join('/').startsWith('content/')) return false;
+  const withoutFragment = target.split('#', 1)[0];
+  if (withoutFragment === './') return true;
+  const viewMatch = withoutFragment.match(/^\?view=([a-z0-9-]+)$/);
+  if (!viewMatch) return false;
+  if (!registeredViewIds.has(viewMatch[1])) {
+    errors.push(`${relativePath}: link to unknown view ${target}`);
+  }
+  return true;
+}
+
 for (const [relativePath, content] of contents) {
   for (const target of markdownTargets(content)) {
+    if (isSiteRouteLink(relativePath, target)) continue;
     const resolved = resolveLocalLink(relativePath, target);
     if (resolved && !await exists(resolved)) {
       errors.push(`${relativePath}: broken local link ${target}`);
