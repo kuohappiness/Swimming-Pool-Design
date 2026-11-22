@@ -18,7 +18,7 @@
 - 手繪稿 `SRC-CONCEPT-001`、`003`、`010`、`011` 另做網頁用衍生檔，放 `web/src/views/design-process/assets/`，原始檔不動；衍生方式與雜湊登錄在[基地與來源](../site-and-sources.md)。
 - `tools/build/build-content.mjs` 新增 `{{record:<版本或 sources>|<原文>}}`：已被取代的舊值不在模型裡，改引自發布紀錄或來源登錄，原文不存在時建置失敗。
 - 外部連結另開視窗的處理移到 `web/src/shared/external-links.ts`，隱藏文字的樣式移到設計系統的 `.site-visually-hidden`，關於頁改用共用的這一份。
-- `tools/build/build-copy.mjs` 納入設計歷程頁，重新產生 `content/website-copy.md`。
+- `tools/build/build-copy.mjs` 納入設計歷程頁；網站文字快照 `content/website-copy.md` 由下一次發版重產（DEC-200）。
 
 不在範圍：
 

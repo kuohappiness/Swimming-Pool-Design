@@ -95,7 +95,7 @@
 | --- | --- | --- |
 | `SRC-SITE-001`、`002`、`004` Google Maps 衛星截圖 | Google 與影像、地圖資料提供者 | 圖面頁 `REF-001` 底圖衍生檔保留截圖原有的 Google Maps 標誌與「圖像 © 2026 Airbus、CNES / Airbus、Maxar Technologies、地圖資料 ©2026 Google」署名列（2026-11-22 檢視確認）。衍生檔不得裁掉這一列。 |
 | `SRC-SITE-003` PVGIS 氣象年資料 | European Commission JRC | 日照研究頁〈研究方法、來源與專業限制〉寫明採用 PVGIS TMY 並連到 PVGIS 說明 |
-| `SRC-SITE-005` 校徽 | 學校 | 頁首識別用途；repo 內沒有學校同意使用校徽或校名的紀錄 |
+| `SRC-SITE-005` 校徽 | 學校 | 頁首識別用途；使用者 2026-11-22 表示學校同意網站使用校徽與校名（原話：「學校同意網站使用校徽與校名」） |
 
 國外指南（例如 Sport England、CDC MAHC）只作為技術參考，不具臺灣法規效力；法規與技術參考的登錄見〈法規來源〉。
 

@@ -78,11 +78,13 @@ docs/tasks/<任務>.md ……… 規格與驗收；標題下寫狀態行；roadm
 2. **〈等觸發點〉**：表 `工作｜觸發點｜入口`。入口的狀態是「等觸發點」時列在這裡，觸發點照抄狀態行的下一步；入口只有 DEC 編號的列手寫。
 3. **〈已完成〉**：表 `日期｜工作`。入口的狀態變成已合併或已結案時，把那一列移到最上面，寫成粗體工作名稱、全形冒號、完成那一句，再用全形括號寫狀態值、全形逗號與入口連結。不設列數上限，不搬去封存。2026-11-22 以前的舊任務表原文留在這一節下方，舊表的狀態欄照舊用 `queued`、`ready`、`in_progress`、`blocked`、`done`。
 
-**改了入口的狀態行，同一個 commit 也改 roadmap 那一列。** `check:docs` 會比對：狀態板的三欄要和狀態行一致、結束的要在〈已完成〉、等觸發點的要在〈等觸發點〉、每份有狀態行的任務說明剛好一列。對不上時錯誤訊息會印出應該寫成的那一列。自動產生這些列的工具等新格式用過幾件任務後再評估（列在〈等觸發點〉）。
+**改了入口的狀態行，同一個 commit 也改 roadmap 那一列。** `check:docs` 會比對：狀態板的三欄要和狀態行一致、結束的要在〈已完成〉、等觸發點的要在〈等觸發點〉、每份有狀態行的任務說明剛好一列。對不上時錯誤訊息會印出應該寫成的那一列。
+
+**合併後的狀態不另開收尾 PR。** 檢查通過就合併的 PR，開 PR 時就把狀態行寫成「已合併」、roadmap 那一列放進〈已完成〉。要等使用者審閱的 PR 留著「待審」合併；合併後由下一個動到 roadmap 的 PR 順手把它改成「已合併」並移到〈已完成〉，那個 PR 的說明寫一句「順手收掉 TASK-xxx 的狀態」（[DEC-200](../decisions.md)）。自動產生這些列的工具等新格式用過幾件任務後再評估（列在〈等觸發點〉）。
 
 ### 2.6 發布紀錄
 
-形成版本時建立 `docs/releases/<version>.md`，記錄範圍、包含的任務、驗證證據與 commit。發布紀錄不改寫，只修斷鏈。
+形成版本時建立 `docs/releases/<version>.md`，記錄範圍、包含的任務、驗證證據與 commit。發布紀錄不改寫，只修斷鏈。發版 PR 改了 `package.json` 版號後，同一個 PR 跑 `npm run build:copy` 重產網站文字快照 `content/website-copy.md`；其他 PR 不動它，`check:docs` 會比對快照與套件版本（[DEC-200](../decisions.md)）。
 
 ## 3. 入口的狀態行
 
@@ -131,6 +133,8 @@ git diff --check
 `npm run lint` 依序跑 ESLint（含依賴方向）、stylelint（CSS）與 knip（沒人用的檔案與套件）。Prettier 已有設定（`npm run format`、`npm run format:check`），但全庫還沒格式化、CI 也還不檢查；在那之前不要用它重排既有檔案，免得和其他 PR 衝突（[TASK-162](../tasks/2026-11-22-tooling.md)）。依賴更新由 Dependabot 每週一開一個合併 PR，大版本不自動提。
 
 `npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/web/`。`npm run dev` 只聽本機；要用手機連線測試時改用 `npm run dev:lan`。`npm run test:e2e` 需要本機的 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定瀏覽器路徑。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
+
+接 main 一律在本機執行 `git fetch origin main` 與 `git merge origin/main` 再推上去，不用 GitHub 網頁的 Update branch 或衝突編輯器：`docs/roadmap.md`、`docs/decisions.md` 設了 `merge=union`，本機合併會自動保留兩邊新加的列，GitHub 網頁端不會。合併後跑 `npm run check:docs`，兩邊改過同一列時它會指出重複的列，留下正確的那一列（[DEC-200](../decisions.md)）。
 
 每個 PR 由 `.github/workflows/ci.yml` 自動執行上列檢查與金鑰掃描，彙總檢查「全部檢查通過」是合併前的必要條件（[DEC-148](../decisions.md)）。
 
