@@ -56,6 +56,7 @@ Viewer 必須由 `?view=3d-viewer` 的 view-level dynamic import 才載入 Three
 - hardware desktop／mobile 的 runtime 目標為平均 50／30 FPS；software renderer 從 low 啟動。headless SwiftShader 只用同機 v0.6.7 baseline 的 80% 作相對防退化門檻，不得冒充硬體 FPS。
 - renderer 必須公開平均／p95 frame time、draw calls、triangles、shader programs／compile、drawing buffer、陰影更新模式與 context restore diagnostic；靜態陰影圖可在首次繪製後快取，但場景、圖層、剖視、畫質或 context 改變必須要求重算，context restore 不得重建 canonical 或 collision state。
 - 所有 runtime asset 必須是 repository-local 且具有 manifest provenance、license、SHA-256、byte size、quality tier 與 required／optional 分類；正式頁面不得存取外部 asset origin。資產的單檔容量、資料夾總量、副檔名與命名由 `npm run check:assets` 檢查，上限寫在 `core/viewer/render-budgets.mjs`（[DEC-190](../decisions.md)）。資產清單的唯一來源是 `web/src/views/3d-viewer/assets/asset-manifest.json`；KTX2 壓縮貼圖須由 `npm run build:textures` 產生並記錄轉檔設定與來源雜湊，轉碼器隨網站打包，不得改由外部網域載入。
+- 水面（[DEC-190](../decisions.md)、TASK-151）：enhanced rendering 的水是一支不透明的著色器，折射後看到池底哪一點由池體形狀直接算出，不得為了水把整個場景多畫一次。池體形狀與池底標線只從 `pool-state.ts` 的 `getViewerPoolBasinShape` 取得，啟用前須確認與場景裡的水面重合；實體池底、池壁與水面共用同一段著色與同一批 uniform。倒影取自池面中央的反射探針，只在光線、天候、圖層、剖視或畫質改變時重拍。貼圖載入前與載入失敗時維持原本的水面呈現，不阻斷 Inspect 與 Walkthrough。目前的水面呈現公開在 `data-water-presentation`（`realistic`、`realistic-loading`、`legacy`、`legacy-fallback`、`baseline`）；`?water=legacy` 只供比對與除錯。基地地坪與標註格線在泳池位置開口，池底到水面之間不得有水以外的幾何。
 
 圖層固定為 `site`、`l1`、`water`、`l2`、`l3`、`roof`、`circulation`、`rain`、`energy`、`annotations`。桌機與觸控支援 orbit、pan、zoom、一般固定視角、圖層切換與構件選取；canvas 與等價控制須可鍵盤操作。選取只更新下拉選單與右側資訊面板，3D 畫布不得顯示 `BoxHelper` 或其他外接選取框。390 × 844 不得水平溢出。
 

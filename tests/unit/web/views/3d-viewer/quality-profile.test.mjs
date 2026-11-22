@@ -44,7 +44,7 @@ test('enhanced quality tiers meet descending transfer budgets and explicit FPS t
     [
       { tier: 'high', bytes: 606604, budget: 24 * 1024 * 1024, fps: 50 },
       { tier: 'medium', bytes: 606604, budget: 12 * 1024 * 1024, fps: 40 },
-      { tier: 'low', bytes: 3880, budget: 6 * 1024 * 1024, fps: 30 },
+      { tier: 'low', bytes: 604987, budget: 6 * 1024 * 1024, fps: 30 },
     ],
   );
 });

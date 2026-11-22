@@ -30,6 +30,8 @@ const float NO_HIT = 1.0e9;
 const float CAUSTIC_MAXIMUM_GAIN = 4.0;
 // 兩層取較暗者會讓平均變暗，乘回這個倍率，整體照度才不會因為開焦散而下降。
 const float CAUSTIC_ENERGY_COMPENSATION = 1.27;
+// 池底漫射的光有多少比例落到池壁上（半空間的一半，再扣掉被對面池壁擋住的部分）。
+const float FLOOR_BOUNCE_TO_WALL = 0.35;
 
 struct BasinHit {
   vec3 position;
@@ -149,7 +151,15 @@ vec3 shadePoolBasin(BasinHit hit) {
   vec3 direct = uSunColor * sunAbove * max(dot(hit.normal, towardSun), 0.0)
     * waterTransmittance(sunPath) * poolCaustic(hit.position);
   vec3 diffuse = uSkyColor * waterTransmittance(depth) * (0.55 + 0.45 * hit.normal.y);
-  return albedo * (direct + diffuse) * 0.3183099;
+
+  // 池壁還會被照亮的池底打亮：池底把收到的光漫射出來，池壁大約看得到半個池底。
+  // 沒有這一項，背光的池壁會比實際暗得多。
+  float averageDepth = uWaterLevel - 0.5 * (uShallowBottom + uDeepBottom);
+  vec3 floorIrradiance = uSunColor * sunAbove * towardSun.y * waterTransmittance(averageDepth / max(towardSun.y, 0.2))
+    + uSkyColor * waterTransmittance(averageDepth);
+  vec3 bounce = floorIrradiance * uTileColor * FLOOR_BOUNCE_TO_WALL
+    * (1.0 - hit.normal.y) * waterTransmittance(1.5);
+  return albedo * (direct + diffuse + bounce) * 0.3183099;
 }
 
 // 透過水看到 radiance 時的結果：沿視線被吸收，並加上水體本身散射的光。

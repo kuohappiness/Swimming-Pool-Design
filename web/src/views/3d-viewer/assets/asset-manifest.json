@@ -171,7 +171,8 @@
       "license": "CC0-1.0",
       "qualityTiers": [
         "high",
-        "medium"
+        "medium",
+        "low"
       ],
       "requirement": "optional",
       "loadingPriority": "scene-ready",
@@ -198,7 +199,8 @@
       "license": "CC0-1.0",
       "qualityTiers": [
         "high",
-        "medium"
+        "medium",
+        "low"
       ],
       "requirement": "optional",
       "loadingPriority": "scene-ready",

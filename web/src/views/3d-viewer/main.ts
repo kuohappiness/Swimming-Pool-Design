@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import rawViewerModel from '../../generated/viewer-model.json';
 import rawConceptContent from '../../generated/concept-content.json';
 import { adaptViewerData, formatDegrees, formatElevation } from './model-adapter';
+import { getViewerPoolBasinShape } from './pool-state';
 import { createViewerScene, type SelectableInfo } from './scene-factory';
 import { deriveViewerOrientation } from './orientation';
 import { setupSelection } from './interactions';
@@ -184,28 +185,30 @@ try {
         rendering = await createEnhancedRenderingRuntime(
           renderer,
           previewQuality,
-          simulateOptionalEnvironmentFailure || simulateRequiredMaterialFailure
-            ? {
-                ...(simulateOptionalEnvironmentFailure
-                  ? {
-                      environmentTextureLoader: {
-                        load: async () => {
-                          throw new TypeError('Simulated optional environment asset failure.');
-                        },
-                      },
-                    }
-                  : {}),
-                ...(simulateRequiredMaterialFailure
-                  ? {
-                      materialTextureSourceLoader: {
-                        loadTexture: async () => {
-                          throw new TypeError('Simulated required material asset failure.');
-                        },
-                      },
-                    }
-                  : {}),
-              }
-            : undefined,
+          {
+            // water=legacy 保留原本的水，方便對照與排查。
+            ...(renderingParameters.get('water') === 'legacy'
+              ? {}
+              : { poolBasin: getViewerPoolBasinShape(model) }),
+            ...(simulateOptionalEnvironmentFailure
+              ? {
+                  environmentTextureLoader: {
+                    load: async () => {
+                      throw new TypeError('Simulated optional environment asset failure.');
+                    },
+                  },
+                }
+              : {}),
+            ...(simulateRequiredMaterialFailure
+              ? {
+                  materialTextureSourceLoader: {
+                    loadTexture: async () => {
+                      throw new TypeError('Simulated required material asset failure.');
+                    },
+                  },
+                }
+              : {}),
+          },
         );
         shell.dataset.renderingMode = 'enhanced';
       } catch (enhancedError) {
@@ -247,6 +250,8 @@ try {
     renderer.shadowMap.autoUpdate = false;
     const requestShadowRefresh = () => {
       if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
+      // 光線或可見物件變了，水面的倒影也要重拍。
+      rendering.visualAssets.invalidateLighting?.();
     };
     requestShadowRefresh();
     shell.dataset.shadowUpdateMode = 'on-demand-static-scene';
@@ -850,6 +855,9 @@ try {
         shell.dataset.geometries = String(renderer.info.memory.geometries);
         shell.dataset.textures = String(renderer.info.memory.textures);
         shell.dataset.shaderPrograms = String(renderer.info.programs?.length ?? 0);
+        shell.dataset.waterPresentation = String(
+          graph.water.surface.userData.waterPresentation ?? 'baseline',
+        );
       }
     });
     renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);

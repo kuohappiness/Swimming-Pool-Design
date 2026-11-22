@@ -4,6 +4,7 @@ import { constants } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright-core';
+import { RENDER_BUDGETS } from '../../core/viewer/render-budgets.mjs';
 import {
   deriveMirrorNormalAzimuth,
   deriveSiteOrientation,
@@ -497,25 +498,31 @@ try {
   assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   await mobile.close();
 
-  // TASK-160 draw budgets (agreed with the 3D thread, DEC-154): draw calls,
-  // triangles and batching are exact in SwiftShader; frame time is not, so it
-  // is never asserted here. Mobile medium is held at 250 until the 3D phase
-  // removes the transmission pass, then tightens to 200.
+  // Draw budgets (TASK-160, DEC-190): the numbers live in core/viewer/render-budgets.mjs.
+  // Draw calls, triangles and batching are exact in SwiftShader; frame time is not, so it
+  // is never asserted here.
   for (const budget of [
-    { label: 'desktop high', viewport: { width: 1440, height: 900 }, quality: 'high', drawCalls: 500, triangles: 800_000 },
-    { label: 'mobile medium', viewport: { width: 390, height: 844 }, quality: 'medium', drawCalls: 250, triangles: 250_000 },
+    { label: 'desktop high', viewport: { width: 1440, height: 900 }, quality: 'high', ...RENDER_BUDGETS.high },
+    { label: 'mobile medium', viewport: { width: 390, height: 844 }, quality: 'medium', ...RENDER_BUDGETS.medium },
   ]) {
     const page = await browser.newPage({ viewport: budget.viewport, deviceScaleFactor: 1 });
     trackErrors(page);
     await page.goto(`${origin}/?view=3d-viewer&quality=${budget.quality}&adaptive=off`, { waitUntil: 'networkidle' });
     await page.waitForFunction(
-      // Frame 1 also draws the shadow map; read the counters from a later, steady frame.
-      () => Number(document.querySelector('[data-viewer-shell]')?.getAttribute('data-rendered-frames') ?? 0) >= 30,
+      // Frame 1 also draws the shadow map; read the counters from a later, steady frame,
+      // after the realistic water has replaced the placeholder water. The counters and
+      // the water state are published together, so they describe the same frame.
+      () => {
+        const shell = document.querySelector('[data-viewer-shell]');
+        return Number(shell?.getAttribute('data-rendered-frames') ?? 0) >= 30
+          && shell?.getAttribute('data-water-presentation') === 'realistic';
+      },
       undefined,
       { timeout: 120_000 },
     );
     const shell = page.locator('[data-viewer-shell]');
     assert.equal(await shell.getAttribute('data-render-quality'), budget.quality);
+    assert.equal(await shell.getAttribute('data-water-presentation'), 'realistic');
     const drawCalls = Number(await shell.getAttribute('data-draw-calls'));
     const triangles = Number(await shell.getAttribute('data-triangles'));
     const sourceMeshes = Number(await shell.getAttribute('data-static-batch-source-meshes'));

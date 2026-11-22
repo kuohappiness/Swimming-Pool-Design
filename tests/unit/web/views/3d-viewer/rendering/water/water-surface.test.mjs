@@ -29,7 +29,9 @@ const basin = Object.freeze({
   waterLevel: 0.22,
   shallowBottom: -0.98,
   deepBottom: -1.28,
-  laneLineZ: Object.freeze([5.75, 8.25, 11]),
+  laneLineZ: Object.freeze([4.25, 5.75, 8.25]),
+  laneLineWidth: 0.16,
+  laneLineInset: 0.35,
 });
 const textures = () => ({
   rippleNormal: new THREE.Texture(),
@@ -44,6 +46,8 @@ test('basin shape must be finite, have a positive footprint and keep lane lines 
   assert.throws(() => assertPoolBasinShape({ ...basin, maxX: 3 }), /positive length and width/);
   assert.throws(() => assertPoolBasinShape({ ...basin, deepBottom: 0.3 }), /below the water level/);
   assert.throws(() => assertPoolBasinShape({ ...basin, laneLineZ: [3.9] }), /inside the basin/);
+  assert.throws(() => assertPoolBasinShape({ ...basin, laneLineWidth: 0 }), /positive width/);
+  assert.throws(() => assertPoolBasinShape({ ...basin, laneLineInset: -0.1 }), /non-negative inset/);
   assert.throws(
     () => assertPoolBasinShape({ ...basin, laneLineZ: Array.from({ length: 9 }, (_, index) => 5 + index * 0.5) }),
     /at most 8 lane lines/,
@@ -111,7 +115,7 @@ test('uniforms come from the basin shape and textures are passed through, not cl
   assert.equal(uniforms.uShallowBottom.value, -0.98);
   assert.equal(uniforms.uDeepBottom.value, -1.28);
   assert.equal(uniforms.uLaneLineZ.value.length, MAXIMUM_LANE_LINES);
-  assert.deepEqual(uniforms.uLaneLineZ.value.slice(0, 3), [5.75, 8.25, 11]);
+  assert.deepEqual(uniforms.uLaneLineZ.value.slice(0, 3), [4.25, 5.75, 8.25]);
   assert.ok(uniforms.uLaneLineZ.value.slice(3).every((z) => z > 1e5), 'unused lane lines sit far outside the pool');
 
   assert.equal(uniforms.uWaves.value.length, 4);
@@ -186,4 +190,52 @@ test('per-frame update only writes uniforms, in the mirrored and rotated site fr
   water.dispose();
   water.update({ timeSeconds: 9, camera, sunDirection: worldSun, sunColor: new THREE.Color(), skyColor: new THREE.Color() });
   assert.equal(uniforms.uTime.value, 3, 'a disposed surface ignores updates');
+});
+
+test('lane line size and colour reach the shader from the basin shape', () => {
+  const laneLineColor = new THREE.Color(0.1, 0.2, 0.3);
+  const material = createWaterSurfaceMaterial(options({ laneLineColor }));
+  assert.equal(material.uniforms.uLaneLineWidth.value, basin.laneLineWidth);
+  assert.equal(material.uniforms.uLaneLineInset.value, basin.laneLineInset);
+  assert.deepEqual(material.uniforms.uLaneLineZ.value.slice(0, 3), [...basin.laneLineZ]);
+  assert.ok(material.uniforms.uLaneLineColor.value.equals(laneLineColor));
+  assert.notEqual(material.uniforms.uLaneLineColor.value, laneLineColor, 'the caller keeps its own colour object');
+  material.dispose();
+});
+
+test('an existing scene mesh is adopted in place and handed back on dispose', () => {
+  const originalGeometry = new THREE.PlaneGeometry(1, 1);
+  const originalMaterial = new THREE.MeshBasicMaterial();
+  const target = new THREE.Mesh(originalGeometry, originalMaterial);
+  target.name = 'POOL-01-WATER-SURFACE';
+  target.userData.waterStateSource = 'walkthrough-main-pool-water';
+  target.layers.enable(2);
+
+  const water = new WaterSurface(options(), target);
+  assert.equal(water.mesh, target, 'name, layers and pick data stay on the scene object');
+  assert.equal(target.material, water.material);
+  assert.notEqual(target.geometry, originalGeometry);
+  assert.equal(target.userData.waterStateSource, 'walkthrough-main-pool-water');
+  assert.equal(target.userData.waterSurfaceElevation, basin.waterLevel);
+  assert.equal(target.layers.isEnabled(2), true);
+
+  const coarse = target.geometry;
+  const program = water.material.version;
+  water.setCellSize(1);
+  assert.notEqual(target.geometry, coarse);
+  assert.equal(target.geometry.getAttribute('position').count, (25 + 1) * (9 + 1));
+  assert.equal(water.material.version, program, 'changing the grid must not rebuild the shader');
+  const unchanged = target.geometry;
+  water.setCellSize(1);
+  assert.equal(target.geometry, unchanged);
+
+  const cube = new THREE.CubeTexture();
+  water.setReflectionCube(cube);
+  assert.equal(water.material.uniforms.uReflectionCube.value, cube);
+
+  water.dispose();
+  assert.equal(target.geometry, originalGeometry);
+  assert.equal(target.material, originalMaterial);
+  originalGeometry.dispose();
+  originalMaterial.dispose();
 });

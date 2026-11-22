@@ -120,6 +120,8 @@ export interface VisualAssetAdapter {
   setQuality(profile: RenderQualityProfile): void;
   setWalkthroughState?(state: VisualWalkthroughState): void;
   updateFrame?(state: VisualFrameState): void;
+  /** 光線、天候或可見物件改變後呼叫，讓事先拍好的倒影等資料重新產生。 */
+  invalidateLighting?(): void;
   dispose(): void;
 }
 

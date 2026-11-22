@@ -1,4 +1,4 @@
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import type { ViewerRenderingRuntime } from '../contracts';
 import {
   assertRenderQualityProfile,
@@ -13,10 +13,13 @@ import { EnhancedFrameEffectPipeline } from './frame-effect-pipeline';
 import { ENHANCED_QUALITY_PROFILES } from './quality-profiles';
 import { EnhancedVisualAssetAdapter } from './visual-asset-adapter';
 import type { TextureSourceLoader } from './texture-loader';
+import type { PoolBasinShape } from '../water/water-surface';
 
 export interface EnhancedRenderingRuntimeOptions {
   readonly environmentTextureLoader?: EnvironmentTextureLoader;
   readonly materialTextureSourceLoader?: TextureSourceLoader;
+  /** 模型的池體形狀；有給才啟用寫實水面。 */
+  readonly poolBasin?: PoolBasinShape;
 }
 
 export async function createEnhancedMaterialPreviewRuntime(
@@ -39,7 +42,20 @@ export async function createEnhancedMaterialPreviewRuntime(
       textureLoader: options.environmentTextureLoader,
     });
     framePipeline = new EnhancedFrameEffectPipeline(renderer, quality);
-    visualAssets = new EnhancedVisualAssetAdapter(quality);
+    const laneLineMaterial = materials.get('sanitary-dark');
+    visualAssets = new EnhancedVisualAssetAdapter(quality, options.poolBasin
+      ? {
+          realisticWater: {
+            renderer,
+            basin: options.poolBasin,
+            basinMaterial: materials.get('pool-basin'),
+            // 水面折射看到的池底標線，要和實體標線（sanitary-dark）同色。
+            laneLineColor: laneLineMaterial instanceof THREE.MeshStandardMaterial
+              ? laneLineMaterial.color
+              : undefined,
+          },
+        }
+      : {});
   } catch (error) {
     materials.dispose();
     throw error;

@@ -81,7 +81,7 @@ export const waterCaustics = Object.freeze({
     source: 'project-authored:tools/build/textures/water-caustics.mjs',
     author: 'Swimming Pool Design contributors',
     license: 'CC0-1.0',
-    qualityTiers: Object.freeze(['high', 'medium']),
+    qualityTiers: Object.freeze(['high', 'medium', 'low']),
     requirement: 'optional',
     loadingPriority: 'scene-ready',
   }),

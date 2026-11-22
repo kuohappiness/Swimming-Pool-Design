@@ -89,7 +89,7 @@ export const waterRippleNormal = Object.freeze({
     source: 'project-authored:tools/build/textures/water-ripple-normal.mjs',
     author: 'Swimming Pool Design contributors',
     license: 'CC0-1.0',
-    qualityTiers: Object.freeze(['high', 'medium']),
+    qualityTiers: Object.freeze(['high', 'medium', 'low']),
     requirement: 'optional',
     loadingPriority: 'scene-ready',
   }),

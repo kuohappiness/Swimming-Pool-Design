@@ -28,6 +28,10 @@ export interface PoolBasinShape {
   readonly deepBottom: number;
   /** 池底水道線中心的 z，最多 8 條。 */
   readonly laneLineZ: readonly number[];
+  /** 池底水道線的寬度（公尺）。 */
+  readonly laneLineWidth: number;
+  /** 池底水道線兩端距池壁的距離（公尺）。 */
+  readonly laneLineInset: number;
 }
 
 export interface WaterWave {
@@ -43,6 +47,8 @@ export interface WaterSurfaceOptions {
   /** 焦散明暗圖樣（`materials/water/caustics.ktx2`）。 */
   readonly caustics: THREE.Texture;
   readonly reflectionCube: THREE.CubeTexture;
+  /** 池底水道線的顏色（線性色彩空間）；沒給時用深藍。 */
+  readonly laneLineColor?: THREE.Color;
   /** 水面網格的格距（公尺）；越小長波越圓滑，三角形越多。 */
   readonly cellSize: number;
   readonly waves?: readonly WaterWave[];
@@ -72,6 +78,7 @@ export function assertPoolBasinShape(basin: PoolBasinShape): PoolBasinShape {
   const values = [
     basin.minX, basin.maxX, basin.minZ, basin.maxZ,
     basin.waterLevel, basin.shallowBottom, basin.deepBottom, ...basin.laneLineZ,
+    basin.laneLineWidth, basin.laneLineInset,
   ];
   if (!values.every(Number.isFinite)) throw new TypeError('Pool basin shape must be finite.');
   if (!(basin.maxX > basin.minX && basin.maxZ > basin.minZ)) {
@@ -85,6 +92,9 @@ export function assertPoolBasinShape(basin: PoolBasinShape): PoolBasinShape {
   }
   if (basin.laneLineZ.some((z) => z <= basin.minZ || z >= basin.maxZ)) {
     throw new RangeError('Pool lane lines must lie inside the basin.');
+  }
+  if (!(basin.laneLineWidth > 0) || basin.laneLineInset < 0) {
+    throw new RangeError('Pool lane lines need a positive width and a non-negative inset.');
   }
   return basin;
 }
@@ -193,8 +203,8 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
         uTileColor: { value: new THREE.Color(0.62, 0.8, 0.86) },
         uGroutColor: { value: new THREE.Color(0.5, 0.62, 0.66) },
         uLaneLineColor: { value: new THREE.Color(0.012, 0.03, 0.075) },
-        uLaneLineWidth: { value: 0.25 },
-        uLaneLineInset: { value: 2 },
+        uLaneLineWidth: { value: basin.laneLineWidth },
+        uLaneLineInset: { value: basin.laneLineInset },
         uLaneLineZ: { value: laneLineZ },
         // 清水對紅光吸收最強，所以深處偏藍綠。單位：每公尺。
         uAbsorption: { value: new THREE.Vector3(0.38, 0.07, 0.045) },
@@ -209,34 +219,74 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
   material.uniforms.uRippleNormal.value = options.rippleNormal;
   material.uniforms.uReflectionCube.value = options.reflectionCube;
   material.uniforms.uCaustics.value = options.caustics;
+  if (options.laneLineColor) {
+    (material.uniforms.uLaneLineColor.value as THREE.Color).copy(options.laneLineColor);
+  }
   return material;
 }
 
+export const WATER_SURFACE_NAME = 'POOL-01-WATER-SURFACE';
+
 export class WaterSurface {
-  readonly mesh: THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>;
+  readonly mesh: THREE.Mesh;
+  readonly material: THREE.ShaderMaterial;
+  private readonly basin: PoolBasinShape;
+  private readonly adopted: {
+    readonly geometry: THREE.BufferGeometry;
+    readonly material: THREE.Material | THREE.Material[];
+  } | null;
+  private geometry: THREE.BufferGeometry;
+  private cellSize: number;
   private readonly inverseWorld = new THREE.Matrix4();
   private readonly localSun = new THREE.Vector3();
   private disposed = false;
 
-  constructor(options: WaterSurfaceOptions) {
+  /**
+   * @param target 場景裡既有的水面網格。有給時直接換掉它的幾何與材質（名稱、圖層、
+   *   點選資料都留在原物件上），`dispose()` 會換回去；沒給時自己建一個網格。
+   */
+  constructor(options: WaterSurfaceOptions, target?: THREE.Mesh) {
     for (const texture of [options.rippleNormal, options.caustics]) {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
     }
-    this.mesh = new THREE.Mesh(
-      createWaterSurfaceGeometry(options.basin, options.cellSize),
-      createWaterSurfaceMaterial(options),
-    );
-    this.mesh.name = 'POOL-01-WATER-SURFACE';
-    this.mesh.userData.waterSurfaceElevation = options.basin.waterLevel;
-    this.mesh.userData.visualOnly = true;
-    this.mesh.userData.collisionExcluded = true;
+    this.basin = assertPoolBasinShape(options.basin);
+    this.cellSize = options.cellSize;
+    this.geometry = createWaterSurfaceGeometry(this.basin, options.cellSize);
+    this.material = createWaterSurfaceMaterial(options);
+    if (target) {
+      this.adopted = { geometry: target.geometry, material: target.material };
+      target.geometry = this.geometry;
+      target.material = this.material;
+      this.mesh = target;
+    } else {
+      this.adopted = null;
+      this.mesh = new THREE.Mesh(this.geometry, this.material);
+      this.mesh.name = WATER_SURFACE_NAME;
+      this.mesh.userData.visualOnly = true;
+      this.mesh.userData.collisionExcluded = true;
+    }
+    this.mesh.userData.waterSurfaceElevation = this.basin.waterLevel;
+  }
+
+  /** 換水面網格的格距（畫質改變時）。只換幾何，材質與著色器不動。 */
+  setCellSize(cellSize: number): void {
+    if (this.disposed || cellSize === this.cellSize) return;
+    const next = createWaterSurfaceGeometry(this.basin, cellSize);
+    this.mesh.geometry = next;
+    this.geometry.dispose();
+    this.geometry = next;
+    this.cellSize = cellSize;
+  }
+
+  setReflectionCube(texture: THREE.CubeTexture): void {
+    this.material.uniforms.uReflectionCube.value = texture;
   }
 
   /** 每個畫面呼叫一次，只改 uniform。呼叫前場景的世界矩陣要已經更新。 */
   update(frame: WaterFrameState): void {
     if (this.disposed) return;
-    const { uniforms } = this.mesh.material;
+    const { uniforms } = this.material;
     this.inverseWorld.copy(this.mesh.matrixWorld).invert();
 
     uniforms.uTime.value = frame.timeSeconds;
@@ -254,7 +304,11 @@ export class WaterSurface {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.mesh.geometry.dispose();
-    this.mesh.material.dispose();
+    if (this.adopted) {
+      this.mesh.geometry = this.adopted.geometry;
+      this.mesh.material = this.adopted.material;
+    }
+    this.geometry.dispose();
+    this.material.dispose();
   }
 }

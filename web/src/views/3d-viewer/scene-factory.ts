@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { DesignStatus, ViewerModel } from './model-adapter';
 import { deriveViewerOrientation } from './orientation';
-import { getViewerPoolPresentation } from './pool-state';
+import { getViewerPoolBasinShape, getViewerPoolPresentation } from './pool-state';
 import { createL1SanitaryDetails } from './sanitary-fixtures';
 import { createArchitecturalDetails } from './architectural-details';
 import { createPoolHallDetails } from './pool-hall-details';
@@ -52,6 +53,103 @@ function box(size: [number, number, number], position: [number, number, number],
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   return mesh;
+}
+
+/** 開口比池體每邊多留這麼寬（公尺），開口的側面就藏在池壁後面，不會和池壁重疊閃爍。 */
+const GROUND_OPENING_MARGIN = 0.05;
+
+/**
+ * 中間開一個矩形口的方盒，做成單一網格。外框與 `box()` 相同（包圍盒不變），
+ * opening 是開口在父座標系裡的範圍。
+ */
+function boxWithOpening(
+  size: [number, number, number],
+  position: [number, number, number],
+  opening: { x1: number; x2: number; z1: number; z2: number },
+  material: THREE.Material,
+) {
+  const [width, height, depth] = size;
+  const halfWidth = width / 2;
+  const halfDepth = depth / 2;
+  const x1 = opening.x1 - position[0];
+  const x2 = opening.x2 - position[0];
+  const z1 = opening.z1 - position[2];
+  const z2 = opening.z2 - position[2];
+  if (!(x1 > -halfWidth && x2 < halfWidth && z1 > -halfDepth && z2 < halfDepth && x2 > x1 && z2 > z1)) {
+    throw new RangeError('Opening must lie strictly inside the box.');
+  }
+  const strip = (fromX: number, toX: number, fromZ: number, toZ: number) => new THREE.BoxGeometry(
+    toX - fromX,
+    height,
+    toZ - fromZ,
+  ).translate((fromX + toX) / 2, 0, (fromZ + toZ) / 2);
+  const strips = [
+    strip(-halfWidth, x1, -halfDepth, halfDepth),
+    strip(x2, halfWidth, -halfDepth, halfDepth),
+    strip(x1, x2, -halfDepth, z1),
+    strip(x1, x2, z2, halfDepth),
+  ];
+  const geometry = mergeGeometries(strips, false);
+  for (const part of strips) part.dispose();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(...position);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+/**
+ * 地面格線，但跳過 opening（父座標系）範圍內的線段。外觀與材質沿用 `THREE.GridHelper`，
+ * 只換掉線段：中央的兩條線用 centreColor，其餘用 gridColor。
+ */
+function gridWithOpening(
+  size: number,
+  divisions: number,
+  centreColor: THREE.ColorRepresentation,
+  gridColor: THREE.ColorRepresentation,
+  position: [number, number, number],
+  opening: { x1: number; x2: number; z1: number; z2: number },
+) {
+  const half = size / 2;
+  const step = size / divisions;
+  const centre = divisions / 2;
+  const x1 = opening.x1 - position[0];
+  const x2 = opening.x2 - position[0];
+  const z1 = opening.z1 - position[2];
+  const z2 = opening.z2 - position[2];
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const colour = new THREE.Color();
+  /** 一條線被開口切成一段或兩段；from、to 是線在自己方向上要跳過的範圍。 */
+  const spans = (crossesOpening: boolean, from: number, to: number): Array<[number, number]> => {
+    if (!crossesOpening) return [[-half, half]];
+    const result: Array<[number, number]> = [];
+    if (from > -half) result.push([-half, Math.max(from, -half)]);
+    if (to < half) result.push([Math.min(to, half), half]);
+    return result;
+  };
+  for (let index = 0; index <= divisions; index += 1) {
+    const offset = -half + index * step;
+    colour.set(index === centre ? centreColor : gridColor);
+    // 沿 x 方向的線（z 固定）。
+    for (const [from, to] of spans(offset > z1 && offset < z2, x1, x2)) {
+      positions.push(from, 0, offset, to, 0, offset);
+      colors.push(colour.r, colour.g, colour.b, colour.r, colour.g, colour.b);
+    }
+    // 沿 z 方向的線（x 固定）。
+    for (const [from, to] of spans(offset > x1 && offset < x2, z1, z2)) {
+      positions.push(offset, 0, from, offset, 0, to);
+      colors.push(colour.r, colour.g, colour.b, colour.r, colour.g, colour.b);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  const grid = new THREE.GridHelper(size, divisions, centreColor, gridColor);
+  grid.geometry.dispose();
+  grid.geometry = geometry;
+  grid.position.set(...position);
+  return grid;
 }
 
 function quad(vertices: number[], material: THREE.Material) {
@@ -271,12 +369,20 @@ export function createViewerScene(
   const mirrorMaterial = materials.get('mirror');
 
   const site = layer('site');
-  const ground = box(
+  // 地坪在泳池的位置開口：池體比地坪深，整片不開口的地坪會橫切過池水，
+  // 從水面往下看到的是地坪而不是池底，潛到水裡往上看也會被它擋住。
+  const groundOpening = getViewerPoolBasinShape(model);
+  const ground = boxWithOpening(
     [buildingLength + 12, 0.2, buildingWidth + 12],
     [buildingLength / 2, -0.18, centreZ],
+    {
+      x1: groundOpening.minX - GROUND_OPENING_MARGIN,
+      x2: groundOpening.maxX + GROUND_OPENING_MARGIN,
+      z1: groundOpening.minZ - GROUND_OPENING_MARGIN,
+      z2: groundOpening.maxZ + GROUND_OPENING_MARGIN,
+    },
     groundMaterial,
   );
-  ground.receiveShadow = true;
   site.add(ground);
   ground.name = 'CUTAWAY-HIDE-SITE-GROUND';
   const setback = box(
@@ -1317,8 +1423,13 @@ export function createViewerScene(
   }, selectables);
 
   const annotations = layer('annotations');
-  const grid = new THREE.GridHelper(58, 29, 0x637179, 0xb8c0c2);
-  grid.position.set(centreX - 8, 0.018, centreZ);
+  // 格線貼在地坪上，泳池開口內不畫：否則格線會懸在池水中間，潛到水裡就看得到。
+  const grid = gridWithOpening(58, 29, 0x637179, 0xb8c0c2, [centreX - 8, 0.018, centreZ], {
+    x1: groundOpening.minX,
+    x2: groundOpening.maxX,
+    z1: groundOpening.minZ,
+    z2: groundOpening.maxZ,
+  });
   annotations.add(grid);
   const localAxis = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0),
