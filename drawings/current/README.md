@@ -1,15 +1,15 @@
-# v0.6.7 current drawings
+# 現行圖面
 
-本資料夾保存由 `GEO-0.6.7` 重現的三張 current 平面圖與一張縱向剖面圖。所有圖面均為概念設計、非施工圖。
+本資料夾保存由現行模型重現的三張平面圖與一張縱向剖面圖。所有圖面均為概念設計、非施工圖。
 
 - `DRAW-L1-PLAN.svg`
 - `DRAW-L2-PLAN.svg`
 - `DRAW-L3-PLAN.svg`
 - `DRAW-LONGITUDINAL-SECTION.svg`
-- model／active geometry：`0.6.7`／`GEO-0.6.7`
-- owner：`TASK-052`
+- model／active geometry：`0.9.7`／`GEO-0.8.2`（圖框與 SVG 屬性由模型帶出）
+- 北向箭頭：`rotate(143)`，由 `positiveXAxisBearingFromTrueNorth = 307°` 推導，與 3D 檢視器一致
+- 最近一次重產：TASK-120（2026-11-22）；舊版圖框寫 v0.6.7、北向箭頭 `rotate(127)`，幾何內容與現行相同
 
-0.6.7 不變更建築設計或日照分析輸入。圖面內容沿用 0.6.6 定案；Viewer 修正 generated L2 資料漏傳 `splitAxisY=8` 所造成的實際錯置水泥牆，並把先前針對症狀加深的共用玻璃材質恢復為一般淡藍透明基準。
 
 重現：
 

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { resolveActiveGeometry, resolveGeometryEntity, sitePointToThree } from '../../../../core/geometry/active-geometry.mjs';
 import { deriveReferenceGeometry } from '../../../../core/geometry/drawing-geometry.mjs';
 import { validateModel, validateSourceFiles } from '../../../../core/validation/model-validation.mjs';
+import { deriveSiteOrientation } from '../../../../core/geometry/site-orientation.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const readJson = async (path) => JSON.parse(await readFile(resolve(repoRoot, path), 'utf8'));
@@ -249,16 +250,19 @@ test('current sheet registry and atlas source contain only latest v0.6.7 inline 
 
 test('all four reproducible drawings carry active revision and SITE-XY metadata', async () => {
   const names = ['DRAW-L1-PLAN', 'DRAW-L2-PLAN', 'DRAW-L3-PLAN', 'DRAW-LONGITUDINAL-SECTION'];
+  // The committed drawings must match the current model, not the release they were first drawn in.
+  const northRotation = deriveSiteOrientation(model.referenceSystem).svgNorthArrowRotation;
+  assert.equal(northRotation, 143);
   for (const name of names) {
     const base = resolve(repoRoot, 'drawings/current', name);
     const svg = await readFile(`${base}.svg`, 'utf8');
-    assert.match(svg, /data-model-version="0\.6\.7"/);
-    assert.match(svg, /data-active-geometry="GEO-0\.6\.7"/);
+    assert.ok(svg.includes(`data-model-version="${model.modelVersion}"`), `${name} model version`);
+    assert.ok(svg.includes(`data-active-geometry="${model.activeGeometryRevisionId}"`), `${name} active geometry`);
     assert.match(svg, /data-coordinate-system="SITE-XY"/);
     assert.match(svg, /非施工圖/);
     if (name !== 'DRAW-LONGITUDINAL-SECTION') {
       assert.match(svg, /data-north-plan-direction="lower-right"/);
-      assert.match(svg, /data-north-rotation="127"/);
+      assert.ok(svg.includes(`data-north-rotation="${northRotation}"`), `${name} north arrow`);
     }
     if (name === 'DRAW-L1-PLAN') {
       assert.doesNotMatch(svg, /data-privacy-screen="true"/);
