@@ -35,7 +35,8 @@ Swimming-Pool-Design/
 │     └─ views/<view id>/    每個分頁一個資料夾；影像衍生檔放該頁的 assets/
 ├─ tools/                    命令列工具，不被網站匯入
 │  ├─ section.mjs            只印文件的一節或一列（見 agents/workflow.md 第 5 節）
-│  ├─ build/                 build-content、build-drawings、render-drawing-png、build-copy、clean-dist
+│  ├─ build/                 build-content、build-drawings、render-drawing-png、build-copy、clean-dist、
+│  │                         build-textures；textures/ 放自製貼圖的產生程式，一張一檔
 │  ├─ check/                 check-docs、check-model、check-assets；status-line、workflow-docs（狀態行與 roadmap、backlog 分節）、
 │  │                         legacy-status-docs.json（舊格式任務說明的凍結清單）
 │  ├─ analysis/              solar-optimize
@@ -104,7 +105,8 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 | 命令列工具 | `tools/build/`、`tools/check/`、`tools/analysis/` 或 `tools/capture/`；查文件的 `tools/section.mjs` 是唯一放在 `tools/` 根目錄的工具 |
 | 新分頁 | `web/src/views/<view id>/`，步驟見第 5 節 |
 | 分頁專用的影像 | `web/src/views/<view id>/assets/`，由 `source-materials/` 衍生 |
-| 3D 的貼圖、模型、光照圖與音效 | `web/src/views/3d-viewer/assets/` 下的 `materials/<材質名>/`、`models/`、`lightmaps/`、`audio/`、`environments/`；只收轉檔後的 `.ktx2`、`.glb` 等格式，容量與命名由 `npm run check:assets` 把關（[DEC-190](decisions.md)） |
+| 3D 的貼圖、模型、光照圖與音效 | `web/src/views/3d-viewer/assets/` 下的 `materials/<材質名>/`、`models/`、`lightmaps/`、`audio/`、`environments/`；只收轉檔後的 `.ktx2`、`.glb` 等格式，容量與命名由 `npm run check:assets` 把關（[DEC-190](decisions.md)）。每個檔都要登錄在同資料夾的 `asset-manifest.json` |
+| 自製貼圖的產生程式 | `tools/build/textures/<貼圖名>.mjs`，並加進同資料夾的 `index.mjs`；`npm run build:textures` 轉成 `.ktx2` 後連同資產清單一起提交 |
 | 共用的品牌素材 | `web/src/shared/assets/brand/` |
 | 網站文案 | `content/<view id>.md` |
 | 單元測試 | `tests/unit/` 下對應原始碼位置的子資料夾，檔名是受測模組名加 `.test.mjs` |

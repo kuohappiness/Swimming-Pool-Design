@@ -1,6 +1,6 @@
 # 3D 寫實升級階段一：流暢度地基與資產管線
 
-狀態：實作中｜下一步：等場景合併（TASK-160）合併後把四級畫質與幀率調節器接上畫面，並補壓縮貼圖轉檔工具｜等誰：Claude
+狀態：實作中｜下一步：等場景合併（TASK-160）合併後把四級畫質、幀率調節器與壓縮貼圖接上畫面｜等誰：Claude
 
 - 日期：2026-11-22
 - 類型：feat
@@ -69,3 +69,11 @@ A 部分：
 ## 結果
 
 A 部分（2026-11-22）：新增 `core/viewer/render-budgets.mjs`、`web/src/views/3d-viewer/rendering/performance/`（`realism-tiers`、`tier-selection`、`frame-governor`）與 `tools/check/check-assets.mjs`，單元測試 26 項。這一部分沒有改動畫面，3D 頁仍使用現行三級畫質。
+
+B 部分（2026-11-22）：資產清單改為單一 JSON（`web/src/views/3d-viewer/assets/asset-manifest.json`），新增 `npm run build:textures`（`tools/build/build-textures.mjs` 與 `tools/build/textures/`）與 KTX2 載入器（`rendering/textures/ktx2-texture-source.ts`）。第一張貼圖是自製的水面細波紋法線貼圖，512 × 512、301 KB。
+
+- 編碼器用開發用套件 `ktx2-encoder`（WebAssembly），不需要另外安裝命令列工具，Windows、macOS、Linux 都能跑同一個指令；同樣的輸入連轉兩次，輸出逐位元組相同。
+- 用無顯示卡的 Chromium 實際載入驗證，開發伺服器與正式打包各一次：貼圖轉成 BC7 壓縮格式、10 層縮圖、線性色彩空間，繪製後讀回像素正確，沒有 WebGL 錯誤。
+- 轉碼器隨網站打包後是一支 58 KB 的腳本加一個 527 KB 的 WASM，只在用到 KTX2 貼圖時下載；接上畫面時這 0.6 MB 要算進各級的下載量。
+- 這一部分仍然沒有改動畫面：新貼圖與載入器尚未被 3D 頁使用。
+- 範圍內還沒做的：第三方來源的貼圖需要清單再加原始檔網址與雜湊欄位，等使用者同意上面第 1 點後一起做。

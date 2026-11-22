@@ -1,6 +1,6 @@
 # 3D Viewer 本地視覺資產
 
-本目錄只存放 0.8.0 enhanced rendering 可選用的本地視覺資產。它不是建築材料、品牌、施工性能或 canonical geometry 的 owner；正式資產清單、hash、byte size、品質階級與 loading priority 由 `rendering/enhanced/asset-manifest.ts` 管理。
+本目錄只存放 0.8.0 enhanced rendering 可選用的本地視覺資產。它不是建築材料、品牌、施工性能或 canonical geometry 的 owner；正式資產清單、hash、byte size、品質階級與 loading priority 只寫在本目錄的 `asset-manifest.json`；`rendering/enhanced/asset-manifest.ts` 讀它並檢查內容。
 
 ## 規則
 
@@ -10,6 +10,15 @@
 - 缺少 optional 資產時回復 baseline rendering；必要資產缺失則停用 enhanced mode 並顯示診斷。
 - 入庫上限由 `npm run check:assets` 檢查（DEC-190）：整個資料夾 70 MB、單張貼圖 4 MB、單一模型 2 MB；只收 `.ktx2`、`.glb`、`.ogg`、`.mp3`、`.json`、`.md` 與既有的 `.svg` 代理圖樣；資料夾與檔名用英文小寫加連字號。上限數字只寫在 `core/viewer/render-budgets.mjs`。
 - texture repeat 以公尺尺度設定；本目錄的圖樣只是概念視覺代理，不宣稱實際材料樣板或性能。
+
+## 壓縮貼圖（KTX2）
+
+寫實版的貼圖一律是 KTX2 壓縮格式（DEC-190）：在顯示卡記憶體裡維持壓縮，同樣解析度只占未壓縮的四分之一到八分之一。
+
+- 自製貼圖由 `tools/build/textures/` 的程式產生像素，`npm run build:textures` 轉檔並把雜湊、大小與轉檔設定寫回 `asset-manifest.json`。`.ktx2` 與清單一起提交；CI 不重新轉檔，只檢查「產生程式或設定改了卻沒重轉」。
+- 授權以 `SPDX-License-Identifier` 寫進 `.ktx2` 檔內的中繼資料。
+- 網站用 `rendering/textures/ktx2-texture-source.ts` 載入，轉碼器是 three.js 內附的 Basis 轉碼器，和網站一起打包、同源提供。
+- `materials/water/ripple-normal.ktx2`：水面細波紋的無縫法線貼圖（512 × 512），供階段二的水面著色器使用，目前尚未接上畫面。
 
 ## 目前測試資產
 
