@@ -4,7 +4,7 @@ import rawViewerModel from '../../generated/viewer-model.json';
 import rawConceptContent from '../../generated/concept-content.json';
 import { adaptViewerData, formatDegrees, formatElevation } from './model-adapter';
 import { getViewerPoolBasinShape, getViewerPoolHallShape } from './pool-state';
-import { createViewerScene, type SelectableInfo } from './scene-factory';
+import { createViewerScene, syncLayerDependents, type SelectableInfo } from './scene-factory';
 import { deriveViewerOrientation } from './orientation';
 import { setupSelection } from './interactions';
 import { createBaselineRenderingRuntime, type ViewerRenderingRuntime } from './rendering';
@@ -22,6 +22,19 @@ import {
 } from './rendering/performance';
 import { BASELINE_QUALITY_PROFILE, type RenderQualityProfile, type RenderQualityTier } from './rendering/quality-profile';
 import { getViewerScene, viewerScenes } from './scenes';
+import { LightingControl } from './lighting-control';
+import {
+  lightingStateFromPreset,
+  readLightingParameters,
+  sameLightingState,
+  siteMomentAt,
+  writeLightingParameters,
+  type LightingState,
+} from './rendering/lighting/lighting-state';
+import { deriveShadowFocus, toSceneLighting } from './rendering/lighting/scene-lighting';
+import { installSoftShadows } from './rendering/lighting/soft-shadows';
+import { formatSolarMoment } from './rendering/lighting/solar-moment';
+import { computeSunLighting, describeSunLighting } from './rendering/lighting/sun-lighting';
 import { FrameStatistics } from './frame-statistics';
 import {
   adaptRenderQualityProfile,
@@ -43,6 +56,12 @@ import {
   WALKTHROUGH_CONFIG,
   type InputAdapter,
 } from './walkthrough';
+/** 陰影範圍比基地多留的距離：旋轉後超出基地的 3F、雨庇，以及落在基地外地面上的影子。 */
+const SHADOW_FOCUS_MARGIN_METRES = 8;
+/** 拖動時刻時，水面倒影取樣最快多久重拍一次。 */
+const REFLECTION_REFRESH_INTERVAL_MILLISECONDS = 160;
+/** 時刻停止變化多久之後，才由天空重新產生環境貼圖。 */
+const ENVIRONMENT_SETTLE_MILLISECONDS = 280;
 // The public site ships no Markdown, so open items link to the repository copy.
 const BACKLOG_URL = 'https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/backlog.md';
 
@@ -291,6 +310,16 @@ try {
     controls.maxPolarAngle = defaultMaxPolarAngle;
     controls.listenToKeyEvents(window);
     controls.keyPanSpeed = 18;
+    // 鏡頭的方向鍵平移聽的是整個視窗，而且會取消按鍵的預設動作。
+    // 焦點在滑桿或下拉選單上時，方向鍵要留給那個控制項，不然鍵盤無法調整它。
+    const keepKeysInFormControls = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLSelectElement
+        || (target instanceof HTMLInputElement && target.type === 'range')) {
+        event.stopPropagation();
+      }
+    };
+    shell.addEventListener('keydown', keepKeysInFormControls);
 
     const graph = createViewerScene(model, rendering, {
       batchStaticGeometry: renderingParameters.get('batch') !== 'off',
@@ -300,8 +329,15 @@ try {
       shell.dataset.staticBatchMeshes = String(graph.staticBatch.meshesAfter);
     }
     renderer.shadowMap.autoUpdate = false;
+    const publishEnvironmentSource = () => {
+      shell.dataset.environmentSource = rendering.environment.environmentSource
+        ?? (graph.scene.environment ? 'fixed' : 'none');
+    };
     const requestShadowRefresh = () => {
       if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
+      // 換畫質之後，由天空產生的環境貼圖可能要重做；沒有變就什麼都不做。
+      rendering.environment.refreshEnvironment?.();
+      publishEnvironmentSource();
       // 光線或可見物件變了，水面的倒影也要重拍。
       rendering.visualAssets.invalidateLighting?.();
     };
@@ -401,6 +437,13 @@ try {
     shell.dataset.l3RoofContinuous = String(model.geometry.l3.roof.continuous);
     shell.dataset.l3MirrorEndGapsFilled = String(model.geometry.l3.mirror.sideWallEndGapsFilled);
     shell.dataset.l3InteriorBatteryObjects = String(model.geometry.l3.energyStorageStrategy.batteryObjectsOnGeneralL3Interior);
+    /** 要好幾個圖層都開著才畫的構件（例如 3F 屋頂）跟著圖層開關更新；診斷值是目前藏起來幾件。 */
+    const applyLayerDependents = () => {
+      syncLayerDependents(graph);
+      shell.dataset.layerDependentsHidden = String(
+        graph.layerDependents.filter(({ object }) => !object.visible).length,
+      );
+    };
     const layerInputs = new Map<string, HTMLInputElement>();
     for (const modelLayer of model.layers) {
       const label = document.createElement('label');
@@ -410,6 +453,7 @@ try {
       input.addEventListener('change', () => {
         const group = graph.layerGroups.get(modelLayer.id);
         if (group) group.visible = input.checked;
+        applyLayerDependents();
         requestShadowRefresh();
       });
       layerInputs.set(modelLayer.id, input);
@@ -455,7 +499,122 @@ try {
       shell.dataset.environment = environment;
     };
 
-    const applyScene = (sceneId: string) => {
+    // 真實太陽（DEC-191）：光由校址、基地方位、日期、時刻與天氣算出來。
+    // 基本繪圖路徑沒有 applyLighting，維持各場景固定的環境，也不顯示時刻控制。
+    const siteLocation = model.referenceSystem.siteLocation;
+    const solarLocation = {
+      latitude: siteLocation.latitude.value,
+      longitude: siteLocation.longitude.value,
+      utcOffsetHours: siteLocation.utcOffsetHours,
+    };
+    const currentSiteMoment = () => siteMomentAt(Date.now(), siteLocation.utcOffsetHours);
+    const lightingYear = currentSiteMoment().year;
+    const shadowFocus = deriveShadowFocus({
+      bounds: model.geometry.site.bounds,
+      height: Math.max(
+        model.geometry.roof.highElevation,
+        model.geometry.l3.roof.baseElevation + model.geometry.l3.roof.thickness,
+      ),
+      margin: SHADOW_FOCUS_MARGIN_METRES,
+    }, graph.siteRoot);
+    const realSunAvailable = typeof rendering.environment.applyLighting === 'function';
+    shell.dataset.realSun = String(realSunAvailable);
+    shell.dataset.sky = 'none';
+    // 影子邊緣隨距離變柔的過濾要在材質第一次編譯之前裝好；裝不上（three.js 改版）就維持固定半徑。
+    const restoreSoftShadows = realSunAvailable
+      ? installSoftShadows({ depthRangeMetres: shadowFocus.radius * 2 })
+      : null;
+    rendering.environment.setSoftShadows?.(restoreSoftShadows !== null);
+    shell.dataset.shadowFilter = restoreSoftShadows ? 'distance-soft' : 'fixed';
+    let lightingState: LightingState | null = null;
+    let scenePresetLighting: LightingState | null = null;
+    let lastReflectionRefresh = Number.NEGATIVE_INFINITY;
+    let reflectionRefreshTimer: number | null = null;
+    const refreshReflections = () => {
+      reflectionRefreshTimer = null;
+      lastReflectionRefresh = performance.now();
+      rendering.visualAssets.invalidateLighting?.();
+    };
+    let environmentRefreshTimer: number | null = null;
+    const refreshEnvironment = () => {
+      if (environmentRefreshTimer !== null) window.clearTimeout(environmentRefreshTimer);
+      environmentRefreshTimer = null;
+      // 環境貼圖換了，照它反光的材質也變了，倒影要再拍一次。
+      if (rendering.environment.refreshEnvironment?.()) refreshReflections();
+      publishEnvironmentSource();
+    };
+    // 拖滑桿時每一格都重畫陰影（只多一次深度繪製）與天空；倒影取樣要多畫六個方向，
+    // 隔一小段時間才重拍；由天空產生環境貼圖最貴，等時刻停下來才做（換場景時立刻做）。
+    const requestLightingRefresh = (settled: boolean) => {
+      if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
+      const wait = REFLECTION_REFRESH_INTERVAL_MILLISECONDS - (performance.now() - lastReflectionRefresh);
+      if (wait <= 0) refreshReflections();
+      else reflectionRefreshTimer ??= window.setTimeout(refreshReflections, wait);
+      if (settled) {
+        refreshEnvironment();
+      } else {
+        if (environmentRefreshTimer !== null) window.clearTimeout(environmentRefreshTimer);
+        environmentRefreshTimer = window.setTimeout(refreshEnvironment, ENVIRONMENT_SETTLE_MILLISECONDS);
+      }
+    };
+    const syncLocation = (sceneId: string) => {
+      const parameters = new URLSearchParams(location.search);
+      if (lightingState && scenePresetLighting) {
+        writeLightingParameters(parameters, lightingState, scenePresetLighting);
+      }
+      const query = parameters.toString();
+      history.replaceState(null, '', `${location.pathname}${query ? `?${query}` : ''}#${sceneId}`);
+    };
+    let lightingControl: LightingControl | null = null;
+    /** `settled`：這是一次到位的改變（換場景），不是拖動中的其中一格。 */
+    const setLighting = (state: LightingState, settled: boolean) => {
+      if (!realSunAvailable) return;
+      const lighting = computeSunLighting({
+        moment: state.moment,
+        location: solarLocation,
+        positiveXAxisBearingFromTrueNorth:
+          model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+        weather: state.weather,
+      });
+      lightingState = state;
+      rendering.environment.applyLighting?.(toSceneLighting(lighting, graph.siteRoot, shadowFocus), graph);
+      requestLightingRefresh(settled);
+      shell.dataset.lightingMoment = formatSolarMoment(state.moment);
+      shell.dataset.weather = state.weather;
+      shell.dataset.sunAltitude = lighting.altitude.toFixed(2);
+      shell.dataset.sunAzimuth = lighting.azimuth.toFixed(2);
+      shell.dataset.keyLight = lighting.key.source;
+      shell.dataset.dayPhase = lighting.phase;
+      shell.dataset.sky = graph.scene.getObjectByName('SKY-DOME') ? 'dome' : 'none';
+      lightingControl?.show(state, describeSunLighting(lighting));
+    };
+    if (realSunAvailable) {
+      lightingControl = new LightingControl({
+        elements: {
+          root: required<HTMLElement>('[data-light-control]'),
+          date: required<HTMLInputElement>('[data-light-date]'),
+          dateLabel: required<HTMLElement>('[data-light-date-label]'),
+          terms: required<HTMLElement>('[data-light-terms]'),
+          time: required<HTMLInputElement>('[data-light-time]'),
+          timeLabel: required<HTMLElement>('[data-light-time-label]'),
+          weather: required<HTMLElement>('[data-light-weather]'),
+          status: required<HTMLElement>('[data-light-status]'),
+          now: required<HTMLButtonElement>('[data-light-now]'),
+        },
+        currentMoment: currentSiteMoment,
+        onChange: (state) => {
+          if (lightingState && sameLightingState(state, lightingState)) return;
+          setLighting(state, false);
+          syncLocation(shell.dataset.scene ?? 'overview');
+        },
+      });
+    }
+
+    /**
+     * `lighting`：`preset` 用場景自帶的時刻與天氣；`keep` 保留使用者調過的（重設視角時）；
+     * 傳網址參數時，參數裡的 time、weather 蓋過場景設定（剛開啟頁面時）。
+     */
+    const applyScene = (sceneId: string, lighting: 'preset' | 'keep' | URLSearchParams = 'preset') => {
       setPoolCutaway(false);
       const config = getViewerScene(sceneId);
       const visibleLayers = new Set(config.layers);
@@ -464,19 +623,25 @@ try {
         const input = layerInputs.get(id);
         if (input) input.checked = group.visible;
       }
+      applyLayerDependents();
       camera.position.set(...config.camera.position);
       camera.fov = config.camera.fov;
       camera.updateProjectionMatrix();
       controls.target.set(...config.camera.target);
       controls.update();
       setEnvironment(config.environment);
+      // 場景自帶日期、時刻與天氣；只有剛開啟頁面時，網址上的 time、weather 會蓋過它。
+      scenePresetLighting = lightingStateFromPreset(config.lighting, lightingYear);
+      if (lighting === 'keep' && lightingState) setLighting(lightingState, true);
+      else if (lighting instanceof URLSearchParams) setLighting(readLightingParameters(lighting, scenePresetLighting), true);
+      else setLighting(scenePresetLighting, true);
       for (const [id, button] of sceneButtons) {
         const active = id === sceneId;
         button.dataset.active = String(active);
         button.setAttribute('aria-pressed', String(active));
       }
       shell.dataset.scene = sceneId;
-      history.replaceState(null, '', `#${sceneId}`);
+      syncLocation(sceneId);
     };
 
     for (const config of viewerScenes) {
@@ -541,7 +706,7 @@ try {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-view]');
       if (button) frameModel(button.dataset.view as ViewMode);
     });
-    required<HTMLButtonElement>('[data-reset-view]').addEventListener('click', () => applyScene(shell.dataset.scene ?? 'overview'));
+    required<HTMLButtonElement>('[data-reset-view]').addEventListener('click', () => applyScene(shell.dataset.scene ?? 'overview', 'keep'));
 
     interface InspectSnapshot {
       cameraPosition: THREE.Vector3;
@@ -715,6 +880,7 @@ try {
           const input = layerInputs.get(id);
           if (input) input.checked = visible;
         }
+        applyLayerDependents();
         setPoolCutaway(snapshot.cutaway);
         camera.position.copy(snapshot.cameraPosition);
         camera.fov = snapshot.fov;
@@ -831,7 +997,10 @@ try {
     resizeObserver.observe(canvasHost);
     resize();
     const initialId = location.hash.slice(1);
-    applyScene(viewerScenes.some((scene) => scene.id === initialId) ? initialId : 'overview');
+    applyScene(
+      viewerScenes.some((scene) => scene.id === initialId) ? initialId : 'overview',
+      renderingParameters,
+    );
     const shaderCompileStartedAt = performance.now();
     await renderer.compileAsync(graph.scene, camera);
     shell.dataset.shaderCompileMs = (performance.now() - shaderCompileStartedAt).toFixed(2);
@@ -1001,6 +1170,11 @@ try {
       renderer.setAnimationLoop(null);
       resizeObserver.disconnect();
       qualitySelect.removeEventListener('change', handleQualityChoice);
+      shell.removeEventListener('keydown', keepKeysInFormControls);
+      if (reflectionRefreshTimer !== null) window.clearTimeout(reflectionRefreshTimer);
+      if (environmentRefreshTimer !== null) window.clearTimeout(environmentRefreshTimer);
+      lightingControl?.dispose();
+      restoreSoftShadows?.();
       renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
       await cameraModeManager.dispose();
       desktopInput.dispose();
