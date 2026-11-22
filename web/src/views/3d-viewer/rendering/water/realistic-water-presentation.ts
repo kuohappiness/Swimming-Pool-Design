@@ -4,6 +4,7 @@ import type {
   VisualFrameState,
   VisualWalkthroughState,
 } from '../contracts';
+import { readSceneMirrorBounce } from '../lighting/mirror-bounce';
 import type { RenderQualityProfile, RenderQualityTier } from '../quality-profile';
 import { Ktx2TextureSource } from '../textures/ktx2-texture-source';
 import { createPoolBasinMaterial } from './pool-basin-material';
@@ -323,6 +324,7 @@ export class RealisticWaterPresentation {
       sunColor: this.sunColor,
       skyColor: this.skyColor,
       sunShadow,
+      mirrorBounce: readSceneMirrorBounce(scene),
     });
   }
 

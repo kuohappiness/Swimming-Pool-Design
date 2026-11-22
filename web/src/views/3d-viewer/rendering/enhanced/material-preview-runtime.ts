@@ -48,6 +48,7 @@ export async function createEnhancedMaterialPreviewRuntime(
     const railMaterial = materials.get('pool-rail');
     visualAssets = new EnhancedVisualAssetAdapter(quality, options.poolBasin
       ? {
+          mirrorReflection: { renderer },
           realisticWater: {
             renderer,
             basin: options.poolBasin,
@@ -63,7 +64,7 @@ export async function createEnhancedMaterialPreviewRuntime(
               : undefined,
           },
         }
-      : {});
+      : { mirrorReflection: { renderer } });
   } catch (error) {
     materials.dispose();
     throw error;

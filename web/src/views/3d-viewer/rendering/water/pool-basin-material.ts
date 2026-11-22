@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { MIRROR_BOUNCE_GLSL } from '../lighting/mirror-bounce';
 import poolBasinChunk from './shaders/pool-basin.glsl?raw';
 import fragmentSource from './shaders/pool-basin.frag.glsl?raw';
 import vertexShader from './shaders/pool-basin.vert.glsl?raw';
@@ -15,7 +16,29 @@ export const POOL_BASIN_UNIFORM_NAMES = Object.freeze([
   'uTime', 'uCaustics', 'uCausticLayers', 'uCausticStrength',
   'uSubmergedBoxCount', 'uSubmergedBoxMin', 'uSubmergedBoxMax', 'uSubmergedBoxFinish',
   'uSunShadowMap', 'uSunShadowMatrix', 'uSunShadow',
+  'uMirrorBounceColor', 'uMirrorBounceDirection', 'uMirrorBounceOrigin',
+  'uMirrorBounceEdgeU', 'uMirrorBounceEdgeV', 'uMirrorBounceSoftness',
 ] as const);
+
+const POOL_BASIN_MARKER = '// #include pool-basin';
+const MIRROR_BOUNCE_MARKER = '// #include mirror-bounce';
+
+/** `pool-basin.glsl` 換上鏡牆反射光那一段之後的完整原始碼。 */
+const POOL_BASIN_GLSL = poolBasinChunk.replace(MIRROR_BOUNCE_MARKER, MIRROR_BOUNCE_GLSL);
+
+/**
+ * 把池體這一段放進一支片段著色器（水面、實體池體、水下畫面三支共用）。
+ * 標記不在時直接報錯，不留下一支少了池體的著色器。
+ */
+export function withPoolBasin(fragmentSource: string): string {
+  if (!poolBasinChunk.includes(MIRROR_BOUNCE_MARKER)) {
+    throw new TypeError('pool-basin.glsl lost its mirror-bounce marker.');
+  }
+  if (!fragmentSource.includes(POOL_BASIN_MARKER)) {
+    throw new TypeError('The fragment shader has no pool-basin marker.');
+  }
+  return fragmentSource.replace(POOL_BASIN_MARKER, POOL_BASIN_GLSL);
+}
 
 /**
  * 實體池底與池壁的材質。
@@ -39,7 +62,7 @@ export function createPoolBasinMaterial(
   return new THREE.ShaderMaterial({
     name: 'realistic:pool-basin',
     vertexShader,
-    fragmentShader: fragmentSource.replace('// #include pool-basin', poolBasinChunk),
+    fragmentShader: withPoolBasin(fragmentSource),
     uniforms,
     fog: true,
     clipping: true,

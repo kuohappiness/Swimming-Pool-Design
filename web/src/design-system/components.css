@@ -37,6 +37,15 @@ summary {
   color: var(--site-terracotta);
 }
 
+.site-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .site-error {
   width: min(var(--site-reading), calc(100% - 40px));
   margin: 8rem auto;

@@ -35,6 +35,7 @@ const chromeCandidates = [
 const routes = [
   { id: 'design-concept', label: '設計理念', url: '/' },
   { id: 'solar-study', label: '日照研究', url: '/?view=solar-study' },
+  { id: 'design-process', label: '設計歷程', url: '/?view=design-process' },
   { id: 'drawings', label: '圖面設計', url: '/?view=drawings' },
   {
     id: '3d-viewer',

@@ -23,7 +23,7 @@ Swimming-Pool-Design/
 │  ├─ solar/                 solar-reflection、pool-footprint、solar-angle-analysis、solar-energy-analysis
 │  ├─ viewer/                viewer-data、render-budgets（3D 畫質分級與資產的成本上限）
 │  └─ validation/            model-validation
-├─ content/                  網站文案原始檔 design-concept.md、about.md；公開文字快照 website-copy.md
+├─ content/                  網站文案原始檔 design-concept.md、design-process.md、about.md；公開文字快照 website-copy.md
 ├─ drawings/
 │  └─ current/               現行圖面 DRAW-*.svg，檔名不帶版號；PNG 由 build:drawings 產生，不入庫
 ├─ web/                      網站（Vite root），產出到 dist/web/
@@ -31,7 +31,7 @@ Swimming-Pool-Design/
 │  └─ src/
 │     ├─ app/                bootstrap、app-shell、router、view-contract
 │     ├─ design-system/      共用樣式：index.css（唯一入口，定層的先後）、reset、tokens、typography、layout、components
-│     ├─ shared/             types.ts、assets/brand/
+│     ├─ shared/             types.ts、external-links.ts、assets/brand/
 │     ├─ generated/          build:content 與 build:fonts 的產物，不入庫
 │     └─ views/<view id>/    每個分頁一個資料夾；影像衍生檔放該頁的 assets/
 ├─ tools/                    命令列工具，不被網站匯入
@@ -92,6 +92,7 @@ Swimming-Pool-Design/
 | 已發布版本證據 | `docs/releases/<version>.md` |
 | 公開設計理念的敘事文字 | `content/design-concept.md` |
 | 關於頁的說明、名詞解釋與常見問題 | `content/about.md`；名詞與問答只摘要 owner 文件的答案並連回去，不另立設計答案 |
+| 設計歷程頁的時間軸、轉折、更正與待解問題 | `content/design-process.md`；現行數值用模型 token，已被取代的舊值用 `{{record:<版本或 sources>|<原文>}}` 引自發布紀錄或[基地與來源](site-and-sources.md)，建置時比對原文確實存在 |
 | 公開網站各分頁的可見文字版本快照 | `content/website-copy.md`；屬衍生備份，不取代各頁資料 owner |
 | 唯一的設計模型 | `model/project-model.json` |
 | 原始來源檔 | `source-materials/`，登錄在 site-and-sources.md |
@@ -132,7 +133,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 三個輸入與衍生資料夾：
 
-- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`（`concept-content.json`、`about-content.json`），網站只讀編譯結果。文案裡的站內連結寫 `./` 或 `?view=<view id>`，`check:docs` 會比對路由登錄表。編譯結果不入庫，`npm install`、`dev`、`test`、`typecheck` 與 `build` 都會先自動產生。
+- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`（`concept-content.json`、`design-process-content.json`、`about-content.json`），網站只讀編譯結果。文案裡的站內連結寫 `./` 或 `?view=<view id>`，`check:docs` 會比對路由登錄表。編譯結果不入庫，`npm install`、`dev`、`test`、`typecheck` 與 `build` 都會先自動產生。
 - `drawings/current/`：現行圖面，由 `npm run build:drawings` 自模型產生，網站以原始 SVG 內嵌。SVG 入庫；同時產生的 PNG 需要瀏覽器才能轉出，不入庫。
 - `source-materials/`：原始來源，只有 `tools/` 可讀。網站需要的影像必須先成為 `web/` 內的衍生檔，並在[基地與來源](site-and-sources.md)記下對應的來源編號、尺寸與雜湊。
 
@@ -156,12 +157,13 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 - **殼層：** `web/src/app/app-shell.ts` 擁有頁首、主導覽、頁尾與主要內容容器。view 不得自行產生第二組導覽或頁尾。
 - **頁面模組契約：** 每個 view 在 `web/src/views/<view id>/index.ts` 匯出 `mount(container)` 並回傳 `destroy()`。`bootstrap.ts` 以動態 import 載入，一次只掛載一個 view；切換分頁是整頁重新載入。
 
-現行五個 view：
+現行六個 view：
 
 | view id | 頁名 | 群組 | 網址 |
 | --- | --- | --- | --- |
 | `design-concept` | 設計理念 | — | `./` |
 | `solar-study` | 日照研究 | 四向專題 | `?view=solar-study` |
+| `design-process` | 設計歷程 | 四向專題 | `?view=design-process` |
 | `drawings` | 圖面 | — | `?view=drawings` |
 | `3d-viewer` | 3D | — | `?view=3d-viewer` |
 | `about` | 關於 | — | `?view=about` |
@@ -173,6 +175,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 - 設計理念：章節錨點，例如 `#concept-light`；載入後會扣掉頁首高度再捲動。
 - 圖面：圖號，例如 `#REF-001`、`#V067-L1`。
 - 3D：場景 id，`#overview`、`#light`、`#rain`、`#people`、`#time`。日照時刻用 `time`（校址當地時間，`2026-12-21T09:30`）與 `weather`（`clear`、`overcast`、`rain`；`night` 是晴天晚上九點的簡寫），只在使用者調離場景自帶的設定時才出現在網址上（[DEC-191](decisions.md)）。另接受 `quality`（`ultra`、`high`、`medium`、`saver`，舊連結的 `low` 視為 `saver`；優先於畫質選單記住的選擇），以及診斷用參數 `adaptive`、`rendering`、`water`、`batch`、`forceFallback`。
+- 設計歷程：章節錨點 `#process-<節 id>`（`timeline`、`versions`、`pivots`、`corrections`、`open`）與項目錨點 `#process-<節 id>-<序號>`。
 - 關於：章節錨點 `#about-<節 id>`（`project`、`reading`、`sources`、`glossary`、`faq`、`downloads`）與項目錨點 `#about-<節 id>-<序號>`；指到常見問題的某一題時會自動展開。
 
 新增分頁的步驟：
@@ -180,7 +183,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 1. 在 `router.ts` 的 `viewIds` 與 `viewDefinitions` 登錄；屬於群組的頁面加上 `group`。
 2. 在 `bootstrap.ts` 的 `loaders` 加入動態 import。
 3. 建立 `web/src/views/<view id>/`，含 `index.ts` 與 `view.css`；頁面有大段靜態 HTML 時另放 `template.html`（目前 `solar-study`、`3d-viewer` 有）。
-4. 文案放 `content/<view id>.md`；分節的說明頁用 `<!-- section:id -->` 寫法，由 `compileSectionedContent` 編譯（關於頁是第一個例子）。
+4. 文案放 `content/<view id>.md`；分節的說明頁用 `<!-- section:id -->` 寫法，由 `compileSectionedContent` 編譯（關於頁與設計歷程頁都是）。
 5. 更新測試與本文件的名詞對照表。
 
 規則：
@@ -208,6 +211,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 | --- | --- | --- | --- | --- |
 | 設計理念 | DESIGN NARRATIVE | `design-concept` | `web/src/views/design-concept/` | 重新定向（當頁名時） |
 | 日照研究 | SOLAR STUDY | `solar-study` | `web/src/views/solar-study/` | 冬夏日照互動研究、日照互動研究、向光而轉（當頁名時） |
+| 設計歷程 | DESIGN PROCESS | `design-process` | `web/src/views/design-process/` | 從手稿到模型（當頁名時） |
 | 圖面 | DRAWING ATLAS | `drawings` | `web/src/views/drawings/` | 圖面設計、建築圖冊、空間參照圖集、Reference Atlas、reference atlas、圖集、建築圖集 |
 | 3D | SPATIAL EXPERIENCE | `3d-viewer` | `web/src/views/3d-viewer/` | 3D 展示、走入建築、3D Viewer（僅指頁名；view id 與 `contracts/3d-viewer.md` 檔名不變） |
 | 關於 | ABOUT | `about` | `web/src/views/about/` | 關於與資料、關於這個專案（當頁名時） |
