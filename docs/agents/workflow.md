@@ -82,7 +82,7 @@ docs/tasks/<任務>.md ……… 規格與驗收；標題下寫狀態行；roadm
 
 ### 2.6 發布紀錄
 
-形成版本時建立 `docs/releases/<version>.md`，記錄範圍、包含的任務、驗證證據與 commit。發布紀錄不改寫，只修斷鏈。
+形成版本時建立 `docs/releases/<version>.md`，記錄範圍、包含的任務、驗證證據與 commit。發布紀錄不改寫，只修斷鏈。發版 PR 改了 `package.json` 版號後，同一個 PR 跑 `npm run build:copy` 重產網站文字快照 `content/website-copy.md`；其他 PR 不動它，`check:docs` 會比對快照與套件版本（[DEC-200](../decisions.md)）。
 
 ## 3. 入口的狀態行
 
@@ -131,6 +131,8 @@ git diff --check
 `npm run lint` 依序跑 ESLint（含依賴方向）、stylelint（CSS）與 knip（沒人用的檔案與套件）。Prettier 已有設定（`npm run format`、`npm run format:check`），但全庫還沒格式化、CI 也還不檢查；在那之前不要用它重排既有檔案，免得和其他 PR 衝突（[TASK-162](../tasks/2026-11-22-tooling.md)）。依賴更新由 Dependabot 每週一開一個合併 PR，大版本不自動提。
 
 `npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/web/`。`npm run dev` 只聽本機；要用手機連線測試時改用 `npm run dev:lan`。`npm run test:e2e` 需要本機的 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定瀏覽器路徑。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
+
+接 main 一律在本機執行 `git fetch origin main` 與 `git merge origin/main` 再推上去，不用 GitHub 網頁的 Update branch 或衝突編輯器：`docs/roadmap.md`、`docs/decisions.md` 設了 `merge=union`，本機合併會自動保留兩邊新加的列，GitHub 網頁端不會。合併後跑 `npm run check:docs`，兩邊改過同一列時它會指出重複的列，留下正確的那一列（[DEC-200](../decisions.md)）。
 
 每個 PR 由 `.github/workflows/ci.yml` 自動執行上列檢查與金鑰掃描，彙總檢查「全部檢查通過」是合併前的必要條件（[DEC-148](../decisions.md)）。
 
