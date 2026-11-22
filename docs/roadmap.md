@@ -13,6 +13,7 @@
 | TASK-116 公開文案更正與法規落差揭露 | 待審 | 使用者審閱 PR 後合併 | 使用者 | [入口](tasks/2026-11-22-public-accuracy-disclosure.md) |
 | TASK-150 3D 寫實升級階段一：流暢度地基與資產管線 | 實作中 | D 部分（烘焙光照圖）等使用者同意下面兩點慣例偏離；A、B、C 已合併 | 使用者 | [入口](tasks/2026-11-22-3d-realism-foundation.md) |
 | TASK-151 3D 寫實升級階段二：水 | 實作中 | 教學平台折射等 TASK-118 合併後補上；泳者折射、即時焦散、涉水漣漪與溢水溝水流待排（步驟 1 至 6 已合併） | Claude | [入口](tasks/2026-11-22-3d-realism-water.md) |
+| TASK-119 改建文案與專業檢核揭露更新 | 實作中 | 資料正確性串 PR #17 合併後併入 `main`、重產圖面並開 PR | Claude | [入口](tasks/2026-11-22-renovation-copy-rewrite.md) |
 
 ## 等觸發點
 
