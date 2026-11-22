@@ -247,9 +247,10 @@ test('generated Viewer and public content artifacts share the current model hash
   assert.equal(generatedModel.analysis.solar.status, 'current');
 });
 
-test('Viewer, solar study, and atlas navigation expose current owners and only v0.6.7 drawing anchors', () => {
-  assert.match(viewerHtml, /#V067-L1/);
-  assert.match(solarHtml, /#V067-L1/);
+test('Viewer, solar study, and atlas navigation expose current owners and version-free drawing anchors', () => {
+  assert.match(viewerHtml, /\?view=drawings#L1"/);
+  assert.match(solarHtml, /\?view=drawings#L1"/);
+  assert.doesNotMatch(`${viewerHtml}\n${solarHtml}`, /#V067-|#REF-001/);
   assert.doesNotMatch(`${viewerHtml}\n${solarHtml}`, /#V23-|最新 V2\.3/);
   assert.match(solarHtml, /id="research-conclusion-title"/);
   assert.match(solarHtml, /id="conclusion-plan-rotation"/);

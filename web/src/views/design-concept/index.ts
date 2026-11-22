@@ -153,7 +153,7 @@ function accessibleDrawing(): string {
     .replace('<svg ', '<svg class="concept-drawing" role="img" aria-labelledby="concept-drawing-title concept-drawing-desc" ')
     .replace(
       /<title>.*?<\/title>/,
-      '<title id="concept-drawing-title">三樓旋轉量體與太陽能屋頂概念平面</title><desc id="concept-drawing-desc">現行 V067 三樓平面圖，顯示旋轉量體、鏡牆、到達翼與太陽能屋頂配置。</desc>',
+      '<title id="concept-drawing-title">三樓旋轉量體與太陽能屋頂概念平面</title><desc id="concept-drawing-desc">現行三樓平面圖，顯示旋轉量體、鏡牆、到達翼與太陽能屋頂配置。</desc>',
     );
 }
 
@@ -221,7 +221,7 @@ export function mount(container: HTMLElement): MountedView {
       <figure class="concept-hero-figure">
         <div class="concept-drawing-window">${accessibleDrawing()}</div>
         <figcaption>
-          <span>V067 ／ L3 PLAN</span>
+          <span>L3 PLAN</span>
           <span>水平旋轉 ${planRotation >= 0 ? '+' : ''}${planRotation.toFixed(1)}°</span>
         </figcaption>
       </figure>

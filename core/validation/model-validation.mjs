@@ -388,7 +388,9 @@ export function validateModel(model) {
     for (const id of duplicates(records.map(({ id }) => id))) errors.push(`${label} ID is duplicated: ${id}`);
   }
   const sheetIds = (model.sheets ?? []).map(({ id }) => id);
-  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['REF-001', 'V067-L1', 'V067-L2', 'V067-L3', 'V067-SECTION']), 'Current sheet registry must contain only REF-001 and the four v0.6.7 sheets.');
+  // DEC-170: sheet ids carry no version; the drawings page redirects the retired REF-001／V067-* anchors.
+  check(errors, JSON.stringify(sheetIds) === JSON.stringify(['SITE', 'L1', 'L2', 'L3', 'SECTION']), 'Current sheet registry must be exactly SITE, L1, L2, L3 and SECTION.');
+  check(errors, (model.sheets ?? []).every(({ title }) => !/v\d+\.\d+|最新/i.test(title ?? '')), 'Sheet titles must not carry a version or the word 最新.');
 
   const boundedEntities = geometryEntities(active);
   check(errors, boundedEntities.size >= Object.keys(requiredBounds).length, 'Active geometry entity index is incomplete.');

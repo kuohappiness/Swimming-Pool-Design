@@ -331,7 +331,7 @@ try {
 
   const drawings = await browser.newPage({ viewport: { width: 390, height: 844 } });
   trackErrors(drawings, errors);
-  await drawings.goto(`${origin}/?view=drawings#REF-001`, { waitUntil: 'networkidle' });
+  await drawings.goto(`${origin}/?view=drawings#SITE`, { waitUntil: 'networkidle' });
   await waitForView(drawings, 'drawings');
   await drawings.waitForFunction(() =>
     document.querySelector('.sheet-tabs-shell')?.classList.contains('can-scroll-right'),

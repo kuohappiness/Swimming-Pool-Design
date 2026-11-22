@@ -170,7 +170,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 頁內狀態目前放在 hash：
 
 - 設計理念：章節錨點，例如 `#concept-light`；載入後會扣掉頁首高度再捲動。
-- 圖面：圖號，例如 `#REF-001`、`#V067-L1`。
+- 圖面：圖號 `#SITE`、`#L1`、`#L2`、`#L3`、`#SECTION`；舊的 `#REF-001`、`#V067-*` 轉到新圖號。
 - 3D：場景 id，`#overview`、`#light`、`#rain`、`#people`、`#time`。另接受 `quality`（`ultra`、`high`、`medium`、`saver`，舊連結的 `low` 視為 `saver`；優先於畫質選單記住的選擇），以及診斷用參數 `adaptive`、`rendering`、`water`、`batch`、`forceFallback`。
 - 關於：章節錨點 `#about-<節 id>`（`project`、`reading`、`sources`、`glossary`、`faq`、`downloads`）與項目錨點 `#about-<節 id>-<序號>`；指到常見問題的某一題時會自動展開。
 

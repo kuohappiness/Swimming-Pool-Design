@@ -153,11 +153,13 @@ active `solar` 子樹是現行日照判讀與能量分析的唯一 owner，必�
 
 `model.sheets` 只保留：
 
-1. `REF-001`
-2. `V067-L1`
-3. `V067-L2`
-4. `V067-L3`
-5. `V067-SECTION`
+1. `SITE`
+2. `L1`
+3. `L2`
+4. `L3`
+5. `SECTION`
+
+圖號不含版號，圖名不含版號或「最新」，由 `core/validation/model-validation.mjs` 檢查（DEC-170）。
 
 v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Viewer／solar-study 的最新圖面連結。
 
@@ -178,7 +180,7 @@ v0.5.0 圖檔可留在歷史資料夾，但不得出現在 current atlas 或 Vie
 
 相關輸出契約：
 
-- [空間參照圖集](drawings.md)
+- [圖面](drawings.md)
 - [太陽研究](solar-study.md)
 - [3D Viewer](3d-viewer.md)
 
