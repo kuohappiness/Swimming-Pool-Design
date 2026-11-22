@@ -104,6 +104,8 @@ test('enhanced environment applies local reflections, stable shadows, and existi
     assert.equal(target.scene.userData.toneMappingExposure, getToneMappingProfile('day').exposure);
     assert.equal(target.lights.sun.castShadow, true);
     assert.equal(target.lights.sun.shadow.mapSize.width, 2048);
+    // 固定環境（沒有算出來的光）一律用固定半徑的陰影過濾。
+    assert.equal(target.lights.sun.shadow.radius, 1.5);
     assert.equal(target.lights.sun.shadow.bias, -0.00015);
     assert.equal(target.lights.sun.shadow.normalBias, 0.025);
     assert.equal(target.lights.ambient.intensity, 1.52);
@@ -177,6 +179,7 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
     moonDirection: new THREE.Vector3(-0.5, 0.74, -0.45),
     keyColor: [1, 0.82, 0.6],
     keyIntensity: 2.4,
+    keyAngularRadius: 0.4 * Math.PI / 180,
     skyColor: [0.8, 0.9, 1],
     groundColor: [0.2, 0.17, 0.12],
     skyIntensity: 1.2,
@@ -198,7 +201,11 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
     close(target.lights.sun.position.distanceTo(target.lights.sun.target.position), 60);
     assert.equal(target.lights.sun.shadow.camera.right, 30);
     assert.equal(target.lights.sun.shadow.camera.far, 90);
-    assert.equal(target.lights.ambient.intensity, 1.2);
+    // 天光 1.2 由半球光和環境貼圖一起提供：高畫質的環境貼圖佔 0.64，半球光只補剩下的，
+    // 同一片天空不會被算兩次；水的著色器不吃環境貼圖，另外拿到完整的天光。
+    close(target.scene.environmentIntensity, 0.64 * 0.5);
+    close(target.lights.ambient.intensity, 1.2 * (1 - 0.64));
+    assert.equal(target.lights.ambient.userData.skyIrradiance, 1.2);
     close(target.lights.ambient.groundColor.r, 0.2);
     close(target.scene.background.g, 0.7);
     assert.ok(target.scene.fog instanceof THREE.Fog);
@@ -209,19 +216,34 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
     // 陰影的畫質設定仍由畫質級別決定。
     assert.equal(target.lights.sun.castShadow, true);
     assert.equal(target.lights.sun.shadow.mapSize.width, 2048);
+    // 距離柔化的陰影過濾還沒裝上時用固定半徑；裝上之後高畫質改成「每公尺幾格」的負值，
+    // 陰天光源變大、影子更柔；中畫質維持固定半徑。
+    assert.equal(target.lights.sun.shadow.radius, 1.5);
+    effect.setSoftShadows(true);
+    close(target.lights.sun.shadow.radius, -Math.tan(0.4 * Math.PI / 180) / (60 / 2048));
+    effect.applyLighting(lighting({ keyAngularRadius: 3 * Math.PI / 180 }), target);
+    close(target.lights.sun.shadow.radius, -Math.tan(3 * Math.PI / 180) / (60 / 2048));
+    effect.setQuality(ENHANCED_QUALITY_PROFILES.medium);
+    assert.equal(target.lights.sun.shadow.radius, 1.5);
+    close(target.lights.ambient.intensity, 1.2 * (1 - 0.46));
+    effect.setQuality(ENHANCED_QUALITY_PROFILES.high);
+    effect.applyLighting(lighting(), target);
+    close(target.lights.sun.shadow.radius, -Math.tan(0.4 * Math.PI / 180) / (60 / 2048));
 
     // 換場景會先寫入固定的環境，再蓋回算出來的光；霧始終是同一個物件。
     const fog = target.scene.fog;
     effect.apply('rain', target);
     assert.equal(target.scene.userData.environmentId, 'rain');
     assert.equal(target.lights.sun.intensity, 2.4);
-    assert.equal(target.lights.ambient.intensity, 1.2);
+    close(target.lights.ambient.intensity, 1.2 * (1 - 0.64));
     assert.equal(target.scene.fog, fog);
     assert.equal(target.scene.userData.toneMappingExposure, 0.93);
 
     effect.setQuality(ENHANCED_QUALITY_PROFILES.low);
     assert.equal(target.lights.sun.castShadow, false);
     assert.equal(target.lights.sun.intensity, 2.4);
+    // 省電級沒有環境貼圖，天光全部由半球光提供。
+    assert.equal(target.lights.ambient.intensity, 1.2);
     effect.setQuality(ENHANCED_QUALITY_PROFILES.high);
 
     // 潛到水裡時漫遊會暫時換上水下的霧；時刻改變不可以把它換掉，浮出來之後接回的霧已是新的顏色。

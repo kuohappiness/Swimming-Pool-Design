@@ -150,7 +150,7 @@ test('night switches the key light to a dim moon above the horizon', () => {
   assert.ok(night.sunDirection.z < 0);
   assert.ok(night.key.direction.z > 0.5);
   assert.ok(night.key.intensity > 0 && night.key.intensity < 0.4);
-  assert.ok(night.sky.intensity < 0.3);
+  assert.ok(night.sky.intensity < 0.35);
   assert.ok(luminance(night.horizon) < 0.03);
   assert.ok(night.exposure > at(12, 21, '12:00').exposure);
   assert.equal(describeSunLighting(night), '夜間，太陽在地平線下');
@@ -221,4 +221,51 @@ test('overcast and rain cut the direct sun far more than the sky light', () => {
   assert.equal(rain.altitude, clear.altitude);
   assert.equal(rain.azimuth, clear.azimuth);
   assert.throws(() => at(6, 21, '12:00', 'snow'), TypeError);
+});
+
+test('direct sun outweighs the sky by a few times, so shade reads as shade', () => {
+  // 晴天正午：直射光是天光的三到六倍（實際的晴天約四到六倍），陰影裡才明顯比陽光下暗。
+  const noon = at(6, 21, '12:00');
+  const ratio = noon.key.intensity / noon.sky.intensity;
+  assert.ok(ratio > 3 && ratio < 6, `sun to sky ratio was ${ratio}`);
+  // 天光強度指的是整片天空照在水平面上的量：晴天正午是 1，陰雨天不會比晴天亮。
+  assert.equal(noon.sky.intensity, 1);
+  assert.ok(at(6, 21, '12:00', 'overcast').sky.intensity <= 1);
+  // 陰雨天畫面整體較暗，曝光往上補；入夜後再補一段，像眼睛適應暗處。
+  assert.ok(at(6, 21, '12:00', 'overcast').exposure > noon.exposure);
+  assert.ok(at(6, 21, '12:00', 'rain').exposure > noon.exposure);
+  assert.ok(at(6, 21, '22:00').exposure > noon.exposure * 2);
+});
+
+test('the light source grows from the sun disc to a glowing patch of cloud', () => {
+  const degrees = (lighting) => lighting.key.angularRadius * 180 / Math.PI;
+  // 晴天的光源比真實的日面（半徑 0.27°）略大一點，邊緣的半影才大於一格陰影貼圖。
+  const clear = degrees(at(6, 21, '12:00'));
+  assert.ok(clear > 0.27 && clear < 0.6, `clear source radius was ${clear}`);
+  const overcast = degrees(at(6, 21, '12:00', 'overcast'));
+  const rain = degrees(at(6, 21, '12:00', 'rain'));
+  assert.ok(overcast > clear * 5);
+  assert.ok(rain > overcast);
+  // 月光沿用同一個天氣的光源大小。
+  assert.ok(Math.abs(degrees(at(6, 21, '22:00')) - clear) < 1e-9);
+});
+
+test('surfaces facing down are lit by the ground the sun and sky light up', () => {
+  const noon = at(6, 21, '12:00');
+  const morning = at(6, 21, '07:00');
+  const overcast = at(6, 21, '12:00', 'overcast');
+  const night = at(6, 21, '22:00');
+  // 半球光把地面顏色乘上天光強度，所以乘回去才是朝下的面收到的光。
+  const bounce = (lighting) => luminance(lighting.sky.groundColor) * lighting.sky.intensity;
+  assert.ok(bounce(noon) > bounce(morning), 'a high sun lights the ground more');
+  assert.ok(bounce(noon) > bounce(overcast));
+  assert.ok(bounce(overcast) > bounce(night));
+  assert.ok(bounce(night) > 0);
+  // 地面只反射一部分：朝下的面一定比朝上的面暗。
+  for (const lighting of [noon, morning, overcast, night]) {
+    const facingUp = lighting.sky.intensity * luminance(lighting.sky.color)
+      + lighting.key.intensity * luminance(lighting.key.color) * Math.max(0, lighting.key.direction.z);
+    assert.ok(bounce(lighting) < facingUp * 0.35, `bounce ${bounce(lighting)} of ${facingUp}`);
+    assert.ok(bounce(lighting) > facingUp * 0.2);
+  }
 });

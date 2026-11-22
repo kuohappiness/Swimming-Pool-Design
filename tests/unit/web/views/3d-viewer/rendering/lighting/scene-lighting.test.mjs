@@ -78,11 +78,12 @@ test('the winter morning sun stands in the south-east and above the horizon in w
   assert.ok(Math.abs(scene.keyDirection.length() - 1) < 1e-9);
   assert.equal(scene.source.key.source, 'sun');
   assert.equal(scene.exposure, scene.source.exposure);
+  assert.equal(scene.keyAngularRadius, scene.source.key.angularRadius);
   assert.deepEqual(scene.fog, scene.source.fog);
   // 倒影與間接光跟著天光變暗，最亮不超過晴天正午。
   assert.ok(scene.environmentScale > 0.8 && scene.environmentScale <= 1);
   const night = toSceneLighting(lightingAt(12, 21, 22 * 60), siteRoot, focus);
-  assert.ok(night.environmentScale < 0.2 && night.environmentScale > 0);
+  assert.ok(night.environmentScale < 0.35 && night.environmentScale > 0);
   assert.ok(Math.abs(night.environmentScale - night.skyIntensity / SKY_NOON_INTENSITY) < 1e-12);
   assert.ok(night.keyDirection.y > 0.5, 'moon stays above the horizon');
 });

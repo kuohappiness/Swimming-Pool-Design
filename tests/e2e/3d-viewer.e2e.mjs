@@ -548,6 +548,11 @@ try {
     // reflections and indirect light are generated from it instead of the fixed sky image.
     assert.equal(await shell.getAttribute('data-sky'), 'dome');
     assert.equal(await shell.getAttribute('data-environment-source'), 'sky');
+    // Shadow edges soften with the distance to whatever casts them; the filter is patched into
+    // three.js' shadow shader, so this also proves the patch still fits the installed version.
+    assert.equal(await shell.getAttribute('data-shadow-filter'), 'distance-soft');
+    // The overview shows 3F, so its roof is drawn.
+    assert.equal(await shell.getAttribute('data-layer-dependents-hidden'), '0');
     await page.close();
   }
 
@@ -737,6 +742,7 @@ try {
   // The sky dome is drawn on every enhanced tier; the saver tier has no environment map to regenerate.
   assert.equal(await sunShell.getAttribute('data-sky'), 'dome');
   assert.equal(await sunShell.getAttribute('data-environment-source'), 'none');
+  assert.equal(await sunShell.getAttribute('data-layer-dependents-hidden'), '0');
   assert.equal(await sun.locator('[data-light-control]').isVisible(), true);
   const winterMorning = await sunState();
   assert.equal(winterMorning.moment, `${siteYear}-12-21T09:30`);
@@ -833,6 +839,19 @@ try {
   assert.equal(rainScene.weather, 'rain');
   assert.equal(rainScene.phase, 'day');
   assert.deepEqual(await sunParameters(), { time: null, weather: null, hash: '#rain' });
+  // The rain scene hides 3F, so the 3F roof (which lives in the roof layer) is hidden with it
+  // instead of floating above the pool hall; switching 3F back on brings it back.
+  assert.equal(await sunShell.getAttribute('data-layer-dependents-hidden'), '1');
+  await sun.locator('[data-layer-list] input[value="l3"]').evaluate((input) => {
+    input.checked = true;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  assert.equal(await sunShell.getAttribute('data-layer-dependents-hidden'), '0');
+  await sun.locator('[data-layer-list] input[value="l3"]').evaluate((input) => {
+    input.checked = false;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  assert.equal(await sunShell.getAttribute('data-layer-dependents-hidden'), '1');
 
   // "Now" is the wall clock at the school.
   await sun.locator('[data-light-now]').click();
@@ -882,6 +901,7 @@ try {
   // The baseline path keeps its fixed scene moods and offers no time control.
   assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-real-sun'), 'false');
   assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-sky'), 'none');
+  assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-shadow-filter'), 'fixed');
   assert.equal(await explicitBaseline.locator('[data-light-control]').isHidden(), true);
   await explicitBaseline.close();
 

@@ -192,3 +192,69 @@ test('DEC-157 entry sits at ±0.00, its Y0-band pieces hide with the pool cutawa
     await vite.close();
   }
 });
+
+test('only opaque parts cast sun shadows, and the 3F roof never floats without its storey', async () => {
+  const [sourceModel, registry] = await Promise.all([
+    readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
+  ]);
+  const vite = await createServer({
+    root: resolve(repoRoot, 'web'),
+    appType: 'custom',
+    optimizeDeps: { noDiscovery: true },
+    server: { middlewareMode: true, hmr: { port: 0 } },
+  });
+  try {
+    const [{ createViewerScene, syncLayerDependents }, { createBaselineSceneRenderingDependencies }] = await Promise.all([
+      vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
+    ]);
+    const viewerModel = buildViewerModel(sourceModel, registry);
+    for (const batchStaticGeometry of [false, true]) {
+      const graph = createViewerScene(viewerModel, createBaselineSceneRenderingDependencies(), { batchStaticGeometry });
+
+      // 玻璃屋頂、玻璃牆與半透明的示意面不擋陽光：否則整個池廳都在影子裡。
+      let casters = 0;
+      let transparentMeshes = 0;
+      graph.siteRoot.traverse((object) => {
+        if (!object.isMesh) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        const transparent = materials.some((material) => material.transparent);
+        if (transparent) transparentMeshes += 1;
+        if (object.castShadow) casters += 1;
+        assert.ok(!(transparent && object.castShadow), `${object.name || object.type} is transparent and casts a shadow`);
+      });
+      assert.ok(transparentMeshes > 0 && casters > 0);
+      assert.equal(graph.water.surface.castShadow, false, 'the water surface lets the sun through to the pool floor');
+
+      // 3F 屋頂掛在「屋頂」圖層，但 3F 量體關掉時不單獨懸在半空（「向雨」場景）。
+      const roof = graph.layerGroups.get('roof');
+      const l3 = graph.layerGroups.get('l3');
+      const l3Roof = graph.siteRoot.getObjectByName('L3-ROOF-PLAN-ROTATION');
+      assert.ok(l3Roof, 'L3 roof group exists');
+      let parent = l3Roof.parent;
+      while (parent && parent !== roof) parent = parent.parent;
+      assert.equal(parent, roof, 'the L3 roof still belongs to the roof layer');
+      assert.deepEqual(
+        graph.layerDependents.map(({ object, layers }) => [object.name, [...layers]]),
+        [['L3-ROOF-PLAN-ROTATION', ['roof', 'l3']]],
+      );
+      // 合併靜態幾何之後，屋頂的網格仍在自己的群組裡，沒有被併進整個屋頂圖層。
+      let l3RoofMeshes = 0;
+      l3Roof.traverse((object) => { if (object.isMesh) l3RoofMeshes += 1; });
+      assert.ok(l3RoofMeshes >= 1);
+
+      for (const [roofVisible, l3Visible] of [[true, true], [true, false], [false, true], [false, false]]) {
+        roof.visible = roofVisible;
+        l3.visible = l3Visible;
+        syncLayerDependents(graph);
+        assert.equal(l3Roof.visible, roofVisible && l3Visible, `roof ${roofVisible}, 3F ${l3Visible}`);
+      }
+      // 沒有這個圖層時當作沒開。
+      syncLayerDependents({ layerGroups: new Map([['roof', roof]]), layerDependents: graph.layerDependents });
+      assert.equal(l3Roof.visible, false);
+    }
+  } finally {
+    await vite.close();
+  }
+});

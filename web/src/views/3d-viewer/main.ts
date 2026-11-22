@@ -437,6 +437,13 @@ try {
     shell.dataset.l3RoofContinuous = String(model.geometry.l3.roof.continuous);
     shell.dataset.l3MirrorEndGapsFilled = String(model.geometry.l3.mirror.sideWallEndGapsFilled);
     shell.dataset.l3InteriorBatteryObjects = String(model.geometry.l3.energyStorageStrategy.batteryObjectsOnGeneralL3Interior);
+    /** 要好幾個圖層都開著才畫的構件（例如 3F 屋頂）跟著圖層開關更新；診斷值是目前藏起來幾件。 */
+    const applyLayerDependents = () => {
+      syncLayerDependents(graph);
+      shell.dataset.layerDependentsHidden = String(
+        graph.layerDependents.filter(({ object }) => !object.visible).length,
+      );
+    };
     const layerInputs = new Map<string, HTMLInputElement>();
     for (const modelLayer of model.layers) {
       const label = document.createElement('label');
@@ -446,7 +453,7 @@ try {
       input.addEventListener('change', () => {
         const group = graph.layerGroups.get(modelLayer.id);
         if (group) group.visible = input.checked;
-        syncLayerDependents(graph);
+        applyLayerDependents();
         requestShadowRefresh();
       });
       layerInputs.set(modelLayer.id, input);
@@ -616,7 +623,7 @@ try {
         const input = layerInputs.get(id);
         if (input) input.checked = group.visible;
       }
-      syncLayerDependents(graph);
+      applyLayerDependents();
       camera.position.set(...config.camera.position);
       camera.fov = config.camera.fov;
       camera.updateProjectionMatrix();
@@ -873,7 +880,7 @@ try {
           const input = layerInputs.get(id);
           if (input) input.checked = visible;
         }
-        syncLayerDependents(graph);
+        applyLayerDependents();
         setPoolCutaway(snapshot.cutaway);
         camera.position.copy(snapshot.cameraPosition);
         camera.fov = snapshot.fov;

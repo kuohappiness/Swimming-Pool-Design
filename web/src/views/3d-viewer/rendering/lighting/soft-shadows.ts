@@ -169,31 +169,37 @@ export function createSoftShadowChunk(source: string, options: SoftShadowOptions
   return `${source.slice(0, range.from)}${replacement.trimStart()}${source.slice(range.to)}`;
 }
 
-let installed: { original: string; users: number } | null = null;
+type ShaderChunkTable = Record<string, string>;
+const installed = new WeakMap<ShaderChunkTable, { original: string; users: number }>();
 
 /**
  * 把距離柔化的陰影裝進 three.js 的著色器片段。要在材質第一次編譯之前呼叫。
  * 回傳的函式把片段還原；three.js 的片段格式變了、裝不上時回傳 null。
+ * 同一頁有好幾個 3D 畫面時共用同一份，最後一個還原時才真的換回去。
  */
-export function installSoftShadows(options: SoftShadowOptions): (() => void) | null {
-  const chunks = THREE.ShaderChunk as Record<string, string>;
-  if (!installed) {
+export function installSoftShadows(
+  options: SoftShadowOptions,
+  chunks: ShaderChunkTable = THREE.ShaderChunk as ShaderChunkTable,
+): (() => void) | null {
+  let state = installed.get(chunks);
+  if (!state) {
     const original = chunks[CHUNK_NAME];
     const next = typeof original === 'string' ? createSoftShadowChunk(original, options) : null;
     if (!original || !next) return null;
     chunks[CHUNK_NAME] = next;
-    installed = { original, users: 0 };
+    state = { original, users: 0 };
+    installed.set(chunks, state);
   }
-  const state = installed;
-  state.users += 1;
+  const current = state;
+  current.users += 1;
   let restored = false;
   return () => {
     if (restored) return;
     restored = true;
-    state.users -= 1;
-    if (state.users === 0 && installed === state) {
-      chunks[CHUNK_NAME] = state.original;
-      installed = null;
+    current.users -= 1;
+    if (current.users === 0 && installed.get(chunks) === current) {
+      chunks[CHUNK_NAME] = current.original;
+      installed.delete(chunks);
     }
   };
 }
