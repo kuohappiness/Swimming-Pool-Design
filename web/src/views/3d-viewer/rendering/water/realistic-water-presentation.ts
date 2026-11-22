@@ -5,6 +5,8 @@ import type {
   VisualWalkthroughState,
 } from '../contracts';
 import { readSceneMirrorBounce } from '../lighting/mirror-bounce';
+import { readSceneFixtureLights } from '../lighting/fixture-lights';
+import type { HallProbeSource } from '../enhanced/hall-reflection';
 import type { RenderQualityProfile, RenderQualityTier } from '../quality-profile';
 import { Ktx2TextureSource } from '../textures/ktx2-texture-source';
 import { createPoolBasinMaterial } from './pool-basin-material';
@@ -114,6 +116,8 @@ export class RealisticWaterPresentation {
   private ambient: THREE.HemisphereLight | null = null;
   private expectedSurfaceElevation: number | null = null;
   private reflectionStale = true;
+  /** 探針拍過至少一次（池廳反射要等它）。 */
+  private probeCaptured = false;
   private disposed = false;
   private readonly probePosition = new THREE.Vector3();
   private readonly sunPosition = new THREE.Vector3();
@@ -218,6 +222,23 @@ export class RealisticWaterPresentation {
   }
 
   /** 這一級畫質有沒有平面倒影（沒有時只用探針）。 */
+  /**
+   * 池廳中央的反射探針，給池館室內的反射共用（`rendering/enhanced/hall-reflection.ts`）。
+   * 沒有池廳尺寸或還沒拍過時為 null。
+   */
+  get hallProbe(): HallProbeSource | null {
+    const { surface, probe } = this;
+    const hall = this.options.hall;
+    if (this.disposed || !surface || !probe || !hall || !this.probeCaptured) return null;
+    return {
+      texture: probe.texture,
+      size: WATER_DETAIL[this.profile.id].probeSize,
+      probePosition: this.probePosition,
+      hall,
+      localToWorld: surface.mesh.matrixWorld,
+    };
+  }
+
   get usesPlanarReflection(): boolean {
     return this.planar !== null;
   }
@@ -279,6 +300,7 @@ export class RealisticWaterPresentation {
       );
       surface.setProbePosition(this.probePosition);
       probe.capture(scene, mesh.localToWorld(this.probePosition), [mesh]);
+      this.probeCaptured = true;
     }
 
     if (this.sun) {
@@ -325,6 +347,7 @@ export class RealisticWaterPresentation {
       skyColor: this.skyColor,
       sunShadow,
       mirrorBounce: readSceneMirrorBounce(scene),
+      fixtureLights: readSceneFixtureLights(scene),
     });
   }
 

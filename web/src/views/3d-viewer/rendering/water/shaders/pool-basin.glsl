@@ -39,6 +39,20 @@ uniform mat4 uSunShadowMatrix;  // 水面網格的物件座標轉到陰影貼圖
 // x 強度（0 不查陰影）、y 深度偏移、z 取樣半徑（貼圖座標）。
 uniform vec3 uSunShadow;
 
+// 池館燈具（rendering/lighting/fixture-lights.ts 寫入，座標同樣是水面網格的物件座標）。
+// 陣列大小與 fixture-lights.ts 的 WATER_FIXTURE_SLOTS、POOL_LIGHT_SLOTS 相同（單元測試比對）。
+#define WATER_FIXTURE_SLOTS 12
+#define POOL_LIGHT_SLOTS 12
+uniform int uWaterFixtureCount;
+uniform vec4 uWaterFixtures[WATER_FIXTURE_SLOTS];   // 照到池水的天花燈：位置，w 是光強度
+uniform vec3 uWaterFixtureColor;
+uniform int uPoolLightCount;
+uniform vec4 uPoolLights[POOL_LIGHT_SLOTS];         // 水下燈：位置（池壁面上），w 是光強度
+uniform vec3 uPoolLightAims[POOL_LIGHT_SLOTS];      // 水下燈朝向池內的單位向量
+uniform vec3 uPoolLightColor;
+uniform vec2 uPoolLightLens;                        // x 透鏡亮度（0 代表沒開），y 透鏡半徑
+uniform vec3 uWaterLightIrradiance;                 // 燈光在池水裡的平均照度：池壁補光用
+
 // 鏡牆反射的日光（uMirrorBounce*，座標同樣是水面網格的物件座標）與 mirrorBounceMask()，
 // 由 rendering/lighting/mirror-bounce.ts 的 MIRROR_BOUNCE_GLSL 換進來，和場景其他材質同一段。
 // #include mirror-bounce
@@ -255,6 +269,87 @@ vec3 mirrorBounceInWater(vec3 position, vec3 normal) {
   return uMirrorBounceColor.rgb * facing * withinPool * mask * waterTransmittance(path) * causticGain(entry, depth);
 }
 
+// 天花燈照進水裡一點的照度（未乘反照率）。燈具朝下，光在水面折射、沿途被水吸收；
+// 入水點要在池面範圍內（否則被池壁與池畔擋住）。折射讓水下的光比直線距離算的集中，
+// 用「空氣中的距離 + 水中的距離 ÷ 折射率」當等效距離。入水點沿直線近似。
+vec3 ceilingFixturesInWater(vec3 position, vec3 normal) {
+  if (uWaterFixtureCount <= 0) return vec3(0.0);
+  float depth = max(uWaterLevel - position.y, 0.0);
+  vec3 total = vec3(0.0);
+  for (int index = 0; index < WATER_FIXTURE_SLOTS; index++) {
+    if (index >= uWaterFixtureCount) break;
+    vec4 fixture = uWaterFixtures[index];
+    float height = fixture.y - uWaterLevel;
+    vec3 inAir = normalize(fixture.xyz - position);
+    if (height <= 0.0 || inAir.y <= 1.0e-3 || fixture.w <= 0.0) continue;
+    vec3 inWater = -refract(-inAir, vec3(0.0, 1.0, 0.0), 1.0 / WATER_IOR);
+    float facing = max(dot(normal, inWater), 0.0);
+    if (facing <= 0.0) continue;
+    float waterPath = depth / max(inWater.y, 0.2);
+    vec2 entry = position.xz + inAir.xz * (depth / inAir.y);
+    vec2 inside = min(entry - uPoolMin, uPoolMax - entry);
+    float withinPool = smoothstep(-0.03, 0.03, min(inside.x, inside.y));
+    if (withinPool <= 0.0) continue;
+    float distance = height / inAir.y + waterPath / WATER_IOR;
+    total += fixture.w * inAir.y * facing * withinPool * waterTransmittance(waterPath) / max(distance * distance, 0.25);
+  }
+  // 0.97：光從空氣進到水裡，大多數角度的穿透率。
+  return total * uWaterFixtureColor * 0.97;
+}
+
+// 水下燈照在池底、池壁一點的照度（未乘反照率）。燈裝在池壁上朝池內打光，沿途被水吸收。
+vec3 poolLightsOnBasin(vec3 position, vec3 normal) {
+  if (uPoolLightCount <= 0 || uPoolLights[0].w <= 0.0) return vec3(0.0);
+  vec3 total = vec3(0.0);
+  for (int index = 0; index < POOL_LIGHT_SLOTS; index++) {
+    if (index >= uPoolLightCount) break;
+    vec4 light = uPoolLights[index];
+    vec3 toLight = light.xyz - position;
+    float distanceSquared = max(dot(toLight, toLight), 0.04);
+    float distance = sqrt(distanceSquared);
+    vec3 towardLight = toLight / distance;
+    float emission = max(dot(-towardLight, uPoolLightAims[index]), 0.0);
+    float facing = max(dot(normal, towardLight), 0.0);
+    total += light.w * emission * facing * waterTransmittance(distance) / distanceSquared;
+  }
+  return total * uPoolLightColor;
+}
+
+// 水下燈的透鏡：池壁上一點落在透鏡裡就直接發光（亮度，不是照度）。
+vec3 poolLightLens(vec3 position) {
+  if (uPoolLightLens.x <= 0.0) return vec3(0.0);
+  float lens = 0.0;
+  for (int index = 0; index < POOL_LIGHT_SLOTS; index++) {
+    if (index >= uPoolLightCount) break;
+    float distance = length(position - uPoolLights[index].xyz);
+    lens = max(lens, 1.0 - smoothstep(uPoolLightLens.y * 0.8, uPoolLightLens.y, distance));
+  }
+  return uPoolLightColor * uPoolLightLens.x * lens;
+}
+
+// 水下燈的光被水散射，沿視線看到的光暈（亮度）。每盞燈對一條直線的散射有解析解：
+// ∫ dt / (h² + t²) = atan(t / h) / h，h 是燈到視線的最近距離；吸收用最近點估計。
+const float POOL_LIGHT_SCATTERING = 0.05;   // 池水的散射係數（每公尺），清澈但有微粒的池水
+vec3 poolLightGlow(vec3 origin, vec3 direction, float distance) {
+  if (uPoolLightCount <= 0 || uPoolLights[0].w <= 0.0) return vec3(0.0);
+  vec3 glow = vec3(0.0);
+  for (int index = 0; index < POOL_LIGHT_SLOTS; index++) {
+    if (index >= uPoolLightCount) break;
+    vec4 light = uPoolLights[index];
+    vec3 toLight = light.xyz - origin;
+    float along = dot(toLight, direction);
+    float h = sqrt(max(dot(toLight, toLight) - along * along, 0.0025));
+    float integral = (atan((distance - along) / h) + atan(along / h)) / h;
+    float nearest = clamp(along, 0.0, distance);
+    vec3 fromLight = origin + direction * nearest - light.xyz;
+    float lightDistance = length(fromLight);
+    float emission = max(dot(fromLight / max(lightDistance, 1.0e-4), uPoolLightAims[index]), 0.0);
+    glow += light.w * emission * integral * waterTransmittance(lightDistance + nearest);
+  }
+  // 各方向均勻散射（1 / 4π）。
+  return glow * uPoolLightColor * (POOL_LIGHT_SCATTERING * 0.0795775);
+}
+
 // 池底或池壁上一點被照亮後的顏色：陽光折射入水、沿途被水吸收，再加上漫射光。
 vec3 shadePoolBasin(BasinHit hit) {
   vec3 albedo = poolBasinAlbedo(hit);
@@ -271,7 +366,9 @@ vec3 shadePoolBasin(BasinHit hit) {
       * poolCaustic(hit.position) * sunVisibility(hit.position, 4);
   }
   direct += mirrorBounceInWater(hit.position, hit.normal);
-  vec3 diffuse = uSkyColor * waterTransmittance(depth) * (0.55 + 0.45 * hit.normal.y);
+  direct += ceilingFixturesInWater(hit.position, hit.normal) + poolLightsOnBasin(hit.position, hit.normal);
+  vec3 diffuse = uSkyColor * waterTransmittance(depth) * (0.55 + 0.45 * hit.normal.y)
+    + uWaterLightIrradiance * (0.25 + 0.35 * (1.0 - hit.normal.y));
 
   // 池壁還會被照亮的池底打亮：池底把收到的光漫射出來，池壁大約看得到半個池底。
   // 沒有這一項，背光的池壁會比實際暗得多。
@@ -280,7 +377,7 @@ vec3 shadePoolBasin(BasinHit hit) {
     + uSkyColor * waterTransmittance(averageDepth);
   vec3 bounce = floorIrradiance * uTileColor * FLOOR_BOUNCE_TO_WALL
     * (1.0 - hit.normal.y) * waterTransmittance(1.5);
-  return albedo * (direct + diffuse + bounce) * 0.3183099;
+  return albedo * (direct + diffuse + bounce) * 0.3183099 + poolLightLens(hit.position);
 }
 
 // 透過水看到 radiance 時的結果：沿視線被吸收，並加上水體本身散射的光。

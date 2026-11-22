@@ -115,7 +115,8 @@ void main() {
 
     vec3 refracted = refract(viewDirection, refractionNormal, AIR_TO_WATER);
     BasinHit hit = intersectBasin(vLocalPosition, refracted);
-    vec3 refraction = applyWaterColumn(shadePoolBasin(hit), hit.distance);
+    vec3 refraction = applyWaterColumn(shadePoolBasin(hit), hit.distance)
+      + poolLightGlow(vLocalPosition, refracted, hit.distance);
 
     float sunAbove = smoothstep(0.0, 0.08, uSunDirection.y);
     float glint = pow(max(dot(reflected, uSunDirection), 0.0), uSunGlintSharpness);
@@ -133,7 +134,8 @@ void main() {
     vec3 reflected = reflect(viewDirection, -refractionNormal);
     reflected.y = -abs(reflected.y);
     BasinHit hit = intersectBasin(vLocalPosition, reflected);
-    vec3 internal = applyWaterColumn(shadePoolBasin(hit), hit.distance);
+    vec3 internal = applyWaterColumn(shadePoolBasin(hit), hit.distance)
+      + poolLightGlow(vLocalPosition, reflected, hit.distance);
 
     if (dot(refracted, refracted) < 1.0e-6) {
       color = internal;

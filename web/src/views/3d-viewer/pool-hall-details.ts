@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import {
+  getPoolHallCeilingFixtureCentres,
+  POOL_HALL_DETAILS_NAME,
+  POOL_HALL_FIXTURE_MESH_NAME,
+} from './fixture-layout';
 import type { ViewerModel } from './model-adapter';
 import {
   getPoolFloorLaneLineCentres,
@@ -88,7 +93,7 @@ function addOverflowGrating(
 
 export function createPoolHallDetails(model: ViewerModel, materials: MaterialRegistry) {
   const root = new THREE.Group();
-  root.name = 'POOL-HALL-DETAILS-PHASE-1';
+  root.name = POOL_HALL_DETAILS_NAME;
   root.userData = {
     visualOnly: true,
     collisionExcluded: true,
@@ -138,22 +143,18 @@ export function createPoolHallDetails(model: ViewerModel, materials: MaterialReg
   }
   reduced.add(drains);
 
-  const roof = model.geometry.roof;
+  // 天花燈的位置與燈光計算共用 fixture-layout.ts 的同一份。
+  const lightCentres = getPoolHallCeilingFixtureCentres(model);
   const lightGeometry = new THREE.BoxGeometry(1.25, 0.08, 0.32);
-  const lights = new THREE.InstancedMesh(lightGeometry, materials.get('interior-light'), 12);
-  lights.name = 'visual-only:POOL-HALL-ceiling-lights:12';
-  let lightIndex = 0;
-  for (const x of [4.5, 9, 13.5, 18, 22.5, 27]) {
-    const roofHeight = roof.lowElevation
-      + (roof.highElevation - roof.lowElevation) * ((x - roof.startX) / roof.planRun);
-    for (const z of [2.1, 11.9]) {
-      matrix.makeTranslation(x, roofHeight - 0.12, z);
-      lights.setMatrixAt(lightIndex, matrix);
-      lightIndex += 1;
-    }
-  }
+  const lights = new THREE.InstancedMesh(lightGeometry, materials.get('interior-light'), lightCentres.length);
+  lights.name = POOL_HALL_FIXTURE_MESH_NAME;
+  lightCentres.forEach(([x, y, z], index) => {
+    matrix.makeTranslation(x, y, z);
+    lights.setMatrixAt(index, matrix);
+  });
   reduced.add(lights);
 
+  const roof = model.geometry.roof;
   const ventGeometry = new THREE.BoxGeometry(0.85, 0.08, 0.32);
   const vents = new THREE.InstancedMesh(ventGeometry, materials.get('sanitary-dark'), 6);
   vents.name = 'visual-only:POOL-HALL-vents:6';
