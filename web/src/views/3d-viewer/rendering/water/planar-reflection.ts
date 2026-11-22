@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { markReflectionCapture } from '../lighting/reflection-capture';
 
 /**
  * 平面倒影：把鏡頭對著水面翻到水面下方，從那裡把場景再畫一次到一張較小的貼圖，
@@ -75,6 +76,7 @@ export class ScenePlanarReflection implements PlanarReflection {
       generateMipmaps: false,
     });
     this.target.texture.name = 'realistic:water-planar-reflection';
+    markReflectionCapture(this.virtualCamera);
   }
 
   get texture(): THREE.Texture {

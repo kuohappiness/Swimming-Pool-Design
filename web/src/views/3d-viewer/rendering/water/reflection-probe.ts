@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { markReflectionCapture } from '../lighting/reflection-capture';
 
 /**
  * 反射探針：站在一個定點把四周拍成六面貼圖，水面查它來得到倒影。
@@ -19,10 +20,13 @@ export class CubeReflectionProbe implements ReflectionProbe {
   private target: THREE.WebGLCubeRenderTarget;
   private camera: THREE.CubeCamera;
   private size: number;
+  private readonly name: string;
   private disposed = false;
 
-  constructor(renderer: THREE.WebGLRenderer, size: number) {
+  /** @param name 貼圖名稱（除錯與記憶體統計用）。 */
+  constructor(renderer: THREE.WebGLRenderer, size: number, name = 'realistic:water-reflection-probe') {
     this.renderer = renderer;
+    this.name = name;
     // 半精度浮點才存得下比白色更亮的天窗與燈具；不支援的裝置退回 8 位元，亮部會被截掉但仍可用。
     this.textureType = renderer.extensions.has('EXT_color_buffer_float')
       || renderer.extensions.has('EXT_color_buffer_half_float')
@@ -30,7 +34,7 @@ export class CubeReflectionProbe implements ReflectionProbe {
       : THREE.UnsignedByteType;
     this.size = size;
     this.target = this.createTarget(size);
-    this.camera = new THREE.CubeCamera(0.1, 240, this.target);
+    this.camera = this.createCamera(this.target);
   }
 
   get texture(): THREE.CubeTexture {
@@ -42,7 +46,7 @@ export class CubeReflectionProbe implements ReflectionProbe {
     this.target.dispose();
     this.size = size;
     this.target = this.createTarget(size);
-    this.camera = new THREE.CubeCamera(0.1, 240, this.target);
+    this.camera = this.createCamera(this.target);
     return true;
   }
 
@@ -66,6 +70,12 @@ export class CubeReflectionProbe implements ReflectionProbe {
     this.target.dispose();
   }
 
+  private createCamera(target: THREE.WebGLCubeRenderTarget): THREE.CubeCamera {
+    const camera = new THREE.CubeCamera(0.1, 240, target);
+    markReflectionCapture(camera);
+    return camera;
+  }
+
   private createTarget(size: number): THREE.WebGLCubeRenderTarget {
     const target = new THREE.WebGLCubeRenderTarget(size, {
       type: this.textureType,
@@ -74,7 +84,7 @@ export class CubeReflectionProbe implements ReflectionProbe {
       minFilter: THREE.LinearMipmapLinearFilter,
       magFilter: THREE.LinearFilter,
     });
-    target.texture.name = 'realistic:water-reflection-probe';
+    target.texture.name = this.name;
     return target;
   }
 }

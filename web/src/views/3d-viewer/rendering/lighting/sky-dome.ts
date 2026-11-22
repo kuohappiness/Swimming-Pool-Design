@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createCloudNoise } from './cloud-noise';
+import { isReflectionCapture } from './reflection-capture';
 import type { SceneLighting } from './scene-lighting';
 import fragmentShader from './shaders/sky-dome.frag.glsl?raw';
 import vertexShader from './shaders/sky-dome.vert.glsl?raw';
@@ -69,6 +70,7 @@ export class SkyDome {
     this.configure(this.mesh);
     // 排在所有不透明物件之後才畫：被建築擋住的像素直接略過。
     this.mesh.renderOrder = 1000;
+    this.hideCelestialBodiesInReflections();
 
     const environmentMaterial = this.createMaterial({
       ...this.uniforms,
@@ -129,6 +131,35 @@ export class SkyDome {
     (this.uniform('uCloudShade').value as THREE.Vector3).fromArray(sky.cloudShade);
     (this.uniform('uCloudOffset').value as THREE.Vector2).fromArray(sky.cloudOffset);
     (this.uniform('uGroundColor').value as THREE.Vector3).fromArray(sky.groundColor);
+  }
+
+  /**
+   * 拍倒影的相機（`markReflectionCapture`）看到的天空不畫日面、月面與星星，理由同環境貼圖。
+   * 只在畫這一次之前把三個數值歸零、畫完立刻還原，不必多一份材質或多一次繪製。
+   */
+  private hideCelestialBodiesInReflections() {
+    const sunDisc = this.uniform('uSunDiscColor');
+    const moon = this.uniform('uMoonColor');
+    const stars = this.uniform('uStars');
+    const saved = { sunDisc: new THREE.Vector3(), moon: new THREE.Vector3(), stars: 0 };
+    let hidden = false;
+    this.mesh.onBeforeRender = (_renderer, _scene, camera) => {
+      if (!isReflectionCapture(camera)) return;
+      saved.sunDisc.copy(sunDisc.value as THREE.Vector3);
+      saved.moon.copy(moon.value as THREE.Vector3);
+      saved.stars = stars.value as number;
+      (sunDisc.value as THREE.Vector3).setScalar(0);
+      (moon.value as THREE.Vector3).setScalar(0);
+      stars.value = 0;
+      hidden = true;
+    };
+    this.mesh.onAfterRender = () => {
+      if (!hidden) return;
+      hidden = false;
+      (sunDisc.value as THREE.Vector3).copy(saved.sunDisc);
+      (moon.value as THREE.Vector3).copy(saved.moon);
+      stars.value = saved.stars;
+    };
   }
 
   private uniform(name: string): THREE.IUniform {
