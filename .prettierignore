@@ -1,0 +1,12 @@
+# Hand-written or generated content that Prettier must not touch.
+dist/
+test-results/
+node_modules/
+source-materials/
+drawings/
+docs/
+model/
+web/src/generated/
+tests/fixtures/
+package-lock.json
+*.md
