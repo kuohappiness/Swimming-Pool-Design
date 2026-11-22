@@ -42,6 +42,33 @@ export interface ViewerZone {
   [key: string]: unknown;
 }
 
+interface PoolUseItem { entityId: string; bounds: SiteBounds; status: string }
+export interface ViewerRoomDoor { center: [number, number]; clearWidth: number; clearHeight: number; doorType: string }
+
+/** DEC-157: the 1F class route from shoes off to the pool edge. */
+export interface ViewerPoolUse {
+  decisionId: 'DEC-157';
+  principle: string;
+  entryVestibule: PoolUseItem & { floorElevation: number; shoeCubbyPairs: number; bench: boolean };
+  entryRamp: PoolUseItem & { fromElevation: number; toElevation: number; slopeRatio: number; handrails: string };
+  entrySteps: PoolUseItem & { fromElevation: number; toElevation: number; risers: number; riserHeight: number; treadDepth: number };
+  dryCorridor: PoolUseItem & { floorElevation: number };
+  dryCorridorParapet: PoolUseItem & { height: number; curbHeight: number };
+  rinseGate: PoolUseItem & { footBath: boolean; showerHeads: number; onlyRouteFromStairToDeck: boolean; wheelchairBypass: string };
+  aed: { position: [number, number]; mountedOn: string; status: string };
+  assemblyArea: PoolUseItem & { seatedClassCapacity: number };
+  lifeguardChair: PoolUseItem & { seatHeight: number };
+  accessibleChanging: PoolUseItem & { floorElevation: number; entrySide: 'x31'; entrance: ViewerRoomDoor; functions: string[] };
+  staffFirstAid: PoolUseItem & {
+    floorElevation: number; entrySide: 'x31'; entrance: ViewerRoomDoor; poolViewWindowSide: 'x31';
+    poolViewWindow: { spanY: [number, number]; sillHeight: number; headHeight: number }; evacuationRoute: string;
+  };
+  equipmentParking: PoolUseItem;
+  poolLift: PoolUseItem & { type: string };
+  classRoute: Array<{ id: string; label: string; standAt: [number, number]; faceEntityId: string }>;
+  status: string;
+}
+
 export interface ViewerModel {
   schemaVersion: '1.5.0';
   modelVersion: string;
@@ -101,6 +128,15 @@ export interface ViewerModel {
       deckElevation: ViewerMeasure;
       laneCount: number;
       laneBands: Array<{ id: string; y1: number; y2: number; use: string }>;
+      teachingPlatform: {
+        entityId: string;
+        bounds: SiteBounds;
+        laneBandId: string;
+        removable: true;
+        topWaterDepth: number;
+        decisionId: 'DEC-158';
+        status: string;
+      };
     };
     l1: {
       bounds: SiteBounds;
@@ -152,7 +188,6 @@ export interface ViewerModel {
         poolFemaleToilet: ViewerZone;
         playgroundMaleToilet: ViewerZone;
         playgroundFemaleToilet: ViewerZone;
-        storage: ViewerZone;
         waterTreatment: ViewerZone;
         chemicalRoom: ViewerZone;
       };
@@ -169,6 +204,7 @@ export interface ViewerModel {
         status: 'confirmed';
       }>;
       structuralStrategy: Record<string, unknown>;
+      poolUse: ViewerPoolUse;
     };
     l2: {
       bounds: SiteBounds;

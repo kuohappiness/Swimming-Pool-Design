@@ -19,16 +19,14 @@
 | --- | --- |
 | `docs/product.md` | 屋頂 5°、池寬分帶、西端屋簷雨簾、四間獨立廁所、L2 分區、男女各 15 間、四張參照圖 |
 | `docs/decisions.md`〈風險與控制〉 | 15＋5 與屋頂 4.5°／19.0 m／1.2 m 兩列改為現行值 |
-| `drawings/current/*.svg` | 以 `npm run build:drawings` 重產：圖框與屬性改為 MODEL v0.9.7／GEO-0.8.2，北向箭頭 `rotate(127)` 改為由 307° 推導的 `rotate(143)`；幾何內容逐段比對不變 |
-| `drawings/current/README.md` | 改寫為現行版本說明 |
-| 圖面測試 | 原本寫死 v0.6.7 與 127，改為由模型與 `deriveSiteOrientation` 推導，並守住 143 |
+| 圖面 | 原本要重產四張圖、改寫 `drawings/current/README.md` 並把圖面測試改為由模型推導；TASK-118（#18）先合併，已用 `GEO-0.10.0` 重產圖面並做了同樣的測試更正（北向 143°），本任務合併 main 時改用那一版，不另外改圖 |
 
 不在範圍：圖面頁標題的「v0.6.7｜」字樣與 `V067-*` 錨點（公開網址錨點，由設計架構方案的「去版號」處理）；模型頂層舊欄位（3D 與圖面程式仍在讀，交給程式碼串一併清理）；`ST-01` 2.4 m 全高弦幕是現行設計，不是舊值。
 
 ## 驗收
 
 - `docs/product.md` 不再出現 4.5°、1.2 m 外挑、男左女右、15＋5、六張。
-- 四張 SVG 的版本屬性等於模型的 `modelVersion` 與 `activeGeometryRevisionId`，三張平面的北向箭頭為 143°。
+- 以 main 重跑 `npm run build:drawings`，四張 SVG 與 main 相同（TASK-118 已更正版本與北向）。
 - `npm run lint`、`npm run build`、`npm run test:e2e`、`git diff --check` 通過。
 
 ## 結果

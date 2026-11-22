@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 import { resolveActiveGeometry, resolveGeometryEntity, sitePointToThree } from '../../../../core/geometry/active-geometry.mjs';
 import { deriveReferenceGeometry } from '../../../../core/geometry/drawing-geometry.mjs';
 import { validateModel, validateSourceFiles } from '../../../../core/validation/model-validation.mjs';
-import { deriveSiteOrientation } from '../../../../core/geometry/site-orientation.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const readJson = async (path) => JSON.parse(await readFile(resolve(repoRoot, path), 'utf8'));
@@ -159,6 +158,42 @@ test('L1 keeps four independent toilets, equipment rooms, and separated entrance
   assert.equal(active.l1.structuralStrategy.glassCarriesGravityLoad, false);
 });
 
+test('DEC-157 pool-use route and DEC-158 teaching platform are complete and fail closed', () => {
+  const active = resolveActiveGeometry(model);
+  const use = active.l1.poolUse;
+  assert.equal(use.entryVestibule.floorElevation, 0);
+  assert.equal(use.dryCorridor.floorElevation, 0.3);
+  assert.equal(use.entryRamp.slopeRatio, 12);
+  assert.equal(use.rinseGate.showerHeads, 3);
+  assert.equal(use.dryCorridorParapet.height, 1.1);
+  assert.deepEqual(active.l1.zones.waterTreatment.bounds, { x1: 34, x2: 39, y1: 7.5, y2: 14 });
+  assert.equal('storage' in active.l1.zones, false);
+  assert.deepEqual(use.classRoute.map(({ id }) => id), ['route-entry', 'route-corridor', 'route-stair', 'route-rinse', 'route-assembly']);
+  assert.equal(active.l1.pool.teachingPlatform.removable, true);
+  assert.ok(active.l1.pool.teachingPlatform.topWaterDepth < active.l1.pool.shallowDepth);
+
+  const mutate = (change) => {
+    const copy = structuredClone(model);
+    change(resolveActiveGeometry(copy));
+    return validateModel(copy).join('\n');
+  };
+  assert.match(mutate((g) => { g.l1.poolUse.entryVestibule.floorElevation = 0.3; }), /L1 base elevation/);
+  assert.match(mutate((g) => { g.l1.poolUse.entryVestibule.shoeCubbyPairs = 30; }), /60 shoe cubbies/);
+  assert.match(mutate((g) => { g.l1.poolUse.entryRamp.bounds.x2 = 7; }), /1:12 or gentler/);
+  assert.match(mutate((g) => { g.l1.poolUse.entrySteps.riserHeight = 0.18; }), /entry steps must rise exactly/);
+  assert.match(mutate((g) => { g.l1.poolUse.dryCorridorParapet.height = 0.9; }), /1\.1 m low wall/);
+  assert.match(mutate((g) => { g.l1.poolUse.rinseGate.onlyRouteFromStairToDeck = false; }), /only through the foot bath/);
+  assert.match(mutate((g) => { g.l1.poolUse.lifeguardChair.bounds = { x1: 22, x2: 22.8, y1: 2.4, y2: 3.6 }; }), /lifeguard chair must stand on the assembly deck/);
+  assert.match(mutate((g) => { g.l1.poolUse.accessibleChanging.bounds.y1 = 7; }), /must not overlap each other or the four toilets/);
+  assert.match(mutate((g) => { g.l1.poolUse.accessibleChanging.entrance.clearWidth = 0.8; }), /Z-L1-ACC-01 needs a door of at least 0\.90 m/);
+  assert.match(mutate((g) => { g.l1.poolUse.staffFirstAid.poolViewWindow.spanY = [12.5, 13.5]; }), /without overlapping its door/);
+  assert.match(mutate((g) => { g.l1.zones.storage = { entityId: 'Z-STOR-01', coordinateSystemId: 'SITE-XY', bounds: { x1: 31, x2: 32.5, y1: 7.5, y2: 14 } }; }), /replaces the dry storage room/);
+  assert.match(mutate((g) => { g.l1.poolUse.poolLift.type = 'fixed'; }), /mobile lift/);
+  assert.match(mutate((g) => { g.l1.poolUse.classRoute.reverse(); }), /entry, corridor, stair, rinse, assembly/);
+  assert.match(mutate((g) => { g.l1.pool.teachingPlatform.topWaterDepth = 1.3; }), /below the water surface/);
+  assert.match(mutate((g) => { g.l1.pool.teachingPlatform.bounds.x1 = 4; }), /fill the teaching band from the shallow end/);
+});
+
 test('L2 Review A provides 30 inclusive 1.2 m showers, support fixtures, corridor, and floating ST-02', () => {
   const l2 = resolveActiveGeometry(model).l2;
   assert.deepEqual(l2.y0ExteriorFacade.bounds, { x1: 29, x2: 41, y1: 0, y2: 0.14 });
@@ -250,19 +285,18 @@ test('current sheet registry and atlas source contain only latest v0.6.7 inline 
 
 test('all four reproducible drawings carry active revision and SITE-XY metadata', async () => {
   const names = ['DRAW-L1-PLAN', 'DRAW-L2-PLAN', 'DRAW-L3-PLAN', 'DRAW-LONGITUDINAL-SECTION'];
-  // The committed drawings must match the current model, not the release they were first drawn in.
-  const northRotation = deriveSiteOrientation(model.referenceSystem).svgNorthArrowRotation;
-  assert.equal(northRotation, 143);
   for (const name of names) {
     const base = resolve(repoRoot, 'drawings/current', name);
     const svg = await readFile(`${base}.svg`, 'utf8');
+    // Regenerated drawings must carry the current model and active geometry, not a stale release.
     assert.ok(svg.includes(`data-model-version="${model.modelVersion}"`), `${name} model version`);
     assert.ok(svg.includes(`data-active-geometry="${model.activeGeometryRevisionId}"`), `${name} active geometry`);
     assert.match(svg, /data-coordinate-system="SITE-XY"/);
     assert.match(svg, /非施工圖/);
     if (name !== 'DRAW-LONGITUDINAL-SECTION') {
       assert.match(svg, /data-north-plan-direction="lower-right"/);
-      assert.ok(svg.includes(`data-north-rotation="${northRotation}"`), `${name} north arrow`);
+      // 143° since the TASK-113 handedness fix (+X bearing 307°); the stale 0.6.7 drawings still showed 127°.
+      assert.match(svg, /data-north-rotation="143"/);
     }
     if (name === 'DRAW-L1-PLAN') {
       assert.doesNotMatch(svg, /data-privacy-screen="true"/);
