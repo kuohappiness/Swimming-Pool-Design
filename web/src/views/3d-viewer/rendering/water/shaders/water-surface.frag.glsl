@@ -120,6 +120,8 @@ void main() {
     float sunAbove = smoothstep(0.0, 0.08, uSunDirection.y);
     float glint = pow(max(dot(reflected, uSunDirection), 0.0), uSunGlintSharpness);
     vec3 sunGlint = uSunColor * sunAbove * glint * (uSunGlintSharpness + 2.0) * 0.0795775;
+    // 影子裡的水面沒有太陽的反光。
+    if (glint > 1.0e-4) sunGlint *= sunVisibilityAtSurface(vLocalPosition.xz, 4);
 
     color = mix(refraction, reflection, fresnel) + sunGlint * fresnel;
   } else {
@@ -141,7 +143,7 @@ void main() {
       vec3 above = sampleReflection(vLocalPosition, refracted);
       float sunAbove = smoothstep(0.0, 0.08, uSunDirection.y);
       float disc = pow(max(dot(refracted, uSunDirection), 0.0), uSunGlintSharpness * 0.25);
-      above += uSunColor * sunAbove * disc * 4.0;
+      if (disc > 1.0e-4) above += uSunColor * sunAbove * disc * 4.0 * sunVisibilityAtSurface(vLocalPosition.xz, 4);
       color = mix(above, internal, fresnel);
     }
     // 鏡頭到水面這一段的水色由場景的水下霧處理（最後的 fog_fragment），其他水下物件也是同一套，

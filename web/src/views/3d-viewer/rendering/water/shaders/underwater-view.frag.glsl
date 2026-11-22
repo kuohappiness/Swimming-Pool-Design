@@ -84,6 +84,8 @@ void main() {
         vec3 position = eye + direction * along;
         float depth = uWaterLevel - position.y;
         float lit = max(shaftGain(position, towardSun) - SHAFT_THRESHOLD, 0.0) * step(0.0, depth);
+        // 屋架與牆的影子把光束切開：影子裡沒有光束。
+        if (lit > 0.0) lit *= sunVisibility(position, 1);
         // 陽光從水面走到這一點，再從這一點走到鏡頭，兩段都被水吸收。
         shafts += waterTransmittance(max(depth, 0.0) / max(towardSun.y, 0.2) + along) * lit * stepLength;
       }

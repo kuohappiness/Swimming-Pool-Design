@@ -16,6 +16,7 @@ import {
   WaterSurface,
   type PoolBasinShape,
   type PoolHallShape,
+  type WaterSunShadow,
 } from './water-surface';
 
 const RIPPLE_NORMAL_URL = new URL(
@@ -30,6 +31,10 @@ const CAUSTICS_URL = new URL(
 /** 探針放在池面中央上方這麼高（公尺）：太低會被池緣擋住地平線附近的景物。 */
 const PROBE_HEIGHT_ABOVE_WATER = 0.5;
 const ALIGNMENT_TOLERANCE = 1e-4;
+/** 查水面上一點在不在影子裡時的深度偏移：池緣這類貼著水面的構件不會因為誤差把水邊染黑。 */
+const WATER_SHADOW_BIAS_METRES = 0.03;
+/** 水裡影子邊緣的取樣半徑（陰影貼圖的格數）：屋架離水面幾公尺，影子落到水裡已經有點柔。 */
+const WATER_SHADOW_RADIUS_TEXELS = 2;
 
 interface WaterDetail {
   /** 水面網格的格距（公尺）。 */
@@ -115,6 +120,9 @@ export class RealisticWaterPresentation {
   private readonly sunDirection = new THREE.Vector3(0, 1, 0);
   private readonly sunColor = new THREE.Color();
   private readonly skyColor = new THREE.Color();
+  private readonly sunShadow: { -readonly [Key in keyof WaterSunShadow]: WaterSunShadow[Key] | null } = {
+    map: null, matrix: null, bias: 0, radius: 0,
+  };
 
   constructor(initialProfile: RenderQualityProfile, options: RealisticWaterOptions) {
     if (!options.renderer && !(options.textureSource && options.createReflectionProbe)) {
@@ -283,9 +291,24 @@ export class RealisticWaterPresentation {
       this.sunDirection.set(0, 1, 0);
       this.sunColor.setScalar(0);
     }
+    const shadow = this.sun?.castShadow && this.sun.visible ? this.sun.shadow : null;
+    const shadowMap = shadow?.map?.depthTexture ?? null;
+    // 只認深度比較用的貼圖（PCF 陰影）；其他陰影類型的貼圖格式不同，水就不查陰影。
+    let sunShadow: WaterSunShadow | null = null;
+    if (shadow && shadowMap && shadowMap.compareFunction !== null) {
+      this.sunShadow.map = shadowMap;
+      this.sunShadow.matrix = shadow.matrix;
+      this.sunShadow.bias = WATER_SHADOW_BIAS_METRES / Math.max(shadow.camera.far - shadow.camera.near, 1e-3);
+      this.sunShadow.radius = WATER_SHADOW_RADIUS_TEXELS / Math.max(shadow.mapSize.x, 1);
+      sunShadow = this.sunShadow as WaterSunShadow;
+    }
+
     if (this.ambient) {
-      this.skyColor.copy(this.ambient.color)
-        .multiplyScalar(this.ambient.visible ? this.ambient.intensity : 0);
+      // 有算出來的天光時用整片天空的照度（半球光只是其中一部分，其餘在環境貼圖裡，水不吃環境貼圖）。
+      const skyIrradiance = this.ambient.userData.skyIrradiance;
+      this.skyColor.copy(this.ambient.color).multiplyScalar(
+        this.ambient.visible ? (typeof skyIrradiance === 'number' ? skyIrradiance : this.ambient.intensity) : 0,
+      );
     } else {
       this.skyColor.setScalar(1);
     }
@@ -299,6 +322,7 @@ export class RealisticWaterPresentation {
       sunDirection: this.sunDirection,
       sunColor: this.sunColor,
       skyColor: this.skyColor,
+      sunShadow,
     });
   }
 

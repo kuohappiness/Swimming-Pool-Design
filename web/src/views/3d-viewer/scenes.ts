@@ -1,4 +1,5 @@
 import manifest from './scene-manifest.json';
+import type { SceneLightingPreset } from './rendering/lighting/lighting-state';
 
 export type EnvironmentId = 'day' | 'winter-light' | 'rain' | 'soft';
 
@@ -13,7 +14,10 @@ export interface ViewerSceneConfig {
   };
   camera: { position: [number, number, number]; target: [number, number, number]; fov: number };
   layers: string[];
+  /** 基本繪圖路徑（沒有進階光影時）用的固定環境。 */
   environment: EnvironmentId;
+  /** 這個場景自帶的日期、時刻與天氣；太陽位置由它算出來。 */
+  lighting: SceneLightingPreset;
 }
 
 export const viewerScenes = manifest.scenes as ViewerSceneConfig[];
