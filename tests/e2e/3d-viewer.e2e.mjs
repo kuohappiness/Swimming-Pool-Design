@@ -503,6 +503,9 @@ try {
   // is never asserted here.
   for (const budget of [
     { label: 'desktop high', viewport: { width: 1440, height: 900 }, quality: 'high', ...RENDER_BUDGETS.high },
+    // The medium budget holds on a desktop viewport too, now that no material uses
+    // transmission (which redrew every opaque object a second time).
+    { label: 'desktop medium', viewport: { width: 1440, height: 900 }, quality: 'medium', ...RENDER_BUDGETS.medium },
     { label: 'mobile medium', viewport: { width: 390, height: 844 }, quality: 'medium', ...RENDER_BUDGETS.medium },
   ]) {
     const page = await browser.newPage({ viewport: budget.viewport, deviceScaleFactor: 1 });
