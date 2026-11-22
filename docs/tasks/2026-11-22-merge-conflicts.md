@@ -23,6 +23,7 @@
 | GitHub 網頁端 | 不套用 `.gitattributes` 的合併設定（GitHub 社群討論 #9288 仍是功能請求），網頁上可能照樣顯示衝突。工作流程第 6 節改寫：接 main 一律在本機 `git merge origin/main` 再推，GitHub 合併已接上 main 的分支時不會再衝突 |
 | 網站文字快照 | 修訂 DEC-137：快照一個版本一份，只在發版 PR（改了 `package.json` 版號）重產。`npm run build:copy` 在快照已是目前版本時拒絕執行（`-- --force` 例外）；`check:docs` 檢查快照版本與套件版本一致，發版 PR 忘了重產會被擋 |
 | Dependabot | npm 與 GitHub Actions 都改成一次只開一個更新 PR，因為它會動 `package.json` 與 lock 檔 |
+| 合併後的狀態 | 工作流程 2.5 節寫明不另開收尾 PR：要等使用者審閱、留著「待審」合併的任務，由下一個動到 roadmap 的 PR 順手改成「已合併」。本 PR 順手收掉 TASK-121 |
 
 不做：
 
