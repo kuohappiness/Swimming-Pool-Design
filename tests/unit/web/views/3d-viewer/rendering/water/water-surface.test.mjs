@@ -83,9 +83,12 @@ test('material inlines the shared basin shader and keeps tone mapping, colour sp
   const material = createWaterSurfaceMaterial(options());
   assert.equal(material.name, 'realistic:water-surface');
   assert.doesNotMatch(material.fragmentShader, /\/\/ #include pool-basin/);
-  for (const symbol of ['intersectBasin', 'shadePoolBasin', 'poolCaustic', 'applyWaterColumn']) {
+  for (const symbol of ['intersectBasin', 'shadePoolBasin', 'poolCaustic', 'applyWaterColumn', 'mirrorBounceMask', 'mirrorBounceInWater']) {
     assert.match(material.fragmentShader, new RegExp(`\\b${symbol}\\(`));
   }
+  assert.doesNotMatch(material.fragmentShader, /\/\/ #include mirror-bounce/);
+  // 鏡牆反射光的開關預設關著。
+  assert.equal(material.uniforms.uMirrorBounceColor.value.w, 0);
   for (const chunk of [
     'tonemapping_fragment',
     'colorspace_fragment',
@@ -190,6 +193,52 @@ test('per-frame update only writes uniforms, in the mirrored and rotated site fr
   water.dispose();
   water.update({ timeSeconds: 9, camera, sunDirection: worldSun, sunColor: new THREE.Color(), skyColor: new THREE.Color() });
   assert.equal(uniforms.uTime.value, 3, 'a disposed surface ignores updates');
+});
+
+test('the mirror wall’s reflected light reaches the water in the water mesh’s own coordinates', async () => {
+  const { mirrorWallFromViewerModel, mirrorBounceToWorld, computeMirrorBounce } =
+    await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/mirror-bounce.ts');
+  const { buildViewerModel } = await import('../../../../../../../core/viewer/viewer-data.mjs');
+  const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+  const { readFile } = await import('node:fs/promises');
+  const [sourceModel, registry] = await Promise.all([
+    readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
+  ]);
+  const wall = mirrorWallFromViewerModel(buildViewerModel(sourceModel, registry));
+  const site = sourceModel.referenceSystem.siteLocation;
+  const lighting = computeSunLighting({
+    moment: { year: 2026, month: 12, day: 21, minutes: 9 * 60 + 30 },
+    location: { latitude: site.latitude.value, longitude: site.longitude.value, utcOffsetHours: site.utcOffsetHours },
+    positiveXAxisBearingFromTrueNorth: wall.positiveXAxisBearingFromTrueNorth,
+    weather: 'clear',
+  });
+  const siteRoot = new THREE.Group();
+  siteRoot.scale.set(1, 1, -1);
+  const world = new THREE.Group();
+  world.rotation.y = THREE.MathUtils.degToRad(143);
+  world.add(siteRoot);
+  const water = new WaterSurface(options());
+  siteRoot.add(water.mesh);
+  world.updateMatrixWorld(true);
+  const bounce = mirrorBounceToWorld(computeMirrorBounce(lighting, wall), siteRoot);
+  const frame = {
+    timeSeconds: 0,
+    camera: new THREE.PerspectiveCamera(),
+    sunDirection: new THREE.Vector3(0, 1, 0),
+    sunColor: new THREE.Color(1, 1, 1),
+    skyColor: new THREE.Color(1, 1, 1),
+  };
+  const { uniforms } = water.mesh.material;
+  water.update({ ...frame, mirrorBounce: bounce });
+  assert.equal(uniforms.uMirrorBounceColor.value.w, 1);
+  // 水面網格直接掛在 SITE 根節點下：物件座標就是 SITE 的 (x, 高程, y)。
+  const corner = computeMirrorBounce(lighting, wall).corners[0];
+  assert.ok(uniforms.uMirrorBounceOrigin.value.distanceTo(new THREE.Vector3(corner.x, corner.z, corner.y)) < 1e-9);
+  assert.ok(uniforms.uMirrorBounceDirection.value.y < -0.5, 'travels down onto the water');
+  water.update(frame);
+  assert.equal(uniforms.uMirrorBounceColor.value.w, 0, 'no bounce given, none drawn');
+  water.dispose();
 });
 
 test('the water asks the sun shadow map whether a point is lit, and always has a depth texture bound', () => {
