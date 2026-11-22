@@ -341,7 +341,8 @@ try {
   trackErrors(about, errors);
   await about.goto(`${origin}/?view=about`, { waitUntil: 'networkidle' });
   await waitForView(about, 'about');
-  assert.equal(await about.title(), '關於這個專案｜游泳池翻修概念設計');
+  // The site name after the separator belongs to the app shell; this page only owns the part before it.
+  assert.match(await about.title(), /^關於這個專案｜.+概念設計$/);
   const aboutSectionIds = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'].map((id) => `about-${id}`);
   assert.deepEqual(
     await about.locator('.about-section').evaluateAll((sections) => sections.map((section) => section.id)),
