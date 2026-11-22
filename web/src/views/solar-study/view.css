@@ -1,420 +1,1206 @@
-body {
-  color: var(--site-ink);
-  background: var(--site-paper);
-}
+/*
+ * 日照研究頁。所有規則都收在這一頁的範圍內，不會影響頁首、頁尾與其他分頁；
+ * 外層用 :where() 包住，不增加選擇器權重。
+ */
+:where(.site-view--solar-study) {
+  --ink: #102b3a;
+  --muted: #607681;
+  --panel: #fffdf8;
+  --winter: #e5a23d;
+  --summer: #e15a4f;
+  --wall: #176f89;
+  --water: #63c6d7;
+  --fixed: #537b68;
+  --upper: #b45247;
+  --soft: #eaf1f1;
 
-.site-view {
-  padding: 0;
-}
+  font-family: Inter, 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
 
-.site-footer {
-  display: grid;
-  padding: 1.5rem 0 max(2rem, env(safe-area-inset-bottom));
-  color: var(--site-muted);
-}
-
-.site-footer p {
-  margin: 0;
-}
-
-.view-intro--solar {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
-  column-gap: 5rem;
-  padding-bottom: clamp(1.5rem, 3vw, 3rem);
-  border-bottom: 0;
-}
-
-.view-intro--solar .site-kicker,
-.view-intro--solar .site-section-description,
-.view-intro--solar h1 {
-  grid-column: 1;
-}
-
-.view-intro--solar > p:not(.site-section-description) {
-  grid-column: 1;
-}
-
-.solar-signature {
-  grid-column: 2;
-  grid-row: 1 / span 4;
-  align-self: end;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin: 0;
-  border-top: 1px solid var(--site-line-strong);
-}
-
-.solar-signature div {
-  padding: 1.25rem 0;
-  border-bottom: 1px solid var(--site-line);
-}
-
-.solar-signature div:nth-child(odd) {
-  padding-right: 1rem;
-  border-right: 1px solid var(--site-line);
-}
-
-.solar-signature div:nth-child(even) {
-  padding-left: 1rem;
-}
-
-.solar-signature dt {
-  color: var(--site-muted);
-  font-size: .7rem;
-}
-
-.solar-signature dd {
-  margin: .35rem 0 0;
-  color: var(--site-ink);
-  font-family: var(--site-mono);
-  font-size: clamp(1.1rem, 2vw, 1.55rem);
-}
-
-.solar-study-view.wrap {
-  max-width: 1440px;
-  padding: 4rem 20px;
-}
-
-.solar-model {
-  width: var(--site-page);
-  margin: 0 auto;
-  padding-top: clamp(1rem, 2vw, 2rem);
-  border-bottom: 0;
-}
-
-.solar-model > h2,
-.research-conclusion-heading h2 {
-  margin: 0;
-  color: var(--site-ink);
-  font-family: var(--site-sans);
-  font-size: clamp(1.68rem, 2.88vw, 2.16rem);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0;
-}
-
-.solar-model > h2 span,
-.research-conclusion-heading h2 span {
-  color: var(--site-water);
-}
-
-.solar-model .solar-model-content {
-  width: 100%;
-  max-width: none;
-  padding: 1rem 0 clamp(1.2rem, 2.1vw, 2.1rem);
-}
-
-.solar-meta {
-  width: var(--site-page);
-  margin: 0 auto;
-  padding: clamp(.9rem, 1.8vw, 1.8rem) 0 0;
-}
-
-.solar-study-view.solar-meta .facts {
-  justify-content: flex-end;
-  margin: 0;
-  border-bottom: 0;
-}
-
-.solar-trust-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  width: 100%;
-  margin: 0;
-  padding: 1rem 0;
-  color: var(--site-muted);
-  border-bottom: 1px solid var(--site-line);
-  font: 700 13px/1.2 ui-monospace, monospace;
-}
-
-.solar-study-view .lead {
-  max-width: var(--site-reading);
-  color: var(--site-ink);
-  font-family: var(--site-serif);
-  font-size: clamp(1.15rem, 2vw, 1.55rem);
-}
-
-.solar-study-view .facts {
-  gap: 0;
-  border-block: 1px solid var(--site-line);
-}
-
-.solar-study-view .pill {
-  padding: .8rem 1.2rem .8rem 0;
-  color: var(--site-muted);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.research-conclusion {
-  margin: 0;
-  padding: 0 0 clamp(2.4rem, 6vw, 3.6rem);
-}
-
-.research-conclusion-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-}
-
-.research-conclusion-heading a {
-  color: var(--site-water);
-  font-size: .78rem;
-  font-weight: 700;
-  text-decoration-color: color-mix(in srgb, var(--site-water) 35%, transparent);
-  text-underline-offset: .25rem;
-}
-
-.research-conclusion-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
-  border-block: 1px solid var(--site-line-strong);
-}
-
-.research-conclusion-metrics > div {
-  min-width: 0;
-  padding: 1.15rem 1.4rem 1.35rem;
-  border-right: 1px solid var(--site-line);
-}
-
-.research-conclusion-metrics > div:last-child {
-  padding-right: 0;
-  border-right: 0;
-}
-
-.research-conclusion-metrics dt {
-  color: var(--site-muted);
-  font-size: .76rem;
-  letter-spacing: .02em;
-}
-
-.research-conclusion-metrics dd {
-  margin: .45rem 0 0;
-  color: var(--site-ink);
-  font-family: var(--site-mono);
-  font-size: clamp(1.55rem, 2.5vw, 2.35rem);
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -.045em;
-  white-space: nowrap;
-}
-
-.research-conclusion-metrics dd strong {
-  font: inherit;
-}
-
-.research-conclusion-metrics dd small {
-  display: block;
-  margin-top: .45rem;
-  color: var(--site-water);
-  font-size: .72rem;
-  letter-spacing: .02em;
-}
-
-.research-conclusion-note {
-  max-width: var(--site-reading);
-  margin: .8rem 0 0;
-  color: var(--site-muted);
-  font-size: .72rem;
-  line-height: 1.65;
-}
-
-.solar-study-view .stage {
-  gap: 1.25rem;
-}
-
-.solar-study-view .panel {
-  padding: 1.5rem;
-  border: 1px solid var(--site-line);
-  border-radius: var(--site-radius);
-  background: var(--site-paper-raised);
-  box-shadow: none;
-}
-
-.solar-study-view svg {
-  border: 1px solid var(--site-line);
-  border-radius: 0;
-  background: var(--site-white);
-}
-
-.solar-study-view .control,
-.solar-study-view .metric,
-.solar-study-view .result,
-.solar-study-view .note,
-.solar-study-view .principle-grid > div {
-  border-radius: var(--site-radius);
-  box-shadow: none;
-}
-
-.solar-study-view .swatch.current-path {
-  background: var(--site-gold);
-}
-
-.solar-method {
-  width: 100%;
-  margin: 0;
-  border: 0;
-}
-
-.solar-method summary {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  color: var(--site-ink);
-  font-family: var(--site-sans);
-  font-size: clamp(1.68rem, 2.88vw, 2.16rem);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0;
-}
-
-.solar-method summary::before {
-  content: "|";
-  margin-right: .3rem;
-  color: var(--site-water);
-}
-
-.solar-method summary::after {
-  content: "";
-  width: .5rem;
-  height: .5rem;
-  margin-left: auto;
-  margin-right: .2rem;
-  border-right: 1.5px solid color-mix(in srgb, var(--site-water) 78%, transparent);
-  border-bottom: 1.5px solid color-mix(in srgb, var(--site-water) 78%, transparent);
-  transform: rotate(45deg);
-  transition: transform 180ms ease, border-color 180ms ease;
-}
-
-.solar-method[open] summary::after {
-  transform: rotate(225deg);
-}
-
-.solar-study-view.solar-study-details {
-  padding-bottom: clamp(2.4rem, 6vw, 3.6rem);
-}
-
-.site-view--solar-study + .site-footer {
-  margin-top: 0;
-}
-
-.solar-method > div {
-  padding: 0 0 1.5rem;
-  color: var(--site-muted);
-  font-size: .8rem;
-  line-height: 1.8;
-}
-
-.solar-method p {
-  margin: .5rem 0;
-}
-
-@media (hover: hover) {
-  .solar-method summary:hover::after {
-    border-color: var(--site-water);
+  button,
+  input {
+    font: inherit;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .solar-method summary::after {
-    transition: none;
+  .wrap {
+    max-width: 1360px;
+    margin: auto;
+    padding: 12px 28px 30px;
   }
-}
 
-@media (max-width: 920px) {
-  .view-intro--solar {
+  .facts {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0 24px;
+  }
+
+  .pill {
+    padding: 8px 12px;
+    border: 1px solid #c4d3d6;
+    border-radius: 999px;
+    background: #e5edef;
+    font:
+      700 13px/1.2 ui-monospace,
+      monospace;
+  }
+
+  .stage {
+    display: grid;
+    grid-template-columns: 1fr 1.22fr;
+    gap: 18px;
+  }
+
+  .panel {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid #d7d0c4;
+    border-radius: 16px;
+    background: var(--panel);
+    box-shadow: 0 8px 24px rgba(30, 48, 55, 0.06);
+  }
+
+  h2 {
+    margin: 0 0 5px;
+    font-size: 20px;
+  }
+
+  .sub {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  svg {
     display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid #e3ddd2;
+    border-radius: 12px;
+    background: #fbfaf5;
   }
 
-  .solar-signature {
-    margin-top: 2.5rem;
+  svg text {
+    font-family: inherit;
+  }
+
+  .compass-disc {
+    fill: #f7f4ec;
+    stroke: #cbd5d5;
+  }
+
+  .compass-inner {
+    fill: none;
+    stroke: #dce3e2;
+  }
+
+  .compass-axis {
+    stroke: #d3d9d7;
+  }
+
+  .cardinal {
+    fill: var(--ink);
+    font-weight: 800;
+  }
+
+  .fixed-footprint {
+    fill: #dbe5e0;
+    stroke: var(--fixed);
+    stroke-width: 3;
+  }
+
+  .pool-plan {
+    fill: var(--water);
+    fill-opacity: 0.78;
+  }
+
+  .core-plan {
+    fill: rgba(83, 123, 104, 0.16);
+    stroke: rgba(83, 123, 104, 0.48);
+  }
+
+  .upper-plan {
+    fill: #edd7d2;
+    fill-opacity: 0.9;
+    stroke: var(--upper);
+    stroke-width: 3;
+  }
+
+  .mirror-edge {
+    stroke: var(--wall);
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+
+  .building-label {
+    fill: var(--ink);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .small-building-label {
+    fill: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .study-pivot {
+    fill: var(--ink);
+  }
+
+  .azimuth-tolerance-visual {
+    pointer-events: none;
+  }
+
+  .azimuth-tolerance-fan {
+    fill: var(--water);
+    fill-opacity: 0.16;
+    stroke: none;
+  }
+
+  .azimuth-tolerance-bound {
+    stroke: var(--water);
+    stroke-width: 2;
+    stroke-dasharray: 5 6;
+    opacity: 0.9;
+  }
+
+  .azimuth-tolerance-label {
+    fill: var(--wall);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .wall-normal {
+    stroke: var(--wall);
+    stroke-width: 4;
+    stroke-dasharray: 9 7;
+  }
+
+  .wall-label {
+    fill: var(--wall);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .solar-path-track {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.34;
+    pointer-events: none;
+  }
+
+  .solar-path-point {
+    opacity: 0.58;
+  }
+
+  .solar-hour-point.is-selected .solar-path-point {
+    opacity: 1;
+    stroke: var(--panel);
+    stroke-width: 3;
+  }
+
+  .selected-sun-ray {
+    fill: none;
+    stroke-width: 4.8;
+    stroke-linecap: round;
+    opacity: 0.9;
+  }
+
+  .selected-reflected-ray {
+    fill: none;
+    stroke-width: 4.8;
+    stroke-linecap: round;
+    stroke-dasharray: 10 8;
+    opacity: 0.9;
+  }
+
+  .selected-sun-point {
+    stroke: var(--panel);
+    stroke-width: 4;
+  }
+
+  .selected-sun-label {
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .selected-reflection-label {
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .plan-incident-point {
+    fill: var(--panel);
+    stroke: var(--wall);
+    stroke-width: 3;
+    pointer-events: none;
+  }
+
+  .sun-below-label {
+    fill: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 18px;
+    height: 4px;
+    margin: 0 6px 3px 0;
+    border-radius: 3px;
+  }
+
+  .swatch.fixed {
+    background: var(--fixed);
+  }
+
+  .swatch.upper {
+    background: var(--upper);
+  }
+
+  .swatch.wall {
+    background: var(--wall);
+  }
+
+  .swatch.tolerance {
+    height: 8px;
+    border: 1px solid var(--water);
+    background: rgba(99, 198, 215, 0.22);
+  }
+
+  .swatch.current-path {
+    height: 3px;
+    background: linear-gradient(90deg, var(--winter), var(--summer));
+    opacity: 0.6;
+  }
+
+  .swatch.incoming {
+    background: var(--winter);
+  }
+
+  .swatch.reflected {
+    height: 0;
+    border-top: 4px dashed var(--winter);
+    border-radius: 0;
+  }
+
+  .section-bg {
+    fill: #fbfaf5;
+  }
+
+  .water-section {
+    fill: var(--water);
+    fill-opacity: 0.84;
+  }
+
+  .ground-line {
+    stroke: #314955;
+    stroke-width: 3;
+  }
+
+  .upper-section {
+    fill: #eaded5;
+    stroke: #314955;
+    stroke-width: 3;
+  }
+
+  .mirror-wall {
+    stroke: var(--wall);
+    stroke-width: 12;
+    stroke-linecap: round;
+  }
+
+  .minimum-downward-line {
+    stroke: var(--water);
+    stroke-width: 3;
+    stroke-dasharray: 7 6;
+  }
+
+  .minimum-downward-label {
+    fill: var(--wall);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .incoming-ray {
+    fill: none;
+    stroke: var(--winter);
+    stroke-width: 4;
+  }
+
+  .reflected-ray {
+    fill: none;
+    stroke: var(--winter);
+    stroke-width: 4;
+    stroke-dasharray: 8 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .sun-label {
+    fill: #a86a14;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .ray-label {
+    fill: var(--winter);
+    stroke: #fbfaf5;
+    stroke-width: 4;
+    paint-order: stroke;
+    stroke-linejoin: round;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .side-label {
+    fill: var(--muted);
+    font-size: 13px;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 14px 0;
+  }
+
+  .controls-intro {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .live-preview {
+    grid-column: 1 / -1;
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 6px);
+    z-index: 20;
+    padding: 9px;
+    border: 1px solid #b8c9cc;
+    border-radius: 12px;
+    background: rgba(255, 253, 248, 0.97);
+    box-shadow: 0 10px 28px rgba(35, 61, 69, 0.18);
+    backdrop-filter: blur(10px);
+  }
+
+  .live-preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .live-preview-toolbar strong {
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  .mobile-preview-tabs {
+    display: none;
+    gap: 5px;
+  }
+
+  .mobile-preview-tabs button {
+    min-width: 58px;
+    min-height: 38px;
+    padding: 5px 10px;
+    border: 1px solid #a9bec3;
+    border-radius: 8px;
+    background: white;
+    color: var(--muted);
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .mobile-preview-tabs button[aria-pressed='true'] {
+    border-color: var(--wall);
+    background: var(--wall);
+    color: white;
+  }
+
+  .mobile-preview-tabs button:focus-visible {
+    outline: 3px solid rgba(23, 111, 137, 0.22);
+    outline-offset: 2px;
+  }
+
+  .desktop-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 7px;
+  }
+
+  .desktop-preview-grid figure {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .desktop-preview-grid figcaption {
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .desktop-preview-viewport {
+    height: clamp(160px, 14vw, 210px);
+    overflow: hidden;
+    border: 1px solid #d9d4c9;
+    border-radius: 9px;
+    background: #fbfaf5;
+  }
+
+  .desktop-preview-viewport svg,
+  .mobile-preview-viewport svg {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .mobile-preview-viewport {
+    display: none;
+    height: clamp(178px, 25vh, 210px);
+    margin-top: 7px;
+    overflow: hidden;
+    border: 1px solid #d9d4c9;
+    border-radius: 9px;
+    background: #fbfaf5;
+  }
+
+  .live-preview > small {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .mobile-preview-help {
+    display: none !important;
+  }
+
+  .control {
+    display: block;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--soft);
+    color: var(--ink);
+  }
+
+  .control span {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .control > label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .control b {
+    float: right;
+    color: var(--wall);
+    font-size: 13px;
+  }
+
+  .control input {
+    width: 100%;
+    color: var(--ink);
+  }
+
+  .control input[type='range'] {
+    accent-color: var(--wall);
+  }
+
+  .control input:focus-visible {
+    outline: 3px solid rgba(23, 111, 137, 0.2);
+    outline-offset: 2px;
+  }
+
+  .range-ends {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    color: var(--muted);
+    font:
+      700 10px/1 ui-monospace,
+      monospace;
+  }
+
+  .range-ends span:nth-child(2) {
+    text-align: center;
+  }
+
+  .range-ends span:last-child {
+    text-align: right;
+  }
+
+  .rotation-scale {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    margin-top: 5px;
+    color: var(--muted);
+    font:
+      700 9px/1 ui-monospace,
+      monospace;
+  }
+
+  .rotation-scale span {
+    margin: 0;
+    font: inherit;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .rotation-scale span:first-child {
+    text-align: left;
+  }
+
+  .rotation-scale span:last-child {
+    text-align: right;
+  }
+
+  .year-input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .year-input-row input {
+    min-height: 36px;
+    padding: 6px 8px;
+    border: 1px solid #aec3c7;
+    border-radius: 7px;
+    background: white;
+  }
+
+  .year-input-row button {
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid var(--wall);
+    border-radius: 7px;
+    background: white;
+    color: var(--wall);
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .year-input-row button:disabled {
+    border-color: #b8c6c8;
+    color: var(--muted);
+    cursor: default;
+  }
+
+  .time-scale {
+    position: relative;
+    height: 12px;
+    margin-top: 5px;
+    color: var(--muted);
+    font:
+      700 10px/1 ui-monospace,
+      monospace;
+  }
+
+  .time-scale span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+  }
+
+  .time-scale span:nth-child(1) {
+    left: 0;
+    transform: none;
+  }
+
+  .time-scale span:nth-child(2) {
+    left: 18.18%;
+  }
+
+  .time-scale span:nth-child(3) {
+    left: 45.45%;
+  }
+
+  .time-scale span:nth-child(4) {
+    left: 72.73%;
+  }
+
+  .time-scale span:nth-child(5) {
+    right: 0;
+    transform: none;
+  }
+
+  .control small {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .time-scope {
+    margin: 12px 0 0;
+    padding: 9px 11px;
+    border-left: 3px solid var(--wall);
+    background: rgba(23, 111, 137, 0.07);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .readout {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .metric {
+    padding: 9px;
+    border: 1px solid #ded8cc;
+    border-radius: 9px;
+    background: white;
+  }
+
+  .metric b {
+    display: block;
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  .metric span {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #c6d8cc;
+    border-radius: 10px;
+    background: #edf4ef;
+  }
+
+  .result strong {
+    font-size: 16px;
+  }
+
+  .result span {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: left;
+  }
+
+  .result.is-warn {
+    border-color: #ecc8b0;
+    background: #fff1e8;
+  }
+
+  .season-table-panel {
+    margin-top: 18px;
+  }
+
+  .table-notes-toggle {
+    margin: 12px 0 0;
+    border-block: 1px solid #d7d1c6;
+  }
+
+  .table-notes-toggle summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .table-notes-toggle ul {
+    margin: 0;
+    padding: 0 0 12px 20px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    min-width: 1040px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th,
+  td {
+    padding: 9px;
+    border-bottom: 1px solid #e3ded4;
+    text-align: right;
+  }
+
+  th:first-child,
+  td:first-child {
+    text-align: left;
+    font-weight: 700;
+  }
+
+  th {
+    color: var(--muted);
+  }
+
+  td.is-below-horizon {
+    color: #8a6b6b;
+    background: #fff6f3;
+  }
+
+  @media (max-width: 920px) {
+    .wrap {
+      padding: 10px 17px 24px;
+    }
+
+    .stage {
+      grid-template-columns: 1fr;
+    }
+
+    .controls {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .desktop-preview-grid,
+    .desktop-preview-help {
+      display: none !important;
+    }
+
+    .mobile-preview-tabs {
+      display: flex;
+    }
+
+    .mobile-preview-viewport {
+      display: block;
+    }
+
+    .mobile-preview-help {
+      display: block !important;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .facts {
+      gap: 7px;
+    }
+
+    .pill {
+      width: 100%;
+      font-size: 12px;
+    }
+
+    .panel {
+      padding: 14px;
+      border-radius: 12px;
+    }
+
+    .readout {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .result {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .result span {
+      text-align: left;
+    }
+
+    .legend {
+      gap: 9px 12px;
+      font-size: 12px;
+    }
+
+    .year-input-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media print {
+    .controls {
+      display: none;
+    }
+
+    .wrap {
+      max-width: none;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .panel {
+      box-shadow: none;
+      break-inside: avoid;
+    }
+  }
+
+  .view-intro--solar {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+    column-gap: 5rem;
+    padding-bottom: clamp(1.5rem, 3vw, 3rem);
+    border-bottom: 0;
+  }
+
+  .view-intro--solar .site-kicker,
+  .view-intro--solar .site-section-description,
+  .view-intro--solar h1 {
+    grid-column: 1;
+  }
+
+  .view-intro--solar > p:not(.site-section-description) {
+    grid-column: 1;
   }
 
   .solar-study-view.wrap {
-    padding-inline: 14px;
+    max-width: 1440px;
+    padding: 4rem 20px;
+  }
+
+  .solar-model {
+    width: var(--site-page);
+    margin: 0 auto;
+    padding-top: clamp(1rem, 2vw, 2rem);
+    border-bottom: 0;
+  }
+
+  .solar-model > h2,
+  .research-conclusion-heading h2 {
+    margin: 0;
+    color: var(--site-ink);
+    font-family: var(--site-sans);
+    font-size: clamp(1.68rem, 2.88vw, 2.16rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .solar-model > h2 span,
+  .research-conclusion-heading h2 span {
+    color: var(--site-water);
+  }
+
+  .solar-model .solar-model-content {
+    width: 100%;
+    max-width: none;
+    padding: 1rem 0 clamp(1.2rem, 2.1vw, 2.1rem);
+  }
+
+  .solar-meta {
+    width: var(--site-page);
+    margin: 0 auto;
+    padding: clamp(0.9rem, 1.8vw, 1.8rem) 0 0;
+  }
+
+  .solar-study-view.solar-meta .facts {
+    justify-content: flex-end;
+    margin: 0;
+    border-bottom: 0;
+  }
+
+  .solar-study-view .facts {
+    gap: 0;
+    border-block: 1px solid var(--site-line);
+  }
+
+  .solar-study-view .pill {
+    padding: 0.8rem 1.2rem 0.8rem 0;
+    color: var(--site-muted);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .research-conclusion {
+    margin: 0;
+    padding: 0 0 clamp(2.4rem, 6vw, 3.6rem);
+  }
+
+  .research-conclusion-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .research-conclusion-heading a {
+    color: var(--site-water);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration-color: color-mix(in srgb, var(--site-water) 35%, transparent);
+    text-underline-offset: 0.25rem;
+  }
+
+  .research-conclusion-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border-block: 1px solid var(--site-line-strong);
+  }
+
+  .research-conclusion-metrics > div {
+    min-width: 0;
+    padding: 1.15rem 1.4rem 1.35rem;
+    border-right: 1px solid var(--site-line);
+  }
+
+  .research-conclusion-metrics > div:last-child {
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .research-conclusion-metrics dt {
+    color: var(--site-muted);
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+  }
+
+  .research-conclusion-metrics dd {
+    margin: 0.45rem 0 0;
+    color: var(--site-ink);
+    font-family: var(--site-mono);
+    font-size: clamp(1.55rem, 2.5vw, 2.35rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.045em;
+    white-space: nowrap;
+  }
+
+  .research-conclusion-metrics dd strong {
+    font: inherit;
+  }
+
+  .research-conclusion-metrics dd small {
+    display: block;
+    margin-top: 0.45rem;
+    color: var(--site-water);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+
+  .research-conclusion-note {
+    max-width: var(--site-reading);
+    margin: 0.8rem 0 0;
+    color: var(--site-muted);
+    font-size: 0.72rem;
+    line-height: 1.65;
   }
 
   .solar-study-view .stage {
-    display: block;
+    gap: 1.25rem;
   }
 
-  .solar-study-view .stage > .panel + .panel {
-    margin-top: 1rem;
+  .solar-study-view .panel {
+    padding: 1.5rem;
+    border: 1px solid var(--site-line);
+    border-radius: var(--site-radius);
+    background: var(--site-paper-raised);
+    box-shadow: none;
   }
 
-  .solar-study-view .live-preview {
-    top: calc(var(--site-header-height) + 8px);
-    border-color: var(--site-line);
+  .solar-study-view svg {
+    border: 1px solid var(--site-line);
+    border-radius: 0;
+    background: var(--site-white);
+  }
+
+  .solar-study-view .control,
+  .solar-study-view .metric,
+  .solar-study-view .result {
     border-radius: var(--site-radius);
     box-shadow: none;
   }
 
-  .research-conclusion-metrics {
-    grid-template-columns: 1fr 1fr;
+  .solar-study-view .swatch.current-path {
+    background: var(--site-gold);
   }
 
-  .research-conclusion-metrics > div {
-    border-bottom: 1px solid var(--site-line);
+  .solar-method {
+    width: 100%;
+    margin: 0;
+    border: 0;
   }
 
-  .research-conclusion-metrics > div:nth-child(even) {
-    border-right: 0;
+  .solar-method summary {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--site-ink);
+    font-family: var(--site-sans);
+    font-size: clamp(1.68rem, 2.88vw, 2.16rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0;
   }
 
-  .research-conclusion-metrics > div:nth-child(3),
-  .research-conclusion-metrics > div:nth-child(4) {
-    border-bottom: 0;
+  .solar-method summary::before {
+    content: '|';
+    margin-right: 0.3rem;
+    color: var(--site-water);
+  }
+
+  .solar-method summary::after {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: auto;
+    margin-right: 0.2rem;
+    border-right: 1.5px solid color-mix(in srgb, var(--site-water) 78%, transparent);
+    border-bottom: 1.5px solid color-mix(in srgb, var(--site-water) 78%, transparent);
+    transform: rotate(45deg);
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .solar-method[open] summary::after {
+    transform: rotate(225deg);
+  }
+
+  .solar-study-view.solar-study-details {
+    padding-bottom: clamp(2.4rem, 6vw, 3.6rem);
+  }
+
+  .solar-method > div {
+    padding: 0 0 1.5rem;
+    color: var(--site-muted);
+    font-size: 0.8rem;
+    line-height: 1.8;
+  }
+
+  .solar-method p {
+    margin: 0.5rem 0;
+  }
+
+  @media (hover: hover) {
+    .solar-method summary:hover::after {
+      border-color: var(--site-water);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .solar-method summary::after {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 920px) {
+    .view-intro--solar {
+      display: block;
+    }
+
+    .solar-study-view.wrap {
+      padding-inline: 14px;
+    }
+
+    .solar-study-view .stage {
+      display: block;
+    }
+
+    .solar-study-view .stage > .panel + .panel {
+      margin-top: 1rem;
+    }
+
+    .solar-study-view .live-preview {
+      top: calc(var(--site-header-height) + 8px);
+      border-color: var(--site-line);
+      border-radius: var(--site-radius);
+      box-shadow: none;
+    }
+
+    .research-conclusion-metrics {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .research-conclusion-metrics > div {
+      border-bottom: 1px solid var(--site-line);
+    }
+
+    .research-conclusion-metrics > div:nth-child(even) {
+      border-right: 0;
+    }
+
+    .research-conclusion-metrics > div:nth-child(3),
+    .research-conclusion-metrics > div:nth-child(4) {
+      border-bottom: 0;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .solar-study-view .panel {
+      padding: 14px;
+    }
+
+    .research-conclusion-heading {
+      display: block;
+    }
+
+    .research-conclusion-heading a {
+      display: inline-block;
+      margin-top: 0.8rem;
+    }
+
+    .research-conclusion-metrics {
+      grid-template-columns: 1fr;
+    }
+
+    .research-conclusion-metrics > div,
+    .research-conclusion-metrics > div:first-child,
+    .research-conclusion-metrics > div:last-child {
+      padding: 1rem 0;
+      border-right: 0;
+      border-bottom: 1px solid var(--site-line);
+    }
+
+    .research-conclusion-metrics > div:last-child {
+      border-bottom: 0;
+    }
+
+    .research-conclusion-metrics > div:nth-child(3) {
+      border-bottom: 1px solid var(--site-line);
+    }
   }
 }
 
-@media (max-width: 520px) {
-  .solar-signature {
-    grid-template-columns: 1fr;
-  }
-
-  .solar-signature div:nth-child(odd),
-  .solar-signature div:nth-child(even) {
-    padding-inline: 0;
-    border-right: 0;
-  }
-
-  .solar-study-view .panel {
-    padding: 14px;
-  }
-
-  .research-conclusion-heading {
-    display: block;
-  }
-
-  .research-conclusion-heading a {
-    display: inline-block;
-    margin-top: .8rem;
-  }
-
-  .research-conclusion-metrics {
-    grid-template-columns: 1fr;
-  }
-
-  .research-conclusion-metrics > div,
-  .research-conclusion-metrics > div:first-child,
-  .research-conclusion-metrics > div:last-child {
-    padding: 1rem 0;
-    border-right: 0;
-    border-bottom: 1px solid var(--site-line);
-  }
-
-  .research-conclusion-metrics > div:last-child {
-    border-bottom: 0;
-  }
-
-  .research-conclusion-metrics > div:nth-child(3) {
-    border-bottom: 1px solid var(--site-line);
-  }
+/* 這一頁最後一段自己留了下緣間距，頁尾不再加上緣間距。 */
+.site-view--solar-study + .site-footer {
+  margin-top: 0;
 }

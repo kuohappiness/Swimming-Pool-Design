@@ -15,6 +15,9 @@ uniform vec3 uSkyColor;
 uniform vec3 uAbsorption;
 uniform sampler2D uCaustics;
 uniform vec4 uCausticLayers[2];
+uniform highp sampler2DShadow uSunShadowMap; // 與 pool-basin.glsl 相同
+uniform mat4 uSunShadowMatrix;
+uniform vec3 uSunShadow;
 uniform float uMoteSize;        // 微粒直徑（公尺）
 uniform float uViewportHeight;  // 畫布高度（像素）
 
@@ -48,6 +51,15 @@ void main() {
   float first = textureLod(uCaustics, (entry + uCausticLayers[0].zw * uTime) * uCausticLayers[0].x, 1.0).r;
   float second = textureLod(uCaustics, (entry + uCausticLayers[1].zw * uTime) * uCausticLayers[1].x, 1.0).r;
   float gain = min(first, second) * CAUSTIC_GAIN;
+  // 影子裡的微粒不被陽光照亮（和池底用同一張陰影貼圖，查光線穿出水面的位置）。
+  if (uSunShadow.x > 0.0) {
+    vec4 projected = uSunShadowMatrix * vec4(entry.x, uWaterLevel, entry.y, 1.0);
+    vec3 coordinate = projected.xyz / projected.w;
+    if (coordinate.x >= 0.0 && coordinate.x <= 1.0 && coordinate.y >= 0.0 && coordinate.y <= 1.0 && coordinate.z <= 1.0) {
+      coordinate.z -= uSunShadow.y;
+      gain *= mix(1.0, texture(uSunShadowMap, coordinate), uSunShadow.x);
+    }
+  }
   float sunAbove = smoothstep(0.0, 0.08, uSunDirection.y);
   vec3 sunlight = uSunColor * sunAbove * gain * exp(-uAbsorption * depth / max(towardSun.y, 0.2));
   vColor = (sunlight + uSkyColor * exp(-uAbsorption * depth) * 0.5) * 0.3183099;

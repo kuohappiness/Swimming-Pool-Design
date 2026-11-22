@@ -30,7 +30,7 @@ Swimming-Pool-Design/
 │  ├─ index.html             唯一的 HTML 入口
 │  └─ src/
 │     ├─ app/                bootstrap、app-shell、router、view-contract
-│     ├─ design-system/      共用樣式
+│     ├─ design-system/      共用樣式：index.css（唯一入口，定層的先後）、reset、tokens、typography、layout、components
 │     ├─ shared/             types.ts、assets/brand/
 │     ├─ generated/          build:content 的產物，不入庫
 │     └─ views/<view id>/    每個分頁一個資料夾；影像衍生檔放該頁的 assets/
@@ -39,6 +39,7 @@ Swimming-Pool-Design/
 │  ├─ build/                 build-content、build-drawings、render-drawing-png、build-copy、clean-dist、
 │  │                         build-textures；textures/ 放自製貼圖的產生程式，一張一檔
 │  ├─ check/                 check-docs、check-model、check-assets；status-line、workflow-docs（狀態行與 roadmap、backlog 分節）、
+│  │                         stylelint-view-scope（分頁樣式不得外溢的 stylelint 規則）、
 │  │                         source-registry（來源表與模型 sources 一致）、
 │  │                         legacy-status-docs.json（舊格式任務說明的凍結清單）
 │  ├─ analysis/              solar-optimize
@@ -98,7 +99,7 @@ Swimming-Pool-Design/
 
 README 只放定位、入口網址、現行版號與導覽表。repo 內的 skill 只保存工作程序並引用本文件，不複製 owner 對照表。
 
-`content/website-copy.md` 由 `npm run build:copy` 讀取實際渲染頁面後產生；任何公開文字或可見性調整後都應重新擷取，不得手動維護第二份可漂移的內容。
+`content/website-copy.md` 由 `npm run build:copy` 讀取實際渲染頁面後產生，一個版本一份：只在發版 PR 改了 `package.json` 版號後重產，功能 PR 不動它（[DEC-200](decisions.md)）；不得手動維護第二份可漂移的內容。
 
 ## 3. 新檔案放哪裡
 
@@ -171,7 +172,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 - 設計理念：章節錨點，例如 `#concept-light`；載入後會扣掉頁首高度再捲動。
 - 圖面：圖號 `#SITE`、`#L1`、`#L2`、`#L3`、`#SECTION`；舊的 `#REF-001`、`#V067-*` 轉到新圖號。
-- 3D：場景 id，`#overview`、`#light`、`#rain`、`#people`、`#time`。另接受 `quality`（`ultra`、`high`、`medium`、`saver`，舊連結的 `low` 視為 `saver`；優先於畫質選單記住的選擇），以及診斷用參數 `adaptive`、`rendering`、`water`、`batch`、`forceFallback`。
+- 3D：場景 id，`#overview`、`#light`、`#rain`、`#people`、`#time`。日照時刻用 `time`（校址當地時間，`2026-12-21T09:30`）與 `weather`（`clear`、`overcast`、`rain`；`night` 是晴天晚上九點的簡寫），只在使用者調離場景自帶的設定時才出現在網址上（[DEC-191](decisions.md)）。另接受 `quality`（`ultra`、`high`、`medium`、`saver`，舊連結的 `low` 視為 `saver`；優先於畫質選單記住的選擇），以及診斷用參數 `adaptive`、`rendering`、`water`、`batch`、`forceFallback`。
 - 關於：章節錨點 `#about-<節 id>`（`project`、`reading`、`sources`、`glossary`、`faq`、`downloads`）與項目錨點 `#about-<節 id>-<序號>`；指到常見問題的某一題時會自動展開。
 
 新增分頁的步驟：
@@ -187,6 +188,14 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 1. view id 用語意化的 kebab-case、不含版號，發布後不改名。
 2. 站內連結一律用 `hrefForView()` 或相對的 `?view=` 連結，不寫死絕對網址。
 3. 同一頁在導覽、標題與文件中只用一個名稱，以路由登錄表為準。
+
+樣式規則（`npm run lint:css` 與單元測試把關）：
+
+1. 共用樣式只放 `web/src/design-system/`。`index.css` 是唯一入口，並在那裡定層的先後：`reset → tokens → base → layout → components`，後面的層蓋過前面的層，不看選擇器權重。
+2. 分頁樣式只放 `web/src/views/<view id>/view.css`，一頁一檔，不放進層，所以一定蓋過共用樣式；不需要為了蓋過共用樣式而加重選擇器或用 `!important`。
+3. 分頁樣式不得影響別頁與共用外框：最外層的選擇器只能以這一頁自己的 class、id 或 `:where(.<class>)` 開頭，不寫 `html`、`body`、標籤、屬性選擇器或 `.site-*`。要用標籤選擇器時，包在 `:where(.site-view--<view id>) { … }` 裡（巢狀只用這一層）。分頁要調整頁尾間距時寫成 `.site-view--<view id> + .site-footer`。
+4. `--site-*` 設計變數只在 `tokens.css` 定義；用到的都要有定義，定義的都要有人用。
+5. 現存例外：`3d-viewer` 仍有 `styles.css` 與 `view.css` 兩個檔，且暫不受第 3 點檢查，等 3D 介面改版時併成一檔。
 
 ## 6. 名詞對照
 
