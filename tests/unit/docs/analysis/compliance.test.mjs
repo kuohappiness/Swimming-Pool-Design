@@ -16,7 +16,10 @@ function tableRows(text, idPattern) {
 }
 
 const metres = (value) => `${value.toFixed(3)} m`;
-const accessibleCount = (records) => records.filter((record) => record.accessible === true).length;
+// 1F 使用動線（DEC-157）的房間以 functions 標示用途；數量就是含該用途的房間數。
+const withFunction = (g, name) => Object.values(g.l1.poolUse ?? {})
+  .filter((item) => Array.isArray(item?.functions) && item.functions.includes(name)).length;
+const lifesavingLabels = [['lifeguardChair', '救生椅'], ['aed', 'AED'], ['staffFirstAid', '管理暨急救室'], ['poolLift', '移動式升降椅']];
 
 // 每一列的模型值從 active geometry 算；`limit` 只給門檻不是固定數值的列（例如「≥ 梯寬」）。
 const checks = {
@@ -35,21 +38,20 @@ const checks = {
     limit: (g) => ({ op: '≥', value: g.l2.stairToL3.clearWidth }),
   },
   'CMP-11': { value: (g) => [g.l1.pool.shallowDepth, g.l1.pool.deepDepth], format: ([low, high]) => `${low}～${high} m` },
-  'CMP-12': {
-    value: (g, model) => accessibleCount([...Object.values(g.l1.zones), ...model.program.l1.toilets]),
-    format: (count) => `${count} 處`,
-  },
-  'CMP-13': {
-    value: (g) => accessibleCount(Object.values(g.l2.zones).flatMap((zone) => zone.showerCubicles ?? [])),
-    format: (count) => `${count} 處`,
-  },
-  'CMP-14': { value: (g) => g.levels.poolDeckElevation - g.levels.l1BaseElevation, format: metres },
+  'CMP-12': { value: (g) => withFunction(g, 'accessible-toilet'), format: (count) => `${count} 處` },
+  'CMP-13': { value: (g) => withFunction(g, 'accessible-shower'), format: (count) => `${count} 處` },
+  'CMP-14': { value: (g) => g.l1.poolUse.entryRamp.slopeRatio, format: (ratio) => `1:${ratio}` },
   'CMP-15': { value: (g) => g.l1.mainEntrance.bounds.x2 - g.l1.mainEntrance.bounds.x1, format: metres },
   'CMP-16': {
-    value: (g) => Object.values(g.l1.zones).reduce((sum, zone) => sum + (zone.fixtures?.toilets ?? 0), 0),
+    value: (g) => Object.values(g.l1.zones).reduce((sum, zone) => sum + (zone.fixtures?.toilets ?? 0), 0)
+      + withFunction(g, 'accessible-toilet'),
     format: (count) => `${count} 座`,
   },
-  'CMP-17': { value: (g) => (g.lifesaving ? '已建模' : '未建模'), format: (value) => value },
+  'CMP-17': {
+    value: (g) => lifesavingLabels.filter(([key]) => g.l1.poolUse[key]).map(([, label]) => label),
+    format: (labels) => (labels.length ? labels.join('、') : '未建模'),
+  },
+  'CMP-18': { value: (g) => g.l1.pool.teachingPlatform.topWaterDepth, format: (depth) => `${depth} m` },
 };
 
 function parseLimit(cell) {

@@ -13,7 +13,7 @@
 | TASK-150 3D 寫實升級階段一：流暢度地基與資產管線 | 實作中 | D 部分（烘焙光照圖）等使用者同意下面兩點慣例偏離；A、B、C 已合併 | 使用者 | [入口](tasks/2026-11-22-3d-realism-foundation.md) |
 | TASK-151 3D 寫實升級階段二：水 | 實作中 | 教學平台折射等 TASK-118 合併後補上；泳者折射、即時焦散、涉水漣漪與溢水溝水流待排（步驟 1 至 6 已合併） | Claude | [入口](tasks/2026-11-22-3d-realism-water.md) |
 | TASK-119 改建文案與專業檢核揭露更新 | 待審 | 使用者審閱 PR 後合併 | 使用者 | [入口](tasks/2026-11-22-renovation-copy-rewrite.md) |
-| TASK-121 來源登錄一致與合規對照 | 實作中 | 等 TASK-116、TASK-120 合併後推上分支並開 PR | Claude | [任務說明](tasks/2026-11-22-source-registry-and-compliance.md) |
+| TASK-121 來源登錄一致與合規對照 | 待審 | 輪到合併時接上最新 main，檢查通過後請使用者合併 | 使用者 | [任務說明](tasks/2026-11-22-source-registry-and-compliance.md) |
 
 ## 等觸發點
 
