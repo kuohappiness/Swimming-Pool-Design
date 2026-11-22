@@ -1,7 +1,14 @@
 import rawModel from '../../../model/project-model.json';
 import siteEmblem from '../shared/assets/brand/school-emblem-header.webp';
 import type { ProjectModel } from '../shared/types';
-import { getViewDefinition, hrefForView, viewDefinitions, type ViewId } from './router';
+import {
+  getViewDefinition,
+  hrefForView,
+  navigationGroups,
+  navigationItems,
+  viewsInGroup,
+  type ViewId,
+} from './router';
 
 const model = rawModel as unknown as ProjectModel;
 
@@ -12,8 +19,23 @@ export interface AppShell {
 
 export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
   const activeDefinition = getViewDefinition(activeView);
-  document.title = `${activeDefinition.title}｜游泳池改建概念設計`;
+  const activeGroup = navigationGroups.find(({ id }) => id === activeDefinition.group);
+  document.title = `${activeDefinition.label}｜實小泳池改建概念設計`;
   document.documentElement.dataset.activeView = activeView;
+  if (activeGroup) document.documentElement.dataset.navGroup = activeGroup.id;
+  else delete document.documentElement.dataset.navGroup;
+  const subnavigation = activeGroup
+    ? `
+        <nav class="site-subnavigation" aria-label="${activeGroup.label}">
+          ${viewsInGroup(activeGroup.id).map((view) => `
+            <a
+              href="${hrefForView(view.id)}"
+              data-site-subnav="${view.id}"
+              ${view.id === activeView ? 'aria-current="page"' : ''}
+            >${view.label}</a>
+          `).join('')}
+        </nav>`
+    : '';
   host.innerHTML = `
     <a class="site-skip-link" href="#view-content">跳到主要內容</a>
     <div class="site-frame" data-site-frame data-active-view="${activeView}">
@@ -27,18 +49,25 @@ export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
           </span>
         </a>
         <nav class="site-navigation" aria-label="主要章節">
-          ${viewDefinitions.map((view) => `
+          ${navigationItems().map((item) => {
+            // A group is not a page: inside it the group link is marked as the current section.
+            const current = item.group
+              ? item.group === activeGroup?.id && 'aria-current="true"'
+              : item.viewId === activeView && 'aria-current="page"';
+            return `
             <a
-              href="${hrefForView(view.id)}"
-              data-site-nav="${view.id}"
-              ${view.id === activeView ? 'aria-current="page"' : ''}
-            >${view.label}</a>
-          `).join('')}
+              href="${hrefForView(item.viewId)}"
+              data-site-nav="${item.id}"
+              ${item.group ? 'data-site-nav-group' : ''}
+              ${current || ''}
+            >${item.label}</a>
+          `;
+          }).join('')}
         </nav>
         <div class="site-release" aria-label="模型版本">
           <span>MODEL</span>
           <strong>${model.modelVersion}</strong>
-        </div>
+        </div>${subnavigation}
       </header>
       <main id="view-content" class="site-view site-view--${activeView}" tabindex="-1">
         <div data-view-root aria-live="polite"></div>
@@ -55,17 +84,18 @@ export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
 
   const viewContainer = host.querySelector<HTMLElement>('[data-view-root]');
   if (!viewContainer) throw new TypeError('App shell view root was not created.');
-  // On narrow screens the navigation scrolls sideways; keep the current page's link in view.
-  const navigation = host.querySelector<HTMLElement>('.site-navigation');
-  const currentLink = navigation?.querySelector<HTMLElement>('[aria-current="page"]');
-  if (navigation && currentLink) {
-    const overflow = currentLink.offsetLeft + currentLink.offsetWidth - navigation.clientWidth;
-    if (overflow > 0) navigation.scrollLeft = overflow;
+  // On narrow screens the navigation bars scroll sideways; keep the current link in view.
+  for (const bar of host.querySelectorAll<HTMLElement>('.site-navigation, .site-subnavigation')) {
+    const currentLink = bar.querySelector<HTMLElement>('[aria-current]');
+    if (!currentLink) continue;
+    const overflow = currentLink.offsetLeft + currentLink.offsetWidth - bar.clientWidth;
+    if (overflow > 0) bar.scrollLeft = overflow;
   }
   return {
     viewContainer,
     destroy() {
       document.documentElement.removeAttribute('data-active-view');
+      document.documentElement.removeAttribute('data-nav-group');
       host.replaceChildren();
     },
   };

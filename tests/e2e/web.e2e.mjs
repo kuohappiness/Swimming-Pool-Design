@@ -19,7 +19,7 @@ const chromeCandidates = [
 
 const routes = [
   { id: 'design-concept', url: '/' },
-  { id: 'solar-study', url: '/?view=solar-study' },
+  { id: 'solar-study', url: '/?view=solar-study', group: 'topics' },
   { id: 'drawings', url: '/?view=drawings' },
   { id: '3d-viewer', url: '/?view=3d-viewer&quality=low&adaptive=off' },
   { id: 'about', url: '/?view=about' },
@@ -81,13 +81,14 @@ async function waitForView(page, viewId) {
 }
 
 async function assertCommonShell(page, route, viewport) {
+  // DEC-170: five main items; 四向專題 is a group, not a page.
   assert.equal(await page.locator('[data-site-nav]').count(), 5);
   assert.deepEqual(
-    await page.locator('[data-site-nav]').allTextContents(),
-    ['設計理念', '日照研究', '圖面設計', '3D 展示', '關於'],
+    (await page.locator('[data-site-nav]').allTextContents()).map((text) => text.trim()),
+    ['設計理念', '四向專題', '圖面', '3D', '關於'],
   );
   assert.equal(
-    await page.locator('[data-site-nav][aria-current="page"]').evaluate((link) => {
+    await page.locator('[data-site-nav][aria-current]').evaluate((link) => {
       const navigation = link.closest('nav').getBoundingClientRect();
       const rect = link.getBoundingClientRect();
       return rect.left >= navigation.left - 1 && rect.right <= navigation.right + 1;
@@ -95,8 +96,36 @@ async function assertCommonShell(page, route, viewport) {
     true,
     `${route.id} current navigation link is scrolled out of view at ${viewport.width}px`,
   );
-  assert.equal(await page.locator(`[data-site-nav="${route.id}"]`).getAttribute('aria-current'), 'page');
-  assert.equal(await page.locator('[data-site-nav][aria-current="page"]').count(), 1);
+  assert.equal(await page.locator('[data-site-nav][aria-current]').count(), 1);
+  const label = await page.locator(route.group ? `[data-site-subnav="${route.id}"]` : `[data-site-nav="${route.id}"]`).textContent();
+  assert.equal(await page.title(), `${label.trim()}｜實小泳池改建概念設計`);
+  if (route.group) {
+    assert.equal(await page.locator(`[data-site-nav="${route.group}"]`).getAttribute('aria-current'), 'true');
+    assert.equal(await page.locator(`[data-site-subnav="${route.id}"]`).getAttribute('aria-current'), 'page');
+    assert.equal(await page.locator('[data-site-subnav][aria-current="page"]').count(), 1);
+    const layout = await page.evaluate(() => {
+      const masthead = document.querySelector('.site-masthead').getBoundingClientRect();
+      const subnavigation = document.querySelector('.site-subnavigation').getBoundingClientRect();
+      const tabs = [...document.querySelectorAll('[data-site-subnav]')].map((tab) => tab.getBoundingClientRect());
+      const probe = document.createElement('div');
+      probe.style.height = 'var(--site-header-height)';
+      document.body.append(probe);
+      const headerHeight = probe.getBoundingClientRect().height;
+      probe.remove();
+      return {
+        inside: subnavigation.top >= masthead.top - 1 && subnavigation.bottom <= masthead.bottom + 1,
+        targets: tabs.every(({ height, width }) => height >= 44 && width >= 44),
+        // 721–900 px already runs a two-row masthead against the one-row 76 px token (pre-existing, not group-specific).
+        headerMatches: (window.innerWidth > 720 && window.innerWidth <= 900) || Math.abs(masthead.height - headerHeight) <= 2,
+      };
+    });
+    assert.equal(layout.inside, true, `${route.id} second-level tabs fall outside the masthead at ${viewport.width}px`);
+    assert.equal(layout.targets, true, `${route.id} second-level tab is smaller than 44px at ${viewport.width}px`);
+    assert.equal(layout.headerMatches, true, `${route.id} --site-header-height does not match the masthead at ${viewport.width}px`);
+  } else {
+    assert.equal(await page.locator(`[data-site-nav="${route.id}"]`).getAttribute('aria-current'), 'page');
+    assert.equal(await page.locator('.site-subnavigation').count(), 0);
+  }
   assert.equal(await page.locator('main').count(), 1);
   assert.equal(await page.locator('footer.site-footer').count(), 1);
   assert.equal(
@@ -341,8 +370,8 @@ try {
   trackErrors(about, errors);
   await about.goto(`${origin}/?view=about`, { waitUntil: 'networkidle' });
   await waitForView(about, 'about');
-  // The site name after the separator belongs to the app shell; this page only owns the part before it.
-  assert.match(await about.title(), /^關於這個專案｜.+概念設計$/);
+  // The page name before the separator comes from the route registry (DEC-170 one page, one name).
+  assert.match(await about.title(), /^關於｜.+概念設計$/);
   const aboutSectionIds = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'].map((id) => `about-${id}`);
   assert.deepEqual(
     await about.locator('.about-section').evaluateAll((sections) => sections.map((section) => section.id)),
