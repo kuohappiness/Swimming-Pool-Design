@@ -8,3 +8,9 @@
 *.dxf binary
 *.ktx2 binary
 *.glb binary
+
+# 多個 PR 在同一張表加列時，本機 git merge 自動保留兩邊的列（DEC-200）。
+# 兩邊改了同一列會留下兩個版本，npm run check:docs 會擋下重複的 DEC 與 roadmap 列。
+# GitHub 網頁端不套用這個設定，接 main 一律在本機 git merge。
+docs/roadmap.md merge=union
+docs/decisions.md merge=union

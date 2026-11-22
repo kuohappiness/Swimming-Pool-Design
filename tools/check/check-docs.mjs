@@ -353,6 +353,19 @@ if (/\b(?:DEC|OPEN|TASK)-\d{3}\b/.test(readme)) {
   errors.push('README.md: detailed DEC, OPEN, or TASK status belongs in owner documents');
 }
 
+// The public copy snapshot is regenerated only by release PRs (DEC-200); a release that bumps
+// package.json must also run npm run build:copy. build-copy.mjs writes this line.
+const packageVersion = JSON.parse(await readFile(path.join(repoRoot, 'package.json'), 'utf8')).version;
+const snapshotVersion = /^- 對應網站版本：`([^`]+)`$/m.exec(
+  await readFile(path.join(repoRoot, 'content', 'website-copy.md'), 'utf8'),
+)?.[1];
+if (snapshotVersion !== packageVersion) {
+  errors.push(
+    `content/website-copy.md: snapshot is for ${snapshotVersion ?? 'an unknown version'} but package.json is ${packageVersion}; `
+    + 'the release PR must run npm run build:copy (DEC-200)',
+  );
+}
+
 // The repo skill is kept as two real copies (no symlinks, for Windows);
 // both tools must read the same bytes.
 const [primarySkill, mirrorSkill] = await Promise.all(
