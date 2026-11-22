@@ -1,5 +1,5 @@
 import rawModel from '../../../model/project-model.json';
-import siteEmblem from '../shared/assets/brand/school-emblem-header.png';
+import siteEmblem from '../shared/assets/brand/school-emblem-header.webp';
 import type { ProjectModel } from '../shared/types';
 import { getViewDefinition, hrefForView, viewDefinitions, type ViewId } from './router';
 
@@ -12,7 +12,7 @@ export interface AppShell {
 
 export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
   const activeDefinition = getViewDefinition(activeView);
-  document.title = `${activeDefinition.title}｜游泳池翻修概念設計`;
+  document.title = `${activeDefinition.title}｜游泳池改建概念設計`;
   document.documentElement.dataset.activeView = activeView;
   host.innerHTML = `
     <a class="site-skip-link" href="#view-content">跳到主要內容</a>
@@ -23,7 +23,7 @@ export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
             <img src="${siteEmblem}" alt="">
           </span>
           <span class="site-identity-copy">
-            <strong>實小泳池翻修概念設計</strong>
+            <strong>實小泳池改建概念設計</strong>
           </span>
         </a>
         <nav class="site-navigation" aria-label="主要章節">

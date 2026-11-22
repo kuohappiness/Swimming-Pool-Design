@@ -1229,7 +1229,7 @@ try {
     await atlasDesktop.locator('.sheet-note').innerText(),
     `MODEL ${expectedModelVersion} · ACTIVE ${projectModel.activeGeometryRevisionId}`,
   );
-  assert.match(await atlasDesktop.locator('#sheet-stage image').getAttribute('href'), /\/site-satellite[^/]*\.jpg$/);
+  assert.match(await atlasDesktop.locator('#sheet-stage image').getAttribute('href'), /\/site-satellite[^/]*\.webp$/);
   await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-site-latest.png'), fullPage: true });
 
   for (const [sheetId, entityId, screenshotName] of [

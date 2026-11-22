@@ -1,6 +1,6 @@
 import type { ProjectModel, SheetRender } from '../../shared/types';
-import { deriveSiteOrientation } from '../../../../core/geometry/site-orientation.mjs';
-import siteImage from './assets/site-satellite.jpg';
+import { NORTH_PLAN_DIRECTION_LABELS, deriveSiteOrientation } from '../../../../core/geometry/site-orientation.mjs';
+import siteImage from './assets/site-satellite.webp';
 import l1Svg from '../../../../drawings/current/DRAW-L1-PLAN.svg?raw';
 import l2Svg from '../../../../drawings/current/DRAW-L2-PLAN.svg?raw';
 import l3Svg from '../../../../drawings/current/DRAW-L3-PLAN.svg?raw';
@@ -8,12 +8,7 @@ import sectionSvg from '../../../../drawings/current/DRAW-LONGITUDINAL-SECTION.s
 
 function reviewDrawing(id: string, title: string, svgSource: string, note: string, model: ProjectModel): SheetRender {
   const orientation = deriveSiteOrientation(model.referenceSystem);
-  const northDirectionLabel = {
-    'upper-left': '圖面左上',
-    'upper-right': '圖面右上',
-    'lower-left': '圖面左下',
-    'lower-right': '圖面右下',
-  }[orientation.northPlanDirection];
+  const northDirectionLabel = NORTH_PLAN_DIRECTION_LABELS[orientation.northPlanDirection];
   const orientationBoundSvg = svgSource
     .replace(
       /data-north-plan-direction="[^"]+"/g,

@@ -2,7 +2,7 @@
 
 ## 1. 基地識別
 
-- 專案：國立臺中教育大學附設實驗國民小學游泳池翻修概念設計
+- 專案：國立臺中教育大學附設實驗國民小學游泳池改建概念設計
 - 位置判讀依據：Google Maps 衛星截圖、道路標示與校園配置
 - 圖中道路：民權路、民生路、中山路 429 巷、原子街
 - 黃色框：既有泳池基地
@@ -63,11 +63,11 @@
 
 `SRC-SITE-001` 於 2026-07-19 依使用者提供的新 Google Maps 衛星截圖置換；新版提高至 1612 × 1430 像素並擴大基地周邊視野，不含原黃色／綠色基地框。基地框與入口箭頭的既有標註證據仍由 `SRC-SITE-002` 保存。
 
-原始 PNG 保留於來源資料夾；圖面頁 `REF-001` 的底圖使用 2026-11-22 製作的衍生檔 `web/src/views/drawings/assets/site-satellite.jpg`（1612 × 1430、467,853 bytes、SHA-256 `2E26EE7D6980876A0CA961D221138367D9680BB4D178626F1A375EB4FA16E51A`），像素尺寸不變，只轉為 JPEG（品質 85、漸進式）以縮小網站下載量。
+原始 PNG 保留於來源資料夾；圖面頁 `REF-001` 的底圖使用衍生檔 `web/src/views/drawings/assets/site-satellite.webp`（1612 × 1430、333,948 bytes、SHA-256 `0A5CBCBB663BACF1C4EFBA4CA08B05239C3EE9A90E63DE4EDF89958954B49999`），由原始 PNG 直接轉為 WebP（品質 85），像素尺寸不變，與原始檔的 PSNR 40.0 dB，畫質與先前的 JPEG 衍生檔（40.5 dB、467,853 bytes）相當。2026-11-22 TASK-161 以它取代該 JPEG 衍生檔，縮小圖面頁首次載入。
 
 `SRC-SITE-004` 於 2026-07-20 由使用者提供，原始檔完整保存，未裁切、縮放或重新壓縮。圖面可直接觀察到紅色框與上下兩個綠色框；框線語意依使用者隨附說明登錄為：紅框是目前泳池本體，上方綠框是廁所＋女生更衣室，下方綠框是男生更衣室。此圖已取代 `REF-001` HTML 內顯示的舊衛星空照圖；`SRC-SITE-001`／`SRC-SITE-002` 仍保留為歷史來源，不以新檔覆寫既有證據。彩框只確認現況位置與用途，不提供地籍邊界或精確尺寸。
 
-`SRC-SITE-005` 於 2026-07-25 由使用者提供；原始透明 PNG 保留於來源資料夾，頁首使用 `web/src/shared/assets/brand/school-emblem-header.png`（256 × 256、71,133 bytes、SHA-256 `2D0DD7CE869E3116E6EA1C8304640EF8E4C9151A15268AC0EFD704076706F77F`）衍生檔。
+`SRC-SITE-005` 於 2026-07-25 由使用者提供；原始透明 PNG 保留於來源資料夾，頁首使用 `web/src/shared/assets/brand/school-emblem-header.webp`（96 × 96、4,688 bytes、SHA-256 `CC44D1B1785885EC31076433B56068A8102267913715FF6968AE9B360AD800FB`）衍生檔：頁首只以 32 × 32 CSS 像素顯示，96 像素足夠三倍密度螢幕；2026-11-22 TASK-161 由先前 256 × 256 的 PNG 衍生檔（71,133 bytes）縮小並轉為 WebP（品質 90、保留透明）。
 
 `SRC-SITE-003` 於 2026-07-16 由 PVGIS 5.3 TMY API 以 `24.14434°N, 120.67341°E` 取得；原始 metadata 記錄海拔 84 m、`PVGIS-ERA5`／ERA5、2005～2023、啟用 DEM horizon，12 個月份各選一個典型月份。觀察資料包含逐時 GHI `G(h)`、DNI `Gb(n)`、DHI `Gd(h)`、溫度、濕度、風與氣壓；本專案只解讀輻射欄位作概念能量比較。TMY 是長期典型月份的組合，不代表 2026 年實際天氣，也不是施工熱負荷保證。來源：[PVGIS 5.3 API](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en)、[PVGIS TMY 說明](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/pvgis-5-tools/pvgis-typical-meteorological-year-tmy-generator_en)。
 
