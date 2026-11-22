@@ -147,9 +147,21 @@ export function validateModel(model) {
     'Z-WC-POOL-F-01': { x1: 31, x2: 35.5, y1: 3.5, y2: 7.5 },
     'Z-WC-PLAY-M-01': { x1: 35.5, x2: 39, y1: 0, y2: 3.5 },
     'Z-WC-PLAY-F-01': { x1: 35.5, x2: 39, y1: 3.5, y2: 7.5 },
-    'Z-STOR-01': { x1: 31, x2: 32.5, y1: 7.5, y2: 14 },
-    'Z-WTP-01': { x1: 32.5, x2: 39, y1: 7.5, y2: 14 },
+    'Z-WTP-01': { x1: 34, x2: 39, y1: 7.5, y2: 14 },
     'Z-CHEM-01': { x1: 37.5, x2: 39, y1: 11, y2: 14 },
+    'Z-L1-ENTRY-01': { x1: 0.5, x2: 4.5, y1: 0, y2: 2 },
+    'RMP-L1-ENTRY-01': { x1: 4.5, x2: 8.1, y1: 0, y2: 1.2 },
+    'STP-L1-ENTRY-01': { x1: 4.5, x2: 5.1, y1: 1.2, y2: 2 },
+    'Z-L1-DRY-01': { x1: 4.5, x2: 20.5, y1: 0, y2: 2 },
+    'W-L1-DRY-01': { x1: 4.5, x2: 17.5, y1: 1.95, y2: 2.05 },
+    'Z-L1-RINSE-01': { x1: 17.5, x2: 20.5, y1: 2, y2: 4 },
+    'Z-L1-ASSEMBLY-01': { x1: 3, x2: 17.5, y1: 2, y2: 4 },
+    'FX-L1-LIFEGUARD-01': { x1: 14.6, x2: 15.4, y1: 2.4, y2: 3.6 },
+    'Z-L1-ACC-01': { x1: 31, x2: 34, y1: 7.5, y2: 10.5 },
+    'Z-L1-STAFF-01': { x1: 31, x2: 34, y1: 10.5, y2: 14 },
+    'Z-L1-EQUIP-01': { x1: 28, x2: 31, y1: 12.5, y2: 14 },
+    'FX-L1-LIFT-01': { x1: 29.1, x2: 29.9, y1: 8.6, y2: 9.4 },
+    'POOL-PLAT-01': { x1: 3, x2: 9, y1: 9.5, y2: 12.5 },
     'RF-PV-RES-01': { x1: 27.722, x2: 40.75, y1: 0.25, y2: 13.25 },
   };
   for (const [entityId, expected] of Object.entries(requiredBounds)) {
@@ -250,6 +262,50 @@ export function validateModel(model) {
     && active.l1.rearGlassCanopy?.buildingLineY === 14
     && active.l1.rearGlassCanopy?.siteBoundsUnchanged === true, 'The service rear glass canopy must project from Y13.5 to Y14.5 while SITE-XY remains Y0–14.');
   check(errors, active.l1.zones.chemicalRoom?.publicAccess === false, 'The chemical room must remain independent from public circulation.');
+
+  // DEC-157: shoes stay at the entry and the foot of ST-01 is the dry/wet boundary.
+  const use = active.l1.poolUse ?? {};
+  const useBounds = (key) => use[key]?.bounds;
+  const deckInPoolHall = ['entryVestibule', 'entryRamp', 'entrySteps', 'dryCorridor', 'dryCorridorParapet', 'rinseGate', 'assemblyArea', 'lifeguardChair', 'equipmentParking', 'poolLift'];
+  check(errors, use.decisionId === 'DEC-157', 'L1 pool-use program must cite DEC-157.');
+  check(errors, deckInPoolHall.every((key) => useBounds(key) && containedBy(useBounds(key), poolHall.bounds)), 'DEC-157 entry, corridor, rinse, assembly and equipment zones must stay inside the pool hall.');
+  check(errors, deckInPoolHall.every((key) => useBounds(key) && !positiveOverlap(useBounds(key), pool.bounds)), 'DEC-157 deck zones must not intrude into POOL-01.');
+  check(errors, ['dryCorridor', 'dryCorridorParapet', 'entryVestibule', 'entryRamp', 'entrySteps', 'rinseGate', 'assemblyArea'].every((key) => useBounds(key) && !positiveOverlap(useBounds(key), stair.bounds)), 'DEC-157 zones must leave the ST-01 footprint clear.');
+  check(errors, useBounds('entryVestibule') && useBounds('entryVestibule').x1 <= active.l1.mainEntrance.bounds.x1 + TOLERANCE && useBounds('entryVestibule').x2 >= active.l1.mainEntrance.bounds.x2 - TOLERANCE && closeTo(useBounds('entryVestibule').y1, 0), 'The shoe-change vestibule must sit directly inside EN-01.');
+  check(errors, closeTo(use.entryVestibule?.floorElevation, active.levels.l1BaseElevation) && use.entryVestibule?.shoeCubbyPairs >= 60, 'The vestibule must stay at the L1 base elevation with at least 60 shoe cubbies for two overlapping classes.');
+  const ramp = use.entryRamp;
+  check(errors, ramp && closeTo(ramp.toElevation - ramp.fromElevation, active.levels.poolDeckElevation - active.levels.l1BaseElevation) && ramp.slopeRatio >= 12 && (ramp.bounds.x2 - ramp.bounds.x1) + TOLERANCE >= (ramp.toElevation - ramp.fromElevation) * ramp.slopeRatio, 'The entry ramp must rise the full 0.30 m at 1:12 or gentler.');
+  const steps = use.entrySteps;
+  check(errors, steps && closeTo(steps.risers * steps.riserHeight, active.levels.poolDeckElevation - active.levels.l1BaseElevation), 'The entry steps must rise exactly from the L1 base to the pool deck.');
+  check(errors, closeTo(use.dryCorridor?.floorElevation, active.levels.poolDeckElevation) && closeTo(useBounds('dryCorridor')?.x2, stair.bounds.x1) && closeTo(useBounds('dryCorridor')?.x1, useBounds('entryVestibule')?.x2), 'The dry corridor must run at deck level from the vestibule to the foot of ST-01.');
+  check(errors, closeTo(use.dryCorridorParapet?.height, 1.1) && use.dryCorridorParapet?.curbHeight > 0 && closeTo(useBounds('dryCorridorParapet')?.x2, useBounds('rinseGate')?.x1), 'The dry corridor must be separated by a 1.1 m low wall with a splash curb that ends at the rinse gate.');
+  check(errors, use.rinseGate?.footBath === true && use.rinseGate?.showerHeads === 3 && use.rinseGate?.onlyRouteFromStairToDeck === true && closeTo(useBounds('rinseGate')?.x2, stair.bounds.x1), 'The foot of ST-01 must open to the deck only through the foot bath and three showers.');
+  check(errors, useBounds('lifeguardChair') && containedBy(useBounds('lifeguardChair'), useBounds('assemblyArea')), 'The lifeguard chair must stand on the assembly deck.');
+  const serviceRooms = [use.accessibleChanging, use.staffFirstAid, active.l1.zones.waterTreatment];
+  check(errors, serviceRooms.every((zone) => zone?.bounds && containedBy(zone.bounds, serviceWing.bounds)), 'The accessible room, staff/first-aid room and water treatment must stay within CORE-01.');
+  check(errors, serviceRooms.every((zone, index) => serviceRooms.slice(index + 1).every((other) => !positiveOverlap(zone.bounds, other.bounds))) && serviceRooms.every((zone) => toilets.every((toilet) => !positiveOverlap(zone.bounds, toilet.bounds))), 'Service rooms must not overlap each other or the four toilets.');
+  check(errors, use.accessibleChanging?.entrySide === 'x31' && closeTo(use.accessibleChanging?.floorElevation, active.levels.poolDeckElevation) && ['accessible-toilet', 'accessible-shower', 'family-changing'].every((name) => use.accessibleChanging?.functions?.includes(name)), 'The L1 accessible family room must open from the X31 deck at deck level.');
+  check(errors, use.staffFirstAid?.entrySide === 'x31' && use.staffFirstAid?.poolViewWindowSide === 'x31', 'The staff/first-aid room must open to and overlook the pool from X31.');
+  for (const room of [use.accessibleChanging, use.staffFirstAid]) {
+    const door = room?.entrance;
+    const half = (door?.clearWidth ?? 0) / 2;
+    check(errors, door?.center?.[0] === room?.bounds?.x1 && door.clearWidth >= 0.9 && door.clearHeight >= 2 && door.center[1] - half >= room.bounds.y1 && door.center[1] + half <= room.bounds.y2, `${room?.entityId} needs a door of at least 0.90 m clear width on its X31 wall, inside the room.`);
+  }
+  const poolWindow = use.staffFirstAid?.poolViewWindow;
+  const staffDoor = use.staffFirstAid?.entrance;
+  check(errors, poolWindow && poolWindow.spanY[0] >= use.staffFirstAid.bounds.y1 && poolWindow.spanY[1] <= use.staffFirstAid.bounds.y2 && poolWindow.sillHeight < poolWindow.headHeight && staffDoor && (poolWindow.spanY[1] <= staffDoor.center[1] - staffDoor.clearWidth / 2 || poolWindow.spanY[0] >= staffDoor.center[1] + staffDoor.clearWidth / 2), 'The staff/first-aid pool-view window must sit in the X31 wall of that room without overlapping its door.');
+  check(errors, !('storage' in active.l1.zones), 'DEC-157 replaces the dry storage room; it must not remain in the active L1 zones.');
+  check(errors, use.poolLift?.type === 'mobile', 'Pool entry assistance must be a mobile lift (DEC-157 E3).');
+  const routeIds = (use.classRoute ?? []).map(({ id }) => id);
+  check(errors, JSON.stringify(routeIds) === JSON.stringify(['route-entry', 'route-corridor', 'route-stair', 'route-rinse', 'route-assembly']), 'The class route must run entry, corridor, stair, rinse, assembly.');
+  const entityIds = new Set(geometryEntities(active).keys());
+  check(errors, (use.classRoute ?? []).every(({ standAt, faceEntityId }) => Array.isArray(standAt) && standAt.every(Number.isFinite) && entityIds.has(faceEntityId)), 'Every class route stop needs a finite stand point and an existing faced entity.');
+
+  // DEC-158: depth stays 1.2–1.5 m; a removable platform serves beginners in the teaching band.
+  const platform = active.l1.pool.teachingPlatform;
+  const teachingBand = active.l1.pool.laneBands?.find(({ id }) => id === 'POOL-MIXED-01');
+  check(errors, platform?.removable === true && platform?.laneBandId === 'POOL-MIXED-01' && containedBy(platform.bounds, pool.bounds) && closeTo(platform.bounds.y1, teachingBand?.y1) && closeTo(platform.bounds.y2, teachingBand?.y2) && closeTo(platform.bounds.x1, pool.bounds.x1), 'The removable teaching platform must fill the teaching band from the shallow end.');
+  check(errors, Number.isFinite(platform?.topWaterDepth) && platform.topWaterDepth > 0 && platform.topWaterDepth < active.l1.pool.shallowDepth, 'The teaching platform must sit below the water surface and above the shallow-end floor.');
   check(errors, active.l1.structuralStrategy?.glassCarriesGravityLoad === false, 'Glass must not be a gravity-support element.');
   check(errors, active.l1.structuralStrategy?.isolatedColumnsAllowed === false, 'The integrated structure strategy must avoid isolated columns.');
 
