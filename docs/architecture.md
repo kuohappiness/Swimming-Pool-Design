@@ -12,8 +12,9 @@ Swimming-Pool-Design/
 ├─ LICENSE                   程式 MIT；文件、圖面與照片 CC BY 4.0；第三方素材除外
 ├─ AGENTS.md                 給所有 AI 工具的規則；CLAUDE.md 只有一行 @AGENTS.md
 ├─ package.json、package-lock.json、tsconfig.json、vite.config.ts、eslint.config.js
+├─ .stylelintrc.json、knip.json、.prettierrc.json、.prettierignore
 ├─ .editorconfig、.gitattributes、.gitignore、.ignore、.node-version
-├─ .github/                  workflows/（ci.yml、deploy-pages.yml）、pull_request_template.md
+├─ .github/                  workflows/（ci.yml、deploy-pages.yml）、pull_request_template.md、dependabot.yml
 ├─ .claude/                  settings.json、skills/swimming-pool-design/
 ├─ .agents/                  skills/swimming-pool-design/（與 .claude 版本逐位元組相同）
 ├─ model/                    唯一的設計模型與分析登錄
