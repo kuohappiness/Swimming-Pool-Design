@@ -91,12 +91,61 @@
 }
 
 .site-navigation a:active::after,
-.site-navigation a[aria-current="page"]::after {
+.site-navigation a[aria-current]::after {
   background: var(--site-terracotta);
 }
 
-.site-navigation a[aria-current="page"] {
+.site-navigation a[aria-current] {
   color: var(--site-ink);
+}
+
+/* 四向專題等群組的第二層頁籤（DEC-170）：只在群組內的頁面出現，接在主導覽下方。 */
+.site-subnavigation {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: center;
+  min-height: var(--site-subnav-height);
+  border-top: 1px solid var(--site-line);
+}
+
+.site-subnavigation a {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 16px;
+  color: var(--site-muted);
+  font-size: var(--site-text-sm);
+  font-weight: var(--site-weight-bold);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-subnavigation a::after {
+  position: absolute;
+  right: 16px;
+  bottom: 6px;
+  left: 16px;
+  height: 2px;
+  background: transparent;
+  content: "";
+}
+
+.site-subnavigation a:hover {
+  color: var(--site-ink);
+}
+
+.site-subnavigation a:hover::after {
+  background: var(--site-line-strong);
+}
+
+.site-subnavigation a[aria-current="page"] {
+  color: var(--site-ink);
+}
+
+.site-subnavigation a[aria-current="page"]::after {
+  background: var(--site-terracotta);
 }
 
 .site-release {
@@ -189,6 +238,26 @@
   }
 
   .site-navigation a:first-child::after {
+    left: 0;
+  }
+
+  .site-subnavigation {
+    grid-row: 3;
+    justify-content: start;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .site-subnavigation::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-subnavigation a:first-child {
+    padding-left: 0;
+  }
+
+  .site-subnavigation a:first-child::after {
     left: 0;
   }
 

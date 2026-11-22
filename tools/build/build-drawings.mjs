@@ -18,15 +18,43 @@ const n = (value) => Number(value.toFixed(3));
 const boundsData = (entity) => `${entity.bounds.x1},${entity.bounds.x2},${entity.bounds.y1},${entity.bounds.y2}`;
 
 const style = `<style>
-  text{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;fill:#263746}.title{font-size:31px;font-weight:800}.subtitle{font-size:15px;fill:#536b75}.label{font-size:14px;font-weight:700}.small{font-size:12px}.tiny{font-size:10px}.grid{stroke:#cbd7da;stroke-width:.55}.gridMajor{stroke:#9fb2b8;stroke-width:.9}.outline{fill:none;stroke:#263746;stroke-width:2}.reference{fill:#eef2f2;stroke:#97a8ad;stroke-width:1.2;stroke-dasharray:7 5}.pool{fill:#bfe4ef;stroke:#227698;stroke-width:2}.lane{stroke:#f8fbfc;stroke-width:2;stroke-dasharray:8 5}.working{fill:#f1dfbe;stroke:#a96f28;stroke-width:1.6}.confirmed{fill:#d8ece4;stroke:#237c64;stroke-width:1.6}.service{fill:#dbe5e6;stroke:#5b7278;stroke-width:1.6}.chemical{fill:#ead9e8;stroke:#8e5a88;stroke-width:1.6}.deferred{fill:#e4dbed;stroke:#7c5c98;stroke-width:1.5;stroke-dasharray:6 4}.stair{fill:#d7dde0;stroke:#263746;stroke-width:1.6}.structure{fill:#c3793c;fill-opacity:.18;stroke:#a95c25;stroke-width:2.2;stroke-dasharray:8 4}.dim{stroke:#536b75;stroke-width:1;fill:none}.titleBox{fill:#f6f8f8;stroke:#263746;stroke-width:1.2}.note{fill:#f7f8f8;stroke:#a8b6ba;stroke-width:1}.mirror{stroke:#4f8792;stroke-width:7}.roof{fill:#d8eef2;fill-opacity:.28;stroke:#4f95a8;stroke-width:2}.level{stroke:#8b9ba0;stroke-width:1;stroke-dasharray:7 5}.water{fill:#8fd2e6;fill-opacity:.75;stroke:#227698;stroke-width:2}.wall{fill:#c9d3d4;stroke:#536b75;stroke-width:1.5}.terrace{fill:#cfe1c5;stroke:#52774b;stroke-width:1.7}.arrival{fill:#d7e8df;stroke:#286b5c;stroke-width:2}.corridor{fill:#dcecef;stroke:#357487;stroke-width:1.6}.female{fill:#e5e0ee;stroke:#76598d;stroke-width:1.6}.glassLine{stroke:#3d9bb3;stroke-width:7}.wallLine{stroke:#65757b;stroke-width:6}.windowLine{stroke:#4fa5bb;stroke-width:8}.locker{fill:#cfd8d8;stroke:#64787a;stroke-width:1}.counter{fill:#d7c5ab;stroke:#8a6234;stroke-width:1.5}.plant{fill:#bed6b2;stroke:#52774b;stroke-width:1.3}.pv{fill:#8fd9ee;fill-opacity:.24;stroke:#3d91b4;stroke-width:1.8}.pvGrid{stroke:#4f9fc1;stroke-width:.8;stroke-opacity:.82}.projected{fill:none;stroke:#9b6a43;stroke-width:1.5;stroke-dasharray:6 4}.rain{fill:#d9e5ef;fill-opacity:.55;stroke:#6f6a96;stroke-width:1.5;stroke-dasharray:5 3}
+  :where(.sheet) text{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;fill:#263746}.title{font-size:31px;font-weight:800}.subtitle{font-size:15px;fill:#536b75}.label{font-size:14px;font-weight:700}.small{font-size:12px}.tiny{font-size:10px}.grid{stroke:#cbd7da;stroke-width:.55}.gridMajor{stroke:#9fb2b8;stroke-width:.9}.outline{fill:none;stroke:#263746;stroke-width:2}.reference{fill:#eef2f2;stroke:#97a8ad;stroke-width:1.2;stroke-dasharray:7 5}.pool{fill:#bfe4ef;stroke:#227698;stroke-width:2}.lane{stroke:#f8fbfc;stroke-width:2;stroke-dasharray:8 5}.working{fill:#f1dfbe;stroke:#a96f28;stroke-width:1.6}.confirmed{fill:#d8ece4;stroke:#237c64;stroke-width:1.6}.service{fill:#dbe5e6;stroke:#5b7278;stroke-width:1.6}.chemical{fill:#ead9e8;stroke:#8e5a88;stroke-width:1.6}.deferred{fill:#e4dbed;stroke:#7c5c98;stroke-width:1.5;stroke-dasharray:6 4}.stair{fill:#d7dde0;stroke:#263746;stroke-width:1.6}.structure{fill:#c3793c;fill-opacity:.18;stroke:#a95c25;stroke-width:2.2;stroke-dasharray:8 4}.dim{stroke:#536b75;stroke-width:1;fill:none}.titleBox{fill:#f6f8f8;stroke:#263746;stroke-width:1.2}.note{fill:#f7f8f8;stroke:#a8b6ba;stroke-width:1}.mirror{stroke:#4f8792;stroke-width:7}.roof{fill:#d8eef2;fill-opacity:.28;stroke:#4f95a8;stroke-width:2}.level{stroke:#8b9ba0;stroke-width:1;stroke-dasharray:7 5}.water{fill:#8fd2e6;fill-opacity:.75;stroke:#227698;stroke-width:2}.wall{fill:#c9d3d4;stroke:#536b75;stroke-width:1.5}.terrace{fill:#cfe1c5;stroke:#52774b;stroke-width:1.7}.arrival{fill:#d7e8df;stroke:#286b5c;stroke-width:2}.corridor{fill:#dcecef;stroke:#357487;stroke-width:1.6}.female{fill:#e5e0ee;stroke:#76598d;stroke-width:1.6}.glassLine{stroke:#3d9bb3;stroke-width:7}.wallLine{stroke:#65757b;stroke-width:6}.windowLine{stroke:#4fa5bb;stroke-width:8}.locker{fill:#cfd8d8;stroke:#64787a;stroke-width:1}.counter{fill:#d7c5ab;stroke:#8a6234;stroke-width:1.5}.plant{fill:#bed6b2;stroke:#52774b;stroke-width:1.3}.pv{fill:#8fd9ee;fill-opacity:.24;stroke:#3d91b4;stroke-width:1.8}.pvGrid{stroke:#4f9fc1;stroke-width:.8;stroke-opacity:.82}.projected{fill:none;stroke:#9b6a43;stroke-width:1.5;stroke-dasharray:6 4}.rain{fill:#d9e5ef;fill-opacity:.55;stroke:#6f6a96;stroke-width:1.5;stroke-dasharray:5 3}
 </style>`;
+
+// Every class in the generated drawings is written with the dw- prefix (camelCase becomes
+// kebab-case, e.g. titleBox -> dw-title-box), so the inline <style> keeps working when a page
+// embeds the SVG but cannot style the page itself (TASK-165). The code below uses the short
+// names; an unknown name stops the build instead of producing an unstyled element.
+const drawingClassNames = new Set([
+  'sheet', 'title', 'subtitle', 'label', 'small', 'tiny', 'note', 'titleBox', 'grid', 'gridMajor',
+  'outline', 'reference', 'dim', 'level', 'pool', 'lane', 'water', 'wall', 'wallLine', 'glassLine',
+  'windowLine', 'mirror', 'roof', 'pv', 'pvGrid', 'structure', 'stair', 'service', 'chemical',
+  'corridor', 'female', 'locker', 'counter', 'plant', 'terrace', 'arrival', 'rain', 'projected',
+  'confirmed', 'working', 'deferred',
+]);
+
+function drawingClass(name) {
+  if (!drawingClassNames.has(name)) {
+    throw new Error(`Unknown drawing class "${name}"; add it to drawingClassNames.`);
+  }
+  return `dw-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`;
+}
+
+function prefixDrawingClasses(svg) {
+  return svg
+    .replace(/<style>([\s\S]*?)<\/style>/, (_, css) => `<style>${css.replace(
+      /\.([A-Za-z][A-Za-z0-9]*)/g,
+      (_match, name) => `.${drawingClass(name)}`,
+    )}</style>`)
+    .replace(/ class="([^"]+)"/g, (_, names) => ` class="${names.trim().split(/\s+/).map(drawingClass).join(' ')}"`);
+}
 
 function shell(title, subtitle, body, drawingId) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc" data-model-version="${model.modelVersion}" data-active-geometry="${active.id}" data-coordinate-system="SITE-XY">
   <title id="title">${title} ${versionSlug}</title><desc id="desc">${subtitle}。概念設計，非施工圖。</desc>${style}
-  <rect width="1920" height="1080" fill="#fff"/><text x="72" y="66" class="title">${title}</text><text x="74" y="98" class="subtitle">${subtitle}</text>
+  <g class="sheet"><rect width="1920" height="1080" fill="#fff"/><text x="72" y="66" class="title">${title}</text><text x="74" y="98" class="subtitle">${subtitle}</text>
   ${body}
-  <g transform="translate(60 962)"><rect width="1800" height="78" class="titleBox"/><line x1="1020" y1="0" x2="1020" y2="78" stroke="#263746"/><line x1="1320" y1="0" x2="1320" y2="78" stroke="#263746"/><line x1="1570" y1="0" x2="1570" y2="78" stroke="#263746"/><text x="20" y="27" class="small">國立臺中教育大學附設實驗國民小學游泳池改建</text><text x="20" y="58" class="label">${title}</text><text x="1040" y="25" class="tiny">圖號</text><text x="1040" y="55" class="label">${drawingId}</text><text x="1340" y="25" class="tiny">模型／幾何</text><text x="1340" y="55" class="label">${model.modelVersion}／${active.id}</text><text x="1590" y="25" class="tiny">狀態</text><text x="1590" y="55" class="label">概念設計 · 非施工圖</text></g>
+  <g transform="translate(60 962)"><rect width="1800" height="78" class="titleBox"/><line x1="1020" y1="0" x2="1020" y2="78" stroke="#263746"/><line x1="1320" y1="0" x2="1320" y2="78" stroke="#263746"/><line x1="1570" y1="0" x2="1570" y2="78" stroke="#263746"/><text x="20" y="27" class="small">國立臺中教育大學附設實驗國民小學游泳池改建</text><text x="20" y="58" class="label">${title}</text><text x="1040" y="25" class="tiny">圖號</text><text x="1040" y="55" class="label">${drawingId}</text><text x="1340" y="25" class="tiny">模型／幾何</text><text x="1340" y="55" class="label">${model.modelVersion}／${active.id}</text><text x="1590" y="25" class="tiny">狀態</text><text x="1590" y="55" class="label">概念設計 · 非施工圖</text></g></g>
   </svg>`;
 }
 
@@ -341,5 +369,5 @@ const drawings = [
   ['DRAW-LONGITUDINAL-SECTION.svg', sectionDrawing()],
 ];
 await mkdir(outputRoot, { recursive: true });
-await Promise.all(drawings.map(([name, svg]) => writeFile(resolve(outputRoot, name), `${svg}\n`, 'utf8')));
+await Promise.all(drawings.map(([name, svg]) => writeFile(resolve(outputRoot, name), `${prefixDrawingClasses(svg)}\n`, 'utf8')));
 process.stdout.write(drawings.map(([name]) => resolve(outputRoot, name)).join('\n') + '\n');
