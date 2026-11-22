@@ -3,10 +3,9 @@
  * 外層用 :where() 包住，不增加選擇器權重。
  */
 :where(.site-view--drawings) {
-  --ink: #102536;
-  --paper: #f4f1e9;
+  --ink: var(--site-ink);
+  --paper: var(--site-paper);
 
-  font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
 
   button,
   input {
@@ -62,7 +61,7 @@
     display: block;
     margin-bottom: 3px;
     color: var(--site-terracotta);
-    font: 700 10px/1 monospace;
+    font: var(--site-weight-bold) var(--site-text-xs)/1 var(--site-mono);
   }
 
   .sheet-tab:hover {
@@ -114,11 +113,11 @@
 
   .sheet-number {
     color: var(--site-terracotta);
-    font: 800 11px/1 monospace;
+    font: var(--site-weight-bold) var(--site-text-xs)/1 var(--site-mono);
   }
 
   .sheet-toolbar strong {
-    font-size: 14px;
+    font-size: var(--site-text-sm);
   }
 
   .toolbar-actions {
@@ -126,7 +125,7 @@
     align-items: center;
     gap: 12px;
     color: var(--site-muted);
-    font-size: 11px;
+    font-size: var(--site-text-sm);
   }
 
   .toolbar-actions label {
@@ -143,6 +142,16 @@
     border-radius: var(--site-radius);
     background: transparent;
     cursor: pointer;
+    transition: border-color var(--site-duration-fast) ease, color var(--site-duration-fast) ease;
+  }
+
+  .toolbar-actions button:hover {
+    color: var(--site-water);
+    border-color: var(--site-water);
+  }
+
+  .toolbar-actions button:active {
+    background: var(--site-paper-raised);
   }
 
   .sheet-note {
@@ -150,7 +159,7 @@
     padding: 9px 14px;
     color: var(--site-muted);
     border-bottom: 1px solid var(--site-line);
-    font-size: 12px;
+    font-size: var(--site-text-xs);
     line-height: 1.55;
   }
 
@@ -173,7 +182,7 @@
   }
 
   .drawing text {
-    font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    font-family: var(--site-sans);
     font-size: 13px;
     fill: var(--ink);
   }
@@ -194,7 +203,7 @@
     color: var(--site-muted);
     border-bottom: 1px solid var(--site-line);
     font-family: var(--site-mono);
-    font-size: .62rem;
+    font-size: var(--site-text-xs);
   }
 
   #connection-dot {

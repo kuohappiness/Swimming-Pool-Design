@@ -14,9 +14,14 @@
   top: 12px;
 }
 
-:where(a, button, input, select, summary):focus-visible {
-  outline: 2px solid var(--site-terracotta);
-  outline-offset: 3px;
+/*
+ * 全站同一種焦點框：赭紅框線，框與元件之間墊一圈紙色，
+ * 放在紙面、照片或 3D 畫布上都看得見。分頁不要再自訂焦點框。
+ */
+:where(a, button, input, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: var(--site-focus-width) solid var(--site-terracotta);
+  outline-offset: var(--site-focus-width);
+  box-shadow: 0 0 0 var(--site-focus-width) var(--site-paper);
 }
 
 button,

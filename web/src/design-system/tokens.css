@@ -3,22 +3,50 @@
   --site-paper: #f4f0e8;
   --site-paper-raised: #fbf8f1;
   --site-ink: #1e292a;
-  --site-muted: #697273;
+  --site-muted: #586263;
   --site-line: #c8c5bc;
-  --site-line-strong: #8d928f;
+  --site-line-strong: #7f8582;
   --site-water: #176f76;
   --site-terracotta: #a64f35;
   --site-gold: #9b762d;
   --site-deep: #172829;
   --site-white: #fffdf8;
-  --site-serif: "Noto Serif TC", "Songti TC", "PMingLiU", Georgia, serif;
-  --site-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --site-serif: "Noto Serif TC Web", "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --site-sans: "Noto Sans TC Web", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
   --site-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
   --site-page: min(100% - 40px, 1440px);
   --site-reading: 760px;
   --site-space-6: 6rem;
   --site-radius: 4px;
   --site-header-height: 76px;
+
+  /*
+   * 可讀性（TASK-171、DEC-211）。顏色後面的比值是放在紙色上的對比：
+   * 內文需 4.5:1，控制項邊框與焦點框需 3:1。字級最小 12px，只用於非必要資訊。
+   */
+  --site-text: #4d5657; /* 段落文字 6.6:1 */
+
+  /* 圖表與 3D 共用的資料色，只畫線與面，不當文字色。 */
+  --site-data-winter: #e5a23d;
+  --site-data-summer: #e15a4f;
+  --site-data-mirror: #176f89;
+  --site-data-water: #63c6d7;
+  --site-data-fixed: #537b68;
+  --site-data-rotating: #b45247;
+
+  --site-text-xs: 0.75rem; /* 12px：圖內刻度、版權 */
+  --site-text-sm: 0.875rem; /* 14px：圖說、表格、按鈕、導覽 */
+  --site-text-md: 1rem; /* 16px：段落，桌機 17px */
+  --site-text-lead: clamp(1.125rem, 1rem + 0.5vw, 1.25rem); /* 18 到 20px：導言、引文 */
+  --site-text-h4: 1.25rem; /* 20px */
+
+  --site-weight-medium: 500;
+  --site-weight-bold: 700;
+  --site-tracking-caps: 0.12em; /* 只給英文大寫小標 */
+  --site-leading: 1.75;
+
+  --site-focus-width: 2px;
+  --site-duration-fast: 150ms;
 }
 
 @media (max-width: 720px) {
@@ -26,5 +54,11 @@
     --site-page: min(100% - 28px, 1440px);
     --site-space-6: 4rem;
     --site-header-height: 116px;
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --site-text-md: 1.0625rem;
   }
 }
