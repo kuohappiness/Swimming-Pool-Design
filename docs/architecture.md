@@ -40,11 +40,12 @@ Swimming-Pool-Design/
 │  │                         build-textures；textures/ 放自製貼圖的產生程式，一張一檔
 │  ├─ check/                 check-docs、check-model、check-assets；status-line、workflow-docs（狀態行與 roadmap、backlog 分節）、
 │  │                         stylelint-view-scope（分頁樣式不得外溢的 stylelint 規則）、
+│  │                         source-registry（來源表與模型 sources 一致）、
 │  │                         legacy-status-docs.json（舊格式任務說明的凍結清單）
 │  ├─ analysis/              solar-optimize
 │  └─ capture/               capture-viewer-quality
 ├─ tests/
-│  ├─ unit/                  core/、web/、tools/ 底下對應原始碼位置的子資料夾
+│  ├─ unit/                  core/、web/、tools/、docs/ 底下對應原始碼或文件位置的子資料夾
 │  ├─ e2e/                   web.e2e.mjs、3d-viewer.e2e.mjs
 │  └─ fixtures/              測試與工具讀取的固定資料
 ├─ source-materials/         原始來源，只增不改
