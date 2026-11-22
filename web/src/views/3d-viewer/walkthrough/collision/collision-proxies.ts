@@ -226,7 +226,7 @@ export function createCollisionProxies(
   );
   const grounds: GroundCollisionProxy[] = source.surfaces.map((surface) => {
     const exclusionBounds = surface.exclusions.map((entityId) => {
-      const bounds = poolBounds.get(entityId);
+      const bounds = poolBounds.get(entityId) ?? source.entities[entityId]?.bounds;
       if (!bounds) throw new TypeError(`Collision surface exclusion is unknown: ${entityId}`);
       return cloneBounds(bounds);
     });

@@ -29,6 +29,9 @@ const REQUIRED_ENTITY_IDS = [
   'RF-PV-RES-01',
   'ST-01',
   'ST-02',
+  'Z-L1-ENTRY-01',
+  'RMP-L1-ENTRY-01',
+  'STP-L1-ENTRY-01',
 ] as const;
 
 const FIXED_TRANSFORM: FixedPlanTransform = Object.freeze({ kind: 'fixed' });
@@ -210,6 +213,10 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
   requireGeometryMatch(entities, 'RF-PV-RES-01', model.geometry.l3.pvRoofReserve.bounds);
   requireGeometryMatch(entities, 'ST-01', model.geometry.stair.bounds);
   requireGeometryMatch(entities, 'ST-02', model.geometry.l2.stairToL3.bounds);
+  const poolUse = model.geometry.l1.poolUse;
+  requireGeometryMatch(entities, 'Z-L1-ENTRY-01', poolUse.entryVestibule.bounds);
+  requireGeometryMatch(entities, 'RMP-L1-ENTRY-01', poolUse.entryRamp.bounds);
+  requireGeometryMatch(entities, 'STP-L1-ENTRY-01', poolUse.entrySteps.bounds);
   if (model.geometry.stair.coordinateSystemId !== 'SITE-XY'
     || model.geometry.l2.stairToL3.coordinateSystemId !== 'SITE-XY') {
     throw new TypeError('Walkthrough stairs must use SITE-XY.');
@@ -289,7 +296,11 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
 
   const surfaces: WalkSurfaceDescriptor[] = [
     surface('site-ground', 'SITE-01', 0),
-    surface('l1-pool-deck', 'BLDG-01', deckElevation, FIXED_TRANSFORM, ['POOL-01']),
+    surface('l1-pool-deck', 'BLDG-01', deckElevation, FIXED_TRANSFORM, [
+      'POOL-01', 'Z-L1-ENTRY-01', 'RMP-L1-ENTRY-01', 'STP-L1-ENTRY-01',
+    ]),
+    // DEC-157: shoes come off at ±0.00 before the ramp or two steps up to the deck.
+    surface('l1-entry-vestibule', 'Z-L1-ENTRY-01', finite(poolUse.entryVestibule.floorElevation, 'entryVestibule.floorElevation')),
     surface('l2-floor', 'L2-PLATE-01', l2Elevation),
     surface('l3-rotated-floor', 'L3-PLATE-01', l3Elevation, l3Transform),
     surface('l3-fixed-extension', 'L3-EXT-01', l3Elevation),
@@ -329,6 +340,32 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
       upperLandingLength: positive(stair2.upperLandingLength, 'ST-02.upperLandingLength'),
       transform: FIXED_TRANSFORM,
     },
+    ...([
+      ['stair-ramp-entry-ramp', 'RMP-L1-ENTRY-01', poolUse.entryRamp],
+      ['stair-ramp-entry-steps', 'STP-L1-ENTRY-01', poolUse.entrySteps],
+    ] as const).map(([id, entityId, entry]): StairRampDescriptor => {
+      if (entry.entityId !== entityId) throw new TypeError(`${id} must describe ${entityId}.`);
+      if (!equalWithin(entry.toElevation, deckElevation)) {
+        throw new TypeError(`${entry.entityId} must climb to the pool deck.`);
+      }
+      // One continuous flight from the vestibule to the deck: the landing and
+      // second flight of the shared stair profile collapse to zero.
+      return {
+        id,
+        kind: 'stair-ramp',
+        entityId,
+        coordinateSystemId: 'SITE-XY',
+        bounds: cloneBounds(entry.bounds),
+        axis: '+x',
+        lowerElevation: entry.fromElevation,
+        midLandingElevation: entry.toElevation,
+        upperElevation: entry.toElevation,
+        flightRun: positive(entry.bounds.x2 - entry.bounds.x1, `${entry.entityId}.run`),
+        midLandingLength: 0,
+        upperLandingLength: 0,
+        transform: FIXED_TRANSFORM,
+      };
+    }),
   ];
 
   const poolShell: PoolShellDescriptor = {
