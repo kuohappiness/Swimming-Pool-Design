@@ -211,8 +211,10 @@
 }
 
 @media (max-width: 900px) {
+  /* 67 + 48 + 1px 底線 = 116px，等於 --site-header-height；群組頁再加第二層頁籤一列。 */
   .site-masthead {
     grid-template-columns: 1fr auto;
+    grid-template-rows: 67px 48px;
     padding-inline: 18px;
   }
 
@@ -277,7 +279,6 @@
 
 @media (max-width: 520px) {
   .site-masthead {
-    grid-template-rows: 67px 49px;
     padding-inline: 14px;
   }
 

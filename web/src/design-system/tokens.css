@@ -48,23 +48,33 @@
   --site-focus-width: 2px;
   --site-duration-fast: 150ms;
 
-  /* 群組第二層頁籤的高度；在群組內的頁面加到頁首高度上（layout.css）。 */
-  --site-subnav-height: 44px;
+  /*
+   * 頁首高度（含底線）。layout.css 的頁首列高照這兩個值排，sticky 元素與錨點用它們避開頁首，
+   * 改動時兩邊一起改；瀏覽器測試在每種寬度比對頁首實際高度與變數。
+   * 第二層頁籤 = 44px 點擊高度 + 1px 上框線，在群組內的頁面加到頁首高度上。
+   */
+  --site-subnav-height: 45px;
 }
 
 :root[data-nav-group] {
   --site-header-height: calc(76px + var(--site-subnav-height));
 }
 
-@media (max-width: 720px) {
+/* 900px 以下頁首改成兩列（站名一列、主導覽一列），與 layout.css 同一個斷點。 */
+@media (max-width: 900px) {
   :root {
-    --site-page: min(100% - 28px, 1440px);
-    --site-space-6: 4rem;
     --site-header-height: 116px;
   }
 
   :root[data-nav-group] {
     --site-header-height: calc(116px + var(--site-subnav-height));
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --site-page: min(100% - 28px, 1440px);
+    --site-space-6: 4rem;
   }
 }
 

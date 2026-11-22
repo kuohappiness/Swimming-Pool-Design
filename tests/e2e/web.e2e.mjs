@@ -107,25 +107,31 @@ async function assertCommonShell(page, route, viewport) {
       const masthead = document.querySelector('.site-masthead').getBoundingClientRect();
       const subnavigation = document.querySelector('.site-subnavigation').getBoundingClientRect();
       const tabs = [...document.querySelectorAll('[data-site-subnav]')].map((tab) => tab.getBoundingClientRect());
-      const probe = document.createElement('div');
-      probe.style.height = 'var(--site-header-height)';
-      document.body.append(probe);
-      const headerHeight = probe.getBoundingClientRect().height;
-      probe.remove();
       return {
         inside: subnavigation.top >= masthead.top - 1 && subnavigation.bottom <= masthead.bottom + 1,
         targets: tabs.every(({ height, width }) => height >= 44 && width >= 44),
-        // 721–900 px already runs a two-row masthead against the one-row 76 px token (pre-existing, not group-specific).
-        headerMatches: (window.innerWidth > 720 && window.innerWidth <= 900) || Math.abs(masthead.height - headerHeight) <= 2,
       };
     });
     assert.equal(layout.inside, true, `${route.id} second-level tabs fall outside the masthead at ${viewport.width}px`);
     assert.equal(layout.targets, true, `${route.id} second-level tab is smaller than 44px at ${viewport.width}px`);
-    assert.equal(layout.headerMatches, true, `${route.id} --site-header-height does not match the masthead at ${viewport.width}px`);
   } else {
     assert.equal(await page.locator(`[data-site-nav="${route.id}"]`).getAttribute('aria-current'), 'page');
     assert.equal(await page.locator('.site-subnavigation').count(), 0);
   }
+  // Sticky elements and anchors offset by --site-header-height, so it must equal the masthead
+  // exactly (border included) on every page and width, or they slide under the masthead.
+  const header = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.height = 'var(--site-header-height)';
+    document.body.append(probe);
+    const token = probe.getBoundingClientRect().height;
+    probe.remove();
+    return { masthead: document.querySelector('.site-masthead').getBoundingClientRect().height, token };
+  });
+  assert.ok(
+    Math.abs(header.masthead - header.token) <= 0.5,
+    `${route.id} masthead is ${header.masthead}px but --site-header-height is ${header.token}px at ${viewport.width}px`,
+  );
   assert.equal(await page.locator('main').count(), 1);
   assert.equal(await page.locator('footer.site-footer').count(), 1);
   assert.equal(
