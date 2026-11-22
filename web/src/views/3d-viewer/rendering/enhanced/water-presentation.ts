@@ -86,7 +86,15 @@ export class EnhancedWaterPresentation {
     ) {
       throw new TypeError('Enhanced water presentation received a second water surface state.');
     }
+    const previous = this.state;
     this.state = state;
+    // The walkthrough reports its state every frame; only a real change may
+    // touch the material, because apply() forces a shader program rebuild.
+    if (
+      previous
+      && previous.movementMode === state.movementMode
+      && previous.poolCutaway === state.poolCutaway
+    ) return;
     this.apply();
   }
 
@@ -95,14 +103,17 @@ export class EnhancedWaterPresentation {
     const material = this.presentationMaterial as THREE.MeshPhysicalMaterial;
     const normal = material.normalMap;
     if (!normal) return;
-    normal.wrapS = THREE.RepeatWrapping;
-    normal.wrapT = THREE.RepeatWrapping;
+    if (normal.wrapS !== THREE.RepeatWrapping || normal.wrapT !== THREE.RepeatWrapping) {
+      // Changing the wrap mode needs one upload; scrolling the offset afterwards does not.
+      normal.wrapS = THREE.RepeatWrapping;
+      normal.wrapT = THREE.RepeatWrapping;
+      normal.needsUpdate = true;
+    }
     const speed = this.profile.id === 'high' ? 1 : 0.55;
     normal.offset.set(
       (state.elapsedSeconds * 0.011 * speed) % 1,
       (state.elapsedSeconds * -0.017 * speed) % 1,
     );
-    normal.needsUpdate = true;
   }
 
   dispose() {

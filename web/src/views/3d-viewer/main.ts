@@ -8,6 +8,7 @@ import { deriveViewerOrientation } from './orientation';
 import { setupSelection } from './interactions';
 import { createBaselineRenderingRuntime, type ViewerRenderingRuntime } from './rendering';
 import { getViewerScene, viewerScenes } from './scenes';
+import { FrameStatistics } from './frame-statistics';
 import {
   AdaptiveFrameTimeMonitor,
   adaptRenderQualityProfile,
@@ -236,7 +237,13 @@ try {
     controls.listenToKeyEvents(window);
     controls.keyPanSpeed = 18;
 
-    const graph = createViewerScene(model, rendering);
+    const graph = createViewerScene(model, rendering, {
+      batchStaticGeometry: renderingParameters.get('batch') !== 'off',
+    });
+    if (graph.staticBatch) {
+      shell.dataset.staticBatchSourceMeshes = String(graph.staticBatch.sourceMeshes);
+      shell.dataset.staticBatchMeshes = String(graph.staticBatch.meshesAfter);
+    }
     renderer.shadowMap.autoUpdate = false;
     const requestShadowRefresh = () => {
       if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
@@ -362,6 +369,7 @@ try {
     const selectionController = setupSelection({
       canvas: renderer.domElement, camera, controls,
       selectables: graph.selectables, objectSelect, onSelect: renderSelection,
+      pickRoot: graph.siteRoot,
     });
 
     const sceneButtons = new Map<string, HTMLButtonElement>();
@@ -760,6 +768,8 @@ try {
     let previousFrameTime = performance.now();
     let elapsedFrameTime = 0;
     let renderedFrames = 0;
+    const frameStatistics = new FrameStatistics();
+    const statisticsStart = performance.now();
     renderer.setAnimationLoop(() => {
       const currentFrameTime = performance.now();
       const frameDelta = (currentFrameTime - previousFrameTime) / 1000;
@@ -819,11 +829,21 @@ try {
       });
       renderer.info.reset();
       rendering.framePipeline.render(graph.scene, camera);
+      const frameEnd = performance.now();
+      frameStatistics.observe(
+        (frameEnd - statisticsStart) / 1000,
+        frameDelta * 1000,
+        frameEnd - currentFrameTime,
+      );
       if (renderedFrames === 1 || renderedFrames % 30 === 0) {
         const statistics = frameTimeMonitor.statistics();
         shell.dataset.frameAverageMs = statistics.averageMilliseconds.toFixed(2);
         shell.dataset.frameP95Ms = statistics.p95Milliseconds.toFixed(2);
         shell.dataset.frameSamples = String(statistics.samples);
+        shell.dataset.renderedFrames = String(renderedFrames);
+        const observation = frameStatistics.snapshot();
+        shell.dataset.frameIntervalP95Ms = observation.intervalP95Milliseconds.toFixed(2);
+        shell.dataset.frameWorkP95Ms = observation.workP95Milliseconds.toFixed(2);
         shell.dataset.drawCalls = String(renderer.info.render.calls);
         shell.dataset.triangles = String(renderer.info.render.triangles);
         shell.dataset.lines = String(renderer.info.render.lines);

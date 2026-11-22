@@ -9,6 +9,8 @@ interface SelectionOptions {
   selectables: SelectableInfo[];
   objectSelect: HTMLSelectElement;
   onSelect: (selection: SelectableInfo) => void;
+  /** Root to raycast; defaults to the selectable objects themselves. */
+  pickRoot?: THREE.Object3D;
 }
 
 export interface SelectionController {
@@ -35,7 +37,15 @@ export function isRendered(object: THREE.Object3D): boolean {
 export function owningSelectableIndex(
   object: THREE.Object3D,
   selectableIndex: ReadonlyMap<THREE.Object3D, number>,
+  faceIndex?: number | null,
 ): number {
+  // Statically batched meshes and lines record the owner of every merged triangle or segment (TASK-160).
+  const faceOwners = object.userData.faceOwners as Int32Array | undefined;
+  if (faceOwners) {
+    return faceIndex !== undefined && faceIndex !== null && faceIndex < faceOwners.length
+      ? faceOwners[faceIndex]
+      : -1;
+  }
   for (let current: THREE.Object3D | null = object; current; current = current.parent) {
     const direct = selectableIndex.get(current);
     if (direct !== undefined) return direct;
@@ -53,6 +63,9 @@ export function setupSelection(options: SelectionOptions): SelectionController {
   raycaster.params.Line = { threshold: 0.02 };
   const pointer = new THREE.Vector2();
   const selectableIndex = new Map(selectables.map(({ object }, index) => [object, index]));
+  // After static batching the selectable groups no longer hold their meshes, so
+  // pick against the scene root and keep the nearest hit that has an owner.
+  const pickTargets = options.pickRoot ? [options.pickRoot] : selectables.map(({ object }) => object);
   let currentIndex = -1;
   let attached = false;
   let disposed = false;
@@ -85,10 +98,18 @@ export function setupSelection(options: SelectionOptions): SelectionController {
     pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    const hits = raycaster.intersectObjects(selectables.map(({ object }) => object), true);
-    const nearest = hits.find(({ object }) => isRendered(object));
-    const index = nearest ? owningSelectableIndex(nearest.object, selectableIndex) : -1;
-    if (index >= 0) select(selectables[index], index);
+    const hits = raycaster.intersectObjects(pickTargets, true);
+    for (const hit of hits) {
+      if (!isRendered(hit.object)) continue;
+      // Merged lines are segment pairs, so a line hit's vertex index maps to segment index / 2.
+      const element = hit.object instanceof THREE.LineSegments
+        ? (hit.index === undefined ? null : Math.floor(hit.index / 2))
+        : hit.faceIndex;
+      const index = owningSelectableIndex(hit.object, selectableIndex, element);
+      if (index < 0) continue;
+      select(selectables[index], index);
+      return;
+    }
   };
 
   const selectFromKeyboard = (event: KeyboardEvent) => {
@@ -145,7 +166,7 @@ export function setupSelection(options: SelectionOptions): SelectionController {
       select(selection, index);
       if (frame) {
         const centre = new THREE.Vector3();
-        new THREE.Box3().setFromObject(selection.object).getCenter(centre);
+        (selection.bounds ?? new THREE.Box3().setFromObject(selection.object)).getCenter(centre);
         controls.target.copy(centre);
         controls.update();
       }
