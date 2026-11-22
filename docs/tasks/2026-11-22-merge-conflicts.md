@@ -24,6 +24,7 @@
 | 網站文字快照 | 修訂 DEC-137：快照一個版本一份，只在發版 PR（改了 `package.json` 版號）重產。`npm run build:copy` 在快照已是目前版本時拒絕執行（`-- --force` 例外）；`check:docs` 檢查快照版本與套件版本一致，發版 PR 忘了重產會被擋 |
 | Dependabot | npm 與 GitHub Actions 都改成一次只開一個更新 PR，因為它會動 `package.json` 與 lock 檔 |
 | 合併後的狀態 | 工作流程 2.5 節寫明不另開收尾 PR：要等使用者審閱、留著「待審」合併的任務，由下一個動到 roadmap 的 PR 順手改成「已合併」。本 PR 順手收掉 TASK-121 |
+| 校徽使用紀錄 | 協調者同日交辦順手加：[基地與來源](../site-and-sources.md) 第 5 節校徽列記下使用者 2026-11-22 表示學校同意網站使用校徽與校名 |
 
 不做：
 
