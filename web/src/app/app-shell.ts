@@ -1,5 +1,5 @@
 import rawModel from '../../../model/project-model.json';
-import siteEmblem from '../shared/assets/brand/school-emblem-header.png';
+import siteEmblem from '../shared/assets/brand/school-emblem-header.webp';
 import type { ProjectModel } from '../shared/types';
 import { getViewDefinition, hrefForView, viewDefinitions, type ViewId } from './router';
 

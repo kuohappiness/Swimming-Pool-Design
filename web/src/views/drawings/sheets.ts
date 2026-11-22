@@ -1,6 +1,6 @@
 import type { ProjectModel, SheetRender } from '../../shared/types';
 import { NORTH_PLAN_DIRECTION_LABELS, deriveSiteOrientation } from '../../../../core/geometry/site-orientation.mjs';
-import siteImage from './assets/site-satellite.jpg';
+import siteImage from './assets/site-satellite.webp';
 import l1Svg from '../../../../drawings/current/DRAW-L1-PLAN.svg?raw';
 import l2Svg from '../../../../drawings/current/DRAW-L2-PLAN.svg?raw';
 import l3Svg from '../../../../drawings/current/DRAW-L3-PLAN.svg?raw';
