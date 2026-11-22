@@ -235,8 +235,8 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.realisticWater?.invalidateReflection();
   }
 
-  /** 鏡面有沒有照出場景（`mirror-probe`）；沒有鏡面或沒啟用時只照環境貼圖（`environment`）。 */
-  get mirrorReflectionSource(): 'probe' | 'environment' {
+  /** 鏡面照出場景（`probe`），或沒有鏡面、沒啟用時只照環境貼圖（`environment`）。 */
+  get mirrorReflection(): 'probe' | 'environment' {
     return this.mirror?.active ? 'probe' : 'environment';
   }
 
