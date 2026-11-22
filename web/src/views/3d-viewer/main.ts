@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import rawViewerModel from '../../generated/viewer-model.json';
 import rawConceptContent from '../../generated/concept-content.json';
 import { adaptViewerData, formatDegrees, formatElevation } from './model-adapter';
-import { getViewerPoolBasinShape } from './pool-state';
+import { getViewerPoolBasinShape, getViewerPoolHallShape } from './pool-state';
 import { createViewerScene, type SelectableInfo } from './scene-factory';
 import { deriveViewerOrientation } from './orientation';
 import { setupSelection } from './interactions';
@@ -18,6 +18,7 @@ import {
   renderQualityProfileForTier,
   summarizeBenchmarkRun,
   type RealismTier,
+  type ShedStep,
 } from './rendering/performance';
 import { BASELINE_QUALITY_PROFILE, type RenderQualityProfile, type RenderQualityTier } from './rendering/quality-profile';
 import { getViewerScene, viewerScenes } from './scenes';
@@ -208,8 +209,11 @@ try {
       deviceClass: matchMedia('(pointer: coarse)').matches || innerWidth <= 640 ? 'mobile' : 'desktop',
       adaptive: renderingParameters.get('adaptive') !== 'off',
       storage: qualityStorage(),
-      // 目前畫面上還沒有能單獨開關的效果，調節器只調解析度與級別。
-      availableShedSteps: [],
+      // 調節器在解析度與級別之間能單獨調的效果：目前只有水面平面倒影的解析度，
+      // 而且只有寫實水面才有平面倒影。
+      availableShedSteps: baselineRenderingRequested || renderingParameters.get('water') === 'legacy'
+        ? []
+        : ['water-reflection-resolution'],
     });
     // 繪圖管線內部仍以舊的三級決定材質與貼圖版本；四級的設定由 renderQualityProfileForTier 蓋上去。
     let pipelineProfileFor: (tier: RenderQualityTier) => RenderQualityProfile =
@@ -236,7 +240,7 @@ try {
             // water=legacy 保留原本的水，方便對照與排查。
             ...(renderingParameters.get('water') === 'legacy'
               ? {}
-              : { poolBasin: getViewerPoolBasinShape(model) }),
+              : { poolBasin: getViewerPoolBasinShape(model), poolHall: getViewerPoolHallShape(model) }),
             ...(simulateOptionalEnvironmentFailure
               ? {
                   environmentTextureLoader: {
@@ -584,6 +588,7 @@ try {
     const underwaterEffects = new UnderwaterEffects(shell, graph.scene, {
       quality: rendering.quality.id === 'low' ? 'low' : 'high',
       reducedMotion,
+      waterColorHandled: () => rendering.visualAssets.handlesUnderwaterView === true,
     });
     shell.dataset.reducedMotion = String(reducedMotion);
     walkthroughQuality.textContent = qualitySession.tier.label;
@@ -783,10 +788,10 @@ try {
     });
 
     // 四級畫質（DEC-190）套到畫面：繪圖管線的設定，加上漫遊用的陰影、鏡頭阻尼與水下效果。
-    const applyRealismTier = (tier: RealismTier) => {
+    const applyRealismTier = (tier: RealismTier, shed: readonly ShedStep[] = []) => {
       const legacyTier = tier.legacyTier;
       const capability = getWalkthroughCapabilityProfile(legacyTier, reducedMotion);
-      rendering.setQuality(renderQualityProfileForTier(pipelineProfileFor(legacyTier), tier));
+      rendering.setQuality(renderQualityProfileForTier(pipelineProfileFor(legacyTier), tier, shed));
       renderer.shadowMap.enabled = rendering.quality.shadows;
       requestShadowRefresh();
       controls.enableDamping = capability.cameraMotion;
@@ -825,6 +830,7 @@ try {
     shell.dataset.renderingInitMs = (performance.now() - bootstrapStartedAt).toFixed(2);
     let elapsedFrameTime = 0;
     let renderedFrames = 0;
+    let peakDrawCalls = 0;
     const frameStatistics = new FrameStatistics();
 
     // 啟動檢測：連畫幾幀，每幀讀回一個像素逼顯示卡把工作做完，量到的才是真正的繪製時間
@@ -936,6 +942,7 @@ try {
       });
       renderer.info.reset();
       rendering.framePipeline.render(graph.scene, camera);
+      peakDrawCalls = Math.max(peakDrawCalls, renderer.info.render.calls);
       const frameEnd = performance.now();
       frameStatistics.observe(
         (frameEnd - statisticsStart) / 1000,
@@ -957,6 +964,11 @@ try {
         shell.dataset.frameIntervalP95Ms = observation.intervalP95Milliseconds.toFixed(2);
         shell.dataset.frameWorkP95Ms = observation.workP95Milliseconds.toFixed(2);
         shell.dataset.drawCalls = String(renderer.info.render.calls);
+        // 鏡頭移動時平面倒影會把場景多畫一次；這段期間最多的一幀記在這裡，公布後歸零。
+        shell.dataset.drawCallsPeak = String(peakDrawCalls);
+        peakDrawCalls = 0;
+        shell.dataset.waterReflection = rendering.visualAssets.waterReflection ?? 'none';
+        shell.dataset.underwaterView = String(rendering.visualAssets.underwaterViewActive === true);
         shell.dataset.triangles = String(renderer.info.render.triangles);
         shell.dataset.lines = String(renderer.info.render.lines);
         shell.dataset.geometries = String(renderer.info.memory.geometries);

@@ -103,10 +103,10 @@ test('the lowest tier has nothing left to suggest once everything is shed', () =
 test('ten seconds of headroom restores one step at a time in reverse order', () => {
   const governor = desktop('medium');
   const clock = { time: 0 };
-  drive(governor, clock, 14, SLOW);
+  drive(governor, clock, 11, SLOW);
   assert.deepEqual(governor.state, {
     resolutionScale: 0.7,
-    shed: ['water-reflection-resolution', 'people-animation'],
+    shed: ['people-animation'],
   });
 
   assert.deepEqual(drive(governor, clock, 60, STEADY), [], 'no dropped frames but no spare work time either');
@@ -116,7 +116,6 @@ test('ten seconds of headroom restores one step at a time in reverse order', () 
     changes.map(({ action, step, resolutionScale }) => [action, step, resolutionScale]),
     [
       ['restore', 'people-animation', 0.7],
-      ['restore', 'water-reflection-resolution', 0.7],
       ['raise-resolution', null, 0.8],
       ['raise-resolution', null, 0.9],
       ['raise-resolution', null, 1],

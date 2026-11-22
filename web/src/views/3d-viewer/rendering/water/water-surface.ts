@@ -15,6 +15,23 @@ import vertexShader from './shaders/water-surface.vert.glsl?raw';
  * 每個畫面只更新幾個 uniform，不重傳貼圖、不重編著色器。
  */
 
+/**
+ * 泡在水裡的方盒（池梯踏階、教學平台）。折射後的視線先碰到它就看到它，而不是池底。
+ * 座標與池體相同；整個方盒必須在水面下、池體內。
+ */
+export interface SubmergedBox {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minY: number;
+  readonly maxY: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+  /** metal：不鏽鋼構件，用扶手材質的顏色；tile：和池體貼同一種磚。 */
+  readonly finish: 'metal' | 'tile';
+}
+
+export const MAXIMUM_SUBMERGED_BOXES = 12;
+
 /** 池體形狀，全部來自模型；座標是水面網格的物件座標（x 沿池長、y 向上、z 沿池寬）。 */
 export interface PoolBasinShape {
   readonly minX: number;
@@ -32,6 +49,40 @@ export interface PoolBasinShape {
   readonly laneLineWidth: number;
   /** 池底水道線兩端距池壁的距離（公尺）。 */
   readonly laneLineInset: number;
+  /** 水裡的方盒，最多 12 個。 */
+  readonly submergedBoxes?: readonly SubmergedBox[];
+}
+
+/**
+ * 池廳內部的大小，近似成一個單斜屋頂的方盒，用來修正反射探針的視差。座標與池體相同。
+ * 只影響倒影的位置，不是畫出來的幾何。
+ */
+export interface PoolHallShape {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+  /** 池畔地面高程。 */
+  readonly floor: number;
+  /** x = minX 處的屋頂高程。 */
+  readonly roofAtMinX: number;
+  /** x = maxX 處的屋頂高程。 */
+  readonly roofAtMaxX: number;
+}
+
+export function assertPoolHallShape(hall: PoolHallShape, basin: PoolBasinShape): PoolHallShape {
+  const values = [hall.minX, hall.maxX, hall.minZ, hall.maxZ, hall.floor, hall.roofAtMinX, hall.roofAtMaxX];
+  if (!values.every(Number.isFinite)) throw new TypeError('Pool hall shape must be finite.');
+  if (
+    hall.minX > basin.minX || hall.maxX < basin.maxX
+    || hall.minZ > basin.minZ || hall.maxZ < basin.maxZ
+  ) {
+    throw new RangeError('Pool hall must contain the pool basin.');
+  }
+  if (!(hall.roofAtMinX > basin.waterLevel && hall.roofAtMaxX > basin.waterLevel)) {
+    throw new RangeError('Pool hall roof must be above the water level.');
+  }
+  return hall;
 }
 
 export interface WaterWave {
@@ -47,8 +98,12 @@ export interface WaterSurfaceOptions {
   /** 焦散明暗圖樣（`materials/water/caustics.ktx2`）。 */
   readonly caustics: THREE.Texture;
   readonly reflectionCube: THREE.CubeTexture;
+  /** 池廳內部的大小；有給時探針倒影會依它修正視差。 */
+  readonly hall?: PoolHallShape;
   /** 池底水道線的顏色（線性色彩空間）；沒給時用深藍。 */
   readonly laneLineColor?: THREE.Color;
+  /** 水裡金屬構件（池梯踏階）的顏色，與扶手材質一致；沒給時用不鏽鋼灰。 */
+  readonly metalColor?: THREE.Color;
   /** 水面網格的格距（公尺）；越小長波越圓滑，三角形越多。 */
   readonly cellSize: number;
   readonly waves?: readonly WaterWave[];
@@ -62,6 +117,12 @@ export interface WaterFrameState {
   readonly sunColor: THREE.Color;
   readonly skyColor: THREE.Color;
 }
+
+/**
+ * 平面倒影被波紋推開的幅度，取決於被照出來的東西離水面多遠。池廳屋頂離水面約 6 公尺，
+ * 最近的牆與池畔設施約在 8 公尺內；這只影響倒影晃動的大小，不是幾何尺寸。
+ */
+const PLANAR_REACH = Object.freeze({ roof: 6, wall: 8 });
 
 export const MAXIMUM_LANE_LINES = 8;
 const UNUSED_LANE_LINE = 1e6;
@@ -95,6 +156,27 @@ export function assertPoolBasinShape(basin: PoolBasinShape): PoolBasinShape {
   }
   if (!(basin.laneLineWidth > 0) || basin.laneLineInset < 0) {
     throw new RangeError('Pool lane lines need a positive width and a non-negative inset.');
+  }
+  const boxes = basin.submergedBoxes ?? [];
+  if (boxes.length > MAXIMUM_SUBMERGED_BOXES) {
+    throw new RangeError(`Pool basin supports at most ${MAXIMUM_SUBMERGED_BOXES} submerged boxes.`);
+  }
+  for (const box of boxes) {
+    const numbers = [box.minX, box.maxX, box.minY, box.maxY, box.minZ, box.maxZ];
+    if (!numbers.every(Number.isFinite)) throw new TypeError('Submerged box must be finite.');
+    if (!(box.maxX > box.minX && box.maxY > box.minY && box.maxZ > box.minZ)) {
+      throw new RangeError('Submerged box must have positive size.');
+    }
+    if (
+      box.minX < basin.minX || box.maxX > basin.maxX
+      || box.minZ < basin.minZ || box.maxZ > basin.maxZ
+      || box.maxY >= basin.waterLevel
+    ) {
+      throw new RangeError('Submerged box must lie inside the basin, below the water level.');
+    }
+    if (box.finish !== 'metal' && box.finish !== 'tile') {
+      throw new TypeError(`Unknown submerged box finish: ${String(box.finish)}`);
+    }
   }
   return basin;
 }
@@ -159,6 +241,12 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
     { length: MAXIMUM_LANE_LINES },
     (_, index) => basin.laneLineZ[index] ?? UNUSED_LANE_LINE,
   );
+  const boxes = basin.submergedBoxes ?? [];
+  const metalColor = options.metalColor ?? new THREE.Color(0.45, 0.48, 0.49);
+  const boxSlot = <Value>(create: (box: SubmergedBox | undefined) => Value) => Array.from(
+    { length: MAXIMUM_SUBMERGED_BOXES },
+    (_, index) => create(boxes[index]),
+  );
   const material = new THREE.ShaderMaterial({
     name: 'realistic:water-surface',
     vertexShader,
@@ -176,6 +264,15 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
         uLocalToWorld: { value: new THREE.Matrix3() },
         uReflectionCube: { value: null },
         uReflectionIntensity: { value: 1 },
+        uProbePosition: { value: new THREE.Vector3() },
+        uHallMin: { value: new THREE.Vector3() },
+        uHallMax: { value: new THREE.Vector3() },
+        uHallRoof: { value: new THREE.Vector2() },
+        uHallParallax: { value: 0 },
+        uPlanarReflection: { value: null },
+        uPlanarMatrix: { value: new THREE.Matrix4() },
+        uPlanarStrength: { value: 0 },
+        uPlanarReach: { value: new THREE.Vector2(PLANAR_REACH.roof, PLANAR_REACH.wall) },
         uRippleNormal: { value: null },
         uRippleLayers: {
           value: [
@@ -206,6 +303,18 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
         uLaneLineWidth: { value: basin.laneLineWidth },
         uLaneLineInset: { value: basin.laneLineInset },
         uLaneLineZ: { value: laneLineZ },
+        uSubmergedBoxCount: { value: boxes.length },
+        uSubmergedBoxMin: {
+          value: boxSlot((box) => (box ? new THREE.Vector3(box.minX, box.minY, box.minZ) : new THREE.Vector3())),
+        },
+        uSubmergedBoxMax: {
+          value: boxSlot((box) => (box ? new THREE.Vector3(box.maxX, box.maxY, box.maxZ) : new THREE.Vector3())),
+        },
+        uSubmergedBoxFinish: {
+          value: boxSlot((box) => (box?.finish === 'tile'
+            ? new THREE.Vector4(0, 0, 0, 1)
+            : new THREE.Vector4(metalColor.r, metalColor.g, metalColor.b, 0))),
+        },
         // 清水對紅光吸收最強，所以深處偏藍綠。單位：每公尺。
         uAbsorption: { value: new THREE.Vector3(0.38, 0.07, 0.045) },
         uScatterColor: { value: new THREE.Color(0.02, 0.09, 0.11) },
@@ -222,6 +331,16 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
   if (options.laneLineColor) {
     (material.uniforms.uLaneLineColor.value as THREE.Color).copy(options.laneLineColor);
   }
+  if (options.hall) {
+    const hall = assertPoolHallShape(options.hall, basin);
+    (material.uniforms.uHallMin.value as THREE.Vector3).set(hall.minX, hall.floor, hall.minZ);
+    (material.uniforms.uHallMax.value as THREE.Vector3).set(hall.maxX, hall.roofAtMaxX, hall.maxZ);
+    (material.uniforms.uHallRoof.value as THREE.Vector2).set(
+      hall.roofAtMinX,
+      (hall.roofAtMaxX - hall.roofAtMinX) / (hall.maxX - hall.minX),
+    );
+    material.uniforms.uHallParallax.value = 1;
+  }
   return material;
 }
 
@@ -230,6 +349,8 @@ export const WATER_SURFACE_NAME = 'POOL-01-WATER-SURFACE';
 export class WaterSurface {
   readonly mesh: THREE.Mesh;
   readonly material: THREE.ShaderMaterial;
+  /** 長波的振幅總和（公尺）：水面最高可能比靜水面高這麼多。 */
+  readonly maximumWaveHeight: number;
   private readonly basin: PoolBasinShape;
   private readonly adopted: {
     readonly geometry: THREE.BufferGeometry;
@@ -254,6 +375,8 @@ export class WaterSurface {
     this.cellSize = options.cellSize;
     this.geometry = createWaterSurfaceGeometry(this.basin, options.cellSize);
     this.material = createWaterSurfaceMaterial(options);
+    this.maximumWaveHeight = (options.waves ?? CALM_POOL_WAVES)
+      .reduce((sum, wave) => sum + wave.amplitude, 0);
     if (target) {
       this.adopted = { geometry: target.geometry, material: target.material };
       target.geometry = this.geometry;
@@ -281,6 +404,27 @@ export class WaterSurface {
 
   setReflectionCube(texture: THREE.CubeTexture): void {
     this.material.uniforms.uReflectionCube.value = texture;
+  }
+
+  /** 探針拍攝的位置（物件座標）；視差修正要知道倒影是從哪裡拍的。 */
+  setProbePosition(position: THREE.Vector3): void {
+    (this.material.uniforms.uProbePosition.value as THREE.Vector3).copy(position);
+  }
+
+  /**
+   * 指定平面倒影。`texture` 給 null 代表沒有（只用探針）；`matrix` 是由倒影那一方持續更新的同一個物件。
+   */
+  setPlanarReflection(texture: THREE.Texture | null, matrix?: THREE.Matrix4): void {
+    const { uniforms } = this.material;
+    uniforms.uPlanarReflection.value = texture;
+    if (matrix) uniforms.uPlanarMatrix.value = matrix;
+    if (!texture) uniforms.uPlanarStrength.value = 0;
+  }
+
+  /** 這個畫面要不要用平面倒影（鏡頭在水面下或倒影還沒畫好時不用）。 */
+  setPlanarReflectionVisible(visible: boolean): void {
+    const { uniforms } = this.material;
+    uniforms.uPlanarStrength.value = visible && uniforms.uPlanarReflection.value ? 1 : 0;
   }
 
   /** 每個畫面呼叫一次，只改 uniform。呼叫前場景的世界矩陣要已經更新。 */

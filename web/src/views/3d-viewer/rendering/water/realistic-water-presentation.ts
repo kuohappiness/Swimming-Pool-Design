@@ -7,8 +7,16 @@ import type {
 import type { RenderQualityProfile, RenderQualityTier } from '../quality-profile';
 import { Ktx2TextureSource } from '../textures/ktx2-texture-source';
 import { createPoolBasinMaterial } from './pool-basin-material';
+import { ScenePlanarReflection, type PlanarReflection } from './planar-reflection';
 import { CubeReflectionProbe, type ReflectionProbe } from './reflection-probe';
-import { WATER_SURFACE_NAME, WaterSurface, type PoolBasinShape } from './water-surface';
+import { UnderwaterMotes } from './underwater-motes';
+import { ScreenUnderwaterView, type UnderwaterView } from './underwater-view';
+import {
+  WATER_SURFACE_NAME,
+  WaterSurface,
+  type PoolBasinShape,
+  type PoolHallShape,
+} from './water-surface';
 
 const RIPPLE_NORMAL_URL = new URL(
   '../../assets/materials/water/ripple-normal.ktx2',
@@ -28,12 +36,21 @@ interface WaterDetail {
   readonly cellSize: number;
   /** 反射探針每一面的邊長（像素）。 */
   readonly probeSize: number;
+  /**
+   * 鏡頭在水裡時要不要用水下畫面（場景先畫到貼圖再加水色）。低畫質不用：
+   * 多一張全螢幕的貼圖對最弱的裝置太重，水色改由漫遊的場景霧近似。
+   */
+  readonly underwaterView: boolean;
+  /** 水下光束沿視線取樣幾次；0 不畫光束。 */
+  readonly shaftSteps: number;
+  /** 水下懸浮微粒的數量。 */
+  readonly moteCount: number;
 }
 
 const WATER_DETAIL: Readonly<Record<RenderQualityTier, WaterDetail>> = Object.freeze({
-  high: Object.freeze({ cellSize: 0.25, probeSize: 256 }),
-  medium: Object.freeze({ cellSize: 0.5, probeSize: 128 }),
-  low: Object.freeze({ cellSize: 1, probeSize: 64 }),
+  high: Object.freeze({ cellSize: 0.25, probeSize: 256, underwaterView: true, shaftSteps: 14, moteCount: 700 }),
+  medium: Object.freeze({ cellSize: 0.5, probeSize: 128, underwaterView: true, shaftSteps: 8, moteCount: 350 }),
+  low: Object.freeze({ cellSize: 1, probeSize: 64, underwaterView: false, shaftSteps: 0, moteCount: 0 }),
 });
 
 export interface WaterTextureSource {
@@ -43,8 +60,12 @@ export interface WaterTextureSource {
 
 export interface RealisticWaterOptions {
   readonly basin: PoolBasinShape;
+  /** 池廳內部的大小（來自模型）；有給時探針倒影依它修正視差。 */
+  readonly hall?: PoolHallShape;
   /** 池底水道線的顏色，與實體標線的材質一致。 */
   readonly laneLineColor?: THREE.Color;
+  /** 水裡金屬構件（池梯踏階）的顏色，與扶手材質一致。 */
+  readonly metalColor?: THREE.Color;
   /**
    * 場景裡池底與池壁目前使用的材質。有給時，用到它的網格會換成與水面共用著色的池體材質，
    * 從水面上（折射）與潛到水下（直接看）看到的磁磚、標線與光網才一致。
@@ -54,6 +75,10 @@ export interface RealisticWaterOptions {
   readonly renderer?: THREE.WebGLRenderer;
   readonly textureSource?: WaterTextureSource;
   readonly createReflectionProbe?: (size: number) => ReflectionProbe;
+  /** 測試用的平面倒影替身；沒給時由繪圖器建立，兩者都沒有就只用探針。 */
+  readonly createPlanarReflection?: (width: number, height: number) => PlanarReflection;
+  /** 測試用的水下畫面替身；沒給時自己建立。 */
+  readonly createUnderwaterView?: (surface: WaterSurface) => UnderwaterView;
 }
 
 /**
@@ -69,6 +94,12 @@ export class RealisticWaterPresentation {
   private textureSource: WaterTextureSource | null = null;
   private textures: { rippleNormal: THREE.Texture; caustics: THREE.Texture } | null = null;
   private probe: ReflectionProbe | null = null;
+  private planar: PlanarReflection | null = null;
+  private underwaterView: UnderwaterView | null = null;
+  private motes: UnderwaterMotes | null = null;
+  private originalOnBeforeRender: THREE.Object3D['onBeforeRender'] | null = null;
+  private readonly planarHidden: THREE.Object3D[] = [];
+  private readonly drawingBufferSize = new THREE.Vector2();
   private surface: WaterSurface | null = null;
   private basinMaterial: THREE.ShaderMaterial | null = null;
   private readonly basinMeshes: Array<{ mesh: THREE.Mesh; original: THREE.Material | THREE.Material[] }> = [];
@@ -143,7 +174,9 @@ export class RealisticWaterPresentation {
       rippleNormal: this.textures.rippleNormal,
       caustics: this.textures.caustics,
       reflectionCube: this.probe.texture,
+      hall: this.options.hall,
       laneLineColor: this.options.laneLineColor,
+      metalColor: this.options.metalColor,
       cellSize: detail.cellSize,
     }, target);
     this.adoptBasin(context, target);
@@ -154,6 +187,41 @@ export class RealisticWaterPresentation {
       if (!this.ambient && object instanceof THREE.HemisphereLight) this.ambient = object;
     });
     this.reflectionStale = true;
+
+    // 平面倒影要在主畫面畫到水面之前才知道鏡頭在哪，所以掛在水面網格的 onBeforeRender；
+    // 這樣水面不在視野裡時也不會白畫，繪製呼叫也算在同一個畫面的統計裡。
+    this.originalOnBeforeRender = target.onBeforeRender;
+    target.onBeforeRender = (renderer, scene, camera) => this.renderPlanarReflection(renderer, scene, camera);
+    this.planarHidden.length = 0;
+    this.planarHidden.push(target, ...this.basinMeshes.map(({ mesh }) => mesh));
+    this.syncPlanarReflection();
+
+    this.motes = new UnderwaterMotes(this.surface.material.uniforms, target, detail.moteCount);
+    this.underwaterView = this.options.createUnderwaterView?.(this.surface)
+      ?? new ScreenUnderwaterView({
+        basin: this.options.basin,
+        waterUniforms: this.surface.material.uniforms,
+        surface: target,
+        maximumWaveHeight: this.surface.maximumWaveHeight,
+        underwaterOnly: [this.motes.points],
+      });
+    this.underwaterView.setShaftSteps(detail.shaftSteps);
+  }
+
+  /** 這一級畫質有沒有平面倒影（沒有時只用探針）。 */
+  get usesPlanarReflection(): boolean {
+    return this.planar !== null;
+  }
+
+  /** 鏡頭在水下時的水色是否由這裡處理（低畫質不處理，由漫遊的場景霧近似）。 */
+  get handlesUnderwaterView(): boolean {
+    return this.surface !== null && WATER_DETAIL[this.profile.id].underwaterView;
+  }
+
+  /** 鏡頭在水裡時畫出水下畫面並回傳 true；否則回傳 false，由呼叫端照常畫。 */
+  renderUnderwaterView(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): boolean {
+    if (this.disposed || !this.underwaterView || !this.handlesUnderwaterView) return false;
+    return this.underwaterView.render(renderer, scene, camera);
   }
 
   setQuality(profile: RenderQualityProfile): void {
@@ -163,8 +231,12 @@ export class RealisticWaterPresentation {
     const detail = WATER_DETAIL[profile.id];
     this.surface.setCellSize(detail.cellSize);
     if (this.probe.setSize(detail.probeSize)) this.surface.setReflectionCube(this.probe.texture);
+    this.syncPlanarReflection();
+    this.underwaterView?.setShaftSteps(detail.shaftSteps);
+    this.motes?.setCount(detail.moteCount);
     // 畫質會改變陰影與環境光，倒影要跟著重拍。
     this.reflectionStale = true;
+    this.planar?.invalidate();
   }
 
   setWalkthroughState(state: VisualWalkthroughState): void {
@@ -180,6 +252,7 @@ export class RealisticWaterPresentation {
   /** 光線或可見物件改變後呼叫；下一個畫面會重拍倒影。 */
   invalidateReflection(): void {
     this.reflectionStale = true;
+    this.planar?.invalidate();
   }
 
   updateFrame(state: VisualFrameState): void {
@@ -195,6 +268,7 @@ export class RealisticWaterPresentation {
         basin.waterLevel + PROBE_HEIGHT_ABOVE_WATER,
         (basin.minZ + basin.maxZ) / 2,
       );
+      surface.setProbePosition(this.probePosition);
       probe.capture(scene, mesh.localToWorld(this.probePosition), [mesh]);
     }
 
@@ -235,7 +309,18 @@ export class RealisticWaterPresentation {
     this.basinMeshes.length = 0;
     this.basinMaterial?.dispose();
     this.basinMaterial = null;
+    if (this.surface && this.originalOnBeforeRender) {
+      this.surface.mesh.onBeforeRender = this.originalOnBeforeRender;
+    }
+    this.originalOnBeforeRender = null;
+    this.planarHidden.length = 0;
     this.surface?.dispose();
+    this.planar?.dispose();
+    this.planar = null;
+    this.underwaterView?.dispose();
+    this.underwaterView = null;
+    this.motes?.dispose();
+    this.motes = null;
     this.probe?.dispose();
     this.textures?.rippleNormal.dispose();
     this.textures?.caustics.dispose();
@@ -247,6 +332,41 @@ export class RealisticWaterPresentation {
     this.scene = null;
     this.sun = null;
     this.ambient = null;
+  }
+
+  /** 依目前的畫質建立或拿掉平面倒影。倒影比例是 0（中與省電級）時只用探針。 */
+  private syncPlanarReflection(): void {
+    const { surface } = this;
+    if (!surface) return;
+    const wanted = (this.profile.waterReflectionScale ?? 0) > 0
+      && Boolean(this.options.createPlanarReflection ?? this.options.renderer);
+    if (!wanted) {
+      this.planar?.dispose();
+      this.planar = null;
+      surface.setPlanarReflection(null);
+      return;
+    }
+    if (this.planar) return;
+    // 先給最小的貼圖，真正的大小在第一次要畫時依畫布決定。
+    this.planar = this.options.createPlanarReflection?.(1, 1)
+      ?? new ScenePlanarReflection(this.options.renderer as THREE.WebGLRenderer, 1, 1);
+    surface.setPlanarReflection(this.planar.texture, this.planar.textureMatrix);
+  }
+
+  private renderPlanarReflection(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): void {
+    const { surface, planar } = this;
+    if (this.disposed || !surface || !planar) return;
+    const scale = this.profile.waterReflectionScale ?? 0;
+    renderer.getDrawingBufferSize(this.drawingBufferSize);
+    planar.setSize(this.drawingBufferSize.x * scale, this.drawingBufferSize.y * scale);
+    surface.setPlanarReflectionVisible(planar.update({
+      renderer,
+      scene,
+      camera,
+      surface: surface.mesh,
+      waterLevel: this.options.basin.waterLevel,
+      hidden: this.planarHidden,
+    }));
   }
 
   /** 把實體池底與池壁換成與水面共用著色的材質。 */

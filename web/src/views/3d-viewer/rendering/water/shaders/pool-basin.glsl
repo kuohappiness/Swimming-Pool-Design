@@ -1,6 +1,8 @@
 // 池體的形狀、磁磚與水中光線。水面著色器（折射後看到的池底）與池體材質共用這一段，
 // 兩邊的磁磚、水道線與顏色才會一致。所有座標都在水面網格的物件座標：x 沿池長、y 向上、z 沿池寬。
 
+#define MAXIMUM_SUBMERGED_BOXES 12
+
 uniform vec2 uPoolMin;          // 池體最小角 (x, z)
 uniform vec2 uPoolMax;          // 池體最大角 (x, z)
 uniform float uWaterLevel;      // 水面高程
@@ -24,6 +26,12 @@ uniform sampler2D uCaustics;    // 焦散明暗圖樣；灰階 1.0 代表平均�
 // 兩層焦散：x 是每公尺重複幾次，zw 是每秒捲動的距離（公尺）。
 uniform vec4 uCausticLayers[2];
 uniform float uCausticStrength; // 0 關閉，1 全開
+// 泡在水裡的方盒（池梯踏階、教學平台）：折射後的視線先碰到它們就看到它們，而不是池底。
+uniform int uSubmergedBoxCount;
+uniform vec3 uSubmergedBoxMin[MAXIMUM_SUBMERGED_BOXES];
+uniform vec3 uSubmergedBoxMax[MAXIMUM_SUBMERGED_BOXES];
+// rgb 是表面顏色；a 為 1 時改用池體的磁磚（教學平台和池底貼同一種磚）。
+uniform vec4 uSubmergedBoxFinish[MAXIMUM_SUBMERGED_BOXES];
 
 const float WATER_IOR = 1.333;
 const float NO_HIT = 1.0e9;
@@ -37,6 +45,8 @@ struct BasinHit {
   vec3 position;
   vec3 normal;
   float distance;
+  // 碰到的是水裡的方盒時 a 大於 0：rgb 是它的顏色，a 為 1 代表用池體磁磚。池底與池壁是 vec4(0)。
+  vec4 object;
 };
 
 float poolFloorElevation(float x) {
@@ -77,6 +87,32 @@ BasinHit intersectBasin(vec3 origin, vec3 direction) {
   hit.normal = tFloor <= min(tX, tZ)
     ? normalize(vec3(-slope, 1.0, 0.0))
     : (tX <= tZ ? normalX : normalZ);
+  hit.object = vec4(0.0);
+
+  // 水裡的方盒：視線在碰到池體之前先穿進哪一個，就改成看到它。
+  vec3 safeDirection = vec3(
+    abs(direction.x) > 1.0e-5 ? direction.x : 1.0e-5,
+    abs(direction.y) > 1.0e-5 ? direction.y : 1.0e-5,
+    abs(direction.z) > 1.0e-5 ? direction.z : 1.0e-5
+  );
+  for (int index = 0; index < MAXIMUM_SUBMERGED_BOXES; index += 1) {
+    if (index >= uSubmergedBoxCount) break;
+    vec3 toMin = (uSubmergedBoxMin[index] - origin) / safeDirection;
+    vec3 toMax = (uSubmergedBoxMax[index] - origin) / safeDirection;
+    vec3 entry = min(toMin, toMax);
+    vec3 leave = max(toMin, toMax);
+    float tEnter = max(max(entry.x, entry.y), entry.z);
+    float tLeave = min(min(leave.x, leave.y), leave.z);
+    if (tEnter > 0.0 && tEnter < tLeave && tEnter < hit.distance) {
+      hit.distance = tEnter;
+      hit.position = origin + direction * tEnter;
+      hit.normal = entry.x >= entry.y && entry.x >= entry.z
+        ? vec3(-sign(safeDirection.x), 0.0, 0.0)
+        : (entry.y >= entry.z ? vec3(0.0, -sign(safeDirection.y), 0.0) : vec3(0.0, 0.0, -sign(safeDirection.z)));
+      // a 留一點起跳值，顏色是純黑也認得出「這是方盒」。
+      hit.object = vec4(uSubmergedBoxFinish[index].rgb, 0.5 + 0.5 * uSubmergedBoxFinish[index].a);
+    }
+  }
   return hit;
 }
 
@@ -99,8 +135,8 @@ float groutCoverage(vec2 surfaceCoordinate, vec2 footprint) {
   return 1.0 - (1.0 - coverage.x) * (1.0 - coverage.y);
 }
 
-// 池底或池壁在 position 處的表面顏色（未打光）。
-vec3 poolBasinAlbedo(vec3 position, vec3 normal) {
+// 貼磚表面在 position 處的顏色（未打光）。laneLines 為 true 時在朝上的面加畫池底水道線。
+vec3 poolTileAlbedo(vec3 position, vec3 normal, bool laneLines) {
   bool isFloor = normal.y > 0.5;
   vec2 surfaceCoordinate = isFloor
     ? position.xz
@@ -108,7 +144,7 @@ vec3 poolBasinAlbedo(vec3 position, vec3 normal) {
   vec2 footprint = max(fwidth(surfaceCoordinate), vec2(1.0e-4));
   vec3 albedo = mix(uTileColor, uGroutColor, groutCoverage(surfaceCoordinate, footprint));
 
-  if (isFloor) {
+  if (isFloor && laneLines) {
     float withinLength = step(uPoolMin.x + uLaneLineInset, position.x)
       * step(position.x, uPoolMax.x - uLaneLineInset);
     float lane = 0.0;
@@ -118,6 +154,13 @@ vec3 poolBasinAlbedo(vec3 position, vec3 normal) {
     albedo = mix(albedo, uLaneLineColor, lane * withinLength);
   }
   return albedo;
+}
+
+// 視線碰到的那一點的表面顏色（未打光）：池底、池壁，或水裡的方盒。
+vec3 poolBasinAlbedo(BasinHit hit) {
+  if (hit.object.a < 0.25) return poolTileAlbedo(hit.position, hit.normal, true);
+  // 池底的水道線只畫在池底，方盒頂面即使貼磚也不畫。
+  return hit.object.a > 0.75 ? poolTileAlbedo(hit.position, hit.normal, false) : hit.object.rgb;
 }
 
 // 光在水中走 distance 公尺後剩下的比例。
@@ -141,7 +184,7 @@ float poolCaustic(vec3 position) {
 
 // 池底或池壁上一點被照亮後的顏色：陽光折射入水、沿途被水吸收，再加上漫射光。
 vec3 shadePoolBasin(BasinHit hit) {
-  vec3 albedo = poolBasinAlbedo(hit.position, hit.normal);
+  vec3 albedo = poolBasinAlbedo(hit);
   float depth = max(uWaterLevel - hit.position.y, 0.0);
 
   // 陽光穿過水面後的方向（指向光源）。太陽在地平線下時沒有直射光。

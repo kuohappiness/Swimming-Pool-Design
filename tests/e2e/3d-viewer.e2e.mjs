@@ -309,6 +309,9 @@ try {
       { timeout: 3_000 },
     );
     assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'), 'true');
+    // The software renderer runs the saver tier, which has no underwater view of its own:
+    // the walkthrough tints the water with scene fog instead.
+    assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater-fog'), 'true');
     await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-walkthrough-underwater.png') });
   } finally {
     await desktop.keyboard.up('c');
@@ -533,8 +536,105 @@ try {
     assert.ok(drawCalls > 0 && drawCalls <= budget.drawCalls, `${budget.label}: ${drawCalls} draw calls (budget ${budget.drawCalls})`);
     assert.ok(triangles > 0 && triangles <= budget.triangles, `${budget.label}: ${triangles} triangles (budget ${budget.triangles})`);
     assert.ok(batchedMeshes * 4 < sourceMeshes, `${budget.label}: static batching left ${batchedMeshes} of ${sourceMeshes} meshes`);
+    // Only the upper tiers redraw the scene for a planar water reflection; medium keeps the probe.
+    assert.equal(await shell.getAttribute('data-water-reflection'), budget.quality === 'high' ? 'planar' : 'probe');
     await page.close();
   }
+
+  // Planar reflection (TASK-151) costs nothing while the camera is still and one more scene
+  // pass while it moves. The peak over a drag has to stay inside the high budget. A small
+  // desktop viewport keeps the software renderer fast enough to publish several windows.
+  const moving = await browser.newPage({ viewport: { width: 900, height: 560 }, deviceScaleFactor: 1 });
+  trackErrors(moving);
+  await moving.goto(`${origin}/?view=3d-viewer&quality=high&adaptive=off`, { waitUntil: 'networkidle' });
+  const movingShell = moving.locator('[data-viewer-shell]');
+  const renderedFrames = async (page) => Number(
+    await page.locator('[data-viewer-shell]').getAttribute('data-rendered-frames'),
+  );
+  await moving.waitForFunction(
+    () => {
+      const shell = document.querySelector('[data-viewer-shell]');
+      return Number(shell?.getAttribute('data-rendered-frames') ?? 0) >= 60
+        && shell?.getAttribute('data-water-presentation') === 'realistic';
+    },
+    undefined,
+    { timeout: 120_000 },
+  );
+  const stillDrawCalls = Number(await movingShell.getAttribute('data-draw-calls'));
+  assert.ok(stillDrawCalls > 0 && stillDrawCalls <= RENDER_BUDGETS.high.drawCalls);
+  // The canvas starts partly below the fold at this size; the pointer only reaches what is on screen.
+  await moving.locator('canvas').scrollIntoViewIfNeeded();
+  const movingCanvas = await moving.locator('canvas').boundingBox();
+  const dragX = movingCanvas.x + movingCanvas.width / 2;
+  const dragY = movingCanvas.y + movingCanvas.height / 2;
+  await moving.mouse.move(dragX, dragY);
+  await moving.mouse.down();
+  const dragStartFrames = await renderedFrames(moving);
+  for (let step = 0; step < 2000 && await renderedFrames(moving) < dragStartFrames + 65; step += 1) {
+    await moving.mouse.move(dragX + 140 * Math.sin(step / 5), dragY);
+    await moving.evaluate(() => new Promise(requestAnimationFrame));
+  }
+  await moving.mouse.up();
+  assert.ok(await renderedFrames(moving) >= dragStartFrames + 65, 'the drag lasted two diagnostic windows');
+  const movingPeak = Number(await movingShell.getAttribute('data-draw-calls-peak'));
+  assert.ok(
+    movingPeak > stillDrawCalls,
+    `a moving camera redraws the scene for the reflection (${movingPeak} vs ${stillDrawCalls} when still)`,
+  );
+  assert.ok(
+    movingPeak <= RENDER_BUDGETS.high.drawCalls,
+    `desktop high while moving: ${movingPeak} draw calls (budget ${RENDER_BUDGETS.high.drawCalls})`,
+  );
+  await moving.close();
+
+  // Underwater view (TASK-151): on the medium tier and up the frame is drawn through the
+  // underwater pass while the camera is in the water, and the walkthrough adds no fog of its own.
+  const diving = await browser.newPage({ viewport: { width: 900, height: 560 }, deviceScaleFactor: 1 });
+  trackErrors(diving);
+  await diving.goto(`${origin}/?view=3d-viewer&quality=medium&adaptive=off`, { waitUntil: 'networkidle' });
+  const divingShell = diving.locator('[data-viewer-shell]');
+  await diving.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-water-presentation') === 'realistic',
+    undefined,
+    { timeout: 120_000 },
+  );
+  assert.equal(await divingShell.getAttribute('data-underwater-view'), 'false');
+  await diving.locator('[data-enter-walkthrough]').click();
+  await diving.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'walkthrough',
+  );
+  await diving.locator('[data-walkthrough-area-select]').selectOption('l1-pool-deck');
+  await diving.locator('canvas').focus();
+  await diving.keyboard.down('Shift');
+  await diving.keyboard.down('w');
+  try {
+    await diving.waitForFunction(
+      () => document.querySelector('[data-viewer-shell]')
+        ?.getAttribute('data-movement-mode')?.startsWith('swimming-'),
+      undefined,
+      { timeout: 20_000 },
+    );
+  } finally {
+    await diving.keyboard.up('w');
+    await diving.keyboard.up('Shift');
+  }
+  await diving.keyboard.down('c');
+  try {
+    await diving.waitForFunction(
+      () => {
+        const shell = document.querySelector('[data-viewer-shell]');
+        return shell?.getAttribute('data-underwater') === 'true'
+          && shell?.getAttribute('data-underwater-view') === 'true';
+      },
+      undefined,
+      { timeout: 20_000 },
+    );
+    assert.equal(await divingShell.getAttribute('data-underwater-fog'), 'false');
+    await diving.screenshot({ path: resolve(outputDirectory, 'viewer-underwater-view.png') });
+  } finally {
+    await diving.keyboard.up('c');
+  }
+  await diving.close();
 
   // Quality menu (DEC-190): four tiers, the choice survives a reload, and "auto" goes back to
   // what the device gets by itself (the software renderer here always gets the saver tier).

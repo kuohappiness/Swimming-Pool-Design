@@ -58,7 +58,7 @@ function createHost(benchmarkResult = null) {
     log,
     published: [],
     benchmarks: 0,
-    applyTier(tier) { log.push(`tier:${tier.id}`); },
+    applyTier(tier, shed) { log.push(shed.length ? `tier:${tier.id}:${shed.join('+')}` : `tier:${tier.id}`); },
     applyResolution() { log.push('resolution'); },
     runBenchmark() { this.benchmarks += 1; log.push('benchmark'); return benchmarkResult; },
     publish(snapshot) { this.published.push(snapshot); },
@@ -103,6 +103,21 @@ test('a realism tier overrides only what the pipeline profile already exposes', 
     ],
   );
   assert.equal(high.surfaceDetail, ENHANCED_QUALITY_PROFILES.high.surfaceDetail);
+  // Planar water reflection: half resolution on the two upper tiers, probe only below; when the
+  // governor sheds it, the resolution halves again instead of the reflection disappearing.
+  assert.deepEqual(
+    [ultra, high, saver].map((profile) => profile.waterReflectionScale),
+    [0.5, 0.5, 0],
+  );
+  assert.equal(
+    renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.medium, REALISM_TIERS.medium).waterReflectionScale,
+    0,
+  );
+  assert.equal(
+    renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.high, REALISM_TIERS.high, ['water-reflection-resolution'])
+      .waterReflectionScale,
+    0.25,
+  );
   assert.throws(
     () => renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.low, REALISM_TIERS.high),
     /expects the high pipeline profile/,

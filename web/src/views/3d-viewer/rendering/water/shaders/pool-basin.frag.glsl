@@ -16,6 +16,7 @@ void main() {
   BasinHit hit;
   hit.position = vBasinPosition;
   hit.distance = 0.0;
+  hit.object = vec4(0.0);
   if (axis.y >= axis.x && axis.y >= axis.z) {
     float slope = (uDeepBottom - uShallowBottom) / (uPoolMax.x - uPoolMin.x);
     hit.normal = normalize(vec3(-slope, 1.0, 0.0));

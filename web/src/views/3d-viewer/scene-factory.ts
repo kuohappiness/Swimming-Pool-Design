@@ -2,7 +2,12 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { DesignStatus, ViewerModel } from './model-adapter';
 import { deriveViewerOrientation } from './orientation';
-import { getViewerPoolBasinShape, getViewerPoolPresentation } from './pool-state';
+import {
+  getPoolLadderRails,
+  getPoolLadderTreads,
+  getViewerPoolBasinShape,
+  getViewerPoolPresentation,
+} from './pool-state';
 import { createL1SanitaryDetails } from './sanitary-fixtures';
 import { createArchitecturalDetails } from './architectural-details';
 import { createPoolHallDetails } from './pool-hall-details';
@@ -595,15 +600,23 @@ export function createViewerScene(
     }
   }
   const railMaterial = materials.get('pool-rail');
-  for (const z of [poolZ0 + 0.8, poolZ1 - 0.8]) {
-    for (const x of [poolX0 + 0.28, poolX0 + 0.7]) {
-      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.2, 14), railMaterial);
-      rail.position.set(x, deckElevation + 0.55, z);
-      poolGroup.add(rail);
-    }
-    for (let step = 0; step < 3; step += 1) {
-      poolGroup.add(box([0.42, 0.04, 0.08], [poolX0 + 0.49, waterLevel - 0.2 - step * 0.25, z], railMaterial));
-    }
+  for (const rail of getPoolLadderRails(model)) {
+    const upper = new THREE.Mesh(
+      new THREE.CylinderGeometry(rail.radius, rail.radius, rail.top - rail.bottom, 14),
+      railMaterial,
+    );
+    upper.position.set(rail.x, (rail.top + rail.bottom) / 2, rail.z);
+    // 水下延伸段：沒有它，踏板會懸在水裡。
+    const lower = new THREE.Mesh(
+      new THREE.CylinderGeometry(rail.radius, rail.radius, rail.bottom - rail.submergedBottom, 14),
+      railMaterial,
+    );
+    lower.position.set(rail.x, (rail.bottom + rail.submergedBottom) / 2, rail.z);
+    poolGroup.add(upper, lower);
+  }
+  // 踏板的位置與水面折射計算共用同一份（pool-state.ts），從水面上看到的才會和實體重合。
+  for (const tread of getPoolLadderTreads(model)) {
+    poolGroup.add(box([...tread.size], [...tread.centre], railMaterial));
   }
   const coping = 0.22;
   const nearCoping = box([pool.length.value + coping * 2, 0.07, coping], [(poolX0 + poolX1) / 2, deckElevation + 0.02, poolZ0 - coping / 2], deckMaterial);

@@ -1,5 +1,8 @@
 import type { RenderQualityProfile } from '../quality-profile';
-import type { RealismTier } from './realism-tiers';
+import type { RealismTier, ShedStep } from './realism-tiers';
+
+/** 卸載「水面倒影解析度」時，倒影貼圖的邊長剩下的比例。 */
+export const SHED_REFLECTION_RATIO = 0.5;
 
 /**
  * 把四級畫質（DEC-190）套到繪圖管線吃的設定上。
@@ -11,6 +14,7 @@ import type { RealismTier } from './realism-tiers';
 export function renderQualityProfileForTier<Profile extends RenderQualityProfile>(
   base: Profile,
   tier: RealismTier,
+  shed: readonly ShedStep[] = [],
 ): Profile {
   if (base.id !== tier.legacyTier) {
     throw new TypeError(
@@ -22,6 +26,10 @@ export function renderQualityProfileForTier<Profile extends RenderQualityProfile
     pixelRatioCap: tier.pixelRatioCap,
     shadows: tier.shadowCascades > 0 && base.shadows,
     shadowMapSize: tier.shadowCascades > 0 && base.shadows ? tier.shadowMapSize : 0,
+    // 幀率吃緊時調節器先把倒影的解析度減半（面積剩四分之一），而不是直接關掉倒影。
+    waterReflectionScale: shed.includes('water-reflection-resolution')
+      ? tier.waterReflectionScale * SHED_REFLECTION_RATIO
+      : tier.waterReflectionScale,
   });
 }
 

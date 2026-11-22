@@ -120,6 +120,16 @@ export interface VisualAssetAdapter {
   setQuality(profile: RenderQualityProfile): void;
   setWalkthroughState?(state: VisualWalkthroughState): void;
   updateFrame?(state: VisualFrameState): void;
+  /**
+   * 這個畫面改由它畫（鏡頭在水裡時的水下畫面）。有畫就回傳 true；回傳 false 時由繪圖管線照常畫。
+   */
+  renderFrame?(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): boolean;
+  /** 鏡頭在水下時的水色是否由 `renderFrame` 處理；是的話，漫遊不必再替場景加水下霧。 */
+  readonly handlesUnderwaterView?: boolean;
+  /** 診斷用：上一個畫面是不是水下畫面。 */
+  readonly underwaterViewActive?: boolean;
+  /** 診斷用：水面倒影目前的來源。 */
+  readonly waterReflection?: 'planar' | 'probe' | 'none';
   /** 光線、天候或可見物件改變後呼叫，讓事先拍好的倒影等資料重新產生。 */
   invalidateLighting?(): void;
   dispose(): void;

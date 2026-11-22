@@ -26,7 +26,10 @@ const {
   getEnhancedQualityProfile,
 } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts');
 const {
+  getPoolLadderRails,
+  getPoolLadderTreads,
   getViewerPoolBasinShape,
+  getViewerPoolHallShape,
   getPoolFloorLaneLineCentres,
   POOL_FLOOR_LANE_LINE_INSET,
   POOL_FLOOR_LANE_LINE_WIDTH,
@@ -38,7 +41,21 @@ const { POOL_BASIN_UNIFORM_NAMES } = await vite.ssrLoadModule(
   '/src/views/3d-viewer/rendering/water/pool-basin-material.ts',
 );
 
+const { MAXIMUM_SUBMERGED_BOXES, assertPoolBasinShape, assertPoolHallShape } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/water/water-surface.ts',
+);
+const { REALISM_TIERS, renderQualityProfileForTier } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/performance/index.ts',
+);
+
 const basin = getViewerPoolBasinShape(viewerModel);
+const hall = getViewerPoolHallShape(viewerModel);
+/** 高級（有平面倒影）與中級（只有探針）實際交給繪圖管線的設定。 */
+const tierProfile = (id, shed = []) => renderQualityProfileForTier(
+  getEnhancedQualityProfile(REALISM_TIERS[id].legacyTier),
+  REALISM_TIERS[id],
+  shed,
+);
 
 /** 測試用的貼圖來源與反射探針：不需要繪圖器，並記錄被呼叫的次數。 */
 function createFakes({ failOn = null } = {}) {
@@ -399,5 +416,297 @@ test('nothing but water lies between the pool floor and the water surface', () =
   assert.ok(Math.abs(size.x - (viewerModel.geometry.site.length + 12)) < 1e-6);
   assert.ok(Math.abs(size.y - 0.2) < 1e-6);
   assert.ok(Math.abs(size.z - (viewerModel.geometry.site.width + 12)) < 1e-6);
+  materials.dispose();
+});
+
+test('ladder treads and rails are defined once: the scene draws them and the refraction sees them', () => {
+  const treads = getPoolLadderTreads(viewerModel);
+  const rails = getPoolLadderRails(viewerModel);
+  assert.equal(treads.length, 6);
+  assert.equal(rails.length, 4);
+  assert.equal(basin.submergedBoxes.length, treads.length + rails.length);
+  assert.ok(basin.submergedBoxes.length <= MAXIMUM_SUBMERGED_BOXES);
+  assert.doesNotThrow(() => assertPoolBasinShape(basin));
+  for (const box of basin.submergedBoxes) {
+    assert.equal(box.finish, 'metal');
+    assert.ok(box.maxY < basin.waterLevel, 'refraction boxes stay below the surface');
+  }
+  // 扶手往下延伸到最後一階踏板下方，踏板才不會懸在水裡。
+  const lowestTread = Math.min(...treads.map((tread) => tread.centre[1]));
+  for (const rail of rails) {
+    assert.ok(rail.submergedBottom < lowestTread);
+    assert.ok(rail.bottom > basin.waterLevel && rail.top > rail.bottom);
+  }
+
+  const { graph, materials } = createScene();
+  const surface = graph.water.surface;
+  const railMaterial = materials.get('pool-rail');
+  const centres = [];
+  graph.siteRoot.traverse((object) => {
+    if (!object.isMesh || object.material !== railMaterial) return;
+    object.geometry.computeBoundingBox();
+    const centre = object.geometry.boundingBox.getCenter(new THREE.Vector3());
+    centres.push(surface.worldToLocal(object.localToWorld(centre)));
+  });
+  for (const tread of treads) {
+    const expected = new THREE.Vector3(...tread.centre);
+    assert.ok(
+      centres.some((centre) => centre.distanceTo(expected) < 1e-6),
+      `the scene has a tread at ${tread.centre.join(', ')}`,
+    );
+  }
+  for (const rail of rails) {
+    const expected = new THREE.Vector3(rail.x, (rail.bottom + rail.submergedBottom) / 2, rail.z);
+    assert.ok(
+      centres.some((centre) => centre.distanceTo(expected) < 1e-6),
+      `the scene has the submerged part of the rail at x ${rail.x}, z ${rail.z}`,
+    );
+  }
+  materials.dispose();
+
+  const tooMany = Array.from({ length: MAXIMUM_SUBMERGED_BOXES + 1 }, () => basin.submergedBoxes[0]);
+  assert.throws(() => assertPoolBasinShape({ ...basin, submergedBoxes: tooMany }), /at most/);
+  assert.throws(
+    () => assertPoolBasinShape({
+      ...basin,
+      submergedBoxes: [{ ...basin.submergedBoxes[0], maxY: basin.waterLevel + 0.1 }],
+    }),
+    /below the water level/,
+  );
+  assert.throws(
+    () => assertPoolBasinShape({
+      ...basin,
+      submergedBoxes: [{ ...basin.submergedBoxes[0], minX: basin.minX - 1 }],
+    }),
+    /inside the basin/,
+  );
+});
+
+test('the hall that corrects the probe comes from the model roof and contains the pool', async () => {
+  const { roof, site, pool } = viewerModel.geometry;
+  assert.deepEqual(hall, {
+    minX: roof.startX,
+    maxX: roof.startX + roof.planRun,
+    minZ: 0,
+    maxZ: site.width,
+    floor: pool.deckElevation.value,
+    roofAtMinX: roof.lowElevation,
+    roofAtMaxX: roof.highElevation,
+  });
+  assert.doesNotThrow(() => assertPoolHallShape(hall, basin));
+  assert.throws(() => assertPoolHallShape({ ...hall, maxX: basin.maxX - 1 }, basin), /contain the pool basin/);
+  assert.throws(() => assertPoolHallShape({ ...hall, roofAtMinX: basin.waterLevel }, basin), /above the water level/);
+
+  const { graph, context, materials } = createScene();
+  const { textureSource, createReflectionProbe } = createFakes();
+  const water = new RealisticWaterPresentation(tierProfile('medium'), {
+    basin, hall, textureSource, createReflectionProbe,
+  });
+  await water.load();
+  water.activate(context);
+  const { uniforms } = graph.water.surface.material;
+  assert.equal(uniforms.uHallParallax.value, 1);
+  assert.deepEqual(uniforms.uHallMin.value.toArray(), [hall.minX, hall.floor, hall.minZ]);
+  assert.equal(uniforms.uHallRoof.value.x, hall.roofAtMinX);
+  assert.ok(Math.abs(
+    uniforms.uHallRoof.value.x + uniforms.uHallRoof.value.y * (hall.maxX - hall.minX) - hall.roofAtMaxX,
+  ) < 1e-9);
+  water.updateFrame(frame());
+  // 視差修正要知道探針是從哪裡拍的。
+  assert.deepEqual(uniforms.uProbePosition.value.toArray(), [
+    (basin.minX + basin.maxX) / 2,
+    basin.waterLevel + 0.5,
+    (basin.minZ + basin.maxZ) / 2,
+  ]);
+  water.dispose();
+  materials.dispose();
+
+  // 沒給池廳尺寸時不修正，倒影照舊可用。
+  const second = createScene();
+  const fakes = createFakes();
+  const plain = new RealisticWaterPresentation(tierProfile('medium'), {
+    basin, textureSource: fakes.textureSource, createReflectionProbe: fakes.createReflectionProbe,
+  });
+  await plain.load();
+  plain.activate(second.context);
+  assert.equal(second.graph.water.surface.material.uniforms.uHallParallax.value, 0);
+  plain.dispose();
+  second.materials.dispose();
+});
+
+/** 測試用的平面倒影：記錄大小、重畫要求與每次被問到的鏡頭。 */
+function createPlanarFake(log) {
+  return (width, height) => {
+    const planar = {
+      texture: new THREE.Texture(),
+      textureMatrix: new THREE.Matrix4(),
+      sizes: [[width, height]],
+      invalidations: 0,
+      updates: [],
+      available: true,
+      disposed: false,
+      setSize(nextWidth, nextHeight) { this.sizes.push([nextWidth, nextHeight]); },
+      invalidate() { this.invalidations += 1; },
+      update(input) {
+        this.updates.push(input);
+        return this.available;
+      },
+      dispose() { this.disposed = true; },
+    };
+    log.push(planar);
+    return planar;
+  };
+}
+
+test('planar reflection exists only on tiers that ask for it and follows the canvas size', async () => {
+  const { graph, context, materials } = createScene();
+  const { textureSource, createReflectionProbe } = createFakes();
+  const planars = [];
+  const water = new RealisticWaterPresentation(tierProfile('medium'), {
+    basin,
+    basinMaterial: materials.get('pool-basin'),
+    textureSource,
+    createReflectionProbe,
+    createPlanarReflection: createPlanarFake(planars),
+  });
+  await water.load();
+  const surface = graph.water.surface;
+  const originalOnBeforeRender = surface.onBeforeRender;
+  water.activate(context);
+  const { uniforms } = surface.material;
+  assert.equal(planars.length, 0, 'the medium tier only uses the probe');
+  assert.equal(water.usesPlanarReflection, false);
+  assert.equal(uniforms.uPlanarStrength.value, 0);
+
+  water.setQuality(tierProfile('high'));
+  assert.equal(planars.length, 1);
+  assert.equal(water.usesPlanarReflection, true);
+  const [planar] = planars;
+  assert.equal(uniforms.uPlanarReflection.value, planar.texture);
+  assert.equal(uniforms.uPlanarMatrix.value, planar.textureMatrix);
+
+  // 主畫面畫到水面之前：倒影貼圖跟著畫布大小（高級是一半），並問倒影這個鏡頭位置能不能用。
+  const renderer = { getDrawingBufferSize: (size) => size.set(1200, 800) };
+  const camera = new THREE.PerspectiveCamera();
+  surface.onBeforeRender(renderer, graph.scene, camera);
+  assert.deepEqual(planar.sizes.at(-1), [600, 400]);
+  assert.equal(planar.updates.length, 1);
+  const [update] = planar.updates;
+  assert.equal(update.camera, camera);
+  assert.equal(update.surface, surface);
+  assert.equal(update.waterLevel, basin.waterLevel);
+  assert.equal(update.hidden[0], surface);
+  assert.ok(update.hidden.length > 1, 'the basin below the surface is hidden too');
+  assert.equal(uniforms.uPlanarStrength.value, 1);
+
+  planar.available = false;
+  surface.onBeforeRender(renderer, graph.scene, camera);
+  assert.equal(uniforms.uPlanarStrength.value, 0, 'under water the probe takes over');
+
+  // 幀率吃緊時調節器把倒影解析度減半，不是關掉。
+  water.setQuality(tierProfile('high', ['water-reflection-resolution']));
+  assert.equal(planars.length, 1);
+  planar.available = true;
+  surface.onBeforeRender(renderer, graph.scene, camera);
+  assert.deepEqual(planar.sizes.at(-1), [300, 200]);
+
+  const invalidations = planar.invalidations;
+  water.invalidateReflection();
+  assert.equal(planar.invalidations, invalidations + 1);
+
+  water.setQuality(tierProfile('medium'));
+  assert.equal(planar.disposed, true);
+  assert.equal(uniforms.uPlanarReflection.value, null);
+  assert.equal(uniforms.uPlanarStrength.value, 0);
+
+  water.dispose();
+  assert.equal(surface.onBeforeRender, originalOnBeforeRender);
+  materials.dispose();
+});
+
+test('the underwater view is used on high and medium, and left to the walkthrough fog on low', async () => {
+  const { graph, context, materials } = createScene();
+  const { textureSource, createReflectionProbe } = createFakes();
+  const view = {
+    steps: [],
+    calls: 0,
+    disposed: false,
+    setShaftSteps(steps) { this.steps.push(steps); },
+    render() {
+      this.calls += 1;
+      return true;
+    },
+    dispose() { this.disposed = true; },
+  };
+  const water = new RealisticWaterPresentation(tierProfile('high'), {
+    basin, textureSource, createReflectionProbe, createUnderwaterView: () => view,
+  });
+  assert.equal(water.handlesUnderwaterView, false, 'not before the realistic water is on screen');
+  assert.equal(water.renderUnderwaterView({}, graph.scene, new THREE.PerspectiveCamera()), false);
+  await water.load();
+  water.activate(context);
+  assert.equal(water.handlesUnderwaterView, true);
+  assert.deepEqual(view.steps, [14]);
+  assert.equal(water.renderUnderwaterView({}, graph.scene, new THREE.PerspectiveCamera()), true);
+  assert.equal(view.calls, 1);
+
+  const motes = graph.water.surface.getObjectByName('realistic:underwater-motes');
+  assert.ok(motes, 'motes live under the water surface so they hide with it');
+  assert.equal(motes.geometry.getAttribute('position').count, 700);
+
+  water.setQuality(tierProfile('medium'));
+  assert.deepEqual(view.steps, [14, 8]);
+  assert.equal(motes.geometry.getAttribute('position').count, 350);
+  assert.equal(water.handlesUnderwaterView, true);
+
+  water.setQuality(tierProfile('saver'));
+  assert.equal(water.handlesUnderwaterView, false);
+  assert.equal(water.renderUnderwaterView({}, graph.scene, new THREE.PerspectiveCamera()), false);
+  assert.equal(view.calls, 1);
+
+  water.dispose();
+  assert.equal(view.disposed, true);
+  assert.equal(graph.water.surface.getObjectByName('realistic:underwater-motes'), undefined);
+  materials.dispose();
+});
+
+test('the adapter reports what the water is doing and only takes over frames under water', async () => {
+  const { textureSource, createReflectionProbe } = createFakes();
+  const planars = [];
+  let underwater = false;
+  const adapter = new EnhancedVisualAssetAdapter(tierProfile('high'), {
+    realisticWater: {
+      basin,
+      textureSource,
+      createReflectionProbe,
+      createPlanarReflection: createPlanarFake(planars),
+      createUnderwaterView: () => ({
+        setShaftSteps() {},
+        render: () => underwater,
+        dispose() {},
+      }),
+    },
+  });
+  const { graph, materials } = createScene(adapter);
+  const camera = new THREE.PerspectiveCamera();
+  assert.equal(adapter.waterReflection, 'none');
+  assert.equal(adapter.handlesUnderwaterView, false);
+  assert.equal(adapter.renderFrame({}, graph.scene, camera), false);
+
+  await adapter.waterReady;
+  assert.equal(adapter.waterReflection, 'planar');
+  assert.equal(adapter.handlesUnderwaterView, true);
+  assert.equal(adapter.renderFrame({}, graph.scene, camera), false);
+  assert.equal(adapter.underwaterViewActive, false);
+  underwater = true;
+  assert.equal(adapter.renderFrame({}, graph.scene, camera), true);
+  assert.equal(adapter.underwaterViewActive, true);
+
+  adapter.setQuality(tierProfile('medium'));
+  assert.equal(adapter.waterReflection, 'probe');
+  adapter.setQuality(tierProfile('saver'));
+  assert.equal(adapter.handlesUnderwaterView, false);
+  assert.equal(adapter.renderFrame({}, graph.scene, camera), false);
+  adapter.dispose();
   materials.dispose();
 });

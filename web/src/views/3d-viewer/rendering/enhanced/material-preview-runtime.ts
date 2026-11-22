@@ -13,13 +13,15 @@ import { EnhancedFrameEffectPipeline } from './frame-effect-pipeline';
 import { ENHANCED_QUALITY_PROFILES } from './quality-profiles';
 import { EnhancedVisualAssetAdapter } from './visual-asset-adapter';
 import type { TextureSourceLoader } from './texture-loader';
-import type { PoolBasinShape } from '../water/water-surface';
+import type { PoolBasinShape, PoolHallShape } from '../water/water-surface';
 
 export interface EnhancedRenderingRuntimeOptions {
   readonly environmentTextureLoader?: EnvironmentTextureLoader;
   readonly materialTextureSourceLoader?: TextureSourceLoader;
   /** 模型的池體形狀；有給才啟用寫實水面。 */
   readonly poolBasin?: PoolBasinShape;
+  /** 模型的池廳大小；有給時水面的探針倒影會修正視差。 */
+  readonly poolHall?: PoolHallShape;
 }
 
 export async function createEnhancedMaterialPreviewRuntime(
@@ -43,15 +45,21 @@ export async function createEnhancedMaterialPreviewRuntime(
     });
     framePipeline = new EnhancedFrameEffectPipeline(renderer, quality);
     const laneLineMaterial = materials.get('sanitary-dark');
+    const railMaterial = materials.get('pool-rail');
     visualAssets = new EnhancedVisualAssetAdapter(quality, options.poolBasin
       ? {
           realisticWater: {
             renderer,
             basin: options.poolBasin,
+            hall: options.poolHall,
             basinMaterial: materials.get('pool-basin'),
             // 水面折射看到的池底標線，要和實體標線（sanitary-dark）同色。
             laneLineColor: laneLineMaterial instanceof THREE.MeshStandardMaterial
               ? laneLineMaterial.color
+              : undefined,
+            // 水面折射看到的池梯踏階，要和實體踏階（pool-rail）同色。
+            metalColor: railMaterial instanceof THREE.MeshStandardMaterial
+              ? railMaterial.color
               : undefined,
           },
         }
@@ -60,6 +68,7 @@ export async function createEnhancedMaterialPreviewRuntime(
     materials.dispose();
     throw error;
   }
+  framePipeline.setSceneRenderer((scene, camera) => visualAssets.renderFrame(renderer, scene, camera));
   let disposed = false;
 
   return {

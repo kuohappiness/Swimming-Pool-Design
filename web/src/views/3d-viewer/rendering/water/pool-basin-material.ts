@@ -13,6 +13,7 @@ export const POOL_BASIN_UNIFORM_NAMES = Object.freeze([
   'uLaneLineColor', 'uLaneLineWidth', 'uLaneLineInset', 'uLaneLineZ',
   'uAbsorption', 'uScatterColor', 'uSunDirection', 'uSunColor', 'uSkyColor',
   'uTime', 'uCaustics', 'uCausticLayers', 'uCausticStrength',
+  'uSubmergedBoxCount', 'uSubmergedBoxMin', 'uSubmergedBoxMax', 'uSubmergedBoxFinish',
 ] as const);
 
 /**

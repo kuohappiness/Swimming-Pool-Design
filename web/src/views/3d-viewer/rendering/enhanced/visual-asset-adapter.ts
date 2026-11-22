@@ -137,6 +137,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   private readonly realisticWater: RealisticWaterPresentation | null;
   private waterStatus: WaterPresentationStatus = 'legacy';
   private waterFailure: string | null = null;
+  private underwaterFrame = false;
   private context: VisualAssetContext | null = null;
   /** 寫實水面載入並換上（或確定退回）後才完成；沒有啟用寫實水面時立刻完成。 */
   waterReady: Promise<void> = Promise.resolve();
@@ -222,6 +223,26 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
 
   invalidateLighting() {
     this.realisticWater?.invalidateReflection();
+  }
+
+  /** 鏡頭在水裡時由寫實水面畫出水下畫面；其他時候回傳 false，由繪圖管線照常畫。 */
+  renderFrame(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): boolean {
+    this.underwaterFrame = !this.disposed && this.waterStatus === 'realistic'
+      && (this.realisticWater?.renderUnderwaterView(renderer, scene, camera) ?? false);
+    return this.underwaterFrame;
+  }
+
+  get underwaterViewActive(): boolean {
+    return this.underwaterFrame;
+  }
+
+  get waterReflection(): 'planar' | 'probe' | 'none' {
+    if (this.waterStatus !== 'realistic' || !this.realisticWater) return 'none';
+    return this.realisticWater.usesPlanarReflection ? 'planar' : 'probe';
+  }
+
+  get handlesUnderwaterView(): boolean {
+    return this.waterStatus === 'realistic' && Boolean(this.realisticWater?.handlesUnderwaterView);
   }
 
   updateFrame(state: VisualFrameState) {

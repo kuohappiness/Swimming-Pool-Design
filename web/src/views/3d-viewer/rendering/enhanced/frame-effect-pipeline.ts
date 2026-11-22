@@ -27,6 +27,7 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
   private activeScene: THREE.Scene | null = null;
   private activeCamera: THREE.Camera | null = null;
   private disposed = false;
+  private sceneRenderer: ((scene: THREE.Scene, camera: THREE.Camera) => boolean) | null = null;
   private readonly ambientOcclusionResolutionScale = 0.5;
 
   constructor(renderer: THREE.WebGLRenderer, initialQuality: RenderQualityProfile) {
@@ -52,6 +53,14 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     this.resizeAmbientOcclusionTargets();
   }
 
+  /**
+   * 讓別人接手畫某些畫面（鏡頭在水裡時的水下畫面）。接手的一方有畫就回傳 true；
+   * 回傳 false 時管線照常畫。曝光與色調映射的設定在呼叫它之前已經套好。
+   */
+  setSceneRenderer(render: ((scene: THREE.Scene, camera: THREE.Camera) => boolean) | null) {
+    this.sceneRenderer = render;
+  }
+
   render(scene: THREE.Scene, camera: THREE.Camera) {
     if (this.disposed) return;
     const environmentId = scene.userData.environmentId ?? 'day';
@@ -60,7 +69,7 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     if (this.usesAmbientOcclusion) {
       this.ensureComposer(scene, camera);
       this.composer!.render();
-    } else {
+    } else if (!this.sceneRenderer?.(scene, camera)) {
       this.renderer.render(scene, camera);
     }
   }

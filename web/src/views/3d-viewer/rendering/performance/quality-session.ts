@@ -44,8 +44,11 @@ export interface QualityStorage {
 }
 
 export interface QualitySessionHost {
-  /** 把這一級套到繪圖管線（材質、陰影、貼圖版本），不含解析度。 */
-  applyTier(tier: RealismTier): void;
+  /**
+   * 把這一級套到繪圖管線（材質、陰影、貼圖版本），不含解析度。
+   * `shed` 是調節器為了幀率暫時關掉或調低的效果；換級時是空的。
+   */
+  applyTier(tier: RealismTier, shed: readonly ShedStep[]): void;
   /** 依目前的級別與動態解析度重設畫布大小。 */
   applyResolution(): void;
   /** 在目前的畫質下畫幾幀並回傳統計；量不到時回傳 null。 */
@@ -215,8 +218,10 @@ export class QualitySession {
   private apply(event: QualityEvent | null): void {
     if (!event) return;
     const host = this.requireHost();
-    if (event.kind === 'tier') host.applyTier(REALISM_TIERS[event.state.tier]);
-    // 級別、解析度與「更新率受限」都會改變實際的像素比；效果開關目前沒有對應的畫面項目。
+    if (event.kind === 'tier' || event.kind === 'effects') {
+      host.applyTier(REALISM_TIERS[event.state.tier], event.state.shed);
+    }
+    // 級別、解析度與「更新率受限」都會改變實際的像素比；效果開關不會。
     if (event.kind !== 'effects') host.applyResolution();
   }
 
