@@ -59,6 +59,8 @@ import {
 const SHADOW_FOCUS_MARGIN_METRES = 8;
 /** 拖動時刻時，水面倒影取樣最快多久重拍一次。 */
 const REFLECTION_REFRESH_INTERVAL_MILLISECONDS = 160;
+/** 時刻停止變化多久之後，才由天空重新產生環境貼圖。 */
+const ENVIRONMENT_SETTLE_MILLISECONDS = 280;
 // The public site ships no Markdown, so open items link to the repository copy.
 const BACKLOG_URL = 'https://github.com/kuohappiness/Swimming-Pool-Design/blob/main/docs/backlog.md';
 
@@ -326,8 +328,15 @@ try {
       shell.dataset.staticBatchMeshes = String(graph.staticBatch.meshesAfter);
     }
     renderer.shadowMap.autoUpdate = false;
+    const publishEnvironmentSource = () => {
+      shell.dataset.environmentSource = rendering.environment.environmentSource
+        ?? (graph.scene.environment ? 'fixed' : 'none');
+    };
     const requestShadowRefresh = () => {
       if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
+      // 換畫質之後，由天空產生的環境貼圖可能要重做；沒有變就什麼都不做。
+      rendering.environment.refreshEnvironment?.();
+      publishEnvironmentSource();
       // 光線或可見物件變了，水面的倒影也要重拍。
       rendering.visualAssets.invalidateLighting?.();
     };
@@ -501,6 +510,7 @@ try {
     }, graph.siteRoot);
     const realSunAvailable = typeof rendering.environment.applyLighting === 'function';
     shell.dataset.realSun = String(realSunAvailable);
+    shell.dataset.sky = 'none';
     let lightingState: LightingState | null = null;
     let scenePresetLighting: LightingState | null = null;
     let lastReflectionRefresh = Number.NEGATIVE_INFINITY;
@@ -510,12 +520,27 @@ try {
       lastReflectionRefresh = performance.now();
       rendering.visualAssets.invalidateLighting?.();
     };
-    // 拖滑桿時每一格都重畫陰影（只多一次深度繪製）；倒影取樣要多畫六個方向，隔一小段時間才重拍。
-    const requestLightingRefresh = () => {
+    let environmentRefreshTimer: number | null = null;
+    const refreshEnvironment = () => {
+      if (environmentRefreshTimer !== null) window.clearTimeout(environmentRefreshTimer);
+      environmentRefreshTimer = null;
+      // 環境貼圖換了，照它反光的材質也變了，倒影要再拍一次。
+      if (rendering.environment.refreshEnvironment?.()) refreshReflections();
+      publishEnvironmentSource();
+    };
+    // 拖滑桿時每一格都重畫陰影（只多一次深度繪製）與天空；倒影取樣要多畫六個方向，
+    // 隔一小段時間才重拍；由天空產生環境貼圖最貴，等時刻停下來才做（換場景時立刻做）。
+    const requestLightingRefresh = (settled: boolean) => {
       if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
       const wait = REFLECTION_REFRESH_INTERVAL_MILLISECONDS - (performance.now() - lastReflectionRefresh);
       if (wait <= 0) refreshReflections();
       else reflectionRefreshTimer ??= window.setTimeout(refreshReflections, wait);
+      if (settled) {
+        refreshEnvironment();
+      } else {
+        if (environmentRefreshTimer !== null) window.clearTimeout(environmentRefreshTimer);
+        environmentRefreshTimer = window.setTimeout(refreshEnvironment, ENVIRONMENT_SETTLE_MILLISECONDS);
+      }
     };
     const syncLocation = (sceneId: string) => {
       const parameters = new URLSearchParams(location.search);
@@ -526,7 +551,8 @@ try {
       history.replaceState(null, '', `${location.pathname}${query ? `?${query}` : ''}#${sceneId}`);
     };
     let lightingControl: LightingControl | null = null;
-    const setLighting = (state: LightingState) => {
+    /** `settled`：這是一次到位的改變（換場景），不是拖動中的其中一格。 */
+    const setLighting = (state: LightingState, settled: boolean) => {
       if (!realSunAvailable) return;
       const lighting = computeSunLighting({
         moment: state.moment,
@@ -537,13 +563,14 @@ try {
       });
       lightingState = state;
       rendering.environment.applyLighting?.(toSceneLighting(lighting, graph.siteRoot, shadowFocus), graph);
-      requestLightingRefresh();
+      requestLightingRefresh(settled);
       shell.dataset.lightingMoment = formatSolarMoment(state.moment);
       shell.dataset.weather = state.weather;
       shell.dataset.sunAltitude = lighting.altitude.toFixed(2);
       shell.dataset.sunAzimuth = lighting.azimuth.toFixed(2);
       shell.dataset.keyLight = lighting.key.source;
       shell.dataset.dayPhase = lighting.phase;
+      shell.dataset.sky = graph.scene.getObjectByName('SKY-DOME') ? 'dome' : 'none';
       lightingControl?.show(state, describeSunLighting(lighting));
     };
     if (realSunAvailable) {
@@ -562,7 +589,7 @@ try {
         currentMoment: currentSiteMoment,
         onChange: (state) => {
           if (lightingState && sameLightingState(state, lightingState)) return;
-          setLighting(state);
+          setLighting(state, false);
           syncLocation(shell.dataset.scene ?? 'overview');
         },
       });
@@ -589,9 +616,9 @@ try {
       setEnvironment(config.environment);
       // 場景自帶日期、時刻與天氣；只有剛開啟頁面時，網址上的 time、weather 會蓋過它。
       scenePresetLighting = lightingStateFromPreset(config.lighting, lightingYear);
-      if (lighting === 'keep' && lightingState) setLighting(lightingState);
-      else if (lighting instanceof URLSearchParams) setLighting(readLightingParameters(lighting, scenePresetLighting));
-      else setLighting(scenePresetLighting);
+      if (lighting === 'keep' && lightingState) setLighting(lightingState, true);
+      else if (lighting instanceof URLSearchParams) setLighting(readLightingParameters(lighting, scenePresetLighting), true);
+      else setLighting(scenePresetLighting, true);
       for (const [id, button] of sceneButtons) {
         const active = id === sceneId;
         button.dataset.active = String(active);
@@ -1128,6 +1155,7 @@ try {
       qualitySelect.removeEventListener('change', handleQualityChoice);
       shell.removeEventListener('keydown', keepKeysInFormControls);
       if (reflectionRefreshTimer !== null) window.clearTimeout(reflectionRefreshTimer);
+      if (environmentRefreshTimer !== null) window.clearTimeout(environmentRefreshTimer);
       lightingControl?.dispose();
       renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
       await cameraModeManager.dispose();

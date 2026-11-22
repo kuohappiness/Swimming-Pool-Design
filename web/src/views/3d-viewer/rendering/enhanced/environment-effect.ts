@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { EnvironmentId } from '../../scenes';
 import type { EnvironmentEffect, EnvironmentTarget } from '../contracts';
 import { aimKeyLight, type SceneLighting } from '../lighting/scene-lighting';
+import { SkyDome } from '../lighting/sky-dome';
 import type { RenderQualityProfile } from '../quality-profile';
 import { getToneMappingProfile } from './tone-mapping';
 
@@ -11,6 +12,8 @@ export interface EnvironmentTextureLoader {
 
 export interface EnvironmentMapFactory {
   create(source: THREE.Texture): THREE.Texture;
+  /** 由一個只有天空的場景產生環境貼圖；沒有實作時，倒影與間接光沿用固定的環境圖。 */
+  createFromScene?(scene: THREE.Scene): THREE.Texture;
   dispose(): void;
 }
 
@@ -83,6 +86,7 @@ const ENVIRONMENT_PROFILES: Readonly<Record<EnvironmentId, {
 class PmremEnvironmentMapFactory implements EnvironmentMapFactory {
   private readonly generator: THREE.PMREMGenerator;
   private target: THREE.WebGLRenderTarget | null = null;
+  private sceneTarget: THREE.WebGLRenderTarget | null = null;
 
   constructor(renderer: THREE.WebGLRenderer) {
     this.generator = new THREE.PMREMGenerator(renderer);
@@ -96,9 +100,20 @@ class PmremEnvironmentMapFactory implements EnvironmentMapFactory {
     return this.target.texture;
   }
 
+  createFromScene(scene: THREE.Scene) {
+    // 先產生新的再丟掉舊的：場景這時還指著舊的那一張。
+    const next = this.generator.fromScene(scene, 0, 0.1, 1000);
+    next.texture.name = 'enhanced:pmrem-sky';
+    this.sceneTarget?.dispose();
+    this.sceneTarget = next;
+    return next.texture;
+  }
+
   dispose() {
     this.target?.dispose();
     this.target = null;
+    this.sceneTarget?.dispose();
+    this.sceneTarget = null;
     this.generator.dispose();
   }
 }
@@ -114,6 +129,10 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
   private currentTarget: EnvironmentTarget | null = null;
   private currentLighting: SceneLighting | null = null;
   private lightingFog: THREE.Fog | null = null;
+  private sky: SkyDome | null = null;
+  /** 由天空產生的環境貼圖，以及產生它那一刻的天光強度。 */
+  private skyEnvironment: { map: THREE.Texture; skyIntensity: number } | null = null;
+  private skyEnvironmentStale = false;
   private disposed = false;
 
   private constructor(
@@ -166,7 +185,9 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     this.currentEnvironment = environment;
     this.currentTarget = target;
     target.scene.background = new THREE.Color(profile.background);
-    target.scene.environment = this.quality.id === 'low' ? null : this.environmentMap;
+    target.scene.environment = this.quality.id === 'low'
+      ? null
+      : this.skyEnvironment?.map ?? this.environmentMap;
     target.scene.environmentIntensity = this.environmentIntensity();
     target.scene.fog = new THREE.Fog(profile.background, profile.fogNear, profile.fogFar);
     target.scene.userData.environmentId = environment;
@@ -219,13 +240,58 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     this.lightingFog.near = lighting.fog.near;
     this.lightingFog.far = lighting.fog.far;
     if (!(scene.fog instanceof THREE.FogExp2)) scene.fog = this.lightingFog;
-    scene.environmentIntensity = this.environmentIntensity() * lighting.environmentScale;
     scene.userData.toneMappingExposure = lighting.exposure;
+
+    // 天空：同一份光照狀態畫出來的天空球，蓋住單色背景。
+    this.sky ??= new SkyDome();
+    this.sky.setCloudDetail(this.quality.id !== 'low');
+    if (this.sky.mesh.parent !== scene) scene.add(this.sky.mesh);
+    this.sky.update(lighting);
+    this.skyEnvironmentStale = true;
+    scene.environmentIntensity = this.environmentIntensity() * this.environmentScale(lighting);
+  }
+
+  /**
+   * 環境貼圖相對於基準強度的倍率。由天空產生的那一張本身就帶著當時的亮度，
+   * 重新產生之前先按天光強度的比例縮放，拖動時刻時倒影的明暗才跟得上。
+   */
+  private environmentScale(lighting: SceneLighting) {
+    if (!this.skyEnvironment || this.quality.id === 'low') return lighting.environmentScale;
+    return Math.min(4, lighting.skyIntensity / Math.max(this.skyEnvironment.skyIntensity, 1e-3));
+  }
+
+  /** 診斷用：倒影與間接光目前來自天空、固定的環境圖，或沒有（省電級）。 */
+  get environmentSource(): 'sky' | 'fixed' | 'none' {
+    const environment = this.currentTarget?.scene.environment ?? null;
+    if (!environment) return 'none';
+    return environment === this.skyEnvironment?.map ? 'sky' : 'fixed';
+  }
+
+  /**
+   * 依目前的天空重新產生倒影與間接光用的環境貼圖。產生一次要把天空畫六個方向再做多層模糊，
+   * 比其他更新貴得多，所以不在每次光線改變時做，由呼叫端在時刻停下來之後呼叫。
+   * 有重新產生就回傳 true。
+   */
+  refreshEnvironment(): boolean {
+    const target = this.currentTarget;
+    const lighting = this.currentLighting;
+    if (this.disposed || !target || !lighting || !this.sky || !this.skyEnvironmentStale) return false;
+    if (this.quality.id === 'low' || !this.mapFactory.createFromScene) return false;
+    this.skyEnvironmentStale = false;
+    this.skyEnvironment = {
+      map: this.mapFactory.createFromScene(this.sky.environmentScene),
+      skyIntensity: lighting.skyIntensity,
+    };
+    target.scene.environment = this.skyEnvironment.map;
+    target.scene.environmentIntensity = this.environmentIntensity();
+    return true;
   }
 
   setQuality(profile: RenderQualityProfile) {
     if (this.disposed) return;
     this.quality = profile;
+    // 省電級沒有環境貼圖；回到其他級別時，當初那一張可能已經不是現在的天空。
+    this.skyEnvironmentStale = this.sky !== null;
     if (this.currentTarget) this.apply(this.currentEnvironment, this.currentTarget);
   }
 
@@ -233,6 +299,9 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     if (this.disposed) return;
     this.disposed = true;
     if (this.currentTarget) this.currentTarget.scene.environment = null;
+    this.sky?.dispose();
+    this.sky = null;
+    this.skyEnvironment = null;
     this.sourceTexture?.dispose();
     this.mapFactory.dispose();
     this.currentTarget = null;

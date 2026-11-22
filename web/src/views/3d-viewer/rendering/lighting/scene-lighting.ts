@@ -9,6 +9,10 @@ export interface SceneLighting {
   readonly source: SunLighting;
   /** 指向主光源的單位向量（世界座標）。 */
   readonly keyDirection: THREE.Vector3;
+  /** 指向太陽的單位向量（世界座標）；太陽在地平線下時 y 為負。天空用它，不用主光源的方向。 */
+  readonly sunDirection: THREE.Vector3;
+  /** 指向月亮的單位向量（世界座標）。 */
+  readonly moonDirection: THREE.Vector3;
   readonly keyColor: LinearColor;
   readonly keyIntensity: number;
   readonly skyColor: LinearColor;
@@ -65,6 +69,8 @@ export function toSceneLighting(
   return Object.freeze({
     source: lighting,
     keyDirection: siteDirectionToWorld(lighting.key.direction, siteRoot),
+    sunDirection: siteDirectionToWorld(lighting.sunDirection, siteRoot),
+    moonDirection: siteDirectionToWorld(lighting.moonDirection, siteRoot),
     keyColor: lighting.key.color,
     keyIntensity: lighting.key.intensity,
     skyColor: lighting.sky.color,

@@ -121,6 +121,10 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
     assert.ok(northLabel);
     assert.equal(northLabel.userData.label, 'N');
     assert.equal(trueNorth.userData.northPlanDirection, 'lower-right');
+    // 方位標示留著，地面的參考格線已經移除（TASK-152 步驟 2）。
+    graph.scene.traverse((object) => {
+      assert.equal(object instanceof THREE.GridHelper, false, object.name);
+    });
 
     const localAxisWorldDirection = new THREE.Vector3(0, 1, 0)
       .transformDirection(localAxis.matrixWorld);

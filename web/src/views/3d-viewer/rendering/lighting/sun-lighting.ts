@@ -48,6 +48,14 @@ export interface SunLighting {
   readonly phase: DayPhase;
   /** 指向太陽的單位向量，SITE 座標（Z 向上）。太陽在地平線下時 z 為負。 */
   readonly sunDirection: SiteVector;
+  /** 指向月亮的單位向量（太陽對面、固定仰角）。白天也有值，但只有入夜後才用得到。 */
+  readonly moonDirection: SiteVector;
+  /**
+   * 晝夜的三個漸變量，0 到 1：`daylight` 白天的程度（民用曙暮光開始到太陽 12° 高）、
+   * `night` 夜晚的程度（太陽低於 −3° 開始，−9° 全黑）、`dusk` 日出日落的暖色（太陽貼近地平線時最強）。
+   * 天空與光用同一組數字，兩者才會一起變。
+   */
+  readonly factors: { readonly daylight: number; readonly night: number; readonly dusk: number };
   /**
    * 主光源的方向與顏色。白天是太陽；入夜後換成月光（方向取太陽的對面、固定仰角），
    * 讓夜間仍有一點方向性的光與影子。方向一定在地平線以上。
@@ -133,8 +141,8 @@ const WEATHER_FACTORS: Readonly<Record<Weather, {
   readonly fog: { readonly near: number; readonly far: number };
 }>> = Object.freeze({
   clear: Object.freeze({ sun: 1, sky: 1, grey: 0, exposure: 0.9, fog: Object.freeze({ near: 72, far: 148 }) }),
-  overcast: Object.freeze({ sun: 0.1, sky: 0.86, grey: 0.85, exposure: 0.86, fog: Object.freeze({ near: 62, far: 132 }) }),
-  rain: Object.freeze({ sun: 0.035, sky: 0.62, grey: 1, exposure: 0.8, fog: Object.freeze({ near: 48, far: 112 }) }),
+  overcast: Object.freeze({ sun: 0.1, sky: 0.86, grey: 0.85, exposure: 1.05, fog: Object.freeze({ near: 62, far: 132 }) }),
+  rain: Object.freeze({ sun: 0.035, sky: 0.62, grey: 1, exposure: 0.95, fog: Object.freeze({ near: 48, far: 112 }) }),
 });
 
 /** 太陽在天頂時直射光的顏色：相對於天光略暖的白。 */
@@ -205,11 +213,12 @@ export function computeSunLighting(input: SunLightingInput): SunLighting {
     * weather.sun;
 
   const moonIntensity = MOON_INTENSITY * night * weather.sun;
+  const moonDirection = siteDirection(MOON_ALTITUDE, azimuth + 180, bearing);
   const useMoon = sunIntensity <= moonIntensity;
   const key = useMoon
     ? {
       source: 'moon' as const,
-      direction: siteDirection(MOON_ALTITUDE, azimuth + 180, bearing),
+      direction: moonDirection,
       color: mixColor(MOON_COLOR, CLOUD_GREY, weather.grey * 0.6),
       intensity: moonIntensity,
     }
@@ -238,6 +247,8 @@ export function computeSunLighting(input: SunLightingInput): SunLighting {
     azimuth,
     phase: altitude >= 0 ? 'day' : altitude >= -6 ? 'twilight' : 'night',
     sunDirection: siteDirection(altitude, azimuth, bearing),
+    moonDirection,
+    factors: Object.freeze({ daylight, night, dusk }),
     key: Object.freeze(key),
     sky: Object.freeze({
       color: skyColor,

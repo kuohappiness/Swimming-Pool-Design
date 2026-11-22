@@ -544,6 +544,10 @@ try {
     assert.ok(batchedMeshes * 4 < sourceMeshes, `${budget.label}: static batching left ${batchedMeshes} of ${sourceMeshes} meshes`);
     // Only the upper tiers redraw the scene for a planar water reflection; medium keeps the probe.
     assert.equal(await shell.getAttribute('data-water-reflection'), budget.quality === 'high' ? 'planar' : 'probe');
+    // The sky (TASK-152) is one more draw call inside the same budgets, and from medium up
+    // reflections and indirect light are generated from it instead of the fixed sky image.
+    assert.equal(await shell.getAttribute('data-sky'), 'dome');
+    assert.equal(await shell.getAttribute('data-environment-source'), 'sky');
     await page.close();
   }
 
@@ -730,6 +734,9 @@ try {
   await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off#light`, { waitUntil: 'networkidle' });
   await waitForSun();
   assert.equal(await sunShell.getAttribute('data-real-sun'), 'true');
+  // The sky dome is drawn on every enhanced tier; the saver tier has no environment map to regenerate.
+  assert.equal(await sunShell.getAttribute('data-sky'), 'dome');
+  assert.equal(await sunShell.getAttribute('data-environment-source'), 'none');
   assert.equal(await sun.locator('[data-light-control]').isVisible(), true);
   const winterMorning = await sunState();
   assert.equal(winterMorning.moment, `${siteYear}-12-21T09:30`);
@@ -874,6 +881,7 @@ try {
   );
   // The baseline path keeps its fixed scene moods and offers no time control.
   assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-real-sun'), 'false');
+  assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-sky'), 'none');
   assert.equal(await explicitBaseline.locator('[data-light-control]').isHidden(), true);
   await explicitBaseline.close();
 

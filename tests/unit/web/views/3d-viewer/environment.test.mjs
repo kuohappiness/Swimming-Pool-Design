@@ -155,6 +155,13 @@ test('optional environment failure keeps the enhanced scene operational with a d
 });
 
 test('computed sun lighting overrides the fixed scene moods and survives scene and quality changes', async () => {
+  const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+  const winterMorning = computeSunLighting({
+    moment: { year: 2026, month: 12, day: 21, minutes: 570 },
+    location: { latitude: 24.14434, longitude: 120.67341, utcOffsetHours: 8 },
+    positiveXAxisBearingFromTrueNorth: 307,
+    weather: 'clear',
+  });
   const fixtures = environmentFixtures();
   const effect = await EnhancedEnvironmentEffect.create({
     renderer: {},
@@ -164,8 +171,10 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
   });
   const target = environmentTarget();
   const lighting = (overrides = {}) => ({
-    source: {},
+    source: winterMorning,
     keyDirection: new THREE.Vector3(0.6, 0.48, 0.64),
+    sunDirection: new THREE.Vector3(0.6, 0.48, 0.64),
+    moonDirection: new THREE.Vector3(-0.5, 0.74, -0.45),
     keyColor: [1, 0.82, 0.6],
     keyIntensity: 2.4,
     skyColor: [0.8, 0.9, 1],
@@ -229,6 +238,116 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
   // 丟棄之後不再動場景。
   effect.applyLighting(lighting({ keyIntensity: 9 }), target);
   assert.equal(target.lights.sun.intensity, 2.4);
+});
+
+test('reflections and indirect light come from the sky once it settles, and never on the saver tier', async () => {
+  const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+  const { toSceneLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/scene-lighting.ts');
+  const siteRoot = new THREE.Group();
+  siteRoot.scale.set(1, 1, -1);
+  siteRoot.updateMatrixWorld(true);
+  const lightingAt = (minutes, weather = 'clear') => toSceneLighting(computeSunLighting({
+    moment: { year: 2026, month: 12, day: 21, minutes },
+    location: { latitude: 24.14434, longitude: 120.67341, utcOffsetHours: 8 },
+    positiveXAxisBearingFromTrueNorth: 307,
+    weather,
+  }), siteRoot, { centre: new THREE.Vector3(), radius: 30 });
+
+  const fixtures = environmentFixtures();
+  const skyMaps = [];
+  const captured = [];
+  fixtures.mapFactory.createFromScene = (scene) => {
+    // 產生環境貼圖的來源只有天空，沒有建築；日面不在裡面（太陽由方向光負責）。
+    assert.equal(scene.children.length, 1);
+    const [source] = scene.children;
+    captured.push({
+      sunDisc: source.material.uniforms.uSunDiscColor.value.length(),
+      cloudCover: source.material.uniforms.uCloudCover.value,
+    });
+    const map = new THREE.DataTexture(new Uint8Array([90, 120, 160, 255]), 1, 1, THREE.RGBAFormat);
+    skyMaps.push(map);
+    return map;
+  };
+  const effect = await EnhancedEnvironmentEffect.create({
+    renderer: {},
+    quality: ENHANCED_QUALITY_PROFILES.high,
+    textureLoader: fixtures.textureLoader,
+    mapFactory: fixtures.mapFactory,
+  });
+  const target = environmentTarget();
+  const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} ≈ ${expected}`);
+  try {
+    effect.apply('day', target);
+    const base = target.scene.environmentIntensity;
+    assert.equal(effect.environmentSource, 'fixed');
+    // 還沒有光照狀態時沒有天空可以拍。
+    assert.equal(effect.refreshEnvironment(), false);
+    assert.equal(target.scene.getObjectByName('SKY-DOME'), undefined);
+
+    const morning = lightingAt(9 * 60 + 30);
+    effect.applyLighting(morning, target);
+    const dome = target.scene.getObjectByName('SKY-DOME');
+    assert.ok(dome instanceof THREE.Mesh);
+    assert.ok(dome.material.uniforms.uSunDirection.value.distanceTo(morning.sunDirection) < 1e-12);
+    // 時刻還在變的時候先沿用固定的環境圖，只調強度。
+    assert.equal(effect.environmentSource, 'fixed');
+    close(target.scene.environmentIntensity, base * morning.environmentScale);
+
+    assert.equal(effect.refreshEnvironment(), true);
+    assert.equal(target.scene.environment, skyMaps[0]);
+    assert.equal(effect.environmentSource, 'sky');
+    close(target.scene.environmentIntensity, base);
+    assert.equal(captured[0].sunDisc, 0);
+    // 沒有新的變化就不重做。
+    assert.equal(effect.refreshEnvironment(), false);
+    assert.equal(skyMaps.length, 1);
+
+    // 拖動時刻：天空球立刻跟著變，環境貼圖先按天光的比例調亮度，停下來才重新產生。
+    const dusk = lightingAt(17 * 60);
+    effect.applyLighting(dusk, target);
+    assert.equal(target.scene.children.filter((child) => child.name === 'SKY-DOME').length, 1);
+    assert.equal(target.scene.environment, skyMaps[0]);
+    close(target.scene.environmentIntensity, base * dusk.skyIntensity / morning.skyIntensity);
+    assert.ok(target.scene.environmentIntensity < base);
+    assert.equal(effect.refreshEnvironment(), true);
+    assert.equal(target.scene.environment, skyMaps[1]);
+    close(target.scene.environmentIntensity, base);
+
+    // 換場景不必重拍天空；換天氣要。
+    effect.apply('rain', target);
+    assert.equal(target.scene.environment, skyMaps[1]);
+    assert.equal(target.scene.children.filter((child) => child.name === 'SKY-DOME').length, 1);
+    effect.applyLighting(lightingAt(17 * 60, 'overcast'), target);
+    assert.equal(effect.refreshEnvironment(), true);
+    assert.equal(captured.at(-1).cloudCover, 1);
+
+    // 省電級：沒有環境貼圖，也不花力氣產生；天空球還在，雲用簡化版。
+    effect.setQuality(ENHANCED_QUALITY_PROFILES.low);
+    assert.equal(target.scene.environment, null);
+    assert.equal(effect.environmentSource, 'none');
+    assert.equal(effect.refreshEnvironment(), false);
+    assert.equal(dome.parent, target.scene);
+    assert.equal(dome.material.uniforms.uCloudDetail.value, 0);
+    const made = skyMaps.length;
+    effect.applyLighting(lightingAt(12 * 60), target);
+    assert.equal(effect.refreshEnvironment(), false);
+    assert.equal(skyMaps.length, made);
+
+    // 回到較高的級別：先接回上一張，再依現在的天空重拍。
+    effect.setQuality(ENHANCED_QUALITY_PROFILES.medium);
+    assert.equal(target.scene.environment, skyMaps.at(-1));
+    assert.equal(dome.material.uniforms.uCloudDetail.value, 1);
+    assert.equal(effect.refreshEnvironment(), true);
+    assert.equal(skyMaps.length, made + 1);
+    assert.equal(target.scene.environment, skyMaps.at(-1));
+    assert.equal(effect.environmentSource, 'sky');
+  } finally {
+    effect.dispose();
+  }
+  assert.equal(target.scene.getObjectByName('SKY-DOME'), undefined);
+  assert.equal(target.scene.environment, null);
+  assert.equal(effect.environmentSource, 'none');
+  assert.equal(effect.refreshEnvironment(), false);
 });
 
 function rendererFixture() {
