@@ -30,7 +30,7 @@ npm run test:e2e
 git diff --check
 ```
 
-`npm run build` 會依序跑文案產生、`check:docs`、`check:model`、單元測試、型別檢查與建置。`test:e2e` 需要 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定。
+`npm run build` 會依序跑文案產生、`check:docs`、`check:model`、`check:assets`、單元測試、型別檢查與建置。`test:e2e` 需要 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定。
 
 ## Code Review Rules
 
