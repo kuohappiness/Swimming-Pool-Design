@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import type { ViewerModel } from './model-adapter';
-import { getViewerPoolPresentation } from './pool-state';
+import {
+  getPoolFloorLaneLineCentres,
+  getViewerPoolPresentation,
+  POOL_FLOOR_LANE_LINE_INSET,
+  POOL_FLOOR_LANE_LINE_WIDTH,
+} from './pool-state';
 import type { MaterialRegistry } from './rendering/contracts';
 import { markVisualDetail } from './rendering/visual-detail';
 
@@ -101,15 +106,14 @@ export function createPoolHallDetails(model: ViewerModel, materials: MaterialReg
   const deckElevation = pool.deckElevation.value;
 
   addOverflowGrating(essential, full, x0, x1, z0, z1, deckElevation, materials);
-  for (const band of pool.laneBands.slice(0, -1)) {
-    const z = (band.y1 + band.y2) / 2;
+  for (const z of getPoolFloorLaneLineCentres(model)) {
     essential.add(slopedStrip(
-      x0 + 0.35,
-      x1 - 0.35,
+      x0 + POOL_FLOOR_LANE_LINE_INSET,
+      x1 - POOL_FLOOR_LANE_LINE_INSET,
       presentation.shallowBottomElevation + 0.012,
       presentation.deepBottomElevation + 0.012,
       z,
-      0.16,
+      POOL_FLOOR_LANE_LINE_WIDTH,
       materials.get('sanitary-dark'),
     ));
   }

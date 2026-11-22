@@ -19,6 +19,7 @@
 - 授權以 `SPDX-License-Identifier` 寫進 `.ktx2` 檔內的中繼資料。
 - 網站用 `rendering/textures/ktx2-texture-source.ts` 載入，轉碼器是 three.js 內附的 Basis 轉碼器，和網站一起打包、同源提供。
 - `materials/water/ripple-normal.ktx2`：水面細波紋的無縫法線貼圖（512 × 512），供階段二的水面著色器使用，目前尚未接上畫面。
+- `materials/water/caustics.ktx2`：池底焦散的明暗圖樣（512 × 512）。讓陽光垂直穿過上面那片波紋、折射後落在池底，統計每一格收到的光量而成；灰階 255 代表平均照度的 4 倍。
 
 ## 目前測試資產
 

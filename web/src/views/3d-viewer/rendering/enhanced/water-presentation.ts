@@ -100,7 +100,7 @@ export class EnhancedWaterPresentation {
 
   updateFrame(state: VisualFrameState) {
     if (!this.presentationMaterial || state.reducedMotion || this.profile.id === 'low') return;
-    const material = this.presentationMaterial as THREE.MeshPhysicalMaterial;
+    const material = this.presentationMaterial as THREE.MeshStandardMaterial;
     const normal = material.normalMap;
     if (!normal) return;
     if (normal.wrapS !== THREE.RepeatWrapping || normal.wrapT !== THREE.RepeatWrapping) {
@@ -138,13 +138,13 @@ export class EnhancedWaterPresentation {
     const expensiveWater = this.profile.enhancedWater && this.profile.id !== 'low';
     const material = this.presentationMaterial;
     material.transparent = true;
-    material.opacity = underwater ? 0.5 : expensiveWater ? 0.74 : 0.64;
+    material.opacity = underwater ? 0.5 : 0.64;
     material.depthWrite = false;
-    const physical = material as THREE.MeshPhysicalMaterial;
-    if ('transmission' in physical) {
-      physical.transmission = expensiveWater ? 0.52 : 0;
-      physical.roughness = expensiveWater ? 0.1 : 0.28;
-      if (!expensiveWater) physical.normalMap = null;
+    // 舊水面只在寫實水面載入前或載入失敗時出現；不用 transmission，免得為了它把場景再畫一次。
+    const standard = material as THREE.MeshStandardMaterial;
+    if ('roughness' in standard) {
+      standard.roughness = expensiveWater ? 0.1 : 0.28;
+      if (!expensiveWater) standard.normalMap = null;
     }
     material.needsUpdate = true;
     if (this.waterline) {
