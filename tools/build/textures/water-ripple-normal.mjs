@@ -41,6 +41,45 @@ function createWaves() {
   return waves;
 }
 
+/**
+ * 波紋在每個像素的坡度（高度對 x、y 的偏微分）與把它縮放到目標均方根坡度的倍率。
+ * 焦散貼圖用同一片水面去追光線，所以另外匯出。
+ */
+export function rippleSlopeField() {
+  const waves = createWaves();
+  const slopeX = new Float32Array(SIZE * SIZE);
+  const slopeY = new Float32Array(SIZE * SIZE);
+  const tau = Math.PI * 2;
+  let squared = 0;
+
+  for (const { kx, ky, phase, amplitude } of waves) {
+    // 高度是 amplitude × cos(θ)，坡度是它對 x、y 的偏微分。
+    const cosX = new Float32Array(SIZE);
+    const sinX = new Float32Array(SIZE);
+    for (let x = 0; x < SIZE; x += 1) {
+      cosX[x] = Math.cos((tau * kx * x) / SIZE);
+      sinX[x] = Math.sin((tau * kx * x) / SIZE);
+    }
+    for (let y = 0; y < SIZE; y += 1) {
+      const rowAngle = (tau * ky * y) / SIZE + phase;
+      const cosY = Math.cos(rowAngle);
+      const sinY = Math.sin(rowAngle);
+      const row = y * SIZE;
+      for (let x = 0; x < SIZE; x += 1) {
+        const sine = sinX[x] * cosY + cosX[x] * sinY;
+        slopeX[row + x] -= amplitude * tau * kx * sine;
+        slopeY[row + x] -= amplitude * tau * ky * sine;
+      }
+    }
+  }
+
+  for (let index = 0; index < slopeX.length; index += 1) {
+    squared += slopeX[index] ** 2 + slopeY[index] ** 2;
+  }
+  // 坡度乘上 scale 才是實際值；分開回傳，使用端以雙精度相乘，法線貼圖的像素才不會因捨入而變動。
+  return { size: SIZE, slopeX, slopeY, scale: TARGET_RMS_SLOPE / Math.sqrt(squared / slopeX.length) };
+}
+
 export const waterRippleNormal = Object.freeze({
   manifest: Object.freeze({
     id: 'material-water-ripple-normal-v1',
@@ -60,37 +99,7 @@ export const waterRippleNormal = Object.freeze({
   normalMap: true,
   /** 回傳 RGBA 位元組；第一列對應貼圖座標 v = 0。 */
   generate() {
-    const waves = createWaves();
-    const slopeX = new Float32Array(SIZE * SIZE);
-    const slopeY = new Float32Array(SIZE * SIZE);
-    const tau = Math.PI * 2;
-    let squared = 0;
-
-    for (const { kx, ky, phase, amplitude } of waves) {
-      // 高度是 amplitude × cos(θ)，坡度是它對 x、y 的偏微分。
-      const cosX = new Float32Array(SIZE);
-      const sinX = new Float32Array(SIZE);
-      for (let x = 0; x < SIZE; x += 1) {
-        cosX[x] = Math.cos((tau * kx * x) / SIZE);
-        sinX[x] = Math.sin((tau * kx * x) / SIZE);
-      }
-      for (let y = 0; y < SIZE; y += 1) {
-        const rowAngle = (tau * ky * y) / SIZE + phase;
-        const cosY = Math.cos(rowAngle);
-        const sinY = Math.sin(rowAngle);
-        const row = y * SIZE;
-        for (let x = 0; x < SIZE; x += 1) {
-          const sine = sinX[x] * cosY + cosX[x] * sinY;
-          slopeX[row + x] -= amplitude * tau * kx * sine;
-          slopeY[row + x] -= amplitude * tau * ky * sine;
-        }
-      }
-    }
-
-    for (let index = 0; index < slopeX.length; index += 1) {
-      squared += slopeX[index] ** 2 + slopeY[index] ** 2;
-    }
-    const scale = TARGET_RMS_SLOPE / Math.sqrt(squared / slopeX.length);
+    const { slopeX, slopeY, scale } = rippleSlopeField();
 
     const pixels = new Uint8Array(SIZE * SIZE * 4);
     for (let index = 0; index < slopeX.length; index += 1) {

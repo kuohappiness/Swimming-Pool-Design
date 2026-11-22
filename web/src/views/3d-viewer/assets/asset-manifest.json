@@ -187,6 +187,33 @@
         "normalMap": true,
         "sourceSha256": "aed583e1e6edafc706be071713c014b6df28b2d77055cfc9051ea804ba6a6988"
       }
+    },
+    {
+      "id": "material-water-caustics-v1",
+      "kind": "texture",
+      "purpose": "Seamless pool-floor caustic irradiance traced through the ripple field; grey value 255 is four times the mean.",
+      "localPath": "assets/materials/water/caustics.ktx2",
+      "source": "project-authored:tools/build/textures/water-caustics.mjs",
+      "author": "Swimming Pool Design contributors",
+      "license": "CC0-1.0",
+      "qualityTiers": [
+        "high",
+        "medium"
+      ],
+      "requirement": "optional",
+      "loadingPriority": "scene-ready",
+      "sha256": "a809e614b4ecf8db17cc560ccd86c71eaf67c8cf3996d2780812cc5d126e51c3",
+      "byteSize": 292729,
+      "conversion": {
+        "encoder": "ktx2-encoder@0.6.0",
+        "format": "uastc",
+        "width": 512,
+        "height": 512,
+        "mipmaps": true,
+        "colorSpace": "linear",
+        "normalMap": false,
+        "sourceSha256": "8c68cb64dabad230436658a5b656f0d2102e965438c2cefc981764a0c3cd73e9"
+      }
     }
   ]
 }

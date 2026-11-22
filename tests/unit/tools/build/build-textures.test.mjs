@@ -9,6 +9,7 @@ import {
   sourceHash,
 } from '../../../../tools/build/build-textures.mjs';
 import { TEXTURE_RECIPES } from '../../../../tools/build/textures/index.mjs';
+import { CAUSTIC_MAXIMUM_GAIN, causticIrradiance, waterCaustics } from '../../../../tools/build/textures/water-caustics.mjs';
 import { waterRippleNormal } from '../../../../tools/build/textures/water-ripple-normal.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../../../..');
@@ -109,4 +110,29 @@ test('water ripple normal map is a seamless field of unit normals with no direct
   };
   assert.ok(meanStep(width - 1, 0, false) < meanStep(255, 256, false) * 1.5, 'left and right edges must join');
   assert.ok(meanStep(height - 1, 0, true) < meanStep(255, 256, true) * 1.5, 'top and bottom edges must join');
+});
+
+test('caustic pattern conserves light and stores brightness up to four times the mean', () => {
+  const { size, irradiance } = causticIrradiance();
+  assert.equal(size, waterCaustics.width);
+  let total = 0;
+  let brightest = 0;
+  let aboveRange = 0;
+  for (const value of irradiance) {
+    total += value;
+    brightest = Math.max(brightest, value);
+    if (value > CAUSTIC_MAXIMUM_GAIN) aboveRange += 1;
+  }
+  assert.ok(Math.abs(total / irradiance.length - 1) < 1e-9, 'every ray lands somewhere: mean irradiance is 1');
+  assert.ok(brightest > 2, 'ripples must focus light into bright lines');
+  assert.ok(aboveRange / irradiance.length < 0.005, 'almost nothing is clipped by the stored range');
+
+  const pixels = waterCaustics.generate();
+  assert.equal(pixels.length, size * size * 4);
+  const index = irradiance.findIndex((value) => value > 0.9 && value < 1.1);
+  assert.equal(pixels[index * 4], Math.round((irradiance[index] / CAUSTIC_MAXIMUM_GAIN) * 255));
+  assert.equal(pixels[index * 4], pixels[index * 4 + 1]);
+  assert.equal(pixels[index * 4 + 3], 255);
+  assert.equal(waterCaustics.normalMap, false);
+  assert.equal(waterCaustics.colorSpace, 'linear');
 });
