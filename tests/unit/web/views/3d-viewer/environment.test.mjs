@@ -154,6 +154,83 @@ test('optional environment failure keeps the enhanced scene operational with a d
   assert.equal(fixtures.calls.dispose, 1);
 });
 
+test('computed sun lighting overrides the fixed scene moods and survives scene and quality changes', async () => {
+  const fixtures = environmentFixtures();
+  const effect = await EnhancedEnvironmentEffect.create({
+    renderer: {},
+    quality: ENHANCED_QUALITY_PROFILES.high,
+    textureLoader: fixtures.textureLoader,
+    mapFactory: fixtures.mapFactory,
+  });
+  const target = environmentTarget();
+  const lighting = (overrides = {}) => ({
+    source: {},
+    keyDirection: new THREE.Vector3(0.6, 0.48, 0.64),
+    keyColor: [1, 0.82, 0.6],
+    keyIntensity: 2.4,
+    skyColor: [0.8, 0.9, 1],
+    groundColor: [0.2, 0.17, 0.12],
+    skyIntensity: 1.2,
+    horizon: [0.6, 0.7, 0.75],
+    fog: { near: 60, far: 130 },
+    exposure: 0.93,
+    environmentScale: 0.5,
+    shadowFocus: { centre: new THREE.Vector3(1, 5, -2), radius: 30 },
+    ...overrides,
+  });
+  const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} ≈ ${expected}`);
+  try {
+    effect.apply('day', target);
+    const fixedEnvironmentIntensity = target.scene.environmentIntensity;
+    effect.applyLighting(lighting(), target);
+    assert.deepEqual(target.lights.sun.color.toArray().map((value) => Number(value.toFixed(6))), [1, 0.82, 0.6]);
+    assert.equal(target.lights.sun.intensity, 2.4);
+    assert.deepEqual(target.lights.sun.target.position.toArray(), [1, 5, -2]);
+    close(target.lights.sun.position.distanceTo(target.lights.sun.target.position), 60);
+    assert.equal(target.lights.sun.shadow.camera.right, 30);
+    assert.equal(target.lights.sun.shadow.camera.far, 90);
+    assert.equal(target.lights.ambient.intensity, 1.2);
+    close(target.lights.ambient.groundColor.r, 0.2);
+    close(target.scene.background.g, 0.7);
+    assert.ok(target.scene.fog instanceof THREE.Fog);
+    assert.deepEqual([target.scene.fog.near, target.scene.fog.far], [60, 130]);
+    close(target.scene.fog.color.b, 0.75);
+    assert.equal(target.scene.userData.toneMappingExposure, 0.93);
+    close(target.scene.environmentIntensity, fixedEnvironmentIntensity * 0.5);
+    // 陰影的畫質設定仍由畫質級別決定。
+    assert.equal(target.lights.sun.castShadow, true);
+    assert.equal(target.lights.sun.shadow.mapSize.width, 2048);
+
+    // 換場景會先寫入固定的環境，再蓋回算出來的光；霧始終是同一個物件。
+    const fog = target.scene.fog;
+    effect.apply('rain', target);
+    assert.equal(target.scene.userData.environmentId, 'rain');
+    assert.equal(target.lights.sun.intensity, 2.4);
+    assert.equal(target.lights.ambient.intensity, 1.2);
+    assert.equal(target.scene.fog, fog);
+    assert.equal(target.scene.userData.toneMappingExposure, 0.93);
+
+    effect.setQuality(ENHANCED_QUALITY_PROFILES.low);
+    assert.equal(target.lights.sun.castShadow, false);
+    assert.equal(target.lights.sun.intensity, 2.4);
+    effect.setQuality(ENHANCED_QUALITY_PROFILES.high);
+
+    // 潛到水裡時漫遊會暫時換上水下的霧；時刻改變不可以把它換掉，浮出來之後接回的霧已是新的顏色。
+    const underwater = new THREE.FogExp2(0x2f8f9a, 0.2);
+    target.scene.fog = underwater;
+    effect.applyLighting(lighting({ horizon: [0.1, 0.2, 0.3], fog: { near: 40, far: 100 } }), target);
+    assert.equal(target.scene.fog, underwater);
+    close(fog.color.r, 0.1);
+    assert.deepEqual([fog.near, fog.far], [40, 100]);
+    close(target.scene.background.b, 0.3);
+  } finally {
+    effect.dispose();
+  }
+  // 丟棄之後不再動場景。
+  effect.applyLighting(lighting({ keyIntensity: 9 }), target);
+  assert.equal(target.lights.sun.intensity, 2.4);
+});
+
 function rendererFixture() {
   const calls = [];
   return {

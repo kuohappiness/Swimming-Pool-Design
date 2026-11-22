@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { EnvironmentId } from '../../scenes';
 import type { EnvironmentEffect, EnvironmentTarget } from '../contracts';
+import { aimKeyLight, type SceneLighting } from '../lighting/scene-lighting';
 import type { RenderQualityProfile } from '../quality-profile';
 import { getToneMappingProfile } from './tone-mapping';
 
@@ -111,6 +112,8 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
   private quality: RenderQualityProfile;
   private currentEnvironment: EnvironmentId = 'day';
   private currentTarget: EnvironmentTarget | null = null;
+  private currentLighting: SceneLighting | null = null;
+  private lightingFog: THREE.Fog | null = null;
   private disposed = false;
 
   private constructor(
@@ -164,7 +167,7 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     this.currentTarget = target;
     target.scene.background = new THREE.Color(profile.background);
     target.scene.environment = this.quality.id === 'low' ? null : this.environmentMap;
-    target.scene.environmentIntensity = this.quality.id === 'high' ? 0.64 : 0.46;
+    target.scene.environmentIntensity = this.environmentIntensity();
     target.scene.fog = new THREE.Fog(profile.background, profile.fogNear, profile.fogFar);
     target.scene.userData.environmentId = environment;
     target.scene.userData.toneMappingExposure = getToneMappingProfile(environment).exposure;
@@ -184,6 +187,40 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     target.lights.ambient.color.set(profile.skyColor);
     target.lights.ambient.groundColor.set(profile.groundColor);
     target.lights.ambient.intensity = profile.ambientIntensity;
+    // 換場景或換畫質會重寫上面的固定數值；已經有算出來的光時，再蓋回去。
+    if (this.currentLighting) this.writeLighting(this.currentLighting, target);
+  }
+
+  applyLighting(lighting: SceneLighting, target: EnvironmentTarget) {
+    if (this.disposed) return;
+    this.currentLighting = lighting;
+    this.currentTarget = target;
+    this.writeLighting(lighting, target);
+  }
+
+  private environmentIntensity() {
+    return this.quality.id === 'high' ? 0.64 : 0.46;
+  }
+
+  private writeLighting(lighting: SceneLighting, target: EnvironmentTarget) {
+    const { scene, lights } = target;
+    lights.sun.color.setRGB(...lighting.keyColor);
+    lights.sun.intensity = lighting.keyIntensity;
+    aimKeyLight(lights.sun, lighting);
+    lights.ambient.color.setRGB(...lighting.skyColor);
+    lights.ambient.groundColor.setRGB(...lighting.groundColor);
+    lights.ambient.intensity = lighting.skyIntensity;
+    if (scene.background instanceof THREE.Color) scene.background.setRGB(...lighting.horizon);
+    else scene.background = new THREE.Color().setRGB(...lighting.horizon);
+    // 霧固定用同一個物件：漫遊的水下霧會暫時換掉 scene.fog 並記住原本那一個，
+    // 之後換回來的必須是仍在更新的這一個，而不是某個時刻的舊顏色。
+    this.lightingFog ??= new THREE.Fog(0x000000, lighting.fog.near, lighting.fog.far);
+    this.lightingFog.color.setRGB(...lighting.horizon);
+    this.lightingFog.near = lighting.fog.near;
+    this.lightingFog.far = lighting.fog.far;
+    if (!(scene.fog instanceof THREE.FogExp2)) scene.fog = this.lightingFog;
+    scene.environmentIntensity = this.environmentIntensity() * lighting.environmentScale;
+    scene.userData.toneMappingExposure = lighting.exposure;
   }
 
   setQuality(profile: RenderQualityProfile) {

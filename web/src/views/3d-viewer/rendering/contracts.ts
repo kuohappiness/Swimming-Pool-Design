@@ -1,6 +1,7 @@
 import type * as THREE from 'three';
 import type { EnvironmentId } from '../scenes';
 import type { MovementMode } from '../walkthrough/types';
+import type { SceneLighting } from './lighting/scene-lighting';
 import type { RenderQualityProfile } from './quality-profile';
 
 export type SemanticMaterialId =
@@ -81,6 +82,11 @@ export interface EnvironmentEffect {
   readonly id: string;
   readonly diagnostic?: string | null;
   apply(environment: EnvironmentId, target: EnvironmentTarget): void;
+  /**
+   * 以算出來的光（太陽位置、顏色、天光、霧與曝光）蓋過 `apply` 寫入的固定數值。
+   * 沒有實作的環境（診斷用的基準繪圖）維持 `apply` 的固定光線，時刻控制也就不出現。
+   */
+  applyLighting?(lighting: SceneLighting, target: EnvironmentTarget): void;
   setQuality(profile: RenderQualityProfile): void;
   dispose(): void;
 }

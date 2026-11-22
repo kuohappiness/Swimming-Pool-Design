@@ -51,6 +51,11 @@ test('Viewer package derives all major geometry from the active revision', () =>
     viewer.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
     307,
   );
+  // The 3D page computes the sun from the same site location as the solar study.
+  assert.deepEqual(
+    viewer.referenceSystem.siteLocation,
+    sourceModel.referenceSystem.siteLocation,
+  );
   assert.equal('worldTransform' in viewer.referenceSystem, false);
   assert.equal('northArrowPlanDirection' in viewer.referenceSystem, false);
   assert.equal('originY' in viewer.geometry.stair, false);

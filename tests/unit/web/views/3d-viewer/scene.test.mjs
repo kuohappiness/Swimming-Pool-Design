@@ -38,6 +38,14 @@ test('L2 Y0 ray reaches glass first and the changing-room divider stays at Y8', 
       'missing L2 splitAxisY must fail instead of falling back to Y0',
     );
 
+    const missingSiteLocation = structuredClone(viewerModel);
+    delete missingSiteLocation.referenceSystem.siteLocation;
+    assert.throws(
+      () => adaptViewerData(missingSiteLocation, content),
+      /siteLocation/,
+      'a missing site location must fail instead of placing the sun at a made-up latitude',
+    );
+
     const graph = createViewerScene(viewerModel, createBaselineSceneRenderingDependencies());
     graph.scene.updateMatrixWorld(true);
     const genderDivider = graph.scene.getObjectByName('W-L2-GENDER-DIVIDER:Y8');

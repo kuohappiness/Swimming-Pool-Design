@@ -113,6 +113,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
       unit: model.referenceSystem.unit,
       angleUnit: model.referenceSystem.angleUnit,
       siteOrientation: structuredClone(model.referenceSystem.siteOrientation),
+      siteLocation: structuredClone(model.referenceSystem.siteLocation),
       axes: structuredClone(model.referenceSystem.axes),
       coordinateAdapter: {
         siteX: 'threeX', siteY: 'negativeThreeZ', siteZ: 'threeY', adapterId: THREE_SITE_ADAPTER_ID,

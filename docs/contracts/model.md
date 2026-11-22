@@ -107,7 +107,7 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 ## 4. 衍生層與輸出
 
 - `core/geometry/drawing-geometry.mjs`：從 active revision 衍生圖面與共用尺寸。
-- `core/viewer/viewer-data.mjs`：產生 `web/src/generated/viewer-model.json`，包含 `modelVersion`、`activeGeometryRevisionId`、`coordinateSystemId`、`modelHash` 與 `entityBounds`。
+- `core/viewer/viewer-data.mjs`：產生 `web/src/generated/viewer-model.json`，包含 `modelVersion`、`activeGeometryRevisionId`、`coordinateSystemId`、`modelHash`、`referenceSystem.siteLocation` 與 `entityBounds`。
 - `tools/build/build-content.mjs`：只允許 `{{active:...}}` token 讀 active geometry；未解析 token 必須使 build 失敗。
 - `tools/build/build-drawings.mjs`：產生三張平面與一張縱剖 SVG，之後轉為 PNG。
 - 日照角度與能量分析：由 active L3、鏡牆、屋頂與池體 bounds 推導，不得持有第二套池體或舊角度預設。

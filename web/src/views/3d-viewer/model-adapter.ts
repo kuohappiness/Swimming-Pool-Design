@@ -70,6 +70,13 @@ export interface ViewerModel {
       status: 'confirmed';
       sourceIds: string[];
     };
+    /** 校址經緯度與時區：3D 頁的太陽位置由它與時刻算出（和日照研究頁同一份）。 */
+    siteLocation: {
+      latitude: ViewerMeasure;
+      longitude: ViewerMeasure;
+      timeZone: string;
+      utcOffsetHours: number;
+    };
     axes: { x: string; y: string; z: string };
     coordinateAdapter: {
       siteX: 'threeX';
@@ -392,6 +399,13 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     || adapter.siteY !== 'negativeThreeZ'
     || adapter.siteZ !== 'threeY') {
     throw new TypeError('Viewer 必須使用右手座標 SITE-XYZ-TO-THREE-RH adapter。');
+  }
+  const siteLocation = model.referenceSystem.siteLocation;
+  if (!siteLocation
+    || !Number.isFinite(siteLocation.latitude?.value) || Math.abs(siteLocation.latitude.value) > 90
+    || !Number.isFinite(siteLocation.longitude?.value) || Math.abs(siteLocation.longitude.value) > 180
+    || !Number.isFinite(siteLocation.utcOffsetHours)) {
+    throw new TypeError('Viewer 缺少校址經緯度與時區（referenceSystem.siteLocation），無法計算太陽位置。');
   }
   deriveViewerOrientation(model.referenceSystem);
   const stairBounds = model.geometry.stair.bounds;
