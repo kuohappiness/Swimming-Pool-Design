@@ -2,7 +2,6 @@ import rawModel from '../../../../model/project-model.json';
 import type { ProjectModel } from '../../shared/types';
 import type { MountedView } from '../../app/view-contract';
 import { getViewDefinition } from '../../app/router';
-import './styles.css';
 import './view.css';
 
 const model = rawModel as unknown as ProjectModel;

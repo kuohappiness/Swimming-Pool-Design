@@ -198,7 +198,7 @@
   object-fit: contain;
 }
 
-a.process-version-media:hover {
+.process-version-media[href]:hover {
   border-color: var(--site-water);
 }
 
