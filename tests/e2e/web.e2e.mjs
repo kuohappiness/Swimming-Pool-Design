@@ -22,6 +22,7 @@ const routes = [
   { id: 'solar-study', url: '/?view=solar-study', group: 'topics' },
   { id: 'drawings', url: '/?view=drawings' },
   { id: '3d-viewer', url: '/?view=3d-viewer&quality=low&adaptive=off' },
+  { id: 'design-process', url: '/?view=design-process', group: 'topics' },
   { id: 'about', url: '/?view=about' },
 ];
 
@@ -209,7 +210,7 @@ try {
     }
   }
 
-  for (const viewId of ['design-concept', 'solar-study', 'drawings', 'about']) {
+  for (const viewId of ['design-concept', 'solar-study', 'design-process', 'drawings', 'about']) {
     const metrics = routeScriptMetrics.get(viewId) ?? [];
     assert.equal(
       metrics.some(({ decodedBodySize }) => decodedBodySize > 500_000),
@@ -366,6 +367,110 @@ try {
   });
   await drawings.close();
 
+  const designProcess = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  trackErrors(designProcess, errors);
+  await designProcess.goto(`${origin}/?view=design-process`, { waitUntil: 'networkidle' });
+  await waitForView(designProcess, 'design-process');
+  assert.match(await designProcess.title(), /^設計歷程｜.+概念設計$/);
+  const processSectionIds = ['timeline', 'versions', 'pivots', 'corrections', 'open'].map((id) => `process-${id}`);
+  assert.deepEqual(
+    await designProcess.locator('.process-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    processSectionIds,
+  );
+  assert.deepEqual(
+    await designProcess.locator('.process-index a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    processSectionIds.map((id) => `#${id}`),
+  );
+  assert.equal(await designProcess.locator('h1').count(), 1);
+  assert.equal(await designProcess.locator('.process-milestone').count() >= 6, true);
+  assert.equal(
+    await designProcess.locator('.process-milestone').evaluateAll((items) =>
+      items.every((item) => item.querySelector('.process-when')?.textContent.trim() && item.querySelector('h3')?.textContent.trim())),
+    true,
+    'every milestone needs a date label and a name',
+  );
+  // 兩張圖各三個版本：第一版手繪、第二版手繪、現行圖面，手繪稿要標出來源編號。
+  assert.deepEqual(
+    await designProcess.locator('.process-version').evaluateAll((versions) =>
+      versions.map((version) => [...version.querySelectorAll('.process-version-figure')].map((figure) => ({
+        stage: figure.querySelector('.process-stage')?.textContent.trim(),
+        sourceId: figure.dataset.sourceId ?? null,
+      })))),
+    [
+      [
+        { stage: '第一版手繪', sourceId: 'SRC-CONCEPT-003' },
+        { stage: '第二版手繪', sourceId: 'SRC-CONCEPT-010' },
+        { stage: '現行圖面', sourceId: null },
+      ],
+      [
+        { stage: '第一版手繪', sourceId: 'SRC-CONCEPT-001' },
+        { stage: '第二版手繪', sourceId: 'SRC-CONCEPT-011' },
+        { stage: '現行圖面', sourceId: null },
+      ],
+    ],
+  );
+  const versionImages = designProcess.locator('.process-version-figure img');
+  assert.equal(await versionImages.count(), 6);
+  for (let index = 0; index < 6; index += 1) await versionImages.nth(index).scrollIntoViewIfNeeded();
+  await designProcess.waitForFunction(() =>
+    [...document.querySelectorAll('.process-version-figure img')].every((image) => image.complete && image.naturalWidth > 0));
+  assert.equal(
+    await versionImages.evaluateAll((images) => images.every((image) => image.alt.trim().length >= 8)),
+    true,
+    'every version image needs a descriptive alt text',
+  );
+  const sketchLinks = await designProcess.locator('a.process-version-media').evaluateAll((links) =>
+    links.map((link) => ({ href: link.href, target: link.target, rel: link.rel })));
+  assert.equal(sketchLinks.length, 4);
+  for (const { href, target, rel } of sketchLinks) {
+    assert.equal(target, '_blank');
+    assert.equal(rel, 'noopener');
+    const response = await designProcess.request.get(href);
+    assert.equal(response.ok(), true, `large sketch ${href} is not reachable`);
+    assert.match(response.headers()['content-type'] ?? '', /^image\/jpeg/);
+  }
+  assert.equal(
+    await designProcess.locator('.process-section a[href^="http"]').evaluateAll((links) =>
+      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener')),
+    true,
+  );
+  assert.equal(
+    await designProcess.locator('.process-section a:not([href^="http"]):not(.process-version-media)').evaluateAll((links) =>
+      links.every((link) => ['./', '?view=solar-study', '?view=drawings', '?view=3d-viewer', '?view=about']
+        .includes(link.getAttribute('href')))),
+    true,
+    'design-process in-site links must point to registered views',
+  );
+  assert.equal(await designProcess.locator('.process-card').count() >= 12, true);
+  await designProcess.screenshot({ path: resolve(outputDirectory, 'public-design-process-desktop.png'), fullPage: true });
+  await designProcess.close();
+
+  const designProcessMobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  trackErrors(designProcessMobile, errors);
+  await designProcessMobile.goto(`${origin}/?view=design-process#process-versions`, { waitUntil: 'networkidle' });
+  await waitForView(designProcessMobile, 'design-process');
+  await designProcessMobile.waitForFunction(() => {
+    const target = document.querySelector('#process-versions');
+    const masthead = document.querySelector('.site-masthead');
+    if (!target || !masthead) return false;
+    const top = target.getBoundingClientRect().top;
+    return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
+  });
+  assert.equal(
+    await designProcessMobile.locator('.process-index a, a.process-version-media').evaluateAll((targets) =>
+      targets.every((target) => target.getBoundingClientRect().height >= 44 && target.getBoundingClientRect().width >= 44)),
+    true,
+    'design-process tap targets are smaller than 44px at 390px',
+  );
+  assert.equal(
+    await designProcessMobile.locator('.process-version-row').first().evaluate((row) =>
+      getComputedStyle(row).gridTemplateColumns.trim().split(/\s+/).length),
+    1,
+    'version comparison should stack into one column on a phone',
+  );
+  await designProcessMobile.screenshot({ path: resolve(outputDirectory, 'public-design-process-mobile.png') });
+  await designProcessMobile.close();
+
   const about = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   trackErrors(about, errors);
   await about.goto(`${origin}/?view=about`, { waitUntil: 'networkidle' });
@@ -484,7 +589,7 @@ try {
 
   assert.equal(errors.length, 0, errors.join('\n'));
   process.stdout.write(
-    'Unified public site smoke passed: 5 views × 5 viewports, routing, accessibility, isolation, and reduced motion.\n',
+    'Unified public site smoke passed: 6 views × 5 viewports, routing, accessibility, isolation, and reduced motion.\n',
   );
   process.stdout.write(`Screenshots: ${outputDirectory}\n`);
 } finally {

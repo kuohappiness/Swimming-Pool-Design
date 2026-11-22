@@ -6,6 +6,7 @@ import l3DrawingUrl from '../../../../drawings/current/DRAW-L3-PLAN.svg?url';
 import sectionDrawingUrl from '../../../../drawings/current/DRAW-LONGITUDINAL-SECTION.svg?url';
 import type { MountedView } from '../../app/view-contract';
 import { getViewDefinition } from '../../app/router';
+import { markExternalLinks } from '../../shared/external-links';
 import type { ProjectModel } from '../../shared/types';
 import './view.css';
 
@@ -92,14 +93,6 @@ function renderSectionBody(section: AboutSection): string {
   return `<div class="about-topics">${renderTopics(section)}</div>`;
 }
 
-function markExternalLinks(container: HTMLElement): void {
-  for (const link of container.querySelectorAll<HTMLAnchorElement>('.about-section a[href^="http"]')) {
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.insertAdjacentHTML('beforeend', '<span class="about-visually-hidden">（另開新視窗）</span>');
-  }
-}
-
 export function mount(container: HTMLElement): MountedView {
   container.innerHTML = `
     <section class="view-intro view-intro--about" aria-labelledby="about-title">
@@ -131,7 +124,7 @@ export function mount(container: HTMLElement): MountedView {
       </div>
     </div>
   `;
-  markExternalLinks(container);
+  markExternalLinks(container, '.about-section');
 
   const openHashTarget = () => {
     const targetId = decodeURIComponent(window.location.hash.slice(1));
