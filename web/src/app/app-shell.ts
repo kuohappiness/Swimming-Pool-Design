@@ -55,6 +55,13 @@ export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
 
   const viewContainer = host.querySelector<HTMLElement>('[data-view-root]');
   if (!viewContainer) throw new TypeError('App shell view root was not created.');
+  // On narrow screens the navigation scrolls sideways; keep the current page's link in view.
+  const navigation = host.querySelector<HTMLElement>('.site-navigation');
+  const currentLink = navigation?.querySelector<HTMLElement>('[aria-current="page"]');
+  if (navigation && currentLink) {
+    const overflow = currentLink.offsetLeft + currentLink.offsetWidth - navigation.clientWidth;
+    if (overflow > 0) navigation.scrollLeft = overflow;
+  }
   return {
     viewContainer,
     destroy() {
