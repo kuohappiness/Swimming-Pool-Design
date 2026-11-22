@@ -4,6 +4,12 @@ import type { MovementMode } from '../walkthrough/types';
 import type { SceneLighting } from './lighting/scene-lighting';
 import type { RenderQualityProfile } from './quality-profile';
 
+/** 場景裡鏡牆鏡面的網格名稱：場景建立它，rendering 換上它的倒影（`enhanced/mirror-reflection.ts`）。 */
+export const MIRROR_SURFACE_NAME = 'F-MIR-01-SURFACE';
+
+/** 鏡面網格 `userData` 裡反光那一面的法線（網格的物件座標，`[x, y, z]`）。 */
+export const MIRROR_FRONT_NORMAL_KEY = 'mirrorFrontNormal';
+
 export type SemanticMaterialId =
   | 'ground'
   | 'planting'
@@ -145,6 +151,8 @@ export interface VisualAssetAdapter {
   readonly underwaterViewActive?: boolean;
   /** 診斷用：水面倒影目前的來源。 */
   readonly waterReflection?: 'planar' | 'probe' | 'none';
+  /** 鏡牆鏡面的倒影來源：反射探針照出場景，或只有環境貼圖。 */
+  readonly mirrorReflection?: 'probe' | 'environment';
   /** 光線、天候或可見物件改變後呼叫，讓事先拍好的倒影等資料重新產生。 */
   invalidateLighting?(): void;
   dispose(): void;

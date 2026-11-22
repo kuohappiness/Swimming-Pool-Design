@@ -13,7 +13,11 @@ import { createArchitecturalDetails } from './architectural-details';
 import { createPoolHallDetails } from './pool-hall-details';
 import { createL2InteriorDetails } from './interior-details';
 import { createPoolUseDeck, createPoolUseDetails } from './pool-use-details';
-import type { SceneRenderingDependencies } from './rendering/contracts';
+import {
+  MIRROR_FRONT_NORMAL_KEY,
+  MIRROR_SURFACE_NAME,
+  type SceneRenderingDependencies,
+} from './rendering/contracts';
 import { batchStaticMeshes, type StaticBatchReport } from './scene-batcher';
 
 export interface SelectableInfo {
@@ -1073,6 +1077,12 @@ export function createViewerScene(
       -halfL3X, mirrorHeight, sideZ,
     ], mirrorSideInfillMaterial));
   }
+  // 鏡面的倒影由 rendering 換上自己的反射探針（`enhanced/mirror-reflection.ts`），要找得到、不合併。
+  // 反光的正面朝 −X（泳池那一側）並隨外傾朝下：上緣比下緣多伸出 leanOffset。
+  const mirrorLean = THREE.MathUtils.degToRad(l3Data.mirror.leanFromVertical.value);
+  mirrorMesh.name = MIRROR_SURFACE_NAME;
+  mirrorMesh.userData.batchExclude = true;
+  mirrorMesh.userData[MIRROR_FRONT_NORMAL_KEY] = [-Math.cos(mirrorLean), -Math.sin(mirrorLean), 0];
   l3RotationGroup.add(mirrorBacking, mirrorMesh, mirrorSideInfills);
   tag(mirrorSideInfills, {
     entityId: 'F-MIR-SIDE-INFILL-01',

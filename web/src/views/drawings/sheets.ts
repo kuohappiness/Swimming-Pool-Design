@@ -6,7 +6,24 @@ import l2Svg from '../../../../drawings/current/DRAW-L2-PLAN.svg?raw';
 import l3Svg from '../../../../drawings/current/DRAW-L3-PLAN.svg?raw';
 import sectionSvg from '../../../../drawings/current/DRAW-LONGITUDINAL-SECTION.svg?raw';
 
-function reviewDrawing(id: string, title: string, svgSource: string, note: string, model: ProjectModel): SheetRender {
+/** 去版號前的圖號；舊連結的錨點轉到現行圖號（DEC-170）。 */
+export const retiredSheetIds: Readonly<Record<string, string>> = {
+  'REF-001': 'SITE',
+  'V067-L1': 'L1',
+  'V067-L2': 'L2',
+  'V067-L3': 'L3',
+  'V067-SECTION': 'SECTION',
+};
+
+/** 圖名只登錄在模型的 sheets，這裡不另寫一份。 */
+function sheetTitle(model: ProjectModel, id: string): string {
+  const title = model.sheets.find((sheet) => sheet.id === id)?.title;
+  if (!title) throw new TypeError(`Model sheet registry has no ${id}.`);
+  return title;
+}
+
+function reviewDrawing(id: string, svgSource: string, note: string, model: ProjectModel): SheetRender {
+  const title = sheetTitle(model, id);
   const orientation = deriveSiteOrientation(model.referenceSystem);
   const northDirectionLabel = NORTH_PLAN_DIRECTION_LABELS[orientation.northPlanDirection];
   const orientationBoundSvg = svgSource
@@ -46,12 +63,13 @@ function reviewDrawing(id: string, title: string, svgSource: string, note: strin
 function siteDrawing(model: ProjectModel): SheetRender {
   const orientation = deriveSiteOrientation(model.referenceSystem);
   const note = `基地現況來源圖；MODEL ${model.modelVersion} · ACTIVE ${model.activeGeometryRevisionId}。衛星影像不是地籍或測量成果。`;
+  const title = sheetTitle(model, 'SITE');
   return {
-    id: 'REF-001',
-    title: '基地與方位圖',
+    id: 'SITE',
+    title,
     note,
     markup: `<svg class="drawing" viewBox="0 0 1200 760" role="img" aria-labelledby="site-title site-desc">
-      <title id="site-title">基地與方位圖</title>
+      <title id="site-title">${title}</title>
       <desc id="site-desc">${note}</desc>
       <rect width="1200" height="760" fill="#edf1f2" />
       <image href="${siteImage}" x="44" y="42" width="850" height="672" preserveAspectRatio="xMidYMid slice" />
@@ -70,9 +88,9 @@ function siteDrawing(model: ProjectModel): SheetRender {
 export function renderSheets(model: ProjectModel): SheetRender[] {
   return [
     siteDrawing(model),
-    reviewDrawing('V067-L1', 'v0.6.7｜1F 最新平面圖', l1Svg, '泳池端玻璃、服務本體清水模、西端退縮／玻璃屋簷／雨水回收及後側突出玻璃屋簷。非施工圖。', model),
-    reviewDrawing('V067-L2', 'v0.6.7｜2F 最新平面圖', l2Svg, 'L2 Y0 全寬玻璃；男女更衣淋浴區實體分隔牆固定於 Y8，Y2.5 清水模牆由 X32 連續至 X41。非施工圖。', model),
-    reviewDrawing('V067-L3', 'v0.6.7｜3F 最新平面圖', l3Svg, 'L3／屋頂／鏡牆／淡藍透明太陽能板共用同一 +25.5° transform；太陽能板可獨立顯示。非施工圖。', model),
-    reviewDrawing('V067-SECTION', 'v0.6.7｜最新縱向剖面圖', sectionSvg, '補齊 X0.5、X29、X41 垂直牆、投影入口、玻璃屋簷與雨水回收關係。非施工圖。', model),
+    reviewDrawing('L1', l1Svg, '泳池端玻璃、服務本體清水模、西端退縮／玻璃屋簷／雨水回收及後側突出玻璃屋簷。非施工圖。', model),
+    reviewDrawing('L2', l2Svg, 'L2 Y0 全寬玻璃；男女更衣淋浴區實體分隔牆固定於 Y8，Y2.5 清水模牆由 X32 連續至 X41。非施工圖。', model),
+    reviewDrawing('L3', l3Svg, 'L3／屋頂／鏡牆／淡藍透明太陽能板共用同一 +25.5° transform；太陽能板可獨立顯示。非施工圖。', model),
+    reviewDrawing('SECTION', sectionSvg, '補齊 X0.5、X29、X41 垂直牆、投影入口、玻璃屋簷與雨水回收關係。非施工圖。', model),
   ];
 }

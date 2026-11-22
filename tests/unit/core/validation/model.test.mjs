@@ -271,10 +271,15 @@ test('ST-01 scheme E connects the +0.30 m deck directly to L2', () => {
   assert.equal(stair.underStairEnclosure, false);
 });
 
-test('current sheet registry and atlas source contain only latest v0.6.7 inline SVG drawings', async () => {
-  assert.deepEqual(model.sheets.map(({ id }) => id), ['REF-001', 'V067-L1', 'V067-L2', 'V067-L3', 'V067-SECTION']);
+test('current sheet registry uses version-free sheet ids and the atlas keeps the retired anchors', async () => {
+  // DEC-170: sheet ids and titles carry no version; old #REF-001／#V067-* links redirect.
+  assert.deepEqual(model.sheets.map(({ id }) => id), ['SITE', 'L1', 'L2', 'L3', 'SECTION']);
+  assert.deepEqual(model.sheets.map(({ title }) => title), ['基地衛星與方位圖', '1F 平面圖', '2F 平面圖', '3F 平面圖', '縱向剖面圖']);
   const sheetsSource = await readFile(resolve(repoRoot, 'web/src/views/drawings/sheets.ts'), 'utf8');
-  for (const id of ['V067-L1', 'V067-L2', 'V067-L3', 'V067-SECTION']) assert.match(sheetsSource, new RegExp(id));
+  for (const id of ['L1', 'L2', 'L3', 'SECTION']) assert.match(sheetsSource, new RegExp(`reviewDrawing\\('${id}'`));
+  for (const [retired, current] of [['REF-001', 'SITE'], ['V067-L1', 'L1'], ['V067-L2', 'L2'], ['V067-L3', 'L3'], ['V067-SECTION', 'SECTION']]) {
+    assert.match(sheetsSource, new RegExp(`'${retired}': '${current}'`));
+  }
   assert.doesNotMatch(sheetsSource, /V23-|v0\.5\.0\/DRAW/);
   assert.match(sheetsSource, /\.svg\?raw/);
   assert.doesNotMatch(sheetsSource, /DRAW-L[123].*\.png/);

@@ -1184,11 +1184,11 @@
     { "id": "ESS-STRATEGY-01", "name": "地面獨立戶外儲能優先／3F 僅介面備案", "type": "energy-storage-strategy", "level": "SITE-L3", "grid": "ground-outdoor-TBD", "status": "deferred", "sourceIds": [] }
   ],
   "sheets": [
-    { "id": "REF-001", "title": "基地與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
-    { "id": "V067-L1", "title": "v0.6.7｜1F 最新平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "F-L1-Y0-01", "Z-L1-WEST-SETBACK-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-WTP-01", "Z-CHEM-01", "Z-L1-ENTRY-01", "Z-L1-DRY-01", "Z-L1-RINSE-01", "Z-L1-ACC-01", "Z-L1-STAFF-01"] },
-    { "id": "V067-L2", "title": "v0.6.7｜2F 最新平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "CLG-L2-01", "F-L2-Y0-01", "W-L2-ST-CH-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
-    { "id": "V067-L3", "title": "v0.6.7｜3F 最新平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
-    { "id": "V067-SECTION", "title": "v0.6.7｜最新縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "CLG-L2-01", "L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "RF-PV-RES-01"] }
+    { "id": "SITE", "title": "基地衛星與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
+    { "id": "L1", "title": "1F 平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "F-L1-Y0-01", "Z-L1-WEST-SETBACK-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-WTP-01", "Z-CHEM-01", "Z-L1-ENTRY-01", "Z-L1-DRY-01", "Z-L1-RINSE-01", "Z-L1-ACC-01", "Z-L1-STAFF-01"] },
+    { "id": "L2", "title": "2F 平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "CLG-L2-01", "F-L2-Y0-01", "W-L2-ST-CH-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
+    { "id": "L3", "title": "3F 平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
+    { "id": "SECTION", "title": "縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "CLG-L2-01", "L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "RF-PV-RES-01"] }
   ],
   "sources": [
     { "id": "SRC-SITE-001", "path": "source-materials/site/SRC-SITE-001_google-maps-satellite.png", "kind": "satellite", "pixelSize": [1612, 1430], "sha256": "39D1933CAEFB91020AF10E72ADFDBD04980DA36FEDBF36ED14209F469DA4029D" },

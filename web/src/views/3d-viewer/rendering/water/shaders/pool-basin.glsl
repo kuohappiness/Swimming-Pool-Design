@@ -39,6 +39,10 @@ uniform mat4 uSunShadowMatrix;  // 水面網格的物件座標轉到陰影貼圖
 // x 強度（0 不查陰影）、y 深度偏移、z 取樣半徑（貼圖座標）。
 uniform vec3 uSunShadow;
 
+// 鏡牆反射的日光（uMirrorBounce*，座標同樣是水面網格的物件座標）與 mirrorBounceMask()，
+// 由 rendering/lighting/mirror-bounce.ts 的 MIRROR_BOUNCE_GLSL 換進來，和場景其他材質同一段。
+// #include mirror-bounce
+
 const float WATER_IOR = 1.333;
 const float NO_HIT = 1.0e9;
 const float CAUSTIC_MAXIMUM_GAIN = 4.0;
@@ -211,18 +215,44 @@ float sunVisibility(vec3 position, int taps) {
   return withinPool * sunVisibilityAtSurface(entry, taps);
 }
 
-// 池底或池壁的焦散倍率，1 代表沒有聚光也沒有散光。
-// 從落點往太陽方向回推到水面，用那裡的位置取樣，光網才會隨太陽角度斜斜地落在池壁上。
-float poolCaustic(vec3 position) {
-  vec3 towardSun = -refract(-uSunDirection, vec3(0.0, 1.0, 0.0), 1.0 / WATER_IOR);
-  float depth = max(uWaterLevel - position.y, 0.0);
-  vec2 entry = position.xz + towardSun.xz * (depth / max(towardSun.y, 0.2));
+// 光從水面 entry 這一點入水、往下走 depth 公尺後的焦散倍率，1 代表沒有聚光也沒有散光。
+float causticGain(vec2 entry, float depth) {
   float first = texture2D(uCaustics, (entry + uCausticLayers[0].zw * uTime) * uCausticLayers[0].x).r;
   float second = texture2D(uCaustics, (entry + uCausticLayers[1].zw * uTime) * uCausticLayers[1].x).r;
   float gain = min(first, second) * CAUSTIC_MAXIMUM_GAIN * CAUSTIC_ENERGY_COMPENSATION;
   // 水面正下方還來不及聚焦，光網隨深度才成形。
   float focus = smoothstep(0.0, 0.6, depth);
   return mix(1.0, gain, uCausticStrength * focus);
+}
+
+// 池底或池壁的焦散倍率。從落點往太陽方向回推到水面，用那裡的位置取樣，
+// 光網才會隨太陽角度斜斜地落在池壁上。
+float poolCaustic(vec3 position) {
+  vec3 towardSun = -refract(-uSunDirection, vec3(0.0, 1.0, 0.0), 1.0 / WATER_IOR);
+  float depth = max(uWaterLevel - position.y, 0.0);
+  return causticGain(position.xz + towardSun.xz * (depth / max(towardSun.y, 0.2)), depth);
+}
+
+// 鏡牆反射光照在水裡一點的照度（未乘反照率）。反射光像從鏡面方向來的第二個太陽：
+// 在水面折射、沿途被水吸收、一樣被波紋聚成光網。從這一點逆著光回推到水面，
+// 入水點要在池面範圍內（否則被池壁擋住），而且從入水點逆著反射方向看得到鏡面。
+// 鏡面與水面之間的屋架不擋這道光（反射光沒有自己的陰影貼圖）。
+vec3 mirrorBounceInWater(vec3 position, vec3 normal) {
+  if (uMirrorBounceColor.w <= 0.0) return vec3(0.0);
+  vec3 incoming = normalize(uMirrorBounceDirection);
+  if (incoming.y > -1.0e-3) return vec3(0.0);
+  vec3 towardMirror = -refract(incoming, vec3(0.0, 1.0, 0.0), 1.0 / WATER_IOR);
+  float facing = max(dot(normal, towardMirror), 0.0);
+  if (facing <= 0.0) return vec3(0.0);
+  float depth = max(uWaterLevel - position.y, 0.0);
+  float path = depth / max(towardMirror.y, 0.2);
+  vec2 entry = position.xz + towardMirror.xz * path;
+  vec2 inside = min(entry - uPoolMin, uPoolMax - entry);
+  float withinPool = smoothstep(-0.03, 0.03, min(inside.x, inside.y));
+  if (withinPool <= 0.0) return vec3(0.0);
+  float mask = mirrorBounceMask(vec3(entry.x, uWaterLevel, entry.y));
+  if (mask <= 0.0) return vec3(0.0);
+  return uMirrorBounceColor.rgb * facing * withinPool * mask * waterTransmittance(path) * causticGain(entry, depth);
 }
 
 // 池底或池壁上一點被照亮後的顏色：陽光折射入水、沿途被水吸收，再加上漫射光。
@@ -240,6 +270,7 @@ vec3 shadePoolBasin(BasinHit hit) {
     direct = uSunColor * sunAbove * facingSun * waterTransmittance(sunPath)
       * poolCaustic(hit.position) * sunVisibility(hit.position, 4);
   }
+  direct += mirrorBounceInWater(hit.position, hit.normal);
   vec3 diffuse = uSkyColor * waterTransmittance(depth) * (0.55 + 0.45 * hit.normal.y);
 
   // 池壁還會被照亮的池底打亮：池底把收到的光漫射出來，池壁大約看得到半個池底。

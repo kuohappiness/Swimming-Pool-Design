@@ -17,6 +17,7 @@ test.after(async () => vite.close());
 const { createCloudNoise } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/cloud-noise.ts');
 const { deriveSkyParameters } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sky-parameters.ts');
 const { SkyDome } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sky-dome.ts');
+const { isReflectionCapture, markReflectionCapture } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/reflection-capture.ts');
 const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
 const { toSceneLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/scene-lighting.ts');
 
@@ -223,4 +224,48 @@ test('the environment source shares the sky but leaves out the sun disc, the moo
   }
   assert.equal(dome.mesh.parent, null);
   assert.equal(dome.environmentScene.children.length, 0);
+});
+
+test('reflection cameras see the sky without the sun disc, moon and stars, and only while drawing', () => {
+  const dome = new SkyDome();
+  const siteRoot = new THREE.Group();
+  siteRoot.scale.set(1, 1, -1);
+  siteRoot.updateMatrixWorld(true);
+  const focus = { centre: new THREE.Vector3(), radius: 30 };
+  try {
+    const uniforms = dome.mesh.material.uniforms;
+    dome.update(toSceneLighting(at(12, 21, '22:00'), siteRoot, focus));
+    const night = { moon: uniforms.uMoonColor.value.clone(), stars: uniforms.uStars.value };
+    dome.update(toSceneLighting(at(12, 21, '09:30'), siteRoot, focus));
+    const disc = uniforms.uSunDiscColor.value.clone();
+    assert.ok(disc.length() > 10);
+
+    // 一般的鏡頭照常畫日面。
+    const viewer = new THREE.PerspectiveCamera();
+    dome.mesh.onBeforeRender(null, null, viewer);
+    assert.ok(uniforms.uSunDiscColor.value.equals(disc));
+    dome.mesh.onAfterRender(null, null, viewer);
+    assert.ok(uniforms.uSunDiscColor.value.equals(disc));
+
+    // 反射探針（CubeCamera 底下的六支都標了）畫的那一次沒有日面，畫完還原。
+    const cube = new THREE.CubeCamera(0.1, 10, new THREE.WebGLCubeRenderTarget(4));
+    assert.equal(isReflectionCapture(cube.children[0]), false);
+    markReflectionCapture(cube);
+    assert.ok(cube.children.length === 6 && cube.children.every(isReflectionCapture));
+    dome.mesh.onBeforeRender(null, null, cube.children[3]);
+    assert.equal(uniforms.uSunDiscColor.value.length(), 0);
+    dome.mesh.onAfterRender(null, null, cube.children[3]);
+    assert.ok(uniforms.uSunDiscColor.value.equals(disc), 'restored right after the capture draw');
+
+    dome.update(toSceneLighting(at(12, 21, '22:00'), siteRoot, focus));
+    dome.mesh.onBeforeRender(null, null, cube.children[0]);
+    assert.equal(uniforms.uMoonColor.value.length(), 0);
+    assert.equal(uniforms.uStars.value, 0);
+    dome.mesh.onAfterRender(null, null, cube.children[0]);
+    assert.ok(uniforms.uMoonColor.value.equals(night.moon));
+    assert.equal(uniforms.uStars.value, night.stars);
+    cube.renderTarget.dispose();
+  } finally {
+    dome.dispose();
+  }
 });
