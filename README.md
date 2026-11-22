@@ -15,6 +15,7 @@
 - [日照研究](https://kuohappiness.github.io/Swimming-Pool-Design/?view=solar-study)
 - [圖面設計](https://kuohappiness.github.io/Swimming-Pool-Design/?view=drawings)
 - [3D 展示](https://kuohappiness.github.io/Swimming-Pool-Design/?view=3d-viewer)
+- [關於](https://kuohappiness.github.io/Swimming-Pool-Design/?view=about)
 
 `main` 有新的合併後，GitHub Actions 會重新建置並更新網站。
 

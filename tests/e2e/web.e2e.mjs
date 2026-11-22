@@ -22,6 +22,7 @@ const routes = [
   { id: 'solar-study', url: '/?view=solar-study' },
   { id: 'drawings', url: '/?view=drawings' },
   { id: '3d-viewer', url: '/?view=3d-viewer&quality=low&adaptive=off' },
+  { id: 'about', url: '/?view=about' },
 ];
 
 const viewports = [
@@ -80,10 +81,19 @@ async function waitForView(page, viewId) {
 }
 
 async function assertCommonShell(page, route, viewport) {
-  assert.equal(await page.locator('[data-site-nav]').count(), 4);
+  assert.equal(await page.locator('[data-site-nav]').count(), 5);
   assert.deepEqual(
     await page.locator('[data-site-nav]').allTextContents(),
-    ['設計理念', '日照研究', '圖面設計', '3D 展示'],
+    ['設計理念', '日照研究', '圖面設計', '3D 展示', '關於'],
+  );
+  assert.equal(
+    await page.locator('[data-site-nav][aria-current="page"]').evaluate((link) => {
+      const navigation = link.closest('nav').getBoundingClientRect();
+      const rect = link.getBoundingClientRect();
+      return rect.left >= navigation.left - 1 && rect.right <= navigation.right + 1;
+    }),
+    true,
+    `${route.id} current navigation link is scrolled out of view at ${viewport.width}px`,
   );
   assert.equal(await page.locator(`[data-site-nav="${route.id}"]`).getAttribute('aria-current'), 'page');
   assert.equal(await page.locator('[data-site-nav][aria-current="page"]').count(), 1);
@@ -170,7 +180,7 @@ try {
     }
   }
 
-  for (const viewId of ['design-concept', 'solar-study', 'drawings']) {
+  for (const viewId of ['design-concept', 'solar-study', 'drawings', 'about']) {
     const metrics = routeScriptMetrics.get(viewId) ?? [];
     assert.equal(
       metrics.some(({ decodedBodySize }) => decodedBodySize > 500_000),
@@ -327,6 +337,83 @@ try {
   });
   await drawings.close();
 
+  const about = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  trackErrors(about, errors);
+  await about.goto(`${origin}/?view=about`, { waitUntil: 'networkidle' });
+  await waitForView(about, 'about');
+  assert.equal(await about.title(), '關於這個專案｜游泳池翻修概念設計');
+  const aboutSectionIds = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'].map((id) => `about-${id}`);
+  assert.deepEqual(
+    await about.locator('.about-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    aboutSectionIds,
+  );
+  assert.deepEqual(
+    await about.locator('.about-contents a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    aboutSectionIds.map((id) => `#${id}`),
+  );
+  assert.equal(await about.locator('h1').count(), 1);
+  assert.equal(await about.locator('.about-term').count() >= 20, true);
+  assert.equal(
+    await about.locator('.about-section a[href^="http"]').evaluateAll((links) =>
+      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener'),
+    ),
+    true,
+  );
+  assert.equal(
+    await about.locator('.about-section a:not([href^="http"]):not([download])').evaluateAll((links) =>
+      links.length > 0
+        && links.every((link) => ['./', '?view=solar-study', '?view=drawings', '?view=3d-viewer'].includes(link.getAttribute('href'))),
+    ),
+    true,
+  );
+
+  const questions = about.locator('.about-question');
+  assert.equal(await questions.count() >= 8, true);
+  assert.equal(await questions.evaluateAll((items) => items.every((item) => !item.open)), true);
+  await questions.nth(0).locator('summary').click();
+  assert.equal(await questions.nth(0).evaluate((item) => item.open), true);
+  assert.equal(await questions.nth(0).locator('.about-answer').isVisible(), true);
+  await questions.nth(1).locator('summary').focus();
+  await about.keyboard.press('Enter');
+  assert.equal(await questions.nth(1).evaluate((item) => item.open), true);
+
+  const downloadLinks = await about.locator('[data-about-download]').evaluateAll((links) =>
+    links.map((link) => ({ href: link.href, fileName: link.getAttribute('download') })),
+  );
+  assert.deepEqual(
+    downloadLinks.map(({ fileName }) => fileName),
+    ['DRAW-L1-PLAN.svg', 'DRAW-L2-PLAN.svg', 'DRAW-L3-PLAN.svg', 'DRAW-LONGITUDINAL-SECTION.svg'],
+  );
+  for (const { href, fileName } of downloadLinks) {
+    const response = await fetch(href);
+    assert.equal(response.ok, true, `${fileName} download is not reachable`);
+    assert.match(response.headers.get('content-type') ?? '', /image\/svg\+xml/);
+    assert.match(await response.text(), /<svg[\s>]/);
+  }
+  await about.screenshot({ path: resolve(outputDirectory, 'public-about-desktop.png'), fullPage: true });
+  await about.close();
+
+  const aboutDeepLink = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  trackErrors(aboutDeepLink, errors);
+  await aboutDeepLink.goto(`${origin}/?view=about#about-faq-3`, { waitUntil: 'networkidle' });
+  await waitForView(aboutDeepLink, 'about');
+  assert.equal(await aboutDeepLink.locator('#about-faq-3').evaluate((item) => item.open), true);
+  await aboutDeepLink.waitForFunction(() => {
+    const target = document.querySelector('#about-faq-3');
+    const masthead = document.querySelector('.site-masthead');
+    if (!target || !masthead) return false;
+    const top = target.getBoundingClientRect().top;
+    return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight / 2;
+  });
+  assert.equal(
+    await aboutDeepLink.locator('.about-contents a, .about-question summary, [data-about-download]').evaluateAll((targets) =>
+      targets.every((target) => target.getBoundingClientRect().height >= 44),
+    ),
+    true,
+  );
+  await aboutDeepLink.screenshot({ path: resolve(outputDirectory, 'public-about-mobile.png') });
+  await aboutDeepLink.close();
+
   const reentry = await browser.newPage({ viewport: { width: 390, height: 844 } });
   trackErrors(reentry, errors);
   await reentry.goto(origin, { waitUntil: 'networkidle' });
@@ -367,7 +454,7 @@ try {
 
   assert.equal(errors.length, 0, errors.join('\n'));
   process.stdout.write(
-    'Unified public site smoke passed: 4 views × 5 viewports, routing, accessibility, isolation, and reduced motion.\n',
+    'Unified public site smoke passed: 5 views × 5 viewports, routing, accessibility, isolation, and reduced motion.\n',
   );
   process.stdout.write(`Screenshots: ${outputDirectory}\n`);
 } finally {
