@@ -41,6 +41,7 @@ const routes = [
     label: '3D 展示與實境漫遊',
     url: '/?view=3d-viewer&quality=low&adaptive=off',
   },
+  { id: 'about', label: '關於', url: '/?view=about' },
 ];
 
 async function firstExisting(paths) {
@@ -128,6 +129,12 @@ try {
         control.dispatchEvent(new Event('input', { bubbles: true }));
       });
     }
+    if (route.id === 'about') {
+      // Closed <details> are not part of innerText; open them so the answers are captured.
+      await page.locator('details').evaluateAll((items) => {
+        for (const item of items) item.open = true;
+      });
+    }
     if (route.id === '3d-viewer') {
       await page.waitForFunction(
         () =>
@@ -170,7 +177,7 @@ ${text}
     .join('\n\n');
   const document = `# 網站文字快照 v1.0
 
-> 這是發布版 ${packageJson.version} 四個公開分頁在桌面版實際渲染後的可見文字備份，供後續文字修訂與改版比對。此文件不取代各功能資料與模型來源；隱藏、暫不顯示或僅存在於程式內的備用內容不列入本快照。
+> 這是發布版 ${packageJson.version} 各公開分頁在桌面版實際渲染後的可見文字備份，供後續文字修訂與改版比對。此文件不取代各功能資料與模型來源；隱藏、暫不顯示或僅存在於程式內的備用內容不列入本快照。
 
 - 快照版本：\`v1.0\`
 - 對應網站版本：\`${packageJson.version}\`

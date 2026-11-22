@@ -8,6 +8,8 @@ import { resolveActiveGeometry } from '../../core/geometry/active-geometry.mjs';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const TOKEN_PATTERN = /\{\{(model|active|derived):([A-Za-z0-9_.]+)\|([a-zA-Z]+)\}\}/g;
 const SCENE_PATTERN = /^<!--\s*scene:([a-z0-9-]+)\s*-->$/;
+const SECTION_PATTERN = /^<!--\s*section:([a-z0-9-]+)\s*-->$/;
+export const ABOUT_SECTION_IDS = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'];
 
 const escapeHtml = (value) => String(value)
   .replaceAll('&', '&amp;')
@@ -153,10 +155,73 @@ export function compilePublicContent(markdown, model, sceneManifest) {
   return { ...compiled, contentHash: hashData(compiled) };
 }
 
+/**
+ * Compiles a page written as `<!-- section:id -->` blocks. Each section starts with one `##` title;
+ * text before the first `###` is the section intro, and every `###` opens one item (a glossary term,
+ * a question, a sub-topic). The section list must match `sectionIds` exactly and in order.
+ */
+export function compileSectionedContent(markdown, model, sectionIds) {
+  const renderedMarkdown = injectModelTokens(markdown, model);
+  const sectionLines = new Map();
+  let currentSection = null;
+  for (const line of renderedMarkdown.split(/\r?\n/)) {
+    const sectionMatch = line.trim().match(SECTION_PATTERN);
+    if (sectionMatch) {
+      const sectionId = sectionMatch[1];
+      if (sectionLines.has(sectionId)) throw new TypeError(`Markdown repeats section ID: ${sectionId}`);
+      currentSection = sectionId;
+      sectionLines.set(sectionId, []);
+    } else if (currentSection) {
+      sectionLines.get(currentSection).push(line);
+    } else if (line.trim()) {
+      throw new TypeError('Sectioned Markdown must begin with an explicit section reference.');
+    }
+  }
+
+  const found = [...sectionLines.keys()];
+  if (found.length !== sectionIds.length || found.some((sectionId, index) => sectionId !== sectionIds[index])) {
+    throw new TypeError(`Markdown sections must be exactly: ${sectionIds.join(', ')}; found: ${found.join(', ')}`);
+  }
+
+  const sections = found.map((sectionId) => {
+    const lines = sectionLines.get(sectionId);
+    const titleIndex = lines.findIndex((line) => line.trim());
+    const titleMatch = lines[titleIndex]?.match(/^##\s+(.+)$/);
+    if (!titleMatch) throw new TypeError(`Section ${sectionId} must start with a level-2 title.`);
+    const intro = [];
+    const items = [];
+    for (const line of lines.slice(titleIndex + 1)) {
+      const itemMatch = line.match(/^###\s+(.+)$/);
+      if (/^#{1,2}\s+/.test(line)) throw new TypeError(`Section ${sectionId} allows only one level-2 title.`);
+      if (itemMatch) items.push({ title: itemMatch[1].trim(), lines: [] });
+      else (items.at(-1)?.lines ?? intro).push(line);
+    }
+    return {
+      id: sectionId,
+      title: titleMatch[1].trim(),
+      html: markdownToHtml(intro),
+      items: items.map((item, index) => {
+        const html = markdownToHtml(item.lines);
+        if (!html) throw new TypeError(`Item "${item.title}" in section ${sectionId} has no content.`);
+        return { id: `${sectionId}-${index + 1}`, title: item.title, html };
+      }),
+    };
+  });
+  const compiled = {
+    schemaVersion: '1.0.0',
+    modelVersion: model.modelVersion,
+    modelHash: hashData(model),
+    sourceHash: hashData(markdown),
+    sections,
+  };
+  return { ...compiled, contentHash: hashData(compiled) };
+}
+
 export async function buildPublicContent({ root = repoRoot } = {}) {
-  const [modelText, markdown, manifestText, registryText] = await Promise.all([
+  const [modelText, markdown, aboutMarkdown, manifestText, registryText] = await Promise.all([
     readFile(resolve(root, 'model/project-model.json'), 'utf8'),
     readFile(resolve(root, 'content/design-concept.md'), 'utf8'),
+    readFile(resolve(root, 'content/about.md'), 'utf8'),
     readFile(resolve(root, 'web/src/views/3d-viewer/scene-manifest.json'), 'utf8'),
     readFile(resolve(root, 'model/analysis-registry.json'), 'utf8').catch(() => '{}'),
   ]);
@@ -164,14 +229,16 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
   const sceneManifest = JSON.parse(manifestText);
   const analysisRegistry = JSON.parse(registryText);
   const content = compilePublicContent(markdown, model, sceneManifest);
+  const aboutContent = compileSectionedContent(aboutMarkdown, model, ABOUT_SECTION_IDS);
   const viewerModel = buildViewerModel(model, analysisRegistry);
   const outputDirectory = resolve(root, 'web/src/generated');
   await mkdir(outputDirectory, { recursive: true });
   await Promise.all([
     writeFile(resolve(outputDirectory, 'concept-content.json'), `${JSON.stringify(content, null, 2)}\n`),
+    writeFile(resolve(outputDirectory, 'about-content.json'), `${JSON.stringify(aboutContent, null, 2)}\n`),
     writeFile(resolve(outputDirectory, 'viewer-model.json'), `${JSON.stringify(viewerModel, null, 2)}\n`),
   ]);
-  return { content, viewerModel };
+  return { content, aboutContent, viewerModel };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
