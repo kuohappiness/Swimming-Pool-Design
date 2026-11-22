@@ -121,6 +121,7 @@ npm run dev
 npm run lint
 npm run check:docs
 npm run check:model
+npm run check:assets
 npm test
 npm run build
 npm run test:e2e
