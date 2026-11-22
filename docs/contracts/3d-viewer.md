@@ -63,6 +63,16 @@ Viewer 必須由 `?view=3d-viewer` 的 view-level dynamic import 才載入 Three
 
 Viewer 上須有固定螢幕方位提示，以清楚的 `N ↘` 箭頭表示真北指向畫面右下角；桌面與 390 × 844 行動視窗均須可見。3D 場景內的真北箭頭亦須由同一 307° transform 推導，並在箭頭尖端顯示可讀的 `N` 標記。提示不另寫第二套方位，不旋轉相機。
 
+### 靜態合併與繪製類別（TASK-160）
+
+- 場景建好、視覺細節掛上之前，`scene-batcher.ts` 把同一個切換單位（模型圖層、泳池剖視要隱藏的物件、同一細節等級）裡、材質與陰影設定相同的靜態網格與線條合併成一個繪製。合併不跨圖層、不跨剖視物件、不跨細節等級，所以圖層開關、剖視與畫質分級的行為不變。
+- 不合併：`POOL-01-WATER-SURFACE`（水面由 rendering 換材質）、會動的焦散、剖視標註、虛線、輔助線，以及標了 `userData.batchExclude = true` 的物件。新幾何需要被程式找到、移動或換材質時就標 `batchExclude`。
+- 選取：合併後每個三角形（線條是每一段）在 `userData.faceOwners` 記得自己屬於哪個構件，點選時以命中的三角形決定構件；選取框位置用合併前記下的 `SelectableInfo.bounds`。
+- 繪製類別：每個網格保留 Three 圖層 0，另加一個類別圖層：structure 1、water-surface 2、small-furnishing 3、people 4、vegetation 5、glass 6、mirror 7、emissive-fixture 8、site-context 9（`RENDER_CATEGORY_LAYERS`）。類別預設由材質推得（玻璃、鏡面、水、發光、植栽、地坪），細節物件預設 small-furnishing，其他為 structure；新增幾何可在自己或上層設 `userData.renderCategory` 指定，寫錯名稱會直接報錯。只畫部分類別的 pass（倒影、陰影層、AO）在自己的相機關掉圖層 0、打開需要的類別。
+- 幀時間統計：`frame-statistics.ts` 的 `FrameStatistics` 以最近 120 幀算出 `FrameObservation`（`timeSeconds`、`samples`、相鄰兩幀間隔的 p95 `intervalP95Milliseconds`、每幀更新加送出繪製的 CPU 時間 p95 `workP95Milliseconds`），公開為 `data-frame-interval-p95-ms`、`data-frame-work-p95-ms`，供 3D 串的畫質調節器使用。尚未含 GPU 計時，GPU 吃緊時工作時間會偏低，調節器仍須同時看間隔。
+- `?batch=off` 關閉合併，只供比對與除錯。合併前後的網格數公開在 `data-static-batch-source-meshes`、`data-static-batch-meshes`。
+- 繪製預算（與 3D 串約定，DEC-154）：桌機 high 每幀 500 次繪製、80 萬三角形；手機 medium 25 萬三角形，繪製次數暫為 250，3D 階段移除透射 pass 後收緊為 200。e2e 以這些數字當硬上限；幀時間在雲端量不準，不做硬斷言。
+
 ### 第一人稱漫遊
 
 - Inspect 是預設且可完整使用；「第一人稱漫遊」從 `EN-01` semantic safe spawn 進入，退出必須恢復原相機、場景、圖層、選取、固定視角／泳池剖視、panel scroll 與焦點。
@@ -81,6 +91,7 @@ WebGL 不可用或 `?forceFallback=1` 時不建立 3D／漫遊 runtime；enhance
 - `npm run build:content`：hash、token、scene ID、active revision 與有限幾何通過。
 - `npm test`：SITE-XY bounds、右手座標 adapter、307° 羅盤方位→Three 143°換算、SITE +X 世界西北、場景真北右下與 N 標記、ST-01／ST-02 active bounds、30 間淋浴、到達翼／受控景觀區、右下真北提示、current／stale hash、五場景、transform 分層、source isolation、camera lifecycle、input、collision、safe spawn、游泳、水下與效能 hysteresis 通過。
 - `npm run typecheck`、`npm run build`、`npm run test:e2e` 通過。
+- 靜態合併：合併前後每個三角形的世界座標、繞向、所屬構件、圖層、剖視物件與細節等級逐一相同；e2e 的繪製次數與三角形不超過上一節的預算。
 - 0.9.1 source／E2E 另須確認 Viewer template 不含 document-level element 或 script、3D DOM 不含 `data-concept-content`，WebGL 與 fallback 都能切換五個短摘要。
 - 桌機、手機與 fallback 截圖確認池體、四廁、樓梯、L3／鏡牆、屋頂、控制區與限制文字可讀；桌機／手機另截「泳池剖視」，並驗證離開剖視後模型恢復。
 - 選取 `WT-01` 與 `F-L2-Y0-01` 後畫布不得出現黃色外接框；另以 Y0／Y14 兩側截圖直接確認 L2 全寬玻璃的淡藍透明面、高光、上下框與豎梃可辨識。

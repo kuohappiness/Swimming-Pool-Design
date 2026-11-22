@@ -7,6 +7,7 @@ import { createArchitecturalDetails } from './architectural-details';
 import { createPoolHallDetails } from './pool-hall-details';
 import { createL2InteriorDetails } from './interior-details';
 import type { SceneRenderingDependencies } from './rendering/contracts';
+import { batchStaticMeshes, type StaticBatchReport } from './scene-batcher';
 
 export interface SelectableInfo {
   object: THREE.Object3D;
@@ -15,6 +16,13 @@ export interface SelectableInfo {
   status: DesignStatus;
   description: string;
   openItemId?: string;
+  /** World-space bounds captured before static batching, used to frame the selection. */
+  bounds?: THREE.Box3;
+}
+
+export interface ViewerSceneOptions {
+  /** Merge static meshes per material before visual adapters attach (TASK-160). */
+  readonly batchStaticGeometry?: boolean;
 }
 
 export interface ViewerSceneGraph {
@@ -23,6 +31,7 @@ export interface ViewerSceneGraph {
   siteRoot: THREE.Group;
   layerGroups: Map<string, THREE.Group>;
   selectables: SelectableInfo[];
+  staticBatch: StaticBatchReport | null;
   lights: { sun: THREE.DirectionalLight; ambient: THREE.HemisphereLight };
   cutaway: {
     hiddenObjects: THREE.Object3D[];
@@ -188,6 +197,7 @@ function beamBetween(
 export function createViewerScene(
   model: ViewerModel,
   rendering: SceneRenderingDependencies,
+  options: ViewerSceneOptions = {},
 ): ViewerSceneGraph {
   const { materials, visualAssets } = rendering;
   const scene = new THREE.Scene();
@@ -1385,6 +1395,19 @@ export function createViewerScene(
   cutawayAnnotations.visible = false;
   siteRoot.add(cutawayAnnotations);
 
+  const cutawayHiddenObjects = [ground, nearDeck, nearPoolWall, nearCoping, l1Y0Facade, entranceGroup, l1Y0Mullions];
+  scene.updateMatrixWorld(true);
+  for (const selectable of selectables) {
+    selectable.bounds = new THREE.Box3().setFromObject(selectable.object);
+  }
+  const staticBatch = options.batchStaticGeometry
+    ? batchStaticMeshes(siteRoot, {
+        toggleUnits: [...layerGroups.values(), ...cutawayHiddenObjects],
+        exclude: [waterSurface, cutawayAnnotations],
+        selectionOwners: selectables.map(({ object }) => object),
+      })
+    : null;
+
   visualAssets.attach({ scene, worldRoot, siteRoot, layerGroups });
 
   return {
@@ -1393,9 +1416,10 @@ export function createViewerScene(
     siteRoot,
     layerGroups,
     selectables,
+    staticBatch,
     lights: { sun, ambient },
     cutaway: {
-      hiddenObjects: [ground, nearDeck, nearPoolWall, nearCoping, l1Y0Facade, entranceGroup, l1Y0Mullions],
+      hiddenObjects: cutawayHiddenObjects,
       annotationGroup: cutawayAnnotations,
     },
     water: {
