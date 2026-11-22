@@ -14,11 +14,14 @@ import {
   type RealisticWaterOptions,
 } from '../water/realistic-water-presentation';
 import { WATER_SURFACE_NAME } from '../water/water-surface';
+import { MirrorReflection, type MirrorReflectionOptions } from './mirror-reflection';
 
 export interface EnhancedVisualAssetAdapterOptions {
   readonly createOptionalAssets?: (siteBounds: THREE.Box3) => THREE.Group;
   /** 有給才啟用寫實水面；沒給（或貼圖載入失敗）時維持原本的水。 */
   readonly realisticWater?: RealisticWaterOptions;
+  /** 有給才讓鏡牆照出場景（反射探針）；沒給時鏡面只照環境貼圖。 */
+  readonly mirrorReflection?: MirrorReflectionOptions;
 }
 
 /** 目前畫面上的水是哪一種，寫在水面網格的 userData.waterPresentation。 */
@@ -135,6 +138,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   private readonly detailLevels: EnhancedDetailLevelAdapter;
   private readonly water: EnhancedWaterPresentation;
   private readonly realisticWater: RealisticWaterPresentation | null;
+  private readonly mirror: MirrorReflection | null;
   private waterStatus: WaterPresentationStatus = 'legacy';
   private waterFailure: string | null = null;
   private underwaterFrame = false;
@@ -160,6 +164,9 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.realisticWater = options.realisticWater
       ? new RealisticWaterPresentation(initialProfile, options.realisticWater)
       : null;
+    this.mirror = options.mirrorReflection
+      ? new MirrorReflection(initialProfile, options.mirrorReflection)
+      : null;
     this.createOptionalAssets = options.createOptionalAssets ?? createProceduralScaleAssets;
   }
 
@@ -182,6 +189,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.surfaceDetails.attach(context);
     this.detailLevels.attach(context);
     this.water.attach(context);
+    this.mirror?.attach(context);
     this.context = context;
     this.setWaterStatus(this.realisticWater ? 'realistic-loading' : 'legacy');
     if (this.realisticWater) this.waterReady = this.startRealisticWater(this.realisticWater, context);
@@ -213,6 +221,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.detailLevels.setQuality(profile);
     this.water.setQuality(profile);
     this.realisticWater?.setQuality(profile);
+    this.mirror?.setQuality(profile);
     this.applyQuality();
   }
 
@@ -222,7 +231,13 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   }
 
   invalidateLighting() {
+    this.mirror?.invalidate();
     this.realisticWater?.invalidateReflection();
+  }
+
+  /** 鏡面照出場景（`probe`），或沒有鏡面、沒啟用時只照環境貼圖（`environment`）。 */
+  get mirrorReflection(): 'probe' | 'environment' {
+    return this.mirror?.active ? 'probe' : 'environment';
   }
 
   /** 鏡頭在水裡時由寫實水面畫出水下畫面；其他時候回傳 false，由繪圖管線照常畫。 */
@@ -248,6 +263,8 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   updateFrame(state: VisualFrameState) {
     if (this.disposed) return;
     this.water.updateFrame(state);
+    // 鏡面先拍：水面的探針拍得到鏡面，鏡面才不會停在上一次的光線。
+    this.mirror?.updateFrame();
     this.realisticWater?.updateFrame(state);
     // 寫實水面的焦散在著色器裡，舊的滑動光帶已隱藏，不必再移動。
     if (this.waterStatus === 'realistic') return;
@@ -268,6 +285,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     }
     this.caustics.length = 0;
     this.realisticWater?.dispose();
+    this.mirror?.dispose();
     this.water.dispose();
     this.context = null;
     this.detailLevels.dispose();

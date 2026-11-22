@@ -1,8 +1,7 @@
 import * as THREE from 'three';
-import poolBasinChunk from './shaders/pool-basin.glsl?raw';
 import fragmentSource from './shaders/underwater-view.frag.glsl?raw';
 import vertexShader from './shaders/underwater-view.vert.glsl?raw';
-import { POOL_BASIN_UNIFORM_NAMES } from './pool-basin-material';
+import { POOL_BASIN_UNIFORM_NAMES, withPoolBasin } from './pool-basin-material';
 import type { PoolBasinShape } from './water-surface';
 
 /**
@@ -97,7 +96,7 @@ export class ScreenUnderwaterView implements UnderwaterView {
     this.material = new THREE.ShaderMaterial({
       name: 'realistic:underwater-view',
       vertexShader,
-      fragmentShader: fragmentSource.replace('// #include pool-basin', poolBasinChunk),
+      fragmentShader: withPoolBasin(fragmentSource),
       uniforms,
       depthTest: false,
       depthWrite: false,

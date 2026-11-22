@@ -1,5 +1,12 @@
 import * as THREE from 'three';
-import poolBasinChunk from './shaders/pool-basin.glsl?raw';
+import {
+  createMirrorBounceUniforms,
+  pickMirrorBounceUniforms,
+  writeMirrorBounceUniforms,
+  type MirrorBounceUniforms,
+  type WorldMirrorBounce,
+} from '../lighting/mirror-bounce';
+import { withPoolBasin } from './pool-basin-material';
 import fragmentSource from './shaders/water-surface.frag.glsl?raw';
 import vertexShader from './shaders/water-surface.vert.glsl?raw';
 
@@ -130,6 +137,8 @@ export interface WaterFrameState {
   readonly skyColor: THREE.Color;
   /** 沒有陰影（省電級、陰影貼圖還沒畫出來）時給 null，水就當作全部照得到太陽。 */
   readonly sunShadow?: WaterSunShadow | null;
+  /** 鏡牆反射的日光（世界座標）；沒有給或關著時池底只有陽光。 */
+  readonly mirrorBounce?: WorldMirrorBounce | null;
 }
 
 /**
@@ -279,7 +288,7 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
   const material = new THREE.ShaderMaterial({
     name: 'realistic:water-surface',
     vertexShader,
-    fragmentShader: fragmentSource.replace('// #include pool-basin', poolBasinChunk),
+    fragmentShader: withPoolBasin(fragmentSource),
     fog: true,
     clipping: true,
     // 水面兩面都看得到：池畔往下看，或潛到水裡往上看。
@@ -356,6 +365,8 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
       },
     ]),
   });
+  // 鏡牆反射光：池體那一段宣告了這組 uniform，開關（color.w）預設關著。
+  Object.assign(material.uniforms, createMirrorBounceUniforms());
   // merge 會複製貼圖物件；貼圖要用原本那一份，所以合併後再指定。
   material.uniforms.uRippleNormal.value = options.rippleNormal;
   material.uniforms.uReflectionCube.value = options.reflectionCube;
@@ -393,6 +404,8 @@ export class WaterSurface {
   private readonly inverseWorld = new THREE.Matrix4();
   private readonly localSun = new THREE.Vector3();
   private readonly fallbackShadowMap = createFallbackShadowMap();
+  /** 鏡牆反射光的 uniform（水面網格的物件座標）；池體材質與水下畫面共用同一組物件。 */
+  private readonly mirrorBounce: MirrorBounceUniforms;
   private disposed = false;
 
   /**
@@ -409,6 +422,7 @@ export class WaterSurface {
     this.geometry = createWaterSurfaceGeometry(this.basin, options.cellSize);
     this.material = createWaterSurfaceMaterial(options);
     this.material.uniforms.uSunShadowMap.value = this.fallbackShadowMap;
+    this.mirrorBounce = pickMirrorBounceUniforms(this.material.uniforms);
     this.maximumWaveHeight = (options.waves ?? CALM_POOL_WAVES)
       .reduce((sum, wave) => sum + wave.amplitude, 0);
     if (target) {
@@ -487,6 +501,7 @@ export class WaterSurface {
       uniforms.uSunShadowMap.value = this.fallbackShadowMap;
       (uniforms.uSunShadow.value as THREE.Vector3).set(0, 0, 0);
     }
+    writeMirrorBounceUniforms(this.mirrorBounce, frame.mirrorBounce ?? null, this.inverseWorld);
   }
 
   dispose(): void {

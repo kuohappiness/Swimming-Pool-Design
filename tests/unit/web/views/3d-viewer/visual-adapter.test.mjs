@@ -130,3 +130,38 @@ test('optional visual asset failure degrades without removing water or baseline 
   adapter.dispose();
   materials.dispose();
 });
+
+test('the enhanced adapter gives the scene mirror its own reflection probe and reports it', () => {
+  const captures = [];
+  const probe = (size) => ({
+    size,
+    texture: new THREE.CubeTexture(),
+    setSize(next) {
+      if (next === this.size) return false;
+      this.size = next;
+      return true;
+    },
+    capture(scene, position, hidden) {
+      captures.push({ size: this.size, hidden: hidden.map((object) => object.name) });
+    },
+    dispose() {},
+  });
+  const adapter = new EnhancedVisualAssetAdapter(getEnhancedQualityProfile('medium'), {
+    mirrorReflection: { createProbe: probe },
+  });
+  assert.equal(adapter.mirrorReflection, 'environment', 'nothing attached yet');
+  const { graph, materials } = createGraph(adapter);
+  assert.equal(adapter.mirrorReflection, 'probe');
+  const frame = { deltaSeconds: 0, elapsedSeconds: 0, reducedMotion: false, camera: new THREE.PerspectiveCamera() };
+  graph.scene.updateMatrixWorld(true);
+  adapter.updateFrame(frame);
+  adapter.updateFrame(frame);
+  assert.deepEqual(captures, [{ size: 128, hidden: ['F-MIR-01-SURFACE'] }], 'captured once, without the mirror itself');
+  adapter.invalidateLighting();
+  adapter.setQuality(getEnhancedQualityProfile('high'));
+  adapter.updateFrame(frame);
+  assert.deepEqual(captures.at(-1), { size: 256, hidden: ['F-MIR-01-SURFACE'] });
+  assert.equal(captures.length, 2);
+  adapter.dispose();
+  materials.dispose();
+});

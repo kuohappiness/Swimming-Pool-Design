@@ -72,6 +72,29 @@ test('3D mirror wall sits where the solar analysis puts it', async () => {
         }
       });
     }
+
+    // 鏡面網格（rendering 換上倒影時找它）記錄的反光正面，和日照研究的鏡面法線同一個方向。
+    const { MIRROR_FRONT_NORMAL_KEY, MIRROR_SURFACE_NAME } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/contracts.ts');
+    const surface = siteRoot.getObjectByName(MIRROR_SURFACE_NAME);
+    assert.ok(surface, 'the mirror surface can be found by name');
+    assert.equal(surface.userData.batchExclude, true, 'kept out of static batching so its material can be changed');
+    const front = new THREE.Vector3(...surface.userData[MIRROR_FRONT_NORMAL_KEY])
+      .transformDirection(surface.matrixWorld)
+      .transformDirection(worldToSite);
+    const siteFront = { x: front.x, y: front.z, z: front.y };
+    // 日照研究的鏡面：水平法線 normal 朝泳池，往下傾 lean（外傾牆的反光面朝下）。
+    const leanRadians = study.mirrorLeanFromVertical * Math.PI / 180;
+    const analysisFront = {
+      x: expected.normal.x * Math.cos(leanRadians),
+      y: expected.normal.y * Math.cos(leanRadians),
+      z: -Math.sin(leanRadians),
+    };
+    for (const axis of ['x', 'y', 'z']) {
+      assert.ok(
+        Math.abs(siteFront[axis] - analysisFront[axis]) < 1e-6,
+        `front.${axis}: 3D ${siteFront[axis]} vs analysis ${analysisFront[axis]}`,
+      );
+    }
   } finally {
     await vite.close();
   }

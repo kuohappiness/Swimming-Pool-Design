@@ -553,6 +553,9 @@ try {
     assert.equal(await shell.getAttribute('data-shadow-filter'), 'distance-soft');
     // The overview shows 3F, so its roof is drawn.
     assert.equal(await shell.getAttribute('data-layer-dependents-hidden'), '0');
+    // The mirror wall reflects the scene through its own probe (TASK-152 step 4); capturing it
+    // happens outside the counted frame, so the budgets above already include its cost.
+    assert.equal(await shell.getAttribute('data-mirror-reflection'), 'probe');
     await page.close();
   }
 
@@ -754,7 +757,31 @@ try {
   assert.ok(winterMorning.azimuth > 132 && winterMorning.azimuth < 146, `azimuth ${winterMorning.azimuth}`);
   assert.equal(await sun.locator('[data-light-date-label]').innerText(), '12月21日（冬至）');
   assert.equal(await sun.locator('[data-light-time-label]').innerText(), '09:30');
+  // On a winter morning the mirror wall throws sunlight onto the pool (TASK-152 step 4); the
+  // status line says so and labels it a concept illustration.
+  assert.match(
+    await sun.locator('[data-light-status]').innerText(),
+    /^太陽高度 \d+°，在東南方；鏡牆反射光落在池面（概念示意）$/,
+  );
+  assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'pool');
+  assert.ok(Number(await sunShell.getAttribute('data-mirror-incidence')) > 0);
+  // Even the saver tier, which has no environment map, gives the mirror its own reflection
+  // (published with the frame counters, so wait for the next window).
+  await sun.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-mirror-reflection') === 'probe',
+    undefined,
+    { timeout: 60_000 },
+  );
+  // Hiding 3F hides the mirror, and the light it throws goes with it.
+  const setLayer = (id, checked) => sun.locator(`[data-layer-list] input[value="${id}"]`).evaluate((input, next) => {
+    input.checked = next;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }, checked);
+  await setLayer('l3', false);
+  assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'none');
   assert.match(await sun.locator('[data-light-status]').innerText(), /^太陽高度 \d+°，在東南方$/);
+  await setLayer('l3', true);
+  assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'pool');
   assert.deepEqual(
     await sun.locator('[data-light-terms] button').evaluateAll((buttons) => buttons.map(
       (button) => [button.textContent, button.getAttribute('aria-pressed')],
@@ -776,6 +803,8 @@ try {
   assert.equal(winterAfternoon.moment, `${siteYear}-12-21T16:30`);
   assert.ok(winterAfternoon.azimuth > 225 && winterAfternoon.azimuth < 250, `azimuth ${winterAfternoon.azimuth}`);
   assert.ok(winterAfternoon.altitude > 3 && winterAfternoon.altitude < 15, `altitude ${winterAfternoon.altitude}`);
+  // By late afternoon the reflected patch has left the pool.
+  assert.notEqual(await sunShell.getAttribute('data-mirror-bounce'), 'pool');
   assert.equal(await sun.locator('[data-light-time]').getAttribute('aria-valuetext'), '16:30');
   assert.deepEqual(await sunParameters(), {
     time: `${siteYear}-12-21T16:30`, weather: 'clear', hash: '#light',
@@ -815,6 +844,7 @@ try {
   assert.equal(summerNight.phase, 'night');
   assert.equal(summerNight.key, 'moon');
   assert.ok(summerNight.altitude < -6);
+  assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'none', 'moonlight is not reflected');
   assert.equal(await sun.locator('[data-light-status]').innerText(), '夜間，太陽在地平線下');
   await sun.screenshot({ path: resolve(outputDirectory, 'viewer-sun-night.png') });
 
