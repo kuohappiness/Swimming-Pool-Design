@@ -71,7 +71,7 @@ export interface WalkSurfaceDescriptor {
 export interface StairRampDescriptor {
   readonly id: string;
   readonly kind: 'stair-ramp';
-  readonly entityId: 'ST-01' | 'ST-02';
+  readonly entityId: 'ST-01' | 'ST-02' | 'RMP-L1-ENTRY-01' | 'STP-L1-ENTRY-01';
   readonly coordinateSystemId: SiteCoordinateSystemId;
   readonly bounds: SiteBounds;
   readonly axis: '+x';

@@ -7,9 +7,9 @@
 現行版本契約：
 
 - `schemaVersion = 1.5.0`
-- `modelVersion = designTargetVersion = 0.9.7`
-- `activeGeometryRevisionId = GEO-0.8.2`
-- active revision 的 `id` 必須只出現一次，且其 `id = GEO-${revision}`、幾何 `modelVersion = revision = 0.8.2`；頂層 `modelVersion` 是發布版號，可在不改幾何的展示層 release 高於 active geometry，但不得選取比發布版更新的幾何。
+- `modelVersion = designTargetVersion = 0.10.0`
+- `activeGeometryRevisionId = GEO-0.10.0`
+- active revision 的 `id` 必須只出現一次，且其 `id = GEO-${revision}`、幾何 `modelVersion = revision = 0.10.0`；頂層 `modelVersion` 是發布版號，可在不改幾何的展示層 release 高於 active geometry，但不得選取比發布版更新的幾何。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
 ## 2. SITE-XY
@@ -94,6 +94,14 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 | `ST-02` | X32.5～X41／Y0.5～Y2.0 |
 | `Z-ST-02-01` | X32.5～X41／Y0～Y2.5 |
 | `Z-ST-02-PLANT-01` | X33.2～X34.6／Y0.72～Y1.78 |
+| `Z-L1-ENTRY-01` | X0.5～X4.5／Y0～Y2；±0.00 |
+| `RMP-L1-ENTRY-01` | X4.5～X8.1／Y0～Y1.2；1:12 |
+| `STP-L1-ENTRY-01` | X4.5～X5.1／Y1.2～Y2 |
+| `Z-L1-DRY-01` | X4.5～X20.5／Y0～Y2 |
+| `Z-L1-RINSE-01` | X17.5～X20.5／Y2～Y4 |
+| `Z-L1-ACC-01` | X31～X34／Y7.5～Y10.5 |
+| `Z-L1-STAFF-01` | X31～X34／Y10.5～Y14 |
+| `POOL-PLAT-01` | X3～X9／Y9.5～Y12.5 |
 | `Z-L2-CORRIDOR-01` | L 形：X29～X32.5／Y0～Y13.5，41.75 m² |
 | `Z-CS-M-01` | X32～X41／Y2.5～Y8 |
 | `Z-CS-F-01` | X32～X41／Y8～Y13.5 |
@@ -102,7 +110,7 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 | `Z-L3-TERRACE-01` | X38.428～X41／Y0～Y5.392 |
 | `RF-PV-RES-01` | X27.722～X40.75／Y0.25～Y13.25 |
 
-四間廁所、儲物、水處理與藥劑分間的 bounds 以 [設計基準](../design-basis.md)為準。0.8.2 另要求每個 L1 WC 隔間明列 `fixtureType`、`fixtureCenter` 與 `fixtureFacing`；全案必須正好 8 座 WC、坐式 4 座／蹲式 4 座，且 fixture center 必須位於其隔間 bounds 內。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
+四間廁所、服務室、水處理與藥劑分間，以及 `l1.poolUse` 其餘項目的 bounds 以 [設計基準](../design-basis.md)為準；0.10.0 起 L1 不得再有乾式儲物間（`DEC-157`），`l1.pool.teachingPlatform` 必須填滿混合教學帶的淺端且平台面在水面下（`DEC-158`）。0.8.2 另要求每個 L1 WC 隔間明列 `fixtureType`、`fixtureCenter` 與 `fixtureFacing`；全案必須正好 8 座 WC、坐式 4 座／蹲式 4 座，且 fixture center 必須位於其隔間 bounds 內。`geometryEntities()` 必須能由 active revision 建立唯一 entity map；任何輸出所報 bounds 必須與 map 一致。
 
 ## 4. 衍生層與輸出
 

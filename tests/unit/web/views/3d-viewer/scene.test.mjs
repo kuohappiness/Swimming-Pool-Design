@@ -146,3 +146,49 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
     await vite.close();
   }
 });
+
+test('DEC-157 entry sits at ±0.00, its Y0-band pieces hide with the pool cutaway, and DEC-158 platform stays under water', async () => {
+  const [sourceModel, registry] = await Promise.all([
+    readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
+  ]);
+  const vite = await createServer({
+    root: resolve(repoRoot, 'web'),
+    appType: 'custom',
+    optimizeDeps: { noDiscovery: true },
+    server: { middlewareMode: true, hmr: { port: 0 } },
+  });
+  try {
+    const [{ createViewerScene }, { createBaselineSceneRenderingDependencies }] = await Promise.all([
+      vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
+      vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
+    ]);
+    const viewerModel = buildViewerModel(sourceModel, registry);
+    const graph = createViewerScene(viewerModel, createBaselineSceneRenderingDependencies());
+    graph.scene.updateMatrixWorld(true);
+    const selected = new Set(graph.selectables.map(({ entityId }) => entityId));
+    for (const entityId of [
+      'Z-L1-ENTRY-01', 'RMP-L1-ENTRY-01', 'Z-L1-DRY-01', 'Z-L1-RINSE-01', 'Z-L1-ASSEMBLY-01',
+      'FX-L1-LIFEGUARD-01', 'Z-L1-ACC-01', 'Z-L1-STAFF-01', 'Z-L1-EQUIP-01', 'FX-L1-LIFT-01', 'POOL-PLAT-01',
+    ]) assert.ok(selected.has(entityId), `${entityId} must be selectable`);
+    assert.equal(selected.has('Z-STOR-01'), false);
+
+    const entryFloor = graph.siteRoot.getObjectByName('POOL-USE-ENTRY-FLOOR');
+    const floorBox = new THREE.Box3().setFromObject(entryFloor);
+    const floorTop = graph.siteRoot.worldToLocal(floorBox.max.clone()).y;
+    assert.ok(Math.abs(floorTop - 0.005) < 1e-6, `vestibule floor top was ${floorTop}`);
+
+    const hidden = new Set(graph.cutaway.hiddenObjects.map(({ name }) => name));
+    assert.ok(hidden.has('CUTAWAY-HIDE-Y0-POOL-DECK'));
+    assert.ok(hidden.has('CUTAWAY-HIDE-Y0-POOL-USE'));
+
+    const platform = graph.siteRoot.getObjectByName('POOL-PLAT-01');
+    const platformBox = new THREE.Box3().setFromObject(platform);
+    const top = graph.siteRoot.worldToLocal(platformBox.max.clone()).y;
+    const expectedTop = graph.water.surfaceElevation - viewerModel.geometry.pool.teachingPlatform.topWaterDepth;
+    assert.ok(Math.abs(top - expectedTop) < 1e-6, `platform top was ${top}, expected ${expectedTop}`);
+    assert.ok(top < graph.water.surfaceElevation);
+  } finally {
+    await vite.close();
+  }
+});
