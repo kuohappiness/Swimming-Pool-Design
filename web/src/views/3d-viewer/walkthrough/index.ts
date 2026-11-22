@@ -22,11 +22,8 @@ export {
 export { WalkMovement } from './movement/walk-movement.js';
 export { SwimMovement } from './movement/swim-movement.js';
 export {
-  AdaptiveFrameTimeMonitor,
   adaptRenderQualityProfile,
   getWalkthroughCapabilityProfile,
-  type AdaptiveFrameTimeOptions,
-  type FrameTimeStatistics,
   type WalkthroughCapabilityProfile,
 } from './performance-profile.js';
 export type {

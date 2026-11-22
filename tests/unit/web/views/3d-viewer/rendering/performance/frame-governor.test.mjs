@@ -181,3 +181,92 @@ test('options are validated', () => {
     RangeError,
   );
 });
+
+test('only the effects the page can really switch are queued for shedding', () => {
+  const governor = new FrameGovernor({
+    tier: REALISM_TIERS.high,
+    deviceClass: 'desktop',
+    availableSteps: ['water-refraction'],
+  });
+  const clock = { time: 0 };
+  const changes = drive(governor, clock, 40, SLOW);
+  assert.deepEqual(changes.map(({ action, step }) => [action, step]), [
+    ['lower-resolution', null],
+    ['lower-resolution', null],
+    ['lower-resolution', null],
+    ['shed', 'water-refraction'],
+    ['lower-tier', null],
+  ]);
+
+  const none = new FrameGovernor({ tier: REALISM_TIERS.high, deviceClass: 'desktop', availableSteps: [] });
+  const noneChanges = drive(none, { time: 0 }, 40, SLOW);
+  assert.deepEqual(noneChanges.map(({ action }) => action), [
+    'lower-resolution',
+    'lower-resolution',
+    'lower-resolution',
+    'lower-tier',
+  ]);
+});
+
+test('a display that refreshes slower than the floor relaxes the floor instead of degrading', () => {
+  // 50 Hz screen: 20 ms between frames is the best this display can do.
+  const governor = new FrameGovernor({
+    tier: REALISM_TIERS.high,
+    deviceClass: 'desktop',
+    displayIntervalMilliseconds: 20,
+  });
+  assert.equal(governor.effectiveFloorMilliseconds, 20);
+  const clock = { time: 0 };
+  assert.deepEqual(drive(governor, clock, 30, { intervalP95Milliseconds: 20.4, workP95Milliseconds: 6 }), []);
+  // Really dropping frames on that display still counts.
+  const changes = drive(governor, clock, 3, { intervalP95Milliseconds: 40, workP95Milliseconds: 30 });
+  assert.deepEqual(changes.map(({ action }) => action), ['lower-resolution']);
+
+  // A faster display than the floor never tightens it.
+  const fast = new FrameGovernor({
+    tier: REALISM_TIERS.high,
+    deviceClass: 'desktop',
+    displayIntervalMilliseconds: 1000 / 120,
+  });
+  assert.ok(Math.abs(fast.effectiveFloorMilliseconds - 1000 / 60) < 1e-9);
+  fast.displayIntervalMilliseconds = Number.NaN;
+  assert.equal(fast.displayIntervalMilliseconds, null);
+});
+
+test('the relaxed floor is taken back once frames arrive clearly faster', () => {
+  const governor = new FrameGovernor({
+    tier: REALISM_TIERS.high,
+    deviceClass: 'desktop',
+    displayIntervalMilliseconds: 33.3,
+  });
+  const clock = { time: 0 };
+  drive(governor, clock, 1, { intervalP95Milliseconds: 33.5, workP95Milliseconds: 5 });
+  assert.equal(governor.displayIntervalMilliseconds, 33.3);
+  drive(governor, clock, 1, STEADY);
+  assert.equal(governor.displayIntervalMilliseconds, null);
+  assert.ok(Math.abs(governor.effectiveFloorMilliseconds - 1000 / 60) < 1e-9);
+});
+
+test('at the lowest tier, frames that stay slow with almost no work mean the display is the limit', () => {
+  const capped = { intervalP95Milliseconds: 33.4, workP95Milliseconds: 3 };
+  const governor = desktop('saver');
+  const clock = { time: 0 };
+  const changes = drive(governor, clock, 30, capped);
+  assert.deepEqual(changes.map(({ action }) => action), [
+    'lower-resolution',
+    'lower-resolution',
+    'lower-resolution',
+    'display-limited',
+  ]);
+  // Everything this tier gave up is back, and 33 ms is the new floor.
+  assert.deepEqual(governor.state, { resolutionScale: 1, shed: [] });
+  assert.equal(governor.displayIntervalMilliseconds, 33.4);
+  assert.deepEqual(drive(governor, clock, 30, capped), []);
+
+  // A higher tier never draws that conclusion by itself: it hands over to the next tier down,
+  // because vertical sync can hide whether lowering quality helped.
+  const high = new FrameGovernor({ tier: REALISM_TIERS.high, deviceClass: 'desktop', availableSteps: [] });
+  const highChanges = drive(high, { time: 0 }, 30, capped);
+  assert.equal(highChanges.at(-1).action, 'lower-tier');
+  assert.equal(high.displayIntervalMilliseconds, null);
+});

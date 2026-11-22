@@ -27,10 +27,7 @@ const {
   assertEnhancedQualityProfiles,
 } = qualityModule;
 const { getVisualAssetByteSize } = manifestModule;
-const {
-  AdaptiveFrameTimeMonitor,
-  adaptRenderQualityProfile,
-} = performanceModule;
+const { adaptRenderQualityProfile } = performanceModule;
 
 test('enhanced quality tiers meet descending transfer budgets and explicit FPS targets', () => {
   assert.equal(assertEnhancedQualityProfiles(), ENHANCED_QUALITY_PROFILES);
@@ -75,34 +72,6 @@ test('quality adaptation changes visual cost only and leaves semantic state unto
   for (const key of Object.keys(semanticState)) assert.equal(key in low, false);
 });
 
-test('adaptive frame-time hysteresis requires sustained breaches and never oscillates upward', () => {
-  const monitor = new AdaptiveFrameTimeMonitor('high', {
-    minimumSamples: 12,
-    sampleWindow: 24,
-    slowFrameRatio: 0.3,
-  });
-  for (let sample = 0; sample < 24; sample += 1) {
-    assert.equal(monitor.observe(16), null);
-  }
-  for (let sample = 0; sample < 12; sample += 1) {
-    assert.equal(monitor.observe(34), null);
-  }
-  assert.equal(monitor.currentTier, 'high');
-  let transition = null;
-  for (let sample = 0; sample < 12; sample += 1) {
-    transition = monitor.observe(34) ?? transition;
-  }
-  assert.equal(transition, 'medium');
-  for (let window = 0; window < 2; window += 1) {
-    for (let sample = 0; sample < 12; sample += 1) {
-      transition = monitor.observe(42) ?? transition;
-    }
-  }
-  assert.equal(transition, 'low');
-  for (let sample = 0; sample < 120; sample += 1) monitor.observe(8);
-  assert.equal(monitor.currentTier, 'low');
-});
-
 test('viewer publishes deterministic GPU diagnostics and restores only rendering state', async () => {
   const source = await readFile(
     resolve(repoRoot, 'web/src/views/3d-viewer/main.ts'),
@@ -116,7 +85,8 @@ test('viewer publishes deterministic GPU diagnostics and restores only rendering
   assert.match(source, /dataset\.renderingInitMs/);
   assert.match(source, /get\('adaptive'\) !== 'off'/);
   assert.match(source, /swiftshader\|software\|llvmpipe/i);
-  assert.match(source, /softwareRenderer[\s\S]*\? 'low'/);
+  // 軟體繪圖一律從省電級啟動：判斷在 QualitySession，main 只把偵測結果交給它（DEC-190）。
+  assert.match(source, /new QualitySession\(\{[\s\S]*?softwareRenderer,/);
   assert.match(
     source,
     /webglcontextrestored[\s\S]*rendering\.framePipeline\.restore\(\)/,

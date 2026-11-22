@@ -536,6 +536,59 @@ try {
     await page.close();
   }
 
+  // Quality menu (DEC-190): four tiers, the choice survives a reload, and "auto" goes back to
+  // what the device gets by itself (the software renderer here always gets the saver tier).
+  const qualityContext = await browser.newContext({ viewport: { width: 1100, height: 800 } });
+  const quality = await qualityContext.newPage();
+  trackErrors(quality);
+  const qualityShell = quality.locator('[data-viewer-shell]');
+  const qualityState = async () => ({
+    tier: await qualityShell.getAttribute('data-realism-tier'),
+    source: await qualityShell.getAttribute('data-realism-tier-source'),
+    pipeline: await qualityShell.getAttribute('data-render-quality'),
+    choice: await quality.locator('[data-quality-select]').inputValue(),
+    status: await quality.locator('[data-quality-status]').innerText(),
+  });
+  const waitForViewer = () => quality.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+    undefined,
+    { timeout: 120_000 },
+  );
+  await quality.goto(`${origin}/?view=3d-viewer`, { waitUntil: 'networkidle' });
+  await waitForViewer();
+  assert.deepEqual(
+    await quality.locator('[data-quality-select] option').evaluateAll((options) => options.map((option) => option.value)),
+    ['auto', 'ultra', 'high', 'medium', 'saver'],
+  );
+  assert.deepEqual(await qualityState(), {
+    tier: 'saver',
+    source: 'software-renderer',
+    pipeline: 'low',
+    choice: 'auto',
+    status: '目前：省電（這台裝置使用軟體繪圖）',
+  });
+  assert.equal(await qualityShell.getAttribute('data-adaptive-quality'), 'false');
+  await quality.locator('[data-quality-select]').selectOption('medium');
+  assert.deepEqual(await qualityState(), {
+    tier: 'medium', source: 'manual', pipeline: 'medium', choice: 'medium', status: '目前：中',
+  });
+  await quality.reload({ waitUntil: 'networkidle' });
+  await waitForViewer();
+  assert.deepEqual(await qualityState(), {
+    tier: 'medium', source: 'manual', pipeline: 'medium', choice: 'medium', status: '目前：中',
+  });
+  await quality.locator('[data-quality-select]').selectOption('auto');
+  assert.equal((await qualityState()).tier, 'saver');
+  assert.equal((await qualityState()).choice, 'auto');
+  // A link wins over the stored choice, and the top tier runs on the high pipeline profile.
+  await quality.locator('[data-quality-select]').selectOption('saver');
+  await quality.goto(`${origin}/?view=3d-viewer&quality=ultra&adaptive=off`, { waitUntil: 'networkidle' });
+  await waitForViewer();
+  assert.deepEqual(await qualityState(), {
+    tier: 'ultra', source: 'url', pipeline: 'high', choice: 'ultra', status: '目前：極致（由網址指定）',
+  });
+  await qualityContext.close();
+
   const explicitBaseline = await browser.newPage({ viewport: { width: 900, height: 700 } });
   trackErrors(explicitBaseline);
   await explicitBaseline.goto(`${origin}/?view=3d-viewer&rendering=baseline`, { waitUntil: 'networkidle' });

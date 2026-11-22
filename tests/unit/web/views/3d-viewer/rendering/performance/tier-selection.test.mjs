@@ -18,6 +18,7 @@ const {
   parseRealismTierId,
   selectRealismTier,
   summarizeBenchmark,
+  summarizeBenchmarkRun,
 } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/performance/tier-selection.ts');
 
 const benchmark = (medianMilliseconds) => ({ frames: 60, medianMilliseconds, p95Milliseconds: medianMilliseconds * 1.2 });
@@ -79,4 +80,22 @@ test('selection order is URL, manual choice, software renderer, benchmark, defau
   assert.deepEqual(selectRealismTier({ ...base, benchmark: benchmark(6) }), { tier: 'high', source: 'benchmark' });
   assert.deepEqual(selectRealismTier(base), { tier: 'high', source: 'default' });
   assert.deepEqual(selectRealismTier({ ...base, deviceClass: 'mobile' }), { tier: 'medium', source: 'default' });
+});
+
+test('a benchmark cut short by the time limit still reports how slow the device is', () => {
+  // Finished normally: the usual rule applies (five warm-up frames, ten samples).
+  assert.equal(summarizeBenchmarkRun([40, 30, 8, 8, 8, 8, 8, 8], false), null);
+  const full = summarizeBenchmarkRun([90, 60, 30, 20, 12, ...Array.from({ length: 15 }, () => 8)], false);
+  assert.equal(full.medianMilliseconds, 8);
+  assert.equal(full.frames, 15);
+
+  // Timed out after seven frames: too few for the usual rule, but clearly a slow device.
+  const slow = summarizeBenchmarkRun([400, 260, 240, 230, 220, 215, 210], true);
+  assert.equal(slow.frames, 2);
+  assert.equal(slow.medianMilliseconds, 212.5);
+  assert.equal(chooseTierFromBenchmark(slow, 'desktop'), 'saver');
+
+  // Even a single frame is an answer; no frames at all is not.
+  assert.equal(summarizeBenchmarkRun([1600], true).medianMilliseconds, 1600);
+  assert.equal(summarizeBenchmarkRun([], true), null);
 });

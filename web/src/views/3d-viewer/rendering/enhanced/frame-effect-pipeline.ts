@@ -10,6 +10,9 @@ import {
 } from '../quality-profile';
 import { getToneMappingProfile } from './tone-mapping';
 
+/** 像素比的下限：防呆用，正常情況由畫質分級的最低解析度比例把關。 */
+const MINIMUM_PIXEL_RATIO = 0.5;
+
 export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
   readonly id = 'enhanced-frame-effects';
   private readonly renderer: THREE.WebGLRenderer;
@@ -40,7 +43,8 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     if (this.disposed) return;
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
-    this.pixelRatio = Math.min(Math.max(1, pixelRatio), this.quality.pixelRatioCap);
+    // 動態解析度（DEC-190）會把像素比降到 1 以下，所以下限不是 1。
+    this.pixelRatio = Math.min(Math.max(MINIMUM_PIXEL_RATIO, pixelRatio), this.quality.pixelRatioCap);
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(this.width, this.height, false);
     this.composer?.setPixelRatio(this.pixelRatio);
