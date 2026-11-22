@@ -52,7 +52,6 @@ function sheetMeta(sheet: SheetRender): string {
       <strong>${escapeHtml(title)}</strong>
     </div>
     <div class="toolbar-actions" aria-label="圖層控制">
-      <label><input id="toggle-working" type="checkbox" checked /> 工作值</label>
       ${pvToggle}
       <button id="fit-sheet" type="button">符合畫面</button>
     </div>
@@ -116,10 +115,6 @@ function setActiveSheet(id: string): void {
 }
 
 function bindSheetControls(): void {
-  stage.querySelector<HTMLInputElement>('#toggle-working')?.addEventListener('change', (event) => {
-    const visible = (event.currentTarget as HTMLInputElement).checked;
-    stage.classList.toggle('hide-working', !visible);
-  });
   stage.querySelector<HTMLInputElement>('#toggle-pv')?.addEventListener('change', (event) => {
     const visible = (event.currentTarget as HTMLInputElement).checked;
     stage.classList.toggle('hide-pv', !visible);

@@ -26,7 +26,7 @@
 - L3：X35／Y6.75 支點、水平 +25.5°、面池牆與鏡面共面外傾 +23.0°、完整屋頂及淡藍透明高覆蓋率太陽能排布；L3／屋頂／鏡牆／光電只用一個共同 transform，0.5 m／2.5 m SITE-XY 格線須在填色上方保持可讀。
 - 剖面：X／Z 同尺度；0.5 m／2.5 m SITE-XZ 格線及數值標籤、池畔 +0.30 m、L2 +3.30 m／完整天花、L3 +6.88 m／完整屋頂、X0.5／X29／X41 牆、投影 `EN-01`、玻璃屋簷／雨水回收及 ST-01 方案 E。
 
-每張圖須保留 `v0.6.7`、`GEO-0.6.7`、`SITE-XY` 與「非施工圖」聲明。SVG 由 `npm run build:drawings` 重現，PNG 必須由同一 SVG render 產生。現行 HTML 必須內嵌 SVG，不得以 PNG `<image>` 取代；`V067-L3` 另提供獨立、預設勾選的「太陽能板」控制，取消時隱藏整個 `RF-PV-RES-01` group。
+每張圖須保留 `v0.6.7`、`GEO-0.6.7`、`SITE-XY` 與「非施工圖」聲明。SVG 由 `npm run build:drawings` 重現，PNG 必須由同一 SVG render 產生。SVG 內的 class 一律帶 `dw-` 前綴（駝峰改連字號，例如 `dw-title-box`），內嵌 `<style>` 的文字規則只作用於外層 `dw-sheet` 群組，網站內嵌圖面時不會影響頁面其他元素（TASK-165）。現行 HTML 必須內嵌 SVG，不得以 PNG `<image>` 取代；`V067-L3` 另提供獨立、預設勾選的「太陽能板」控制，取消時隱藏整個 `RF-PV-RES-01` group。
 
 ## 驗收
 

@@ -151,19 +151,22 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 - **單一入口：** `web/index.html` 是唯一 HTML，建置產出 `dist/web/index.html`。CI 與部署流程會檢查 `dist/web/` 下不得出現各分頁自己的 `index.html`（DEC-125）。
 - **網址：** `?view=<view id>`。首頁不帶參數；缺少或無效的 view 一律回到 `design-concept` 並移除無效參數。
-- **路由登錄表：** `web/src/app/router.ts` 的 `viewIds` 與 `viewDefinitions` 是 view id、導覽標籤、分頁標題與順序的唯一來源，主導覽與 `document.title` 都由它產生。
+- **路由登錄表：** `web/src/app/router.ts` 的 `viewIds` 與 `viewDefinitions` 是 view id、頁名、群組與順序的唯一來源，主導覽、第二層頁籤與 `document.title`（`<頁名>｜實小泳池改建概念設計`）都由它產生。
+- **導覽群組：** 主導覽為「設計理念｜四向專題｜圖面｜3D｜關於」五項（DEC-170）。`navigationGroups` 登錄群組；`viewDefinitions` 裡帶 `group` 的頁面不各佔一項，而是合成一個群組項目，出現在該群組第一頁的位置並連到第一頁。在群組內的頁面，頁首多一列第二層頁籤（`.site-subnavigation`），`<html>` 帶 `data-nav-group`，`--site-header-height` 隨之加上 `--site-subnav-height`。群組項目在群組內標 `aria-current="true"`，頁面本身的頁籤標 `aria-current="page"`。
 - **殼層：** `web/src/app/app-shell.ts` 擁有頁首、主導覽、頁尾與主要內容容器。view 不得自行產生第二組導覽或頁尾。
 - **頁面模組契約：** 每個 view 在 `web/src/views/<view id>/index.ts` 匯出 `mount(container)` 並回傳 `destroy()`。`bootstrap.ts` 以動態 import 載入，一次只掛載一個 view；切換分頁是整頁重新載入。
 
 現行五個 view：
 
-| view id | 導覽標籤 | 網址 |
-| --- | --- | --- |
-| `design-concept` | 設計理念 | `./` |
-| `solar-study` | 日照研究 | `?view=solar-study` |
-| `drawings` | 圖面設計 | `?view=drawings` |
-| `3d-viewer` | 3D 展示 | `?view=3d-viewer` |
-| `about` | 關於 | `?view=about` |
+| view id | 頁名 | 群組 | 網址 |
+| --- | --- | --- | --- |
+| `design-concept` | 設計理念 | — | `./` |
+| `solar-study` | 日照研究 | 四向專題 | `?view=solar-study` |
+| `drawings` | 圖面 | — | `?view=drawings` |
+| `3d-viewer` | 3D | — | `?view=3d-viewer` |
+| `about` | 關於 | — | `?view=about` |
+
+四向專題預計收日照研究、水循環、一堂游泳課、設計歷程四頁；新頁在登錄表帶 `group: 'topics'` 即進入第二層頁籤。
 
 頁內狀態目前放在 hash：
 
@@ -174,7 +177,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 新增分頁的步驟：
 
-1. 在 `router.ts` 的 `viewIds` 與 `viewDefinitions` 登錄。
+1. 在 `router.ts` 的 `viewIds` 與 `viewDefinitions` 登錄；屬於群組的頁面加上 `group`。
 2. 在 `bootstrap.ts` 的 `loaders` 加入動態 import。
 3. 建立 `web/src/views/<view id>/`，含 `index.ts` 與 `view.css`；頁面有大段靜態 HTML 時另放 `template.html`（目前 `solar-study`、`3d-viewer` 有）。
 4. 文案放 `content/<view id>.md`；分節的說明頁用 `<!-- section:id -->` 寫法，由 `compileSectionedContent` 編譯（關於頁是第一個例子）。
@@ -198,15 +201,15 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 頁名與 view id 以 `web/src/app/router.ts` 為準；`tests/unit/web/app/glossary.test.mjs` 會比對下表與路由登錄表。停用舊稱不再用於新文件、介面與程式。
 
-頁名指路由登錄表的 `label`。`title` 是瀏覽器分頁的主標（例如重新定向、向光而轉、建築圖冊、走入建築、關於這個專案），不是頁名，文件與介面不得用它指稱頁面。
+頁名指路由登錄表的 `label`，導覽、瀏覽器分頁標題、文件與 README 一律用它（DEC-170 一頁一名）；英文小標只作裝飾。「重新定向」是設計理念頁的主標，「向光而轉」等是四個方向的名稱，都不是頁名。群組名稱「四向專題」只指群組，不指任何一頁。
 
 | 中文頁名 | 英文小標 | view id | 資料夾 | 停用舊稱 |
 | --- | --- | --- | --- | --- |
-| 設計理念 | DESIGN NARRATIVE | `design-concept` | `web/src/views/design-concept/` | — |
-| 日照研究 | SOLAR STUDY | `solar-study` | `web/src/views/solar-study/` | 冬夏日照互動研究、日照互動研究 |
-| 圖面設計 | DRAWING ATLAS | `drawings` | `web/src/views/drawings/` | 空間參照圖集、Reference Atlas、reference atlas、圖集、建築圖集 |
-| 3D 展示 | SPATIAL EXPERIENCE | `3d-viewer` | `web/src/views/3d-viewer/` | 3D Viewer（僅指頁名；view id 與 `contracts/3d-viewer.md` 檔名不變） |
-| 關於 | ABOUT | `about` | `web/src/views/about/` | 關於與資料 |
+| 設計理念 | DESIGN NARRATIVE | `design-concept` | `web/src/views/design-concept/` | 重新定向（當頁名時） |
+| 日照研究 | SOLAR STUDY | `solar-study` | `web/src/views/solar-study/` | 冬夏日照互動研究、日照互動研究、向光而轉（當頁名時） |
+| 圖面 | DRAWING ATLAS | `drawings` | `web/src/views/drawings/` | 圖面設計、建築圖冊、空間參照圖集、Reference Atlas、reference atlas、圖集、建築圖集 |
+| 3D | SPATIAL EXPERIENCE | `3d-viewer` | `web/src/views/3d-viewer/` | 3D 展示、走入建築、3D Viewer（僅指頁名；view id 與 `contracts/3d-viewer.md` 檔名不變） |
+| 關於 | ABOUT | `about` | `web/src/views/about/` | 關於與資料、關於這個專案（當頁名時） |
 
 設計狀態用語：
 
