@@ -311,10 +311,12 @@ try {
     assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'), 'true');
     // The software renderer runs the saver tier, which has no underwater view of its own:
     // the walkthrough tints the water with scene fog instead, once the camera itself is under.
+    // The eye starts about 0.7 m above the water and sinks in simulated time, which advances at
+    // most 0.1 s per rendered frame, so a slow software renderer needs well over a second here.
     await desktop.waitForFunction(
       () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-underwater-fog') === 'true',
       undefined,
-      { timeout: 5_000 },
+      { timeout: 30_000 },
     );
     await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-walkthrough-underwater.png') });
   } finally {
