@@ -11,6 +11,20 @@ const previewPort = 4175;
 const suppliedOrigin = process.env.COPY_BASE_URL?.replace(/\/$/, '');
 const origin = suppliedOrigin ?? `http://127.0.0.1:${previewPort}`;
 const packageJson = JSON.parse(await readFile(resolve(repoRoot, 'package.json'), 'utf8'));
+
+// The snapshot belongs to a release: only the release PR that changes the package version
+// regenerates it, so feature PRs never touch this file (DEC-200). check-docs.mjs reads the
+// same "對應網站版本" line to make sure the release PR did not forget it.
+const snapshotVersion = /^- 對應網站版本：`([^`]+)`$/m.exec(
+  await readFile(outputPath, 'utf8').catch(() => ''),
+)?.[1];
+if (snapshotVersion === packageJson.version && !process.argv.includes('--force')) {
+  process.stderr.write(
+    `content/website-copy.md 已是 ${packageJson.version} 的快照。快照只在發版 PR 改了 package.json 版號後重產（DEC-200）；`
+      + '同一版本內確實需要重產時改用 npm run build:copy -- --force。\n',
+  );
+  process.exit(1);
+}
 const chromeCandidates = [
   process.env.CHROME_PATH,
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',

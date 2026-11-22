@@ -98,7 +98,7 @@ Swimming-Pool-Design/
 
 README 只放定位、入口網址、現行版號與導覽表。repo 內的 skill 只保存工作程序並引用本文件，不複製 owner 對照表。
 
-`content/website-copy.md` 由 `npm run build:copy` 讀取實際渲染頁面後產生；任何公開文字或可見性調整後都應重新擷取，不得手動維護第二份可漂移的內容。
+`content/website-copy.md` 由 `npm run build:copy` 讀取實際渲染頁面後產生，一個版本一份：只在發版 PR 改了 `package.json` 版號後重產，功能 PR 不動它（[DEC-200](decisions.md)）；不得手動維護第二份可漂移的內容。
 
 ## 3. 新檔案放哪裡
 
