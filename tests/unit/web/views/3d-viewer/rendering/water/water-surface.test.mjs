@@ -192,6 +192,64 @@ test('per-frame update only writes uniforms, in the mirrored and rotated site fr
   assert.equal(uniforms.uTime.value, 3, 'a disposed surface ignores updates');
 });
 
+test('the water asks the sun shadow map whether a point is lit, and always has a depth texture bound', () => {
+  const given = options();
+  const water = new WaterSurface(given);
+  const { uniforms, fragmentShader } = water.mesh.material;
+  // 池底、水面反光都查陰影；取樣器是深度比較用的，所以沒有陰影貼圖時也要綁一張深度貼圖，
+  // 否則這一筆繪製會被 GPU 丟掉（貼圖格式和取樣器型別不符），水就不見了。
+  assert.match(fragmentShader, /uniform highp sampler2DShadow uSunShadowMap;/);
+  assert.match(fragmentShader, /\bsunVisibility\(/);
+  assert.match(fragmentShader, /\bsunVisibilityAtSurface\(/);
+  const fallback = uniforms.uSunShadowMap.value;
+  assert.equal(fallback.isDepthTexture, true);
+  assert.equal(fallback.compareFunction, THREE.LessEqualCompare);
+  assert.ok(fallback.version > 0, 'the fallback is uploaded, not left as an empty texture');
+  assert.deepEqual(uniforms.uSunShadow.value.toArray(), [0, 0, 0], 'no shadow map: everything is lit');
+
+  const siteRoot = new THREE.Group();
+  siteRoot.scale.set(1, 1, -1);
+  siteRoot.position.set(-20, 0, 7);
+  siteRoot.add(water.mesh);
+  siteRoot.updateMatrixWorld(true);
+  const camera = new THREE.PerspectiveCamera();
+  const frame = (sunShadow) => ({
+    timeSeconds: 0,
+    camera,
+    sunDirection: new THREE.Vector3(0.3, 0.8, 0.5).normalize(),
+    sunColor: new THREE.Color(1, 1, 1),
+    skyColor: new THREE.Color(1, 1, 1),
+    sunShadow,
+  });
+
+  const map = new THREE.DepthTexture(4, 4);
+  map.compareFunction = THREE.LessEqualCompare;
+  const matrix = new THREE.Matrix4().makeScale(0.01, 0.02, 0.03).setPosition(0.5, 0.5, 0.5);
+  water.update(frame({ map, matrix, bias: 0.0005, radius: 0.001 }));
+  assert.equal(uniforms.uSunShadowMap.value, map);
+  assert.deepEqual(uniforms.uSunShadow.value.toArray(), [1, 0.0005, 0.001]);
+  // 矩陣把水面自己的座標直接換到陰影貼圖的座標：先到世界，再進陰影相機。
+  const local = new THREE.Vector3(10, 0.22, 6);
+  const expected = local.clone().applyMatrix4(water.mesh.matrixWorld).applyMatrix4(matrix);
+  assert.ok(local.clone().applyMatrix4(uniforms.uSunShadowMatrix.value).distanceTo(expected) < 1e-9);
+  assert.notEqual(uniforms.uSunShadowMatrix.value, matrix, 'the light\'s own matrix is not overwritten');
+
+  // 陰影關掉（省電級、夜裡沒有主光）時回到全亮，並換回自己的深度貼圖。
+  water.update(frame(null));
+  assert.equal(uniforms.uSunShadowMap.value, fallback);
+  assert.equal(uniforms.uSunShadow.value.x, 0);
+  water.update(frame(undefined));
+  assert.equal(uniforms.uSunShadowMap.value, fallback);
+
+  let disposed = 0;
+  fallback.addEventListener('dispose', () => { disposed += 1; });
+  let mapDisposed = 0;
+  map.addEventListener('dispose', () => { mapDisposed += 1; });
+  water.dispose();
+  assert.equal(disposed, 1);
+  assert.equal(mapDisposed, 0, 'the light owns its shadow map');
+});
+
 test('lane line size and colour reach the shader from the basin shape', () => {
   const laneLineColor = new THREE.Color(0.1, 0.2, 0.3);
   const material = createWaterSurfaceMaterial(options({ laneLineColor }));

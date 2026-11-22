@@ -109,6 +109,18 @@ export interface WaterSurfaceOptions {
   readonly waves?: readonly WaterWave[];
 }
 
+/** 太陽的陰影貼圖，讓池底、水面反光與水下光束知道哪裡在影子裡。 */
+export interface WaterSunShadow {
+  /** 深度比較用的陰影貼圖（three.js 的 PCF 陰影）。 */
+  readonly map: THREE.DepthTexture;
+  /** 世界座標轉到陰影貼圖座標（`light.shadow.matrix`）。 */
+  readonly matrix: THREE.Matrix4;
+  /** 深度偏移，以陰影相機的深度範圍為 1。 */
+  readonly bias: number;
+  /** 影子邊緣的取樣半徑，以貼圖寬度為 1。 */
+  readonly radius: number;
+}
+
 export interface WaterFrameState {
   readonly timeSeconds: number;
   readonly camera: THREE.Camera;
@@ -116,6 +128,23 @@ export interface WaterFrameState {
   readonly sunDirection: THREE.Vector3;
   readonly sunColor: THREE.Color;
   readonly skyColor: THREE.Color;
+  /** 沒有陰影（省電級、陰影貼圖還沒畫出來）時給 null，水就當作全部照得到太陽。 */
+  readonly sunShadow?: WaterSunShadow | null;
+}
+
+/**
+ * 沒有陰影貼圖時綁的備用貼圖。著色器裡的陰影取樣器一定要綁一張「深度比較」貼圖，
+ * 綁一般貼圖會被瀏覽器擋下來；這一張只有 1×1，強度為 0 時不會真的用到它的內容。
+ */
+function createFallbackShadowMap(): THREE.DepthTexture {
+  const texture = new THREE.DepthTexture(1, 1);
+  texture.name = 'realistic:water-sun-shadow-fallback';
+  texture.compareFunction = THREE.LessEqualCompare;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  // 不掛在繪製目標上的深度貼圖要自己標記，three.js 才會把它建出來。
+  texture.needsUpdate = true;
+  return texture;
 }
 
 /**
@@ -321,6 +350,9 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
         uSunDirection: { value: new THREE.Vector3(0, 1, 0) },
         uSunColor: { value: new THREE.Color(1, 1, 1) },
         uSkyColor: { value: new THREE.Color(1, 1, 1) },
+        uSunShadowMap: { value: null },
+        uSunShadowMatrix: { value: new THREE.Matrix4() },
+        uSunShadow: { value: new THREE.Vector3(0, 0, 0) },
       },
     ]),
   });
@@ -360,6 +392,7 @@ export class WaterSurface {
   private cellSize: number;
   private readonly inverseWorld = new THREE.Matrix4();
   private readonly localSun = new THREE.Vector3();
+  private readonly fallbackShadowMap = createFallbackShadowMap();
   private disposed = false;
 
   /**
@@ -375,6 +408,7 @@ export class WaterSurface {
     this.cellSize = options.cellSize;
     this.geometry = createWaterSurfaceGeometry(this.basin, options.cellSize);
     this.material = createWaterSurfaceMaterial(options);
+    this.material.uniforms.uSunShadowMap.value = this.fallbackShadowMap;
     this.maximumWaveHeight = (options.waves ?? CALM_POOL_WAVES)
       .reduce((sum, wave) => sum + wave.amplitude, 0);
     if (target) {
@@ -443,6 +477,16 @@ export class WaterSurface {
     (uniforms.uSunDirection.value as THREE.Vector3).copy(this.localSun);
     (uniforms.uSunColor.value as THREE.Color).copy(frame.sunColor);
     (uniforms.uSkyColor.value as THREE.Color).copy(frame.skyColor);
+
+    const shadow = frame.sunShadow ?? null;
+    if (shadow) {
+      uniforms.uSunShadowMap.value = shadow.map;
+      (uniforms.uSunShadowMatrix.value as THREE.Matrix4).multiplyMatrices(shadow.matrix, this.mesh.matrixWorld);
+      (uniforms.uSunShadow.value as THREE.Vector3).set(1, shadow.bias, shadow.radius);
+    } else {
+      uniforms.uSunShadowMap.value = this.fallbackShadowMap;
+      (uniforms.uSunShadow.value as THREE.Vector3).set(0, 0, 0);
+    }
   }
 
   dispose(): void {
@@ -452,6 +496,7 @@ export class WaterSurface {
       this.mesh.geometry = this.adopted.geometry;
       this.mesh.material = this.adopted.material;
     }
+    this.fallbackShadowMap.dispose();
     this.geometry.dispose();
     this.material.dispose();
   }

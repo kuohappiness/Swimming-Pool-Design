@@ -81,6 +81,8 @@ body {
 }
 
 .site-view--3d-viewer .viewer-shell {
+  grid-template-columns: 250px minmax(420px, 1fr);
+  grid-template-areas: "controls viewport";
   height: min(760px, calc(100dvh - var(--site-header-height) - 150px));
   min-height: 560px;
   background: #e7e7e1;
@@ -185,11 +187,6 @@ body {
   padding-top: 0;
 }
 
-.site-view--3d-viewer .viewer-shell {
-  grid-template-columns: 250px minmax(420px, 1fr);
-  grid-template-areas: "controls viewport";
-}
-
 .site-view--3d-viewer .layer-toggle {
   grid-template-columns: 18px minmax(0, 1fr) 8px;
 }
@@ -245,6 +242,91 @@ body {
 
   .site-view--3d-viewer .walkthrough-hud {
     top: max(8px, env(safe-area-inset-top));
+  }
+}
+
+/* 日照時刻（DEC-191）：日期與時刻滑桿、二分二至快捷鍵、天氣切換。 */
+.site-view--3d-viewer .light-control .light-field + .light-terms,
+.site-view--3d-viewer .light-control .light-terms + .light-field,
+.site-view--3d-viewer .light-control .light-field + .light-weather {
+  margin-top: 10px;
+}
+
+.site-view--3d-viewer .light-control label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.site-view--3d-viewer .light-control output {
+  color: #405156;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.site-view--3d-viewer .light-control input[type="range"] {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  accent-color: var(--deep);
+}
+
+.site-view--3d-viewer .light-terms,
+.site-view--3d-viewer .light-weather {
+  display: grid;
+  gap: 5px;
+}
+
+.site-view--3d-viewer .light-terms { grid-template-columns: repeat(4, 1fr); }
+.site-view--3d-viewer .light-weather { grid-template-columns: repeat(3, 1fr); }
+
+.site-view--3d-viewer .light-terms button,
+.site-view--3d-viewer .light-weather button,
+.site-view--3d-viewer .light-now {
+  padding: 6px 4px;
+  color: #405156;
+  font: inherit;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid #b9c2c1;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.site-view--3d-viewer .light-terms button:hover,
+.site-view--3d-viewer .light-weather button:hover,
+.site-view--3d-viewer .light-now:hover,
+.site-view--3d-viewer .light-terms button[data-active="true"],
+.site-view--3d-viewer .light-weather button[data-active="true"] {
+  color: #fff;
+  background: #32464c;
+  border-color: #32464c;
+}
+
+.site-view--3d-viewer .light-control .light-status {
+  min-height: 1.6em;
+  margin: 10px 0 8px;
+  color: #53666c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.site-view--3d-viewer .light-now { width: 100%; }
+
+@media (pointer: coarse) {
+  .site-view--3d-viewer .light-control input[type="range"],
+  .site-view--3d-viewer .light-terms button,
+  .site-view--3d-viewer .light-weather button,
+  .site-view--3d-viewer .light-now {
+    min-height: 44px;
   }
 }
 
