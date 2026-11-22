@@ -6,7 +6,7 @@ import {
   type RealismTierId,
 } from './realism-tiers';
 
-/** 啟動檢測在這一級、1 倍像素比下量測，其他級的成本由 relativeCost 換算。 */
+/** 啟動檢測在這一級、這台裝置實際會用的像素比下量測，其他級的成本由 relativeCost 換算。 */
 export const BENCHMARK_REFERENCE_TIER: RealismTierId = 'medium';
 
 /** 自動選級時保留的餘裕：估計成本不得超過幀預算的這個比例。 */
@@ -49,19 +49,25 @@ export function parseRealismTierId(value: string | null | undefined): RealismTie
   return LEGACY_TIER_IDS[normalized] ?? null;
 }
 
+/** 啟動檢測畫幾幀、前幾幀不計，以及整段檢測最多花多久（裝置太慢時提早結束）。 */
+export const BENCHMARK_FRAMES = 20;
+export const BENCHMARK_WARMUP_FRAMES = 5;
+export const BENCHMARK_TIME_LIMIT_MILLISECONDS = 1500;
+
 /**
  * 把啟動檢測的逐幀毫秒數整理成中位數與 p95。
- * 前幾幀含著色器編譯與貼圖上傳，不計入；有效樣本不足 10 幀時回傳 null。
+ * 前幾幀含著色器編譯與貼圖上傳，不計入；有效樣本不足 `minimumSamples` 幀時回傳 null。
  */
 export function summarizeBenchmark(
   frameMilliseconds: readonly number[],
-  warmupFrames = 5,
+  warmupFrames = BENCHMARK_WARMUP_FRAMES,
+  minimumSamples = 10,
 ): BenchmarkSummary | null {
   const samples = frameMilliseconds
     .slice(Math.max(0, warmupFrames))
     .filter((value) => Number.isFinite(value) && value > 0)
     .sort((left, right) => left - right);
-  if (samples.length < 10) return null;
+  if (samples.length < Math.max(1, minimumSamples)) return null;
   const middle = samples.length / 2;
   const medianMilliseconds = samples.length % 2 === 0
     ? (samples[middle - 1] + samples[middle]) / 2
@@ -72,6 +78,19 @@ export function summarizeBenchmark(
     medianMilliseconds,
     p95Milliseconds: samples[p95Index],
   });
+}
+
+/**
+ * 整理一次啟動檢測。`timedOut` 代表裝置慢到在時限內畫不完：這時樣本很少，
+ * 但「很慢」本身就是結論，所以有幾幀算幾幀，不因樣本不足而放棄。
+ */
+export function summarizeBenchmarkRun(
+  frameMilliseconds: readonly number[],
+  timedOut: boolean,
+): BenchmarkSummary | null {
+  if (!timedOut) return summarizeBenchmark(frameMilliseconds);
+  const warmup = Math.min(BENCHMARK_WARMUP_FRAMES, Math.max(0, frameMilliseconds.length - 1));
+  return summarizeBenchmark(frameMilliseconds, warmup, 1);
 }
 
 /** 檢測結果換算到某一級的估計每幀毫秒數。 */

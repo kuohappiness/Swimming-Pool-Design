@@ -1,11 +1,18 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { DesignStatus, ViewerModel } from './model-adapter';
 import { deriveViewerOrientation } from './orientation';
-import { getViewerPoolPresentation } from './pool-state';
+import {
+  getPoolLadderRails,
+  getPoolLadderTreads,
+  getViewerPoolBasinShape,
+  getViewerPoolPresentation,
+} from './pool-state';
 import { createL1SanitaryDetails } from './sanitary-fixtures';
 import { createArchitecturalDetails } from './architectural-details';
 import { createPoolHallDetails } from './pool-hall-details';
 import { createL2InteriorDetails } from './interior-details';
+import { createPoolUseDeck, createPoolUseDetails } from './pool-use-details';
 import type { SceneRenderingDependencies } from './rendering/contracts';
 import { batchStaticMeshes, type StaticBatchReport } from './scene-batcher';
 
@@ -52,6 +59,103 @@ function box(size: [number, number, number], position: [number, number, number],
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   return mesh;
+}
+
+/** 開口比池體每邊多留這麼寬（公尺），開口的側面就藏在池壁後面，不會和池壁重疊閃爍。 */
+const GROUND_OPENING_MARGIN = 0.05;
+
+/**
+ * 中間開一個矩形口的方盒，做成單一網格。外框與 `box()` 相同（包圍盒不變），
+ * opening 是開口在父座標系裡的範圍。
+ */
+function boxWithOpening(
+  size: [number, number, number],
+  position: [number, number, number],
+  opening: { x1: number; x2: number; z1: number; z2: number },
+  material: THREE.Material,
+) {
+  const [width, height, depth] = size;
+  const halfWidth = width / 2;
+  const halfDepth = depth / 2;
+  const x1 = opening.x1 - position[0];
+  const x2 = opening.x2 - position[0];
+  const z1 = opening.z1 - position[2];
+  const z2 = opening.z2 - position[2];
+  if (!(x1 > -halfWidth && x2 < halfWidth && z1 > -halfDepth && z2 < halfDepth && x2 > x1 && z2 > z1)) {
+    throw new RangeError('Opening must lie strictly inside the box.');
+  }
+  const strip = (fromX: number, toX: number, fromZ: number, toZ: number) => new THREE.BoxGeometry(
+    toX - fromX,
+    height,
+    toZ - fromZ,
+  ).translate((fromX + toX) / 2, 0, (fromZ + toZ) / 2);
+  const strips = [
+    strip(-halfWidth, x1, -halfDepth, halfDepth),
+    strip(x2, halfWidth, -halfDepth, halfDepth),
+    strip(x1, x2, -halfDepth, z1),
+    strip(x1, x2, z2, halfDepth),
+  ];
+  const geometry = mergeGeometries(strips, false);
+  for (const part of strips) part.dispose();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(...position);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+/**
+ * 地面格線，但跳過 opening（父座標系）範圍內的線段。外觀與材質沿用 `THREE.GridHelper`，
+ * 只換掉線段：中央的兩條線用 centreColor，其餘用 gridColor。
+ */
+function gridWithOpening(
+  size: number,
+  divisions: number,
+  centreColor: THREE.ColorRepresentation,
+  gridColor: THREE.ColorRepresentation,
+  position: [number, number, number],
+  opening: { x1: number; x2: number; z1: number; z2: number },
+) {
+  const half = size / 2;
+  const step = size / divisions;
+  const centre = divisions / 2;
+  const x1 = opening.x1 - position[0];
+  const x2 = opening.x2 - position[0];
+  const z1 = opening.z1 - position[2];
+  const z2 = opening.z2 - position[2];
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const colour = new THREE.Color();
+  /** 一條線被開口切成一段或兩段；from、to 是線在自己方向上要跳過的範圍。 */
+  const spans = (crossesOpening: boolean, from: number, to: number): Array<[number, number]> => {
+    if (!crossesOpening) return [[-half, half]];
+    const result: Array<[number, number]> = [];
+    if (from > -half) result.push([-half, Math.max(from, -half)]);
+    if (to < half) result.push([Math.min(to, half), half]);
+    return result;
+  };
+  for (let index = 0; index <= divisions; index += 1) {
+    const offset = -half + index * step;
+    colour.set(index === centre ? centreColor : gridColor);
+    // 沿 x 方向的線（z 固定）。
+    for (const [from, to] of spans(offset > z1 && offset < z2, x1, x2)) {
+      positions.push(from, 0, offset, to, 0, offset);
+      colors.push(colour.r, colour.g, colour.b, colour.r, colour.g, colour.b);
+    }
+    // 沿 z 方向的線（x 固定）。
+    for (const [from, to] of spans(offset > x1 && offset < x2, z1, z2)) {
+      positions.push(offset, 0, from, offset, 0, to);
+      colors.push(colour.r, colour.g, colour.b, colour.r, colour.g, colour.b);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  const grid = new THREE.GridHelper(size, divisions, centreColor, gridColor);
+  grid.geometry.dispose();
+  grid.geometry = geometry;
+  grid.position.set(...position);
+  return grid;
 }
 
 function quad(vertices: number[], material: THREE.Material) {
@@ -156,7 +260,7 @@ function addFacadeWallWithOpenings(
   yEnd: number,
   height: number,
   thickness: number,
-  openings: ViewerModel['geometry']['l1']['toiletEntrances'],
+  openings: ReadonlyArray<{ center: [number, number]; clearWidth: number; displayClearHeight: number }>,
   material: THREE.Material,
 ) {
   const sorted = [...openings].sort((a, b) => a.center[1] - b.center[1]);
@@ -271,12 +375,20 @@ export function createViewerScene(
   const mirrorMaterial = materials.get('mirror');
 
   const site = layer('site');
-  const ground = box(
+  // 地坪在泳池的位置開口：池體比地坪深，整片不開口的地坪會橫切過池水，
+  // 從水面往下看到的是地坪而不是池底，潛到水裡往上看也會被它擋住。
+  const groundOpening = getViewerPoolBasinShape(model);
+  const ground = boxWithOpening(
     [buildingLength + 12, 0.2, buildingWidth + 12],
     [buildingLength / 2, -0.18, centreZ],
+    {
+      x1: groundOpening.minX - GROUND_OPENING_MARGIN,
+      x2: groundOpening.maxX + GROUND_OPENING_MARGIN,
+      z1: groundOpening.minZ - GROUND_OPENING_MARGIN,
+      z2: groundOpening.maxZ + GROUND_OPENING_MARGIN,
+    },
     groundMaterial,
   );
-  ground.receiveShadow = true;
   site.add(ground);
   ground.name = 'CUTAWAY-HIDE-SITE-GROUND';
   const setback = box(
@@ -327,7 +439,7 @@ export function createViewerScene(
     l1.add(zoneMesh);
     tag(zoneMesh, {
       entityId: zone.entityId,
-      label: zone.entityId.includes('WC') ? '獨立廁所區' : zone.entityId.includes('STOR') ? '乾式儲物間' : zone.entityId.includes('CHEM') ? '獨立藥劑分間' : '水處理機房',
+      label: zone.entityId.includes('WC') ? '獨立廁所區' : zone.entityId.includes('CHEM') ? '獨立藥劑分間' : '水處理機房',
       status: 'working',
       description: `${(bounds.x2 - bounds.x1).toFixed(2)} × ${(bounds.y2 - bounds.y1).toFixed(2)} m 工作範圍；隔間、設備與實際淨空仍待專業深化。`,
       openItemId: 'OPEN-008',
@@ -337,14 +449,34 @@ export function createViewerScene(
   const playgroundSideEntrances = model.geometry.l1.toiletEntrances.filter(({ side }) => side === 'x39');
   addFacadeWallWithOpenings(l1, serviceStart + 0.08, 0, 7.5, wallHeight, 0.16, poolSideEntrances, l1Material);
   addFacadeWallWithOpenings(l1, serviceEnd - 0.08, 0, 7.5, wallHeight, 0.16, playgroundSideEntrances, l1Material);
+  // DEC-157: the X31 wall of the two new rooms has their doors and the staff room's pool-view window.
+  const poolUse = model.geometry.l1.poolUse;
+  const accessibleRoom = poolUse.accessibleChanging;
+  const staffRoom = poolUse.staffFirstAid;
+  const l1RoomWallX = accessibleRoom.bounds.x2;
+  const poolWindow = staffRoom.poolViewWindow;
+  const roomDoors = [accessibleRoom, staffRoom].map((room) => ({
+    center: room.entrance.center,
+    clearWidth: room.entrance.clearWidth,
+    displayClearHeight: room.floorElevation + room.entrance.clearHeight,
+  }));
+  const windowOpening = {
+    center: [serviceStart, (poolWindow.spanY[0] + poolWindow.spanY[1]) / 2] as [number, number],
+    clearWidth: poolWindow.spanY[1] - poolWindow.spanY[0],
+    displayClearHeight: staffRoom.floorElevation + poolWindow.headHeight,
+  };
+  addFacadeWallWithOpenings(l1, serviceStart + 0.08, accessibleRoom.bounds.y1, staffRoom.bounds.y2, wallHeight, 0.16, [...roomDoors, windowOpening], l1Material);
+  const windowSill = staffRoom.floorElevation + poolWindow.sillHeight;
   l1.add(
-    box([0.16, wallHeight, 6.5], [serviceStart + 0.08, wallHeight / 2, 10.75], l1Material),
+    box([0.16, windowSill, windowOpening.clearWidth], [serviceStart + 0.08, windowSill / 2, windowOpening.center[1]], l1Material),
+    box([0.03, windowOpening.displayClearHeight - windowSill, windowOpening.clearWidth], [serviceStart + 0.08, (windowSill + windowOpening.displayClearHeight) / 2, windowOpening.center[1]], materials.get('safety-glass')),
     box([0.16, wallHeight, 6.5], [serviceEnd - 0.08, wallHeight / 2, 10.75], l1Material),
     box([serviceEnd - serviceStart, wallHeight, 0.16], [(serviceStart + serviceEnd) / 2, wallHeight / 2, buildingWidth - 0.08], l1Material),
     box([0.14, wallHeight, 7.5], [35.5, wallHeight / 2, 3.75], l1Material),
     box([serviceEnd - serviceStart, wallHeight, 0.14], [(serviceStart + serviceEnd) / 2, wallHeight / 2, 3.5], l1Material),
     box([serviceEnd - serviceStart, wallHeight, 0.14], [(serviceStart + serviceEnd) / 2, wallHeight / 2, 7.5], l1Material),
-    box([0.14, wallHeight, 6.5], [32.5, wallHeight / 2, 10.75], l1Material),
+    box([0.14, wallHeight, 6.5], [l1RoomWallX, wallHeight / 2, 10.75], l1Material),
+    box([l1RoomWallX - serviceStart, wallHeight, 0.12], [(serviceStart + l1RoomWallX) / 2, wallHeight / 2, accessibleRoom.bounds.y2], l1Material),
   );
   const openingMarkerMaterial = materials.get('opening-marker');
   for (const entrance of model.geometry.l1.toiletEntrances) {
@@ -371,18 +503,18 @@ export function createViewerScene(
   l1.add(createArchitecturalDetails(model, materials));
   const integratedStructure = new THREE.Group();
   integratedStructure.add(
-    box([0.28, model.geometry.l3.baseElevation, 6.5], [32.5, model.geometry.l3.baseElevation / 2, 10.75], coreMaterial),
+    box([0.28, model.geometry.l3.baseElevation, 6.5], [l1RoomWallX, model.geometry.l3.baseElevation / 2, 10.75], coreMaterial),
     box([0.28, model.geometry.l3.baseElevation, 7.5], [35.5, model.geometry.l3.baseElevation / 2, 3.75], coreMaterial),
   );
   layer('circulation').add(integratedStructure);
   tag(integratedStructure, {
     entityId: 'STRUCT-INTEGRATED-01', label: '整合隔間／設備牆的連續支承帶', status: 'working',
-    description: '支承候選沿 X32.5 設備牆與 X35.5 廁所分界整合，避免完成空間出現孤柱；真正柱牆尺寸、連續至基礎的荷重路徑與轉換構架仍須結構專業驗證。',
+    description: `支承候選沿 X${l1RoomWallX} 設備牆（DEC-157 由 X32.5 移來，讓出無障礙室與管理暨急救室）與 X35.5 廁所分界整合，避免完成空間出現孤柱；移動後的荷重路徑、真正柱牆尺寸與轉換構架仍須結構專業驗證。`,
     openItemId: 'OPEN-016',
   }, selectables);
   tag(serviceFloor, {
     entityId: 'CORE-01', label: '1F 六區服務翼', status: 'working',
-    description: 'X31～X39 由四間互不相通廁所、儲物、水處理與獨立藥劑分間組成；泳池組只由 X31 進出，操場組只由 X39 進出。',
+    description: 'X31～X39 由四間互不相通廁所、無障礙暨親子室、管理暨急救室、水處理與獨立藥劑分間組成；泳池側各室只由 X31 進出，操場組只由 X39 進出。',
     openItemId: 'OPEN-008',
   }, selectables);
 
@@ -396,11 +528,9 @@ export function createViewerScene(
   const deckMaterial = materials.get('pool-deck');
   const deckGroup = new THREE.Group();
   const deckThickness = deckElevation;
-  const westDeck = box([poolX0, deckThickness, buildingWidth], [poolX0 / 2, deckElevation / 2, centreZ], deckMaterial);
+  const { westDeck, y0Band: nearDeck } = createPoolUseDeck(model, materials);
   const eastDeck = box([serviceStart - poolX1, deckThickness, buildingWidth], [(poolX1 + serviceStart) / 2, deckElevation / 2, centreZ], deckMaterial);
-  const nearDeck = box([pool.length.value, deckThickness, poolZ0], [(poolX0 + poolX1) / 2, deckElevation / 2, poolZ0 / 2], deckMaterial);
   const farDeck = box([pool.length.value, deckThickness, buildingWidth - poolZ1], [(poolX0 + poolX1) / 2, deckElevation / 2, (poolZ1 + buildingWidth) / 2], deckMaterial);
-  nearDeck.name = 'CUTAWAY-HIDE-Y0-POOL-DECK';
   deckGroup.add(
     westDeck,
     eastDeck,
@@ -410,7 +540,7 @@ export function createViewerScene(
   l1.add(deckGroup);
   tag(deckGroup, {
     entityId: 'DECK-L1-01', label: '抬高池畔完成面', status: 'confirmed',
-    description: `池畔與泳池側男女廁連續為 +${deckElevation.toFixed(2)} m，幾何已保留 POOL-01 開口；防水、溢流與排水仍待深化。`,
+    description: `池畔與泳池側各室連續為 +${deckElevation.toFixed(2)} m，幾何已保留 POOL-01 開口；入口換鞋玄關維持 ±0.00，以坡道與兩階上到池畔（DEC-157）。防水、溢流與排水仍待深化。`,
     openItemId: 'OPEN-016',
   }, selectables);
   const rampBounds = model.geometry.l1.playgroundRamp.bounds;
@@ -489,15 +619,23 @@ export function createViewerScene(
     }
   }
   const railMaterial = materials.get('pool-rail');
-  for (const z of [poolZ0 + 0.8, poolZ1 - 0.8]) {
-    for (const x of [poolX0 + 0.28, poolX0 + 0.7]) {
-      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.2, 14), railMaterial);
-      rail.position.set(x, deckElevation + 0.55, z);
-      poolGroup.add(rail);
-    }
-    for (let step = 0; step < 3; step += 1) {
-      poolGroup.add(box([0.42, 0.04, 0.08], [poolX0 + 0.49, waterLevel - 0.2 - step * 0.25, z], railMaterial));
-    }
+  for (const rail of getPoolLadderRails(model)) {
+    const upper = new THREE.Mesh(
+      new THREE.CylinderGeometry(rail.radius, rail.radius, rail.top - rail.bottom, 14),
+      railMaterial,
+    );
+    upper.position.set(rail.x, (rail.top + rail.bottom) / 2, rail.z);
+    // 水下延伸段：沒有它，踏板會懸在水裡。
+    const lower = new THREE.Mesh(
+      new THREE.CylinderGeometry(rail.radius, rail.radius, rail.bottom - rail.submergedBottom, 14),
+      railMaterial,
+    );
+    lower.position.set(rail.x, (rail.bottom + rail.submergedBottom) / 2, rail.z);
+    poolGroup.add(upper, lower);
+  }
+  // 踏板的位置與水面折射計算共用同一份（pool-state.ts），從水面上看到的才會和實體重合。
+  for (const tread of getPoolLadderTreads(model)) {
+    poolGroup.add(box([...tread.size], [...tread.centre], railMaterial));
   }
   const coping = 0.22;
   const nearCoping = box([pool.length.value + coping * 2, 0.07, coping], [(poolX0 + poolX1) / 2, deckElevation + 0.02, poolZ0 - coping / 2], deckMaterial);
@@ -510,6 +648,13 @@ export function createViewerScene(
   );
   layer('water').add(poolGroup);
   layer('water').add(createPoolHallDetails(model, materials));
+  const poolUseDetails = createPoolUseDetails(model, materials, tag, selectables, {
+    surface: waterLevel,
+    shallowBottom,
+    deepBottom,
+  });
+  l1.add(poolUseDetails.y0Band, poolUseDetails.elsewhere);
+  layer('water').add(poolUseDetails.platform);
   tag(poolGroup, {
     entityId: 'POOL-01', label: '25 m 教學／游泳混合泳池', status: 'confirmed',
     description: `${pool.length.value} × ${pool.width.value} m；兩條 2.5 m 標準水道加 3.0 m 正常游泳／教學混合區，左側低 X 端水深 ${pool.shallowDepth.value} m，向右側服務中心端降至 ${pool.deepDepth.value} m。`,
@@ -533,10 +678,15 @@ export function createViewerScene(
   const mainEntranceBounds = model.geometry.l1.mainEntranceBounds;
   const l1Y0Facade = new THREE.Group();
   const facadeStartX = model.geometry.l1.y0ExteriorFacade.bounds.x1;
+  // DEC-157: the entry vestibule and ramp sit at the L1 base level, so the glass
+  // there runs down to it; the rest of the Y0 glass stands on the +0.30 m deck.
+  const entryBase = model.geometry.l1.poolUse.entryVestibule.floorElevation;
+  const entryGlassEndX = model.geometry.l1.poolUse.entryRamp.bounds.x2;
   l1Y0Facade.add(
-    slopedFacadeSegment(facadeStartX, mainEntranceBounds.x1, 0.03, deckElevation, wallGlass),
-    slopedFacadeSegment(mainEntranceBounds.x2, roof.endX, 0.03, deckElevation, wallGlass),
-    slopedFacadeSegment(mainEntranceBounds.x1, mainEntranceBounds.x2, 0.03, deckElevation + 2.42, wallGlass),
+    slopedFacadeSegment(facadeStartX, mainEntranceBounds.x1, 0.03, entryBase, wallGlass),
+    slopedFacadeSegment(mainEntranceBounds.x2, entryGlassEndX, 0.03, entryBase, wallGlass),
+    slopedFacadeSegment(entryGlassEndX, roof.endX, 0.03, deckElevation, wallGlass),
+    slopedFacadeSegment(mainEntranceBounds.x1, mainEntranceBounds.x2, 0.03, entryBase + 2.42, wallGlass),
     box([
       serviceStart - roof.endX,
       wallHeight,
@@ -575,12 +725,12 @@ export function createViewerScene(
   const entranceGlass = wallGlass.clone();
   entranceGlass.opacity = 0.34;
   entranceGroup.add(
-    box([entranceWidth / 2 - 0.04, entranceHeight, 0.045], [entranceCentreX - entranceWidth / 4, deckElevation + entranceHeight / 2, 0.025], entranceGlass),
-    box([entranceWidth / 2 - 0.04, entranceHeight, 0.045], [entranceCentreX + entranceWidth / 4, deckElevation + entranceHeight / 2, 0.025], entranceGlass),
-    box([0.055, entranceHeight + 0.06, 0.075], [mainEntranceBounds.x1, deckElevation + entranceHeight / 2, 0.025], dark),
-    box([0.055, entranceHeight + 0.06, 0.075], [entranceCentreX, deckElevation + entranceHeight / 2, 0.025], dark),
-    box([0.055, entranceHeight + 0.06, 0.075], [mainEntranceBounds.x2, deckElevation + entranceHeight / 2, 0.025], dark),
-    box([entranceWidth + 0.1, 0.065, 0.075], [entranceCentreX, deckElevation + entranceHeight, 0.025], dark),
+    box([entranceWidth / 2 - 0.04, entranceHeight, 0.045], [entranceCentreX - entranceWidth / 4, entryBase + entranceHeight / 2, 0.025], entranceGlass),
+    box([entranceWidth / 2 - 0.04, entranceHeight, 0.045], [entranceCentreX + entranceWidth / 4, entryBase + entranceHeight / 2, 0.025], entranceGlass),
+    box([0.055, entranceHeight + 0.06, 0.075], [mainEntranceBounds.x1, entryBase + entranceHeight / 2, 0.025], dark),
+    box([0.055, entranceHeight + 0.06, 0.075], [entranceCentreX, entryBase + entranceHeight / 2, 0.025], dark),
+    box([0.055, entranceHeight + 0.06, 0.075], [mainEntranceBounds.x2, entryBase + entranceHeight / 2, 0.025], dark),
+    box([entranceWidth + 0.1, 0.065, 0.075], [entranceCentreX, entryBase + entranceHeight, 0.025], dark),
   );
   l1.add(entranceGroup);
   entranceGroup.name = 'CUTAWAY-HIDE-EN-01';
@@ -1317,8 +1467,13 @@ export function createViewerScene(
   }, selectables);
 
   const annotations = layer('annotations');
-  const grid = new THREE.GridHelper(58, 29, 0x637179, 0xb8c0c2);
-  grid.position.set(centreX - 8, 0.018, centreZ);
+  // 格線貼在地坪上，泳池開口內不畫：否則格線會懸在池水中間，潛到水裡就看得到。
+  const grid = gridWithOpening(58, 29, 0x637179, 0xb8c0c2, [centreX - 8, 0.018, centreZ], {
+    x1: groundOpening.minX,
+    x2: groundOpening.maxX,
+    z1: groundOpening.minZ,
+    z2: groundOpening.maxZ,
+  });
   annotations.add(grid);
   const localAxis = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0),
@@ -1395,7 +1550,7 @@ export function createViewerScene(
   cutawayAnnotations.visible = false;
   siteRoot.add(cutawayAnnotations);
 
-  const cutawayHiddenObjects = [ground, nearDeck, nearPoolWall, nearCoping, l1Y0Facade, entranceGroup, l1Y0Mullions];
+  const cutawayHiddenObjects = [ground, nearDeck, poolUseDetails.y0Band, nearPoolWall, nearCoping, l1Y0Facade, entranceGroup, l1Y0Mullions];
   scene.updateMatrixWorld(true);
   for (const selectable of selectables) {
     selectable.bounds = new THREE.Box3().setFromObject(selectable.object);

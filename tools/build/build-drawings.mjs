@@ -113,6 +113,59 @@ function fixtureMarks(zone) {
   return `<g aria-label="${zone.entityId} detailed fixtures">${marks.join('')}</g>`;
 }
 
+function area(entity) {
+  const b = entity.bounds;
+  return (b.x2 - b.x1) * (b.y2 - b.y1);
+}
+
+function centreText(b, lines, className = 'tiny', atY = (b.y1 + b.y2) / 2, atX = (b.x1 + b.x2) / 2) {
+  const cx = planX(atX);
+  const top = planY(atY) + 4 - (lines.length - 1) * 6;
+  return lines.map((line, index) => `<text x="${cx}" y="${top + index * 12}" text-anchor="middle" class="${className}">${line}</text>`).join('');
+}
+
+// DEC-157 class route and DEC-158 teaching platform on the 1F plan.
+function poolUseMarks() {
+  const use = active.l1.poolUse;
+  const platform = active.l1.pool.teachingPlatform;
+  // Labels sit clear of the class-route line where a zone carries a route stop.
+  const zone = (item, className, lines, atY, atX) => `<g data-entity="${item.entityId}" data-coordinate-system="SITE-XY" data-bounds="${boundsData(item)}"><rect x="${planX(item.bounds.x1)}" y="${planY(item.bounds.y2)}" width="${n((item.bounds.x2 - item.bounds.x1) * scale)}" height="${n((item.bounds.y2 - item.bounds.y1) * scale)}" class="${className}"/>${centreText(item.bounds, lines, 'tiny', atY, atX)}</g>`;
+  const ramp = use.entryRamp.bounds;
+  const steps = use.entrySteps.bounds;
+  const parapet = use.dryCorridorParapet.bounds;
+  const stepLines = Array.from({ length: use.entrySteps.risers - 1 }, (_, index) => steps.x1 + use.entrySteps.treadDepth * (index + 1))
+    .map((x) => `<line x1="${planX(x)}" y1="${planY(steps.y2)}" x2="${planX(x)}" y2="${planY(steps.y1)}" stroke="#263746" stroke-width="1"/>`).join('');
+  const route = use.classRoute.map(({ standAt: [x, y] }) => `${planX(x)},${planY(y)}`).join(' ');
+  const routeStops = use.classRoute.map(({ id, standAt: [x, y] }, index) => `<g data-route-stop="${id}"><circle cx="${planX(x)}" cy="${planY(y)}" r="8" fill="#9a4e2d"/><text x="${planX(x)}" y="${planY(y) + 3.5}" text-anchor="middle" class="tiny" fill="#fff" style="fill:#fff">${index + 1}</text></g>`).join('');
+  const [aedX, aedY] = use.aed.position;
+  const acc = use.accessibleChanging;
+  const staff = use.staffFirstAid;
+  const doorMark = (room) => {
+    const [x, y] = room.entrance.center;
+    const half = room.entrance.clearWidth / 2;
+    return `<line data-door="${room.entityId}" data-clear-width="${room.entrance.clearWidth}" x1="${planX(x)}" y1="${planY(y - half)}" x2="${planX(x)}" y2="${planY(y + half)}" stroke="#fff" stroke-width="6"/>`;
+  };
+  const poolWindow = staff.poolViewWindow;
+  return `<g data-decision="DEC-157" aria-label="1F 泳池使用動線">
+    ${zone(use.entryVestibule, 'confirmed', ['入口換鞋玄關 ±0.00', `鞋櫃約 ${use.entryVestibule.shoeCubbyPairs} 雙`], 1.55)}
+    <g data-entity="${use.entryRamp.entityId}" data-slope-ratio="${use.entryRamp.slopeRatio}" data-bounds="${boundsData(use.entryRamp)}"><rect x="${planX(ramp.x1)}" y="${planY(ramp.y2)}" width="${n((ramp.x2 - ramp.x1) * scale)}" height="${n((ramp.y2 - ramp.y1) * scale)}" class="working"/><line x1="${planX(ramp.x1 + 0.3)}" y1="${planY(0.6)}" x2="${planX(ramp.x2 - 0.4)}" y2="${planY(0.6)}" stroke="#9a4e2d" stroke-width="2"/><path d="M${planX(ramp.x2 - 0.4)} ${planY(0.6)}l-10 -5v10z" fill="#9a4e2d"/><text x="${planX((ramp.x1 + ramp.x2) / 2)}" y="${planY(0.6) - 5}" text-anchor="middle" class="tiny">坡道 1:${use.entryRamp.slopeRatio} 上 +0.30</text></g>
+    <g data-entity="${use.entrySteps.entityId}" data-risers="${use.entrySteps.risers}" data-bounds="${boundsData(use.entrySteps)}"><rect x="${planX(steps.x1)}" y="${planY(steps.y2)}" width="${n((steps.x2 - steps.x1) * scale)}" height="${n((steps.y2 - steps.y1) * scale)}" class="stair"/>${stepLines}</g>
+    <g data-entity="${use.dryCorridor.entityId}" data-bounds="${boundsData(use.dryCorridor)}"><text x="${planX(13)}" y="${planY(1.5) + 4}" text-anchor="middle" class="tiny">乾式廊道 +0.30（著襪或乾腳）</text></g>
+    ${zone(use.rinseGate, 'corridor', ['洗腳池＋沖身 ×' + use.rinseGate.showerHeads], 3.6)}${centreText(use.rinseGate.bounds, ['唯一通路'], 'tiny', 2.35, 18.3)}
+    ${zone(use.assemblyArea, 'reference', [`池畔集合區（一班 ${use.assemblyArea.seatedClassCapacity} 人）`], 3.55, 9)}
+    <g data-entity="${use.dryCorridorParapet.entityId}" data-height="${use.dryCorridorParapet.height}"><rect x="${planX(parapet.x1)}" y="${planY(parapet.y2)}" width="${n((parapet.x2 - parapet.x1) * scale)}" height="${n((parapet.y2 - parapet.y1) * scale)}" fill="#65757b"/><text x="${planX(11)}" y="${planY(parapet.y2) - 4}" text-anchor="middle" class="tiny">${use.dryCorridorParapet.height.toFixed(1)} m 低牆＋止水緣</text></g>
+    ${zone(use.lifeguardChair, 'confirmed', ['救'])}
+    <g data-entity="AED-L1-01" data-mounted-on="${use.aed.mountedOn}"><rect x="${planX(aedX) - 7}" y="${planY(aedY) - 6}" width="14" height="12" rx="2" fill="#c4553f"/><text x="${planX(aedX) - 10}" y="${planY(aedY) + 4}" text-anchor="end" class="tiny">AED</text></g>
+    ${zone(acc, 'confirmed', ['無障礙暨', '親子室', `${n(area(acc))} m²`])}${doorMark(acc)}
+    ${zone(staff, 'working', ['管理暨', '急救室', `${n(area(staff))} m²`])}${doorMark(staff)}
+    <line data-pool-view-window="${staff.entityId}" x1="${planX(staff.bounds.x1)}" y1="${planY(poolWindow.spanY[0])}" x2="${planX(staff.bounds.x1)}" y2="${planY(poolWindow.spanY[1])}" class="windowLine"/>
+    ${zone(use.equipmentParking, 'reference', ['教具推車'])}
+    ${zone(use.poolLift, 'working', [''])}<text x="${planX(use.poolLift.bounds.x1) - 4}" y="${planY(use.poolLift.bounds.y1) + 12}" text-anchor="end" class="tiny">移動式升降椅</text>
+    <g data-entity="${platform.entityId}" data-decision="DEC-158" data-top-water-depth="${platform.topWaterDepth}" data-removable="${platform.removable}" data-bounds="${boundsData(platform)}"><rect x="${planX(platform.bounds.x1)}" y="${planY(platform.bounds.y2)}" width="${n((platform.bounds.x2 - platform.bounds.x1) * scale)}" height="${n((platform.bounds.y2 - platform.bounds.y1) * scale)}" fill="#e7f4f7" fill-opacity=".7" stroke="#227698" stroke-width="1.6" stroke-dasharray="6 3"/>${centreText(platform.bounds, ['可移除教學平台', `平台面水深 ${platform.topWaterDepth.toFixed(2)} m`])}</g>
+    <polyline data-class-route="DEC-157" points="${route}" fill="none" stroke="#9a4e2d" stroke-width="2" stroke-dasharray="5 4"/>${routeStops}
+  </g>`;
+}
+
 function l1Plan() {
   const z = active.l1.zones;
   const zoneViews = [
@@ -120,8 +173,7 @@ function l1Plan() {
     [z.poolFemaleToilet, 'confirmed', '泳池女廁 +0.30'],
     [z.playgroundMaleToilet, 'working', '操場男廁 +0.10'],
     [z.playgroundFemaleToilet, 'working', '操場女廁 +0.10'],
-    [z.storage, 'service', '儲物 9.75 m²'],
-    [z.waterTreatment, 'service', '水處理 42.25 m²'],
+    [z.waterTreatment, 'service', `水處理 ${n(area(z.waterTreatment))} m²`],
     [z.chemicalRoom, 'chemical', '獨立藥劑'],
   ];
   const pool = active.l1.pool;
@@ -137,17 +189,17 @@ function l1Plan() {
   }).join('');
   return shell('1F 概念平面圖', `PROJECT / MODEL ${versionSlug} · SITE-XY · 0.5 m 最小讀圖格 · ACTIVE ${active.id}`, `${grid()}${northArrow()}
     ${rect(active.l1.building, 'outline')}${rect(active.l1.pool, 'pool', '25 × 8.5 m · 左淺 1.2 → 右深 1.5')}${ropes}
-    ${zoneViews.map(([zone, cls, label]) => rect(zone, cls, label)).join('')}${fixtures}${entrances}${stairPlan()}
+    ${zoneViews.map(([zone, cls, label]) => rect(zone, cls, label)).join('')}${fixtures}${entrances}${stairPlan()}${poolUseMarks()}
     ${rect(active.l1.westSetback, 'reference', '0.5 m 退縮')}${rect(active.l1.rightSetback, 'reference', '2 m 退縮／整坡')}${rect(active.l1.mainEntrance, 'confirmed', '主入口 X1～3')}${rect(active.l1.playgroundRamp, 'deferred')}
     <g data-entity="${active.l1.westGlassEave.entityId}" data-bounds="${boundsData(active.l1.westGlassEave)}"><rect x="${planX(0)}" y="${planY(14)}" width="${0.5*scale}" height="${14*scale}" class="roof"/><text x="${planX(0.25)}" y="${planY(8)}" text-anchor="middle" class="tiny" transform="rotate(-90 ${planX(0.25)} ${planY(8)})">傾斜玻璃突出屋簷</text></g>
     <g data-entity="${active.l1.westRainwaterRecovery.entityId}" data-bounds="${boundsData(active.l1.westRainwaterRecovery)}"><line x1="${planX(0.08)}" y1="${planY(14)}" x2="${planX(0.08)}" y2="${planY(0)}" class="rain"/><text x="${planX(0.08)+8}" y="${planY(4)}" class="tiny" transform="rotate(-90 ${planX(0.08)+8} ${planY(4)})">下方雨水回收</text></g>
     <g data-entity="${active.l1.rearGlassCanopy.entityId}" data-bounds="${boundsData(active.l1.rearGlassCanopy)}" data-building-line-y="14" data-projection-y="14-14.5"><rect x="${planX(31)}" y="${planY(14.5)}" width="${8*scale}" height="${1*scale}" class="roof"/><line x1="${planX(31)}" y1="${planY(14)}" x2="${planX(39)}" y2="${planY(14)}" class="projected"/><text x="${planX(35)}" y="${planY(14.5)-8}" text-anchor="middle" class="tiny">透明玻璃屋頂；Y14～Y14.5 突出屋簷</text></g>
-    <g class="structure"><rect x="${planX(32.5) - 5}" y="${planY(14)}" width="10" height="${6.5 * scale}"/><rect x="${planX(35.5) - 5}" y="${planY(7.5)}" width="10" height="${7.5 * scale}"/></g>
+    <g class="structure"><rect x="${planX(active.l1.poolUse.accessibleChanging.bounds.x2) - 5}" y="${planY(14)}" width="10" height="${6.5 * scale}"/><rect x="${planX(35.5) - 5}" y="${planY(7.5)}" width="10" height="${7.5 * scale}"/></g>
     <text x="${planX(35)}" y="${planY(13.2)}" text-anchor="middle" class="tiny">結構候選整合於設備牆／隔間；非結構定案</text>
     <g data-entity="F-L1-Y0-01" data-material-intent="segmented-safety-glass-and-fair-faced-concrete"><line x1="${planX(0.5)}" y1="${planY(0)}" x2="${planX(1)}" y2="${planY(0)}" class="glassLine"/><line x1="${planX(3)}" y1="${planY(0)}" x2="${planX(31)}" y2="${planY(0)}" class="glassLine"/><line x1="${planX(31)}" y1="${planY(0)}" x2="${planX(39)}" y2="${planY(0)}" class="wallLine"/></g>
     <line x1="${planX(0.5)}" y1="${planY(0)}" x2="${planX(0.5)}" y2="${planY(14)}" class="glassLine" data-entity="W-L1-X0.5-01"/>
     <text x="${planX(15.5)}" y="${planY(0) + 34}" text-anchor="middle" class="tiny">L1 Y0：泳池端 X0.5～31 安全玻璃／服務本體 X31～39 清水模；EN-01＝X1～3</text>
-    <rect x="60" y="845" width="1570" height="82" rx="9" class="note"/><text x="82" y="875" class="small">L1 西端牆退縮至 X0.5，主入口同步移至 X1～X3；X0～X0.5 形成傾斜玻璃突出屋簷並在下方接入雨水回收系統。</text><text x="82" y="902" class="small">服務中心後側 X31～X39／Y13.5～Y14.5 補透明玻璃屋頂；SITE-XY 仍為 Y0～Y14，Y14～Y14.5 明確標示為突出屋簷。結構、防水與容量待專業驗證。</text>`, 'DRAW-L1-PLAN');
+    <rect x="60" y="842" width="1570" height="106" rx="9" class="note"/><text x="82" y="866" class="small">L1 西端牆退縮至 X0.5，主入口同步移至 X1～X3；X0～X0.5 形成傾斜玻璃突出屋簷並在下方接入雨水回收系統。</text><text x="82" y="892" class="small">DEC-157：鞋子在 ±0.00 玄關脫下，經 1:12 坡道或兩階上 +0.30 乾式廊道，到 ST-01 梯底沖身後才進池畔；X31 增設無障礙暨親子室與管理暨急救室，設備牆移到 X34。DEC-158：淺端教學帶設可移除平台。</text><text x="82" y="918" class="small">服務中心後側 X31～X39／Y13.5～Y14.5 補透明玻璃屋頂；SITE-XY 仍為 Y0～Y14，Y14～Y14.5 明確標示為突出屋簷。結構、防水與容量待專業驗證。</text>`, 'DRAW-L1-PLAN');
 }
 
 function showerMarks(zone) {
@@ -233,7 +285,7 @@ function l3Plan() {
     <polygon points="${arrivalPoints}" class="arrival" data-entity="Z-L3-ARRIVAL-01" data-covered="true"/><text x="${planX(40.05)}" y="${planY(1.25)+4}" text-anchor="middle" class="tiny">有頂室內到達翼 ${arrival.area.toFixed(3)} m²</text><line x1="${planX(39.65)}" y1="${planY(1.25)}" x2="${planX(40.75)}" y2="${planY(1.25)}" stroke="#9a4e2d" stroke-width="2.5"/><path d="M${planX(40.75)} ${planY(1.25)}l-10 -5v10z" fill="#9a4e2d"/>
     <g data-entity="L3-ROTATED-ASSEMBLY" data-shared-plan-rotation="${active.l3.planRotation}" transform="${rotationTransform}">
       <g data-entity="L3-PLATE-01" data-coordinate-system="SITE-XY" data-bounds="${boundsData(active.l3.floorPlate)}"><rect x="${planX(b.x1)}" y="${planY(b.y2)}" width="${(b.x2-b.x1)*scale}" height="${(b.y2-b.y1)*scale}" class="working"/></g>
-      <g class="structure"><rect x="${planX(32.5)-5}" y="${planY(12)}" width="10" height="${4 * scale}"/><rect x="${planX(35.5)-5}" y="${planY(7.5)}" width="10" height="${7.5 * scale}"/></g>
+      <g class="structure"><rect x="${planX(active.l1.poolUse.accessibleChanging.bounds.x2)-5}" y="${planY(12)}" width="10" height="${4 * scale}"/><rect x="${planX(35.5)-5}" y="${planY(7.5)}" width="10" height="${7.5 * scale}"/></g>
       <g><rect x="${planX(33)}" y="${planY(10)}" width="${2.2*scale}" height="${1.6*scale}" class="service"/><circle cx="${planX(34)}" cy="${planY(6.8)}" r="22" class="service"/><text x="${planX(34.1)}" y="${planY(11)}" text-anchor="middle" class="tiny">除濕／熱回收</text><text x="${planX(34)}" y="${planY(6.8)+4}" text-anchor="middle" class="tiny">水塔</text></g>
       <g data-entity="${roof.entityId}" data-area="${roof.area}" data-complete-roof="true"><rect x="${planX(roof.bounds.x1)}" y="${planY(roof.bounds.y2)}" width="${(roof.bounds.x2-roof.bounds.x1)*scale}" height="${(roof.bounds.y2-roof.bounds.y1)*scale}" class="roof"/></g>
       <line x1="${planX(b.x1)}" y1="${planY(b.y1)}" x2="${planX(b.x1)}" y2="${planY(b.y2)}" class="mirror" data-entity="${active.l3.mirror.entityId}"/>

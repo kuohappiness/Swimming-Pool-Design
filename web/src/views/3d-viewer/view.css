@@ -247,3 +247,39 @@ body {
     top: max(8px, env(safe-area-inset-top));
   }
 }
+
+/* 畫質選單（DEC-190）：沿用模型構件選單的標籤與下拉樣式，狀態列說明目前實際用的級別。 */
+.site-view--3d-viewer .quality-control label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.site-view--3d-viewer .quality-control select {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  background: #fff;
+  border: 1px solid #bdc7c5;
+  border-radius: 2px;
+}
+
+.site-view--3d-viewer .quality-control .quality-status {
+  min-height: 1.6em;
+  margin: 8px 0 0;
+  color: #53666c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (pointer: coarse) {
+  .site-view--3d-viewer .quality-control select {
+    min-height: 44px;
+  }
+}
