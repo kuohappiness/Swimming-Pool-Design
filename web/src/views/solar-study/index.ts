@@ -1,7 +1,6 @@
 import legacyDocument from './template.html?raw';
 import type { MountedView } from '../../app/view-contract';
 import { getViewDefinition } from '../../app/router';
-import './styles.css';
 import './view.css';
 
 const viewDescription = getViewDefinition('solar-study').description;
