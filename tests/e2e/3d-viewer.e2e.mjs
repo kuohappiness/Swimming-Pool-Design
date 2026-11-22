@@ -497,6 +497,35 @@ try {
   assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   await mobile.close();
 
+  // TASK-160 draw budgets (agreed with the 3D thread, DEC-154): draw calls,
+  // triangles and batching are exact in SwiftShader; frame time is not, so it
+  // is never asserted here. Mobile medium is held at 250 until the 3D phase
+  // removes the transmission pass, then tightens to 200.
+  for (const budget of [
+    { label: 'desktop high', viewport: { width: 1440, height: 900 }, quality: 'high', drawCalls: 500, triangles: 800_000 },
+    { label: 'mobile medium', viewport: { width: 390, height: 844 }, quality: 'medium', drawCalls: 250, triangles: 250_000 },
+  ]) {
+    const page = await browser.newPage({ viewport: budget.viewport, deviceScaleFactor: 1 });
+    trackErrors(page);
+    await page.goto(`${origin}/?view=3d-viewer&quality=${budget.quality}&adaptive=off`, { waitUntil: 'networkidle' });
+    await page.waitForFunction(
+      // Frame 1 also draws the shadow map; read the counters from a later, steady frame.
+      () => Number(document.querySelector('[data-viewer-shell]')?.getAttribute('data-rendered-frames') ?? 0) >= 30,
+      undefined,
+      { timeout: 120_000 },
+    );
+    const shell = page.locator('[data-viewer-shell]');
+    assert.equal(await shell.getAttribute('data-render-quality'), budget.quality);
+    const drawCalls = Number(await shell.getAttribute('data-draw-calls'));
+    const triangles = Number(await shell.getAttribute('data-triangles'));
+    const sourceMeshes = Number(await shell.getAttribute('data-static-batch-source-meshes'));
+    const batchedMeshes = Number(await shell.getAttribute('data-static-batch-meshes'));
+    assert.ok(drawCalls > 0 && drawCalls <= budget.drawCalls, `${budget.label}: ${drawCalls} draw calls (budget ${budget.drawCalls})`);
+    assert.ok(triangles > 0 && triangles <= budget.triangles, `${budget.label}: ${triangles} triangles (budget ${budget.triangles})`);
+    assert.ok(batchedMeshes * 4 < sourceMeshes, `${budget.label}: static batching left ${batchedMeshes} of ${sourceMeshes} meshes`);
+    await page.close();
+  }
+
   const explicitBaseline = await browser.newPage({ viewport: { width: 900, height: 700 } });
   trackErrors(explicitBaseline);
   await explicitBaseline.goto(`${origin}/?view=3d-viewer&rendering=baseline`, { waitUntil: 'networkidle' });
