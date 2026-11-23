@@ -25,6 +25,6 @@
 
 ## 驗收
 
-- 兩份報告搬移前後的輸出逐位元組相同（`node core/solar/...` 對 `node tools/analysis/...`）。
+- 角度報告搬移前後的輸出逐位元組相同（`node core/solar/solar-angle-analysis.mjs` 對 `node tools/analysis/solar-angle-report.mjs`）。能量報告的密集角度掃描在雲端要跑半小時以上，沒有整份比對；它的計算函式本體沒有改，只是改由參數收下讀好的資料，單元測試照常涵蓋各項計算。
 - 在 `core/` 檔案加一行 `import { readFile } from 'node:fs/promises'`，`npm run lint` 會報錯。
 - `npm run lint`、`npm run build`、`npm run test:e2e`、`git diff --check` 通過。
