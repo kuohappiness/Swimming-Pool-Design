@@ -19,6 +19,7 @@ export function destroyAtlas(): void {
   panZoom?.destroy();
   panZoom = null;
   document.removeEventListener('fullscreenchange', syncFullscreen);
+  window.removeEventListener('beforeprint', fitForPrint);
   window.removeEventListener('hashchange', handleHashChange);
   window.removeEventListener('resize', updateSheetTabOverflow);
   tabs.removeEventListener('scroll', updateSheetTabOverflow);
@@ -142,6 +143,11 @@ function bindSheetControls(): void {
   syncFullscreen();
 }
 
+/** 列印整張圖紙，不印放大後的局部。 */
+function fitForPrint(): void {
+  panZoom?.fit();
+}
+
 /** 全畫面時圖紙用滿螢幕，滾輪直接縮放；按 Esc 離開時回到符合畫面。 */
 function syncFullscreen(): void {
   const active = document.fullscreenElement === stage;
@@ -156,6 +162,7 @@ function handleHashChange(): void {
 
 window.addEventListener('hashchange', handleHashChange);
 document.addEventListener('fullscreenchange', syncFullscreen);
+window.addEventListener('beforeprint', fitForPrint);
 window.addEventListener('resize', updateSheetTabOverflow);
 tabs.addEventListener('scroll', updateSheetTabOverflow, { passive: true });
 
