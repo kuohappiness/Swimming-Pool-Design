@@ -28,6 +28,7 @@
 
 | 日期 | 工作 |
 | --- | --- |
+| 2026-11-23 | **單元測試共用一份 Vite 載入設定（TASK-168）**：39 個 3D 單元測試檔改用 `tests/support/web-modules.mjs` 建立 Vite 載入器，關掉 WebSocket，平行跑時不再印出 26 行埠被占用的錯誤（已合併，[入口](tasks/2026-11-23-test-web-modules.md)） |
 | 2026-11-23 | **core/ 的讀檔與命令列入口搬到 tools/（TASK-167）**：角度與能量報告改由 `tools/analysis/` 的兩支程式讀檔印出，來源檔雜湊比對移到 `tools/check/`，`core/` 不再讀檔，ESLint 擋下 `core/` 讀檔（已合併，[入口](tasks/2026-11-23-core-cli-to-tools.md)） |
 | 2026-11-23 | **ST-02 級高與 3F 樓梯口（TASK-132）**：ST-02 改為 23 級（12＋11），級高約 15.6 cm 符合第 33 條第一欄；2F 天花與 3F 樓板補上樓梯口，教室淨 59.739 m²；寫進模型 0.12.0，驗證、圖面、合規對照與文案同步；發布紀錄 0.12.0（已合併，[入口](tasks/2026-11-23-st-02-riser-and-opening.md)） |
 | 2026-11-23 | **全庫 Prettier 排版，格式檢查進 npm run lint（TASK-166）**：程式、測試與工具 197 個檔照 Prettier 排版，`npm run lint` 與 CI 加上格式檢查，排版 commit 記進 `.git-blame-ignore-revs`（已合併，[入口](tasks/2026-11-23-format-all.md)） |

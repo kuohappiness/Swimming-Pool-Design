@@ -1,16 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolve } from 'node:path';
-import { createServer } from 'vite';
+import { createWebModuleServer } from '../../../../../../support/web-modules.mjs';
 
 // 鏡頭效果（TASK-152 步驟 6）：曝光適應、環境遮蔽與接觸陰影、暈光，以及它們在畫面管線裡的順序。
-const repoRoot = resolve(import.meta.dirname, '../../../../../../..');
-const vite = await createServer({
-  root: resolve(repoRoot, 'web'),
-  appType: 'custom',
-  optimizeDeps: { noDiscovery: true },
-  server: { middlewareMode: true, hmr: false },
-});
+const vite = await createWebModuleServer();
 test.after(async () => vite.close());
 const THREE = await vite.ssrLoadModule('three');
 const { adaptationRate, EXPOSURE_ADAPTATION, meterLevel } = await vite.ssrLoadModule(

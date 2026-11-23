@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
-import { createServer } from 'vite';
+import { createWebModuleServer } from '../../../../../support/web-modules.mjs';
 import { buildViewerModel } from '../../../../../../core/viewer/viewer-data.mjs';
 import { adaptWalkthroughSource } from '../../../../../../web/src/views/3d-viewer/walkthrough/adapters/viewer-model-adapter.ts';
 import { WALKTHROUGH_CONFIG } from '../../../../../../web/src/views/3d-viewer/walkthrough/walkthrough-config.ts';
@@ -15,12 +15,7 @@ const [projectModel, analysisRegistry] = await Promise.all([
 ]);
 const viewerModel = buildViewerModel(projectModel, analysisRegistry);
 const walkthroughSource = adaptWalkthroughSource(viewerModel);
-const vite = await createServer({
-  root: resolve(repoRoot, 'web'),
-  appType: 'custom',
-  optimizeDeps: { noDiscovery: true },
-  server: { middlewareMode: true, hmr: false },
-});
+const vite = await createWebModuleServer();
 const [
   { createViewerScene },
   { createBaselineSceneRenderingDependencies },

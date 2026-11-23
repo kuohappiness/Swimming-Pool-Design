@@ -1,15 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolve } from 'node:path';
-import { createServer } from 'vite';
+import { createWebModuleServer } from '../../../../support/web-modules.mjs';
 
-const repoRoot = resolve(import.meta.dirname, '../../../../..');
-const vite = await createServer({
-  root: resolve(repoRoot, 'web'),
-  appType: 'custom',
-  optimizeDeps: { noDiscovery: true },
-  server: { middlewareMode: true, hmr: false },
-});
+const vite = await createWebModuleServer();
 const { FrameStatistics } = await vite.ssrLoadModule('/src/views/3d-viewer/frame-statistics.ts');
 test.after(async () => vite.close());
 
