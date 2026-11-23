@@ -1,5 +1,3 @@
-import { readFile } from 'node:fs/promises';
-import { pathToFileURL } from 'node:url';
 import {
   calculateSolarPosition,
   deriveSolarPlanOrientation,
@@ -592,7 +590,8 @@ export function evaluatePoolSurfaceSensitivity(model, options = {}) {
   };
 }
 
-function buildCliReport(model) {
+/** 角度與池面路徑的完整報告（`node tools/analysis/solar-angle-report.mjs` 印出）。 */
+export function buildSolarAngleReport(model) {
   const study = activeSolarStudyGeometry(model);
   return {
     confirmed: evaluateSolarCandidate(model),
@@ -618,11 +617,4 @@ function buildCliReport(model) {
     continuousWarmSeasonEnvelope: evaluateContinuousWarmSeasonEnvelope(model),
     poolSurfaceSensitivity: evaluatePoolSurfaceSensitivity(model),
   };
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const model = JSON.parse(
-    await readFile(new URL('../../model/project-model.json', import.meta.url), 'utf8'),
-  );
-  console.log(JSON.stringify(buildCliReport(model), null, 2));
 }

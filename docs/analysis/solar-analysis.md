@@ -183,6 +183,6 @@ X=35 m 是 L3 樓板幾何中心，五案中投影重疊最大、幾何偏心最
 ## 8. 重現方式
 
 - 氣象資料：`source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json`
-- 年度能量：`node core/solar/solar-energy-analysis.mjs`
-- 角度／池面路徑：`node core/solar/solar-angle-analysis.mjs`
+- 年度能量：`node tools/analysis/solar-energy-report.mjs`
+- 角度／池面路徑：`node tools/analysis/solar-angle-report.mjs`
 - 回歸測試：`node --test tests/unit/core/solar/solar-energy-analysis.test.mjs tests/unit/core/solar/solar-angle-analysis.test.mjs tests/unit/core/solar/solar-reflection.test.mjs`
