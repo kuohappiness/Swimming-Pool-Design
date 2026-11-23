@@ -21,7 +21,7 @@ const [
   { createViewerScene },
   { createBaselineSceneRenderingDependencies },
   { adaptViewerData },
-  { L3_LEARNING_ROOM_FURNITURE_NAME },
+  { L3_LEARNING_ROOM_FURNITURE_NAME, arrivalContactOnEndWall },
   { l3RectWithinStairOpening, siteToL3Plan },
 ] = await Promise.all([
   vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
@@ -114,7 +114,7 @@ for (const batchStaticGeometry of [false, true]) {
     assert.ok(towardEquipment.indexOf(pane) < towardEquipment.indexOf(tank));
   });
 
-  test(`the end wall opens over the stair; the maintenance door matches the 3F plan (batched: ${batchStaticGeometry})`, () => {
+  test(`the room is entered from the arrival wing beside the stair opening; the maintenance door matches the 3F plan (batched: ${batchStaticGeometry})`, () => {
     const { cast, material } = buildScene(batchStaticGeometry);
     const concrete = material('exposed-concrete-l3');
     // 樓梯口斜斜跨過端牆：那一段下面沒有樓板，牆只留到達翼屋頂以上，門也拿掉了。
@@ -139,14 +139,20 @@ for (const batchStaticGeometry of [false, true]) {
     const lintel = endWallHit(middle, 3.2);
     assert.equal(lintel.material, concrete, 'the wall continues above the arrival-wing roof');
     assert.ok(Math.abs(lintel.point.x - halfLength) < 0.005);
-    for (const z of [gapZ1 - 0.5, gapZ2 + 0.5]) {
+    // 教室門在模型 entryDoor 那一段端牆的中間（樓梯口外、玻璃隔間前，DEC-175）。
+    const door = material('opening-marker');
+    const [contactZ1, contactZ2] = arrivalContactOnEndWall(l3);
+    assert.ok(contactZ1 >= gapZ2 - 0.1 && contactZ2 <= partitionZ, 'door beside the opening');
+    const entry = endWallHit((contactZ1 + contactZ2) / 2, 1);
+    assert.equal(entry.material, door);
+    assert.ok(Math.abs(entry.point.x - (halfLength + 0.02)) < 0.005);
+    for (const z of [gapZ1 - 0.5, contactZ2 + 0.5]) {
       const solid = endWallHit(z, 1);
       assert.equal(solid.material, concrete, `the rest of the end wall stays solid (z ${z})`);
       assert.ok(Math.abs(solid.point.x - halfLength) < 0.005);
     }
 
     // 維修門在旋轉前 X39.5～X40.5（3F 平面圖），其餘是玻璃；從樓梯口和玻璃之間的教室地面看過去。
-    const door = material('opening-marker');
     const [doorX] = local(40, 0);
     const besideGlass = partitionZ - 0.9;
     assert.equal(cast([doorX, 1, besideGlass], [0, 0, 1])[0].material, door);

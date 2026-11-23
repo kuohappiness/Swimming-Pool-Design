@@ -14,6 +14,7 @@ import { createPoolHallDetails } from './pool-hall-details';
 import { createL2InteriorDetails } from './interior-details';
 import { createL3LearningRoom } from './l3-learning-room';
 import {
+  createStairOpeningGuardrail,
   flatSurfaceGeometry,
   l3RectMinusStairOpening,
   l3RectWithinStairOpening,
@@ -1563,13 +1564,10 @@ export function createViewerScene(
   const equipmentZoneGroup = new THREE.Group();
   equipmentZoneGroup.name = l3Data.equipmentZone.entityId;
   equipmentZoneGroup.add(l3Room.equipmentZone);
-  l3RotationGroup.add(
-    learningRoomGroup,
-    equipmentZoneGroup,
-    l3Room.partition,
-    l3Room.furniture,
-    l3Room.stairGuardrail,
-  );
+  l3RotationGroup.add(learningRoomGroup, equipmentZoneGroup, l3Room.partition, l3Room.furniture);
+  // 樓梯口的欄杆跨過旋轉的教室與不旋轉的到達翼，畫在 SITE 座標（DEC-175）。
+  const stairGuardrail = createStairOpeningGuardrail(model, materials);
+  layer('l3').add(stairGuardrail);
   tag(
     learningRoomGroup,
     {
@@ -1594,12 +1592,12 @@ export function createViewerScene(
   );
   const opening = l3Data.stairOpening;
   tag(
-    l3Room.stairGuardrail,
+    stairGuardrail,
     {
       entityId: opening.entityId,
       label: '3F 樓梯口（ST-02）',
       status: 'working',
-      description: `ST-02 穿過旋轉 3F 樓板的 X${opening.bounds.x1}～X${opening.bounds.x2}／Y${opening.bounds.y1}～Y${opening.bounds.y2} 一路開到樓梯頂端，切開 2F 天花、3F 樓板與到達翼，約 ${opening.area} m²；樓梯口外的踏面外緣到板底保持 ${opening.requiredHeadroom.toFixed(2)} m 以上淨高。教室那一側的邊緣設防墜欄杆，畫面上的 ${STAIR_OPENING_GUARDRAIL_HEIGHT.toFixed(2)} m 欄杆是示意。樓梯口邊梁、旋轉樓板被切角後的結構、欄杆高度與防火區劃待專業確認（DEC-174）。`,
+      description: `ST-02 穿過旋轉 3F 樓板的 X${opening.bounds.x1}～X${opening.bounds.x2}／Y${opening.bounds.y1}～Y${opening.bounds.y2} 一路開到樓梯頂端，切開 2F 天花、3F 樓板與到達翼，約 ${opening.area} m²；樓梯口外的踏面外緣到板底保持 ${opening.requiredHeadroom.toFixed(2)} m 以上淨高。除了樓梯頂端接到達翼的那一邊，三邊設防墜欄杆，畫面上的 ${STAIR_OPENING_GUARDRAIL_HEIGHT.toFixed(2)} m 欄杆是示意。樓梯口邊梁、旋轉樓板被切角後的結構、欄杆高度與防火區劃待專業確認（DEC-174）。`,
       openItemId: opening.openItemId,
     },
     selectables,
@@ -1657,11 +1655,12 @@ export function createViewerScene(
       [(terrace.bounds.x1 + terrace.bounds.x2) / 2, l3Data.baseElevation + 0.575, 0.04],
       dark,
     ),
-    box([0.9, 2.1, 0.06], [40.25, l3Data.baseElevation + 1.05, 2.04], dark),
+    // DEC-175：到達翼往北延伸後，通往景觀區的上鎖門移到到達翼北緣。
+    box([0.9, 2.1, 0.06], [40.45, l3Data.baseElevation + 1.05, arrival.bounds.y2 + 0.04], dark),
   );
   const planterMaterial = materials.get('planter');
   extensionGroup.add(
-    box([0.55, 0.42, 0.75], [40.45, l3Data.baseElevation + 0.21, 3.0], planterMaterial),
+    box([0.55, 0.42, 0.75], [40.55, l3Data.baseElevation + 0.21, 3.65], planterMaterial),
     box([0.45, 0.36, 0.65], [40.5, l3Data.baseElevation + 0.18, 4.25], planterMaterial),
     box([0.4, 0.32, 0.35], [40.4, l3Data.baseElevation + 0.16, 0.22], planterMaterial),
   );

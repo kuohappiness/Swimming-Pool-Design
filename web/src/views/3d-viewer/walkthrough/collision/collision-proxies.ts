@@ -270,7 +270,10 @@ function createStairSides(
       siteFrame,
       {
         x1: stair.bounds.x1,
-        x2: stair.bounds.x2,
+        x2:
+          stair.openUpperLandingSide === 'y-max'
+            ? stair.bounds.x2 - stair.upperLandingLength
+            : stair.bounds.x2,
         y1: stair.bounds.y2 - halfWall,
         y2: stair.bounds.y2 + halfWall,
       },

@@ -3,10 +3,11 @@ import {
   resolveActiveGeometry,
   resolveGeometryEntity,
 } from '../geometry/active-geometry.mjs';
-import { deriveSiteOrientation } from '../geometry/site-orientation.mjs';
+import { deriveSiteOrientation, rotateSitePointClockwise } from '../geometry/site-orientation.mjs';
 import {
   boundsOverlapArea,
   deriveStairFlights,
+  polygonArea,
   firstHeadroomShortfallX,
   rotatedBoundsPolygon,
 } from '../geometry/stair-geometry.mjs';
@@ -167,7 +168,7 @@ export function validateModel(model) {
     'Z-CS-M-01': { x1: 32, x2: 41, y1: 2.5, y2: 8 },
     'Z-CS-F-01': { x1: 32, x2: 41, y1: 8, y2: 13.5 },
     'L3-EXT-01': { x1: 38.428, x2: 41, y1: 0, y2: 5.392 },
-    'Z-L3-ARRIVAL-01': { x1: 38.666, x2: 41, y1: 0.5, y2: 2 },
+    'Z-L3-ARRIVAL-01': { x1: 38.666, x2: 41, y1: 0.5, y2: 3.039 },
     'Z-L3-TERRACE-01': { x1: 38.428, x2: 41, y1: 0, y2: 5.392 },
     'Z-L3-LEARN-01': { x1: 29, x2: 41, y1: 0, y2: 5.5 },
     'Z-L3-MEP-01': { x1: 29, x2: 41, y1: 5.5, y2: 13.5 },
@@ -962,7 +963,7 @@ export function validateModel(model) {
   );
   check(
     errors,
-    closeTo(active.l3.arrivalWing.area, 2.964) &&
+    closeTo(active.l3.arrivalWing.area, 4.388) &&
       active.l3.arrivalWing.covered === true &&
       active.l3.arrivalWing.connectsStairToIndoorL3 === true &&
       active.l3.arrivalWing.soleRouteViaTerrace === false,
@@ -970,7 +971,7 @@ export function validateModel(model) {
   );
   check(
     errors,
-    closeTo(active.l3.landscapeTerrace.netLandscapeArea, 3.971) &&
+    closeTo(active.l3.landscapeTerrace.netLandscapeArea, 2.547) &&
       active.l3.landscapeTerrace.access === 'teachers-and-maintenance-only' &&
       active.l3.landscapeTerrace.studentsAllowed === false &&
       active.l3.landscapeTerrace.visitorsAllowed === false &&
@@ -1067,8 +1068,8 @@ export function validateModel(model) {
         active.l2.ceiling.entityId,
         active.l3.floorPlate.entityId,
         active.l3.arrivalWing.entityId,
-      ]) && stairOpening?.edgeProtection === 'guardrail-on-learning-room-edges',
-    'The ST-02 stair opening must cut the L2 ceiling, the L3 plate and the arrival wing, with guardrails on the learning room edges.',
+      ]) && stairOpening?.edgeProtection === 'guardrail-on-all-edges-except-stair-top',
+    'The ST-02 stair opening must cut the L2 ceiling, the L3 plate and the arrival wing, with guardrails on every edge except the stair top.',
   );
   const learningRoomPolygon = rotatedBoundsPolygon(
     learningRoom.bounds,
@@ -1089,6 +1090,50 @@ export function validateModel(model) {
     closeTo(stairOpening.arrivalWingOverlapArea, wingOverlap) &&
       closeTo(active.l3.arrivalWing.walkableArea, active.l3.arrivalWing.area - wingOverlap),
     'The L3 arrival wing walkable area must deduct the part of the ST-02 stair opening inside it.',
+  );
+  const arrivalWing = active.l3.arrivalWing;
+  check(
+    errors,
+    closeTo(arrivalWing.area, polygonArea(arrivalWing.polygon)) &&
+      closeTo(
+        active.l3.landscapeTerrace.netLandscapeArea,
+        active.l3.orthogonalExtension.grossArea - arrivalWing.area,
+      ) &&
+      JSON.stringify(active.l3.landscapeTerrace.excludedArrivalWingPolygon) ===
+        JSON.stringify(arrivalWing.polygon),
+    'The arrival wing area and the terrace net area must follow from the arrival wing polygon.',
+  );
+  const entryDoor = learningRoom.entryDoor;
+  const [roomEdgeStart, roomEdgeEnd] = [learningRoomPolygon[1], learningRoomPolygon[2]];
+  const distanceToRoomEndWall = ([x, y]) => {
+    const [ax, ay] = roomEdgeStart;
+    const [bx, by] = roomEdgeEnd;
+    return Math.abs((bx - ax) * (y - ay) - (by - ay) * (x - ax)) / Math.hypot(bx - ax, by - ay);
+  };
+  // Back to the unrotated L3 plate, where the glass partition is a line of constant Y.
+  const roomLocalY = ([x, y]) =>
+    rotateSitePointClockwise({ x, y }, active.l3.planPivot, -active.l3.planRotation).y;
+  const wingContactTopY = Math.max(
+    ...arrivalWing.polygon
+      .filter((point) => distanceToRoomEndWall(point) <= TOLERANCE)
+      .map(([, y]) => y),
+  );
+  const doorEnds = entryDoor?.wallSegment ?? [];
+  check(
+    errors,
+    doorEnds.length === 2 &&
+      doorEnds.every(
+        (point) =>
+          distanceToRoomEndWall(point) <= TOLERANCE &&
+          point[1] >= stairOpening.bounds.y2 - TOLERANCE &&
+          point[1] <= wingContactTopY + TOLERANCE &&
+          roomLocalY(point) <= active.l3.glassPartition.bounds.y1 + TOLERANCE,
+      ) &&
+      closeTo(
+        entryDoor.wallLength,
+        Math.hypot(doorEnds[1][0] - doorEnds[0][0], doorEnds[1][1] - doorEnds[0][1]),
+      ),
+    'The L3 learning room door must sit on its end wall where the arrival wing touches it, outside the ST-02 stair opening and short of the glass partition (DEC-175).',
   );
   const equipmentZone = active.l3.equipmentZone;
   const glassPartition = active.l3.glassPartition;

@@ -379,6 +379,10 @@ export function adaptWalkthroughSource(
       secondFlightRun: positive(stair2.flightRuns[1], 'ST-02.flightRuns[1]'),
       midLandingLength: positive(stair2.midLandingLength, 'ST-02.midLandingLength'),
       upperLandingLength: positive(stair2.upperLandingLength, 'ST-02.upperLandingLength'),
+      // DEC-175：到達翼往北延伸到教室門，上平台北側要能走過去。
+      ...(model.geometry.l3.arrivalWing.bounds.y2 > stair2.bounds.y2
+        ? { openUpperLandingSide: 'y-max' as const }
+        : {}),
       transform: FIXED_TRANSFORM,
     },
     ...(

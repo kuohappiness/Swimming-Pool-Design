@@ -85,7 +85,7 @@ export function firstHeadroomShortfallX(stair, slabUndersideElevation, requiredH
   return shortfall ? shortfall.x : null;
 }
 
-const polygonArea = (points) =>
+export const polygonArea = (points) =>
   Math.abs(
     points.reduce((sum, [x, y], index) => {
       const [nextX, nextY] = points[(index + 1) % points.length];

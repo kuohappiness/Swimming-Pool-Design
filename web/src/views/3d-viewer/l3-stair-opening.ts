@@ -4,7 +4,7 @@ import type { MaterialRegistry } from './rendering/contracts';
 
 /**
  * 3F 樓梯口 `OP-L3-ST-02-01`（DEC-174，TASK-154）：ST-02 穿過 3F 的地方，在 2F 天花、
- * 旋轉的 3F 樓板與不旋轉的到達翼、擴板上開口，教室那一側的邊緣設防墜欄杆。
+ * 旋轉的 3F 樓板與不旋轉的到達翼、擴板上開口，除了樓梯頂端以外三邊設防墜欄杆（DEC-175）。
  *
  * 樓梯口是 SITE 座標裡的矩形，3F 樓板卻跟著平面旋轉，所以每個被切的面都先轉成 SITE 的凸多邊形、
  * 減掉樓梯口拆成幾塊凸多邊形，再轉回各自的座標畫。拼起來的面在接縫處共用頂點，
@@ -20,8 +20,6 @@ type L3Geometry = ViewerModel['geometry']['l3'];
 export const STAIR_OPENING_GUARDRAIL_HEIGHT = 1.15;
 const GUARDRAIL_POST = 0.05;
 const GUARDRAIL_GLASS = 0.02;
-/** 比這短的邊不畫欄杆（只是擦過樓板角）。 */
-const MINIMUM_GUARDRAIL_LENGTH = 0.1;
 const EPSILON = 1e-9;
 
 export function polygonArea(polygon: readonly PlanPoint[]) {
@@ -288,103 +286,39 @@ export function flatSurfaceGeometry(
   return geometry;
 }
 
-/** 線段在軸向矩形裡的部分（Liang–Barsky）；不相交時回傳 null。 */
-function clipSegment(
-  a: PlanPoint,
-  b: PlanPoint,
-  rect: { x1: number; x2: number; z1: number; z2: number },
-): [PlanPoint, PlanPoint] | null {
-  const dx = b[0] - a[0];
-  const dz = b[1] - a[1];
-  let enter = 0;
-  let exit = 1;
-  for (const [p, q] of [
-    [-dx, a[0] - rect.x1],
-    [dx, rect.x2 - a[0]],
-    [-dz, a[1] - rect.z1],
-    [dz, rect.z2 - a[1]],
-  ]) {
-    if (Math.abs(p) < EPSILON) {
-      if (q < 0) return null;
-      continue;
-    }
-    const t = q / p;
-    if (p < 0) enter = Math.max(enter, t);
-    else exit = Math.min(exit, t);
-  }
-  if (enter >= exit) return null;
-  return [
-    [a[0] + enter * dx, a[1] + enter * dz],
-    [a[0] + exit * dx, a[1] + exit * dz],
-  ];
-}
-
 export interface StairOpeningGuardrailSegment {
-  /** 3F 旋轉群組座標，欄杆中心線的兩端（已從洞口邊往教室那一側退半個欄杆厚）。 */
+  /** SITE 座標，欄杆中心線的兩端（已從洞口邊往外退半個欄杆厚，欄杆整個站在樓板上）。 */
   readonly from: PlanPoint;
   readonly to: PlanPoint;
 }
 
 /**
- * 教室那一側的洞口邊：樓梯口四條邊裡落在 3F 樓板（教室範圍、端牆內側）上的部分。
- * 落在不旋轉的到達翼那一段是樓梯頂端與到達翼，不在教室裡，不畫。
+ * 防墜欄杆的位置：樓梯口除了樓梯頂端（X 較大、接到達翼平台的那一邊）以外的三邊，
+ * 跨過旋轉的教室與不旋轉的到達翼，所以畫在 SITE 座標、不跟 3F 旋轉（DEC-175）。
  */
-export function stairOpeningGuardrailSegments(
-  l3: L3Geometry,
-  roomRect: { x1: number; x2: number; z1: number; z2: number },
-): StairOpeningGuardrailSegment[] {
+export function stairOpeningGuardrailSegments(l3: L3Geometry): StairOpeningGuardrailSegment[] {
   const { x1, x2, y1, y2 } = l3.stairOpening.bounds;
-  const centre: PlanPoint = [(x1 + x2) / 2, (y1 + y2) / 2];
-  const edges: Array<[PlanPoint, PlanPoint]> = [
-    [
-      [x1, y1],
-      [x2, y1],
-    ],
-    [
-      [x2, y1],
-      [x2, y2],
-    ],
-    [
-      [x2, y2],
-      [x1, y2],
-    ],
-    [
-      [x1, y2],
-      [x1, y1],
-    ],
+  const half = GUARDRAIL_POST / 2;
+  // 轉角的立柱共用：兩條長邊延伸到 X34.85 那一邊的外側。
+  return [
+    { from: [x1 - half, y1 - half], to: [x2, y1 - half] },
+    { from: [x1 - half, y2 + half], to: [x2, y2 + half] },
+    { from: [x1 - half, y1 - half], to: [x1 - half, y2 + half] },
   ];
-  const segments: StairOpeningGuardrailSegment[] = [];
-  for (const [a, b] of edges) {
-    // 往洞口外（教室那一側）退半個欄杆厚，欄杆整個站在樓板上。
-    const vertical = a[0] === b[0];
-    const away = vertical ? Math.sign(a[0] - centre[0]) : Math.sign(a[1] - centre[1]);
-    const shift = (GUARDRAIL_POST / 2) * away;
-    const offset = ([x, y]: PlanPoint): PlanPoint => (vertical ? [x + shift, y] : [x, y + shift]);
-    const clipped = clipSegment(siteToL3Plan(l3, offset(a)), siteToL3Plan(l3, offset(b)), roomRect);
-    if (!clipped) continue;
-    const [from, to] = clipped;
-    if (Math.hypot(to[0] - from[0], to[1] - from[1]) < MINIMUM_GUARDRAIL_LENGTH) continue;
-    segments.push({ from, to });
-  }
-  return segments;
 }
 
-/** 教室側的防墜欄杆：安全玻璃欄板，頂端扶手與兩端立柱用結構鋼，畫在 3F 旋轉群組的座標裡。 */
+/** 樓梯口的防墜欄杆：安全玻璃欄板，頂端扶手與兩端立柱用結構鋼，畫在 SITE 座標、高度從 3F 樓板面算起。 */
 export function createStairOpeningGuardrail(
   model: ViewerModel,
   materials: MaterialRegistry,
-  roomRect: { x1: number; x2: number; z1: number; z2: number },
 ): THREE.Group {
   const l3 = model.geometry.l3;
   const steel = materials.get('structural-steel');
   const glass = materials.get('safety-glass');
   const group = new THREE.Group();
   group.name = `${l3.stairOpening.entityId}:GUARDRAIL`;
+  group.position.y = l3.baseElevation;
   const height = STAIR_OPENING_GUARDRAIL_HEIGHT;
-  const segments = stairOpeningGuardrailSegments(l3, roomRect);
-  if (segments.length === 0) {
-    throw new TypeError('3F 樓梯口在教室那一側必須有防墜欄杆（DEC-174）。');
-  }
   const piece = (
     size: [number, number, number],
     centre: PlanPoint,
@@ -399,7 +333,7 @@ export function createStairOpeningGuardrail(
     mesh.receiveShadow = true;
     return mesh;
   };
-  for (const { from, to } of segments) {
+  for (const { from, to } of stairOpeningGuardrailSegments(l3)) {
     const dx = to[0] - from[0];
     const dz = to[1] - from[1];
     const length = Math.hypot(dx, dz);

@@ -203,7 +203,7 @@ for (const batchStaticGeometry of [false, true]) {
     );
   });
 
-  test(`guardrails close the learning-room edges of the opening (batched: ${batchStaticGeometry})`, () => {
+  test(`guardrails close the room-side edges of the opening (batched: ${batchStaticGeometry})`, () => {
     const { cast, material } = buildScene(batchStaticGeometry);
     const glass = material('safety-glass');
     const deck = l3.baseElevation;
@@ -242,24 +242,28 @@ for (const batchStaticGeometry of [false, true]) {
   });
 }
 
-test('the guardrail segments follow the model rule on the learning-room edges', () => {
-  const roomRect = {
-    x1: -halfLength,
-    x2: halfLength - 0.18,
-    z1: -halfWidth + 0.16,
-    z2: l3.glassPartition.bounds.y1 - l3.planPivot.y,
-  };
-  const segments = opening.stairOpeningGuardrailSegments(l3, roomRect);
+test('guardrails run along every edge except the stair top (DEC-175)', () => {
+  const segments = opening.stairOpeningGuardrailSegments(l3);
   assert.equal(segments.length, 3);
-  const site = segments.map(({ from, to }) => [
-    opening.l3PlanToSite(l3, from),
-    opening.l3PlanToSite(l3, to),
-  ]);
   const along = (axis, value) =>
-    site.filter(([a, b]) => Math.abs(a[axis] - value) < 1e-6 && Math.abs(b[axis] - value) < 1e-6);
-  assert.equal(along(1, hole.y1 - 0.025).length, 1, 'Y0.5 edge');
-  assert.equal(along(1, hole.y2 + 0.025).length, 1, 'Y2.0 edge');
+    segments.filter(
+      ({ from, to }) => Math.abs(from[axis] - value) < 1e-9 && Math.abs(to[axis] - value) < 1e-9,
+    );
+  // 兩條長邊從 X34.85 外側一路到樓梯頂端 X39.5，跨過端牆、包含到達翼那一段。
+  for (const y of [hole.y1 - 0.025, hole.y2 + 0.025]) {
+    const [edge] = along(1, y);
+    assert.ok(edge, `edge at Y${y}`);
+    assert.deepEqual(
+      [Math.min(edge.from[0], edge.to[0]), Math.max(edge.from[0], edge.to[0])],
+      [hole.x1 - 0.025, hole.x2],
+    );
+  }
   assert.equal(along(0, hole.x1 - 0.025).length, 1, 'X34.85 edge');
+  assert.equal(
+    segments.some(({ from, to }) => from[0] > hole.x2 - 0.1 && to[0] > hole.x2 - 0.1),
+    false,
+    'no guardrail across the stair top',
+  );
 });
 
 test('the viewer refuses a stair opening that no longer follows DEC-174', () => {

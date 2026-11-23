@@ -464,7 +464,7 @@ export interface ViewerModel {
         headroomRule: 'nosing-to-slab-underside';
         learningRoomOverlapArea: number;
         arrivalWingOverlapArea: number;
-        edgeProtection: 'guardrail-on-learning-room-edges';
+        edgeProtection: 'guardrail-on-all-edges-except-stair-top';
         status: string;
         openItemId: string;
       };
@@ -477,6 +477,8 @@ export interface ViewerModel {
         stairOpeningOverlapArea: number;
         uses: string[];
         entryFrom: string;
+        /** DEC-175：教室門所在的端牆段（SITE-XY），在到達翼往北延伸的那一段。 */
+        entryDoor: { wallSegment: [[number, number], [number, number]]; wallLength: number };
         screenWall: 'mirror-wall-side';
         energyDashboard: 'glass-partition-side';
         status: string;
@@ -970,10 +972,10 @@ export function adaptViewerData(
     opening.bounds.x2 !== stairToL3.bounds.x2 - stairToL3.upperLandingLength ||
     !(opening.bounds.x1 > l2Bounds.x1 && opening.bounds.y1 > l2Bounds.y1) ||
     opening.headroomRule !== 'nosing-to-slab-underside' ||
-    opening.edgeProtection !== 'guardrail-on-learning-room-edges'
+    opening.edgeProtection !== 'guardrail-on-all-edges-except-stair-top'
   ) {
     throw new TypeError(
-      '3F 樓梯口須在 ST-02 正上方切開 2F 天花、3F 樓板與到達翼，直到樓梯頂端；教室側邊緣設防墜欄杆（DEC-174）。',
+      '3F 樓梯口須在 ST-02 正上方切開 2F 天花、3F 樓板與到達翼，直到樓梯頂端；除樓梯頂端外三邊設防墜欄杆（DEC-174、DEC-175）。',
     );
   }
   if (model.referenceSystem.unit !== 'm') throw new TypeError('Viewer 只接受公尺模型。');
