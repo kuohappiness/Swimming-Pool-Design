@@ -58,5 +58,7 @@ export function adaptRenderQualityProfile(
     ambientOcclusion: tier === 'high' && profile.ambientOcclusion,
     enhancedWater: tier !== 'low' && profile.enhancedWater,
     postProcessing: tier === 'high' && profile.postProcessing,
+    bloom: tier === 'high' && Boolean(profile.bloom),
+    exposureAdaptation: tier === 'high' && Boolean(profile.exposureAdaptation),
   });
 }

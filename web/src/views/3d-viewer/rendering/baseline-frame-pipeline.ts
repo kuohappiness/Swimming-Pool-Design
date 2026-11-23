@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import type { FrameEffectPipeline } from './contracts';
+import type { FrameEffect, FrameEffectPipeline } from './contracts';
 import { assertRenderQualityProfile, type RenderQualityProfile } from './quality-profile';
 
 export class BaselineFrameEffectPipeline implements FrameEffectPipeline {
   readonly id = 'baseline-frame-pipeline';
+  readonly activeEffects: readonly FrameEffect[] = Object.freeze([]);
   private quality: RenderQualityProfile;
   private disposed = false;
 
@@ -30,6 +31,8 @@ export class BaselineFrameEffectPipeline implements FrameEffectPipeline {
     this.quality = assertRenderQualityProfile(profile);
     this.applyQuality();
   }
+
+  resetAdaptation() {}
 
   restore() {
     if (this.disposed) return;

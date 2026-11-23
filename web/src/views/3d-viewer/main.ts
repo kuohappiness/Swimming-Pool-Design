@@ -20,7 +20,12 @@ import {
   type RealismTier,
   type ShedStep,
 } from './rendering/performance';
-import { BASELINE_QUALITY_PROFILE, type RenderQualityProfile, type RenderQualityTier } from './rendering/quality-profile';
+import {
+  BASELINE_QUALITY_PROFILE,
+  type RenderQualityProfile,
+  type RenderQualityTier,
+  supportsFrameEffects,
+} from './rendering/quality-profile';
 import { getViewerScene, viewerScenes } from './scenes';
 import { LightingControl } from './lighting-control';
 import {
@@ -232,11 +237,15 @@ try {
       deviceClass: matchMedia('(pointer: coarse)').matches || innerWidth <= 640 ? 'mobile' : 'desktop',
       adaptive: renderingParameters.get('adaptive') !== 'off',
       storage: qualityStorage(),
-      // 調節器在解析度與級別之間能單獨調的效果：目前只有水面平面倒影的解析度，
-      // 而且只有寫實水面才有平面倒影。
-      availableShedSteps: baselineRenderingRequested || renderingParameters.get('water') === 'legacy'
+      // 調節器在解析度與級別之間能單獨調的效果，依 SHED_ORDER 先卸暈光、再卸環境遮蔽（連同接觸
+      // 陰影），最後才降水面平面倒影的解析度。鏡頭效果要顯示卡能畫浮點貼圖，平面倒影只有寫實水面
+      // 才有；各級實際開著哪些，由 sheddableSteps 再篩一次。
+      availableShedSteps: baselineRenderingRequested
         ? []
-        : ['water-reflection-resolution'],
+        : [
+          ...(supportsFrameEffects(renderer) ? ['bloom', 'ambient-occlusion'] as const : []),
+          ...(renderingParameters.get('water') === 'legacy' ? [] : ['water-reflection-resolution'] as const),
+        ],
     });
     // 繪圖管線內部仍以舊的三級決定材質與貼圖版本；四級的設定由 renderQualityProfileForTier 蓋上去。
     let pipelineProfileFor: (tier: RenderQualityTier) => RenderQualityProfile =
@@ -674,6 +683,8 @@ try {
      */
     const applyScene = (sceneId: string, lighting: 'preset' | 'keep' | URLSearchParams = 'preset') => {
       setPoolCutaway(false);
+      // 換場景是剪接：曝光直接對準新畫面，不從上一個場景慢慢適應過來。
+      rendering.framePipeline.resetAdaptation();
       const config = getViewerScene(sceneId);
       const visibleLayers = new Set(config.layers);
       for (const [id, group] of graph.layerGroups) {
@@ -1034,6 +1045,7 @@ try {
       underwaterEffects.setQuality(capability.underwaterEffect === 'essential' ? 'low' : 'high');
       walkthroughQuality.textContent = tier.label;
       shell.dataset.renderQuality = rendering.quality.id;
+      shell.dataset.frameEffects = rendering.framePipeline.activeEffects.join(' ') || 'none';
       shell.dataset.performanceProfile = legacyTier;
       shell.dataset.cameraMotion = String(capability.cameraMotion);
       shell.dataset.underwaterEffect = capability.underwaterEffect;

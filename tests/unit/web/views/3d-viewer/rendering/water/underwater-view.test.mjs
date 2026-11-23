@@ -59,6 +59,7 @@ function createRenderer() {
     log,
     extensions: { has: () => true },
     getDrawingBufferSize: (size) => size.set(800, 500),
+    getRenderTarget: () => target,
     setRenderTarget(next) {
       target = next;
       log.targets.push(next);
@@ -136,6 +137,16 @@ test('above the water the pass does nothing; under water it draws the scene to a
   assert.equal(quad.material.uniforms.uShaftSteps.value, 8);
   assert.throws(() => view.setShaftSteps(MAXIMUM_SHAFT_STEPS + 1), /shaft steps/);
   assert.throws(() => view.setShaftSteps(2.5), /shaft steps/);
+
+  // With post-processing on, the frame pipeline draws the whole frame into its own scene
+  // texture; the underwater view has to draw back into that texture, not to the screen.
+  const frame = new THREE.WebGLRenderTarget(800, 500);
+  renderer.setRenderTarget(frame);
+  renderer.log.renders.length = 0;
+  assert.equal(view.render(renderer, scene, camera), true);
+  assert.equal(renderer.log.renders[0].target, scenePass.target);
+  assert.equal(renderer.log.renders[1].target, frame);
+  frame.dispose();
 
   view.dispose();
   assert.equal(view.render(renderer, scene, camera), false);
