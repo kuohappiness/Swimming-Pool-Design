@@ -1,0 +1,429 @@
+.view-intro--swim-class {
+  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.view-intro--swim-class > p + p {
+  margin-top: .8rem;
+}
+
+.swim-index,
+.swim-sections {
+  width: var(--site-page);
+  margin: 0 auto;
+}
+
+.swim-index {
+  border-block: 1px solid var(--site-line-strong);
+}
+
+.swim-index ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 clamp(1rem, 3vw, 2.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: swim-index;
+}
+
+.swim-index li {
+  counter-increment: swim-index;
+}
+
+.swim-index a {
+  display: inline-flex;
+  gap: .6rem;
+  align-items: center;
+  min-height: 48px;
+  color: var(--site-ink);
+  font-size: .92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.swim-index a::before {
+  color: var(--site-terracotta);
+  font-family: var(--site-mono);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  content: counter(swim-index, decimal-leading-zero);
+}
+
+.swim-index a:hover {
+  color: var(--site-water);
+}
+
+.swim-sections {
+  display: grid;
+  gap: clamp(3.5rem, 7vw, 6.5rem);
+  padding-top: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.swim-section,
+.swim-card,
+.swim-step {
+  scroll-margin-top: calc(var(--site-header-height) + 1rem);
+}
+
+.swim-section-header {
+  max-width: 52rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.swim-section h2 {
+  margin: 0 0 .8rem;
+  color: var(--site-water);
+  font-family: var(--site-serif);
+  font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.swim-section h3 {
+  margin: 0 0 .4rem;
+  color: var(--site-ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.swim-section p {
+  margin: 0;
+  color: var(--site-ink);
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+.swim-section p + p {
+  margin-top: .8rem;
+}
+
+.swim-section a {
+  color: var(--site-water);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
+}
+
+.swim-section-intro p {
+  color: var(--site-muted);
+}
+
+/* Plan of the first floor */
+
+.swim-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.swim-plan {
+  /* Plan-only fills, mixed from the shared tokens (the old --site-water-soft and --site-concrete were retired). */
+  --swim-water-soft: color-mix(in srgb, var(--site-water) 13%, var(--site-paper-raised));
+  --swim-concrete: color-mix(in srgb, var(--site-line-strong) 60%, var(--site-line));
+
+  min-width: 0;
+  margin: 0;
+}
+
+/* The bottom padding leaves room for the entrance label, which hangs below the outer wall. */
+.swim-plan-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 1.5rem;
+}
+
+.swim-plan-canvas {
+  position: relative;
+  width: 100%;
+  min-width: 640px;
+}
+
+.swim-plan svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.swim-plan svg * {
+  vector-effect: non-scaling-stroke;
+}
+
+.swim-plan-hall {
+  fill: var(--site-paper-raised);
+  stroke: var(--site-line-strong);
+  stroke-width: 1.5;
+}
+
+.swim-plan-service {
+  fill: color-mix(in srgb, var(--swim-concrete) 28%, var(--site-paper-raised));
+  stroke: var(--site-line-strong);
+  stroke-width: 1.5;
+}
+
+.swim-plan-pool {
+  fill: var(--swim-water-soft);
+  stroke: var(--site-water);
+  stroke-width: 1.5;
+}
+
+.swim-plan-lane {
+  stroke: var(--site-white);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+}
+
+.swim-plan-platform {
+  fill: color-mix(in srgb, var(--site-white) 55%, var(--swim-water-soft));
+  stroke: var(--site-water);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.swim-plan-place {
+  fill: color-mix(in srgb, var(--site-line) 30%, transparent);
+  stroke: var(--site-line-strong);
+  stroke-width: 1;
+  transition: fill .15s ease;
+}
+
+.swim-plan-place--stair {
+  fill: color-mix(in srgb, var(--swim-concrete) 35%, var(--site-paper-raised));
+}
+
+.swim-plan-place.is-active {
+  fill: color-mix(in srgb, var(--site-terracotta) 38%, var(--site-paper-raised));
+  stroke: var(--site-terracotta);
+  stroke-width: 2;
+}
+
+.swim-plan-tread {
+  stroke: var(--site-line-strong);
+  stroke-width: 1;
+  opacity: .6;
+}
+
+.swim-plan-parapet {
+  fill: var(--site-ink);
+  stroke: none;
+}
+
+.swim-plan-entrance {
+  fill: var(--site-terracotta);
+  stroke: var(--site-terracotta);
+  stroke-width: 3;
+}
+
+.swim-plan-route {
+  fill: none;
+  stroke: var(--site-terracotta);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  stroke-linejoin: round;
+}
+
+.swim-plan-label,
+.swim-plan-marker {
+  position: absolute;
+  transform: translate(-50%, 50%);
+}
+
+.swim-plan-label {
+  color: var(--site-muted);
+  font-size: .78rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.swim-plan-label--pool {
+  color: var(--site-water);
+  font-weight: 700;
+}
+
+.swim-plan-label--platform {
+  color: var(--site-water);
+}
+
+.swim-plan-label--stair {
+  color: var(--site-ink);
+  font-size: .72rem;
+}
+
+/* The entrance is on the lower edge of the plan; its label hangs just below the wall. */
+.swim-plan-label--entrance {
+  color: var(--site-terracotta);
+  font-weight: 700;
+  transform: translate(-50%, calc(100% + .3rem));
+}
+
+.swim-plan-marker,
+.swim-locate {
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--site-terracotta);
+  border-radius: 50%;
+  background: var(--site-white);
+  color: var(--site-terracotta);
+  font-family: var(--site-sans);
+  font-size: .8rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.swim-plan-marker {
+  width: 1.6rem;
+  height: 1.6rem;
+  box-shadow: 0 0 0 2px var(--site-paper);
+  pointer-events: none;
+  transition: transform .15s ease;
+}
+
+.swim-plan-marker.is-active {
+  z-index: 1;
+  background: var(--site-terracotta);
+  color: var(--site-white);
+  transform: translate(-50%, 50%) scale(1.25);
+}
+
+.swim-plan figcaption {
+  padding: .35rem 0 0;
+  color: var(--site-muted);
+  font-size: .82rem;
+  line-height: 1.7;
+}
+
+/* Steps of the route and located cards */
+
+.swim-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.75rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.swim-step,
+.swim-card--located {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .7rem;
+  align-content: start;
+  padding-top: 1rem;
+  border-top: 1px solid var(--site-line-strong);
+}
+
+.swim-step.is-active,
+.swim-card--located.is-active {
+  border-top-color: var(--site-terracotta);
+  box-shadow: inset 0 2px 0 var(--site-terracotta);
+}
+
+.swim-locate {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.swim-locate[aria-pressed="true"] {
+  background: var(--site-terracotta);
+  color: var(--site-white);
+}
+
+.swim-locate:focus-visible {
+  outline: 2px solid var(--site-water);
+  outline-offset: 3px;
+}
+
+.swim-step-body p {
+  font-size: .95rem;
+  line-height: 1.85;
+}
+
+.swim-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 clamp(1.5rem, 4vw, 4rem);
+  max-width: 76rem;
+}
+
+.swim-cards--care {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.75rem);
+  max-width: none;
+}
+
+.swim-card {
+  padding: 1.1rem 0 1.4rem;
+  border-top: 1px solid var(--site-line);
+}
+
+.swim-card--located {
+  padding: 1rem 0 0;
+  border-top-color: var(--site-line-strong);
+}
+
+@media (max-width: 1100px) {
+  .swim-steps,
+  .swim-cards--care {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .swim-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .swim-steps,
+  .swim-cards,
+  .swim-cards--care {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .swim-step,
+  .swim-card--located {
+    grid-template-columns: 44px minmax(0, 1fr);
+    column-gap: .9rem;
+  }
+
+  .swim-plan-label {
+    font-size: .72rem;
+  }
+
+  /* On a phone the list is longer than the screen, so the plan stays under the header while the list scrolls. */
+  .swim-plan {
+    position: sticky;
+    top: var(--site-header-height);
+    z-index: 2;
+    margin-inline: -14px;
+    padding: .6rem 14px .5rem;
+    border-bottom: 1px solid var(--site-line);
+    background: var(--site-paper);
+  }
+
+  .swim-plan-canvas {
+    min-width: 600px;
+  }
+
+  .swim-plan figcaption {
+    padding-top: 0;
+    font-size: 0;
+  }
+
+  .swim-plan figcaption::before {
+    font-size: .78rem;
+    content: "左右滑動可以看完整的平面";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swim-plan-place,
+  .swim-plan-marker {
+    transition: none;
+  }
+}
