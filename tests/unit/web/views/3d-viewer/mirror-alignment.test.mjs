@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
-import { createServer } from 'vite';
+import { createWebModuleServer } from '../../../../support/web-modules.mjs';
 import { buildViewerModel } from '../../../../../core/viewer/viewer-data.mjs';
 import { deriveMirrorGeometry } from '../../../../../core/geometry/mirror-geometry.mjs';
 import { activeSolarStudyGeometry } from '../../../../../core/solar/solar-angle-analysis.mjs';
@@ -17,12 +17,7 @@ test('3D mirror wall sits where the solar analysis puts it', async () => {
     readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
     readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
   ]);
-  const vite = await createServer({
-    root: resolve(repoRoot, 'web'),
-    appType: 'custom',
-    optimizeDeps: { noDiscovery: true },
-    server: { middlewareMode: true, hmr: false },
-  });
+  const vite = await createWebModuleServer();
   try {
     const [{ createViewerScene }, { createBaselineSceneRenderingDependencies }] = await Promise.all(
       [

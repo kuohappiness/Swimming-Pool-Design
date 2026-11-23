@@ -49,6 +49,7 @@ Swimming-Pool-Design/
 ├─ tests/
 │  ├─ unit/                  core/、web/、tools/、docs/ 底下對應原始碼或文件位置的子資料夾
 │  ├─ e2e/                   web.e2e.mjs、3d-viewer.e2e.mjs
+│  ├─ support/               測試共用的載入工具：web-modules（以 Vite 載入網站的 TypeScript 模組）
 │  └─ fixtures/              測試與工具讀取的固定資料
 ├─ source-materials/         原始來源，只增不改
 │  ├─ site/                  衛星圖、標註圖、氣象資料、校徽；photos/ 校園場勘照片
