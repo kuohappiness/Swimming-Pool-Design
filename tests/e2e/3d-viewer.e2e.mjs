@@ -388,6 +388,8 @@ try {
     ['RF-PV-RES-01', /182\.6 m²[\s\S]*169\.4 m²[\s\S]*92\.74%/, 'viewer-pv-reserve.png'],
     ['Z-L3-ARRIVAL-01', /有頂室內[\s\S]*戶外景觀區不是唯一/, 'viewer-l3-arrival.png'],
     ['Z-L3-TERRACE-01', /只限教師與維修人員[\s\S]*不開放學生/, 'viewer-l3-terrace.png'],
+    ['Z-L3-LEARN-01', /約半班[\s\S]*不作整班[\s\S]*鏡牆不開窗/, 'viewer-l3-learning-room.png'],
+    ['W-L3-GLASS-01', /隔音玻璃[\s\S]*上鎖維修門/, 'viewer-l3-glass-partition.png'],
   ]) {
     const option = desktop.locator('[data-object-select] option').filter({
       hasText: new RegExp(`^${objectId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} ·`),

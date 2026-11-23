@@ -311,7 +311,28 @@ export interface ViewerModel {
         netLandscapeArea: number; access: 'teachers-and-maintenance-only'; studentsAllowed: false;
         visitorsAllowed: false; publicGathering: false; primaryEgress: false; accessControl: string[];
       };
-      programStrategy: Record<string, string>;
+      programStrategy: Record<string, unknown> & {
+        wholeClassUse: false;
+        flexibleAreaProtection: string;
+        mirrorOpenings: false;
+        poolViewing: string;
+        smallGroupSize: string;
+      };
+      /** DEC-173 的三件：範圍是旋轉前的 3F 樓板座標，和樓板一起旋轉。 */
+      learningRoom: ViewerZone & {
+        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation'; rotation: number; area: number;
+        uses: string[]; entryFrom: string; screenWall: 'mirror-wall-side'; energyDashboard: 'glass-partition-side';
+        status: string; openItemId: string;
+      };
+      equipmentZone: ViewerZone & {
+        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation'; rotation: number; area: number;
+        access: string; status: string; openItemId: string;
+      };
+      glassPartition: ViewerZone & {
+        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation'; rotation: number;
+        type: 'acoustic-glass-partition'; separates: [string, string]; maintenanceDoor: 'locked';
+        status: string; openItemId: string;
+      };
       roof: ViewerZone & {
         baseElevation: number; thickness: number; rotation: number; area: number;
         continuous: true; extendsToMirrorTopEdge: true; openItemId: string;
@@ -612,6 +633,20 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     || storage.batteryObjectsOnGeneralL3Interior !== false
     || storage.fireApproval !== false) {
     throw new TypeError('0.6.7 的 L3 必須有完整屋頂、鏡牆端部收邊與高覆蓋率光電排布；儲能仍以地面獨立戶外優先。');
+  }
+  const { learningRoom, equipmentZone, glassPartition, programStrategy } = model.geometry.l3;
+  const l3Bounds = model.geometry.l3.bounds;
+  const withinL3 = (bounds: SiteBounds) => bounds.x1 >= l3Bounds.x1 && bounds.x2 <= l3Bounds.x2
+    && bounds.y1 >= l3Bounds.y1 && bounds.y2 <= l3Bounds.y2;
+  if (!learningRoom || !equipmentZone || !glassPartition
+    || [learningRoom, equipmentZone, glassPartition].some((part) => part.rotation !== model.geometry.l3.planRotation.value
+      || part.boundsBasis !== 'unrotated-l3-plate-shares-l3-plan-rotation' || !withinL3(part.bounds))
+    || learningRoom.entryFrom !== model.geometry.l3.arrivalWing.entityId
+    || glassPartition.separates[0] !== learningRoom.entityId || glassPartition.separates[1] !== equipmentZone.entityId
+    || !(glassPartition.bounds.y1 < learningRoom.bounds.y2 && glassPartition.bounds.y2 > equipmentZone.bounds.y1)
+    || glassPartition.maintenanceDoor !== 'locked'
+    || programStrategy.wholeClassUse !== false || programStrategy.mirrorOpenings !== false) {
+    throw new TypeError('3F 須以玻璃隔間分成到達翼那側的觀課與環境教育室和設備區，三者隨 3F 樓板旋轉；不作整班教室、鏡牆不開窗（DEC-173）。');
   }
   if (model.referenceSystem.unit !== 'm') throw new TypeError('Viewer 只接受公尺模型。');
   for (const [label, value] of [
