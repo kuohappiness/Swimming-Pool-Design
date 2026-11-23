@@ -1,12 +1,12 @@
-export type Status = 'confirmed' | 'working' | 'deferred' | 'legacy';
+type Status = 'confirmed' | 'working' | 'deferred' | 'legacy';
 
-export interface NumericMeasure {
+interface NumericMeasure {
   value: number;
   status: Exclude<Status, 'deferred'>;
   sourceIds: string[];
 }
 
-export interface Entity {
+interface Entity {
   id: string;
   name: string;
   type: string;
@@ -16,14 +16,14 @@ export interface Entity {
   sourceIds: string[];
 }
 
-export interface Sheet {
+interface Sheet {
   id: string;
   title: string;
   level: string;
   referencedEntityIds: string[];
 }
 
-export interface ActiveGeometryRevision {
+interface ActiveGeometryRevision {
   id: string;
   revision: string;
   modelVersion: string;
