@@ -400,7 +400,7 @@ test('walkthrough UI and selection lifecycle expose stable accessibility hooks',
   assert.match(html, /data-touch-look[^>]+aria-label="右側環視控制"/);
   assert.match(styles, /min-height:\s*44px/);
   assert.match(styles, /env\(safe-area-inset-bottom\)/);
-  assert.match(styles, /data-camera-mode="walkthrough"/);
+  assert.match(styles, /data-camera-mode=['"]walkthrough['"]/);
   assert.match(interactions, /suspend\(\)/);
   assert.match(interactions, /if \(attached \|\| disposed\) return/);
   assert.match(main, /captureInspectState/);

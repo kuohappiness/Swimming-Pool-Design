@@ -7,6 +7,9 @@ import { buildViewerModel } from '../../../../core/viewer/viewer-data.mjs';
 import { compilePublicContent, injectModelTokens } from '../../../../tools/build/build-content.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
+// 瀏覽器把連續空白顯示成一個空格；原稿換行只是排版，比對文字前先照瀏覽器的方式合併。
+const collapseHtmlWhitespace = (html) => html.replace(/\s+/g, ' ');
+
 const [modelText, registryText, markdown, manifestText, generatedModelText, generatedContentText, sceneFactorySource, baselineMaterialsSource, interactionsSource, viewerHtml, solarHtml] = await Promise.all([
   readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
   readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'),
@@ -17,8 +20,8 @@ const [modelText, registryText, markdown, manifestText, generatedModelText, gene
   readFile(resolve(repoRoot, 'web/src/views/3d-viewer/scene-factory.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'web/src/views/3d-viewer/rendering/baseline-material-registry.ts'), 'utf8'),
   readFile(resolve(repoRoot, 'web/src/views/3d-viewer/interactions.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/template.html'), 'utf8'),
-  readFile(resolve(repoRoot, 'web/src/views/solar-study/template.html'), 'utf8'),
+  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/template.html'), 'utf8').then(collapseHtmlWhitespace),
+  readFile(resolve(repoRoot, 'web/src/views/solar-study/template.html'), 'utf8').then(collapseHtmlWhitespace),
 ]);
 const sourceModel = JSON.parse(modelText);
 const registry = JSON.parse(registryText);

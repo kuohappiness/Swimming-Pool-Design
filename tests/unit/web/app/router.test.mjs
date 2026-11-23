@@ -23,7 +23,7 @@ test('public site has one HTML entry and eight query views', async () => {
   assert.doesNotMatch(viteSource, /solarStudy:|viewer3d:|atlas:/);
   for (const view of ['design-concept', 'solar-study', 'water-cycle', 'swim-class', 'design-process', 'drawings', '3d-viewer', 'about']) {
     assert.match(routerSource, new RegExp(`'${view}'`));
-    assert.match(bootstrapSource, new RegExp(`'${view}'`));
+    assert.match(bootstrapSource, new RegExp(`(?:'${view}'|\\b${view})\\s*:`));
   }
 });
 
