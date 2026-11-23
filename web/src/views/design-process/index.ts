@@ -191,10 +191,10 @@ function renderVersions({ items }: ProcessSection): string {
 
 function renderCards({ items }: ProcessSection, modifier: string): string {
   return `
-    <div class="process-cards process-cards--${modifier}">
+    <div class="process-cards site-cards${modifier === 'open' ? '' : ' site-cards--two'} process-cards--${modifier}">
       ${items.map((item, index) => `
-        <article class="process-card" id="${anchorFor(item.id)}">
-          <p class="process-card-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</p>
+        <article class="process-card site-card" id="${anchorFor(item.id)}">
+          <p class="process-card-number site-card-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</p>
           <h3>${item.title}</h3>
           ${item.html}
         </article>
@@ -219,21 +219,21 @@ export function mount(container: HTMLElement): MountedView {
       <h1 id="design-process-title">從第一張手繪稿，<br>到現在的每一次修改。</h1>
       ${overview.html}
     </section>
-    <nav class="process-index" aria-label="本頁目錄">
+    <nav class="process-index site-chapter-index" aria-label="本頁目錄">
       <ol>
         ${sections.map(({ id, title }) => `<li><a href="#${anchorFor(id)}">${title}</a></li>`).join('')}
       </ol>
     </nav>
-    <div class="process-sections" data-content-hash="${content.contentHash}">
+    <div class="process-sections site-chapters" data-content-hash="${content.contentHash}">
       ${sections.map((current) => `
         <section
-          class="process-section process-section--${current.id}"
+          class="process-section site-chapter process-section--${current.id}"
           id="${anchorFor(current.id)}"
           aria-labelledby="${anchorFor(current.id)}-title"
         >
-          <header class="process-section-header">
+          <header class="process-section-header site-chapter-header">
             <h2 id="${anchorFor(current.id)}-title">${current.title}</h2>
-            <div class="process-section-intro">${current.html}</div>
+            <div class="process-section-intro site-chapter-intro">${current.html}</div>
           </header>
           ${renderSectionBody(current)}
         </section>

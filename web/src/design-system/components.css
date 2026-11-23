@@ -57,3 +57,169 @@ summary {
   font-family: var(--site-serif);
   font-size: clamp(2rem, 5vw, 4rem);
 }
+
+/*
+ * 分節說明頁（水循環、一堂游泳課、設計歷程、關於）共用的目錄列、章節與卡片（TASK-174）。
+ * 各頁的 class 與錨點照舊保留，外加這組 class；頁面只在 view.css 寫自己的版面差異。
+ */
+.site-chapter-index {
+  width: var(--site-page);
+  margin: 0 auto;
+  border-block: 1px solid var(--site-line-strong);
+}
+
+.site-chapter-index ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 clamp(1rem, 3vw, 2.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: site-chapter;
+}
+
+.site-chapter-index li {
+  counter-increment: site-chapter;
+}
+
+.site-chapter-index a {
+  display: inline-flex;
+  gap: .6rem;
+  align-items: center;
+  min-height: 48px;
+  color: var(--site-ink);
+  font-size: var(--site-text-sm);
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.site-chapter-index a::before {
+  color: var(--site-terracotta);
+  font-family: var(--site-mono);
+  font-size: var(--site-text-xs);
+  letter-spacing: .08em;
+  content: counter(site-chapter, decimal-leading-zero);
+}
+
+.site-chapter-index a:hover {
+  color: var(--site-water);
+}
+
+/* 側欄目錄：一項一列，桌機固定在頁首下方。 */
+.site-chapter-index--aside {
+  position: sticky;
+  top: calc(var(--site-header-height) + 1.5rem);
+  width: auto;
+  margin: 0;
+  padding-top: 1rem;
+  border-bottom: 0;
+}
+
+.site-chapter-index--aside ol {
+  display: grid;
+  gap: .15rem;
+}
+
+.site-chapter-index--aside a {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0;
+  min-height: 44px;
+}
+
+.site-chapters {
+  display: grid;
+  gap: clamp(3.5rem, 7vw, 6.5rem);
+  width: var(--site-page);
+  margin: 0 auto;
+  padding-top: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.site-chapter,
+.site-card {
+  scroll-margin-top: calc(var(--site-header-height) + 1rem);
+}
+
+.site-chapter-header {
+  max-width: 52rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.site-chapter h2 {
+  margin: 0 0 .8rem;
+  color: var(--site-water);
+  font-family: var(--site-serif);
+  font-size: var(--site-text-h2);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.site-chapter h3 {
+  margin: 0 0 .4rem;
+  color: var(--site-ink);
+  font-size: var(--site-text-md);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.site-chapter p,
+.site-chapter li,
+.site-chapter dd {
+  margin: 0;
+  color: var(--site-text);
+  font-size: var(--site-text-md);
+  line-height: 1.9;
+}
+
+.site-chapter p + p {
+  margin-top: .8rem;
+}
+
+.site-chapter a {
+  color: var(--site-water);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
+}
+
+.site-chapter-intro p {
+  color: var(--site-muted);
+}
+
+.site-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 clamp(1.5rem, 4vw, 4rem);
+  max-width: 76rem;
+}
+
+.site-cards--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.site-card {
+  padding: 1.1rem 0 1.4rem;
+  border-top: 1px solid var(--site-line);
+}
+
+.site-chapter .site-card-number {
+  color: var(--site-terracotta);
+  font-family: var(--site-mono);
+  font-size: var(--site-text-xs);
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.6;
+}
+
+@media (max-width: 1000px) {
+  .site-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .site-cards,
+  .site-cards--two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

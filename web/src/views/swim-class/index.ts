@@ -187,9 +187,9 @@ function renderCare({ items }: SwimSection): string {
   return `
     <div class="swim-group" data-swim-group="care">
       ${renderPlan('care', markers, `一樓平面圖上的安全與照顧位置：${items.map((item, index) => `${markers[index].badge} ${item.title}`).join('、')}。`)}
-      <div class="swim-cards swim-cards--care">
+      <div class="swim-cards site-cards swim-cards--care">
         ${items.map((item, index) => `
-          <article class="swim-card swim-card--located" id="${anchorFor(item.id)}" data-swim-key="${markers[index].key}">
+          <article class="swim-card site-card swim-card--located" id="${anchorFor(item.id)}" data-swim-key="${markers[index].key}">
             ${renderLocator(markers[index], item.title)}
             <div class="swim-step-body">
               <h3>${item.title}</h3>
@@ -204,9 +204,9 @@ function renderCare({ items }: SwimSection): string {
 
 function renderCards({ items }: SwimSection, modifier: string): string {
   return `
-    <div class="swim-cards swim-cards--${modifier}">
+    <div class="swim-cards site-cards swim-cards--${modifier}">
       ${items.map((item) => `
-        <article class="swim-card" id="${anchorFor(item.id)}">
+        <article class="swim-card site-card" id="${anchorFor(item.id)}">
           <h3>${item.title}</h3>
           ${item.html}
         </article>
@@ -272,21 +272,21 @@ export function mount(container: HTMLElement): MountedView {
       <h1 id="swim-class-title">從脫下鞋子，<br>到走進水裡。</h1>
       ${overview.html}
     </section>
-    <nav class="swim-index" aria-label="本頁目錄">
+    <nav class="swim-index site-chapter-index" aria-label="本頁目錄">
       <ol>
         ${sections.map(({ id, title }) => `<li><a href="#${anchorFor(id)}">${title}</a></li>`).join('')}
       </ol>
     </nav>
-    <div class="swim-sections" data-content-hash="${content.contentHash}">
+    <div class="swim-sections site-chapters" data-content-hash="${content.contentHash}">
       ${sections.map((current) => `
         <section
-          class="swim-section swim-section--${current.id}"
+          class="swim-section site-chapter swim-section--${current.id}"
           id="${anchorFor(current.id)}"
           aria-labelledby="${anchorFor(current.id)}-title"
         >
-          <header class="swim-section-header">
+          <header class="swim-section-header site-chapter-header">
             <h2 id="${anchorFor(current.id)}-title">${current.title}</h2>
-            <div class="swim-section-intro">${current.html}</div>
+            <div class="swim-section-intro site-chapter-intro">${current.html}</div>
           </header>
           ${renderSectionBody(current)}
         </section>

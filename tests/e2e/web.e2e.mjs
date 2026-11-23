@@ -934,6 +934,37 @@ try {
   await aboutDeepLink.screenshot({ path: resolve(outputDirectory, 'public-about-mobile.png') });
   await aboutDeepLink.close();
 
+  // 分節說明頁共用同一組目錄列、章節與卡片（TASK-174）：章標同一字級，頁內文字不小於 12px。
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const chapterPage = await browser.newPage({ viewport });
+    trackErrors(chapterPage, errors);
+    const h2Sizes = new Set();
+    for (const viewId of ['water-cycle', 'swim-class', 'design-process', 'about']) {
+      await chapterPage.goto(`${origin}/?view=${viewId}`, { waitUntil: 'networkidle' });
+      await waitForView(chapterPage, viewId);
+      assert.equal(await chapterPage.locator('.site-chapter-index').count(), 1, `${viewId} chapter index`);
+      assert.equal(await chapterPage.locator('.site-chapter').count() >= 4, true, `${viewId} chapters`);
+      const report = await chapterPage.locator('main').evaluate((main) => {
+        const sizes = [...main.querySelectorAll('.site-chapter h2')].map((heading) => getComputedStyle(heading).fontSize);
+        const tiny = [];
+        const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) {
+          const element = walker.currentNode.parentElement;
+          if (!walker.currentNode.textContent?.trim() || !element || element.closest('svg, .site-visually-hidden')) continue;
+          const style = getComputedStyle(element);
+          // 字級 0 是刻意藏起原文、改由 ::before 顯示替代說明的寫法。
+          if (style.display === 'none' || style.fontSize === '0px' || element.getClientRects().length === 0) continue;
+          if (Number.parseFloat(style.fontSize) < 12) tiny.push(`${element.className || element.tagName} ${style.fontSize}`);
+        }
+        return { sizes, tiny };
+      });
+      for (const size of report.sizes) h2Sizes.add(size);
+      assert.deepEqual(report.tiny, [], `${viewId} has text below 12px at ${viewport.width}px`);
+    }
+    assert.equal(h2Sizes.size, 1, `chapter H2 sizes differ at ${viewport.width}px: ${[...h2Sizes].join(', ')}`);
+    await chapterPage.close();
+  }
+
   const reentry = await browser.newPage({ viewport: { width: 390, height: 844 } });
   trackErrors(reentry, errors);
   await reentry.goto(origin, { waitUntil: 'networkidle' });

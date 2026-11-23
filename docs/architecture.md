@@ -210,7 +210,8 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 4. `--site-*` 設計變數只在 `tokens.css` 定義；用到的都要有定義，定義的都要有人用。顏色、字級與焦點框用變數：文字最小 `--site-text-xs`（12px），段落用 `--site-text`，圖表與 3D 的資料色用 `--site-data-*`，不當文字色。焦點框由 `components.css` 全站統一，分頁不自訂。
 5. 網站字型是 `npm run build:fonts` 從思源黑體、思源宋體切出的子集（[DEC-211](decisions.md)），產物在 `web/src/generated/fonts/`，由 `index.css` 匯入；`prepare`、`predev`、`build` 會自動產生，加新文字不需要手動處理。
 6. 標題字級：每頁 H1 是該頁最大的字，用 `--site-text-h1`，只有首頁 H1 用 `--site-text-display`；H2 用 `--site-text-h2`，H3 用 `--site-text-h3`。各頁首區共用 `.view-intro` 的一欄排法，分頁不另排。列印樣式放在 `print.css`，分頁只補自己的列印規則（[DEC-212](decisions.md)）。
-7. 現存例外：`3d-viewer` 仍有 `styles.css` 與 `view.css` 兩個檔，且暫不受第 3 點檢查，等 3D 介面改版時併成一檔。
+7. 分節說明頁（水循環、一堂游泳課、設計歷程、關於）用 `components.css` 的共用元件：目錄列 `.site-chapter-index`（側欄版加 `--aside`）、章節 `.site-chapters` / `.site-chapter` / `.site-chapter-header` / `.site-chapter-intro`、卡片 `.site-cards`（兩欄加 `--two`）/ `.site-card` / `.site-card-number`。頁面在自己的元素上加這組 class，view.css 只寫這一頁獨有的版面；卡片標題（H3）用 `--site-text-md` 粗體（[DEC-214](decisions.md)）。
+8. 現存例外：`3d-viewer` 仍有 `styles.css` 與 `view.css` 兩個檔，且暫不受第 3 點檢查，等 3D 介面改版時併成一檔。
 
 ## 6. 名詞對照
 
