@@ -14,6 +14,7 @@
 | TASK-151 3D 寫實升級階段二：水 | 實作中 | 教學平台折射等 TASK-118 合併後補上；泳者折射、即時焦散、涉水漣漪與溢水溝水流待排（步驟 1 至 6 已合併） | Claude | [入口](tasks/2026-11-22-3d-realism-water.md) |
 | TASK-171 樣式可讀性：網站字型、色票、字級與焦點框 | 待審 | 使用者審閱 PR 後合併 | 使用者 | [入口](tasks/2026-11-23-style-readability.md) |
 | TASK-172 樣式外框與手機：頁首選單、頁尾、頁面首區、標題字級、列印與網站圖示 | 實作中 | 等 TASK-171 合併後接上 main 開 PR | Claude | [入口](tasks/2026-11-23-style-frame.md) |
+| TASK-173 樣式各頁版面：日照頁重排、圖面檢視器與首頁重排 | 實作中 | 等 TASK-172 合併後接上 main 開 PR | Claude | [入口](tasks/2026-11-23-style-pages.md) |
 | TASK-152 3D 寫實升級階段三：光與天空 | 實作中 | 做步驟 6 鏡頭效果（步驟 1 至 5 已合併） | Claude | [入口](tasks/2026-11-22-3d-realism-light.md) |
 
 ## 等觸發點
