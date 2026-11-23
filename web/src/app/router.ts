@@ -1,4 +1,4 @@
-export const viewIds = ['design-concept', 'solar-study', 'design-process', 'drawings', '3d-viewer', 'about'] as const;
+export const viewIds = ['design-concept', 'solar-study', 'water-cycle', 'design-process', 'drawings', '3d-viewer', 'about'] as const;
 
 export type ViewId = (typeof viewIds)[number];
 
@@ -43,6 +43,13 @@ export const viewDefinitions: readonly ViewDefinition[] = [
     label: '日照研究',
     eyebrow: 'SOLAR STUDY',
     description: '日照角度的季節性研究',
+    group: 'topics',
+  },
+  {
+    id: 'water-cycle',
+    label: '水循環',
+    eyebrow: 'WATER CYCLE',
+    description: '雨量、屋頂接到的雨水與它的去向',
     group: 'topics',
   },
   {
