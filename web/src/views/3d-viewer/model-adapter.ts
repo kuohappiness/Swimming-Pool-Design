@@ -433,6 +433,7 @@ export interface ViewerModel {
       arrivalWing: ViewerZone & {
         polygon: Array<[number, number]>;
         area: number;
+        walkableArea: number;
         covered: true;
         connectsStairToIndoorL3: true;
       };
@@ -454,12 +455,26 @@ export interface ViewerModel {
         poolViewing: string;
         smallGroupSize: string;
       };
+      /** DEC-174：ST-02 穿過 3F 處的樓梯口，範圍是 SITE 座標（不旋轉）。 */
+      stairOpening: ViewerZone & {
+        area: number;
+        stairEntityId: string;
+        cutsEntityIds: string[];
+        requiredHeadroom: number;
+        headroomRule: 'nosing-to-slab-underside';
+        learningRoomOverlapArea: number;
+        arrivalWingOverlapArea: number;
+        edgeProtection: 'guardrail-on-all-edges-except-stair-top';
+        status: string;
+        openItemId: string;
+      };
       /** DEC-173 的三件：範圍是旋轉前的 3F 樓板座標，和樓板一起旋轉。 */
       learningRoom: ViewerZone & {
         boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation';
         rotation: number;
         area: number;
         netArea: number;
+        stairOpeningOverlapArea: number;
         uses: string[];
         entryFrom: string;
         /** DEC-175：教室門所在的端牆段（SITE-XY），在到達翼往北延伸的那一段。 */
@@ -940,6 +955,27 @@ export function adaptViewerData(
   ) {
     throw new TypeError(
       '3F 須以玻璃隔間分成到達翼那側的觀課與環境教育室和設備區，三者隨 3F 樓板旋轉；不作整班教室、鏡牆不開窗（DEC-173）。',
+    );
+  }
+  const opening = model.geometry.l3.stairOpening;
+  const l2Bounds = model.geometry.l2.bounds;
+  if (
+    !opening ||
+    opening.stairEntityId !== stairToL3.entityId ||
+    ![
+      model.geometry.l2.ceiling.entityId,
+      'L3-PLATE-01',
+      model.geometry.l3.arrivalWing.entityId,
+    ].every((entityId) => opening.cutsEntityIds.includes(entityId)) ||
+    opening.bounds.y1 !== stairToL3.bounds.y1 ||
+    opening.bounds.y2 !== stairToL3.bounds.y2 ||
+    opening.bounds.x2 !== stairToL3.bounds.x2 - stairToL3.upperLandingLength ||
+    !(opening.bounds.x1 > l2Bounds.x1 && opening.bounds.y1 > l2Bounds.y1) ||
+    opening.headroomRule !== 'nosing-to-slab-underside' ||
+    opening.edgeProtection !== 'guardrail-on-all-edges-except-stair-top'
+  ) {
+    throw new TypeError(
+      '3F 樓梯口須在 ST-02 正上方切開 2F 天花、3F 樓板與到達翼，直到樓梯頂端；除樓梯頂端外三邊設防墜欄杆（DEC-174、DEC-175）。',
     );
   }
   if (model.referenceSystem.unit !== 'm') throw new TypeError('Viewer 只接受公尺模型。');
