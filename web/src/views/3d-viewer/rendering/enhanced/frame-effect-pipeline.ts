@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import type { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import type { FrameEffect, FrameEffectPipeline } from '../contracts';
 import {
   assertRenderQualityProfile,
   type RenderQualityProfile,
   supportsFrameEffects,
 } from '../quality-profile';
+import { createBloomPass, disposeBloomPass } from './bloom';
 import { ExposureAdaptation } from './exposure-adaptation';
 import { FrameGrade } from './frame-grade';
 import { ScreenSpaceOcclusion } from './screen-space-occlusion';
@@ -17,18 +18,6 @@ const MINIMUM_PIXEL_RATIO = 0.5;
 
 /** 後製時場景畫進的浮點貼圖用幾倍多重取樣抗鋸齒（直接畫到畫面時由畫布本身的抗鋸齒負責）。 */
 export const MULTISAMPLE_SAMPLES = 4;
-
-/**
- * 暈光（TASK-152 步驟 6）：只有曝光後遠比白色亮的地方（太陽在水面與金屬上的反光、夜裡的燈具、
- * 太陽旁的天空）才暈開；陽光下的白牆剛好到白色，不暈。門檻在曝光之後判斷，所以白天黑夜一致，
- * 從門檻到門檻加 `softness` 之間漸強。
- */
-export const BLOOM = Object.freeze({
-  threshold: 2,
-  softness: 1,
-  strength: 0.3,
-  radius: 0.45,
-});
 
 /** 兩格之間最多算幾秒：分頁切走再回來時，曝光不會一下子跳到底。 */
 const MAXIMUM_FRAME_SECONDS = 0.25;
@@ -214,15 +203,7 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     }, targets.graded);
 
     if (this.usesBloom) {
-      if (!this.bloom) {
-        this.bloom = new UnrealBloomPass(
-          new THREE.Vector2(targets.graded.width, targets.graded.height),
-          BLOOM.strength,
-          BLOOM.radius,
-          BLOOM.threshold,
-        );
-        (this.bloom.highPassUniforms as Record<string, THREE.IUniform<number>>).smoothWidth!.value = BLOOM.softness;
-      }
+      this.bloom ??= createBloomPass(targets.graded.width, targets.graded.height);
       // 暈光疊加回同一張貼圖。
       this.bloom.render(renderer, targets.graded, targets.graded, delta, false);
     }
@@ -275,7 +256,7 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
   }
 
   private disposeBloom() {
-    this.bloom?.dispose();
+    if (this.bloom) disposeBloomPass(this.bloom);
     this.bloom = null;
   }
 

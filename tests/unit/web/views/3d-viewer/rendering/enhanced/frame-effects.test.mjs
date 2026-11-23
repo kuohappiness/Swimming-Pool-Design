@@ -22,6 +22,9 @@ const { FrameGrade } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/
 const {
   ScreenSpaceOcclusion,
 } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/screen-space-occlusion.ts');
+const { BLOOM, createBloomPass, disposeBloomPass } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/enhanced/bloom.ts',
+);
 const {
   EnhancedFrameEffectPipeline,
   ENHANCED_QUALITY_PROFILES,
@@ -160,6 +163,26 @@ test('ambient occlusion and contact shadows share one depth pass, and only the o
   }
 });
 
+test('bloom spreads only the light above its threshold, never the whole colour', () => {
+  const pass = createBloomPass(800, 500);
+  try {
+    const material = pass.materialHighPassFilter;
+    assert.equal(material.name, 'realistic:bloom-high-pass');
+    // The same uniforms object, so the pass still writes the frame and threshold into it.
+    assert.equal(material.uniforms, pass.highPassUniforms);
+    assert.equal(material.uniforms.luminosityCap.value, BLOOM.cap);
+    assert.equal(material.uniforms.smoothWidth.value, BLOOM.knee);
+    assert.match(material.fragmentShader, /value - luminosityThreshold/);
+    assert.equal(pass.threshold, BLOOM.threshold);
+    assert.equal(pass.strength, BLOOM.strength);
+    // three.js multiplies the five blur levels by 3; with radius 0 their weights add up to 3,
+    // so what spreads is strength × 9 of the light above the threshold: well under half of it.
+    assert.ok(BLOOM.strength * 9 < 0.5);
+  } finally {
+    disposeBloomPass(pass);
+  }
+});
+
 test('the top tiers light the frame in linear values and tone-map once, at the very end', () => {
   const renderer = createRenderer();
   const pipeline = new EnhancedFrameEffectPipeline(renderer, TOP_TIER);
@@ -182,6 +205,8 @@ test('the top tiers light the frame in linear values and tone-map once, at the v
     ['realistic:screen-space-occlusion', 'realistic:screen-space-occlusion'],
     ['realistic:screen-space-occlusion-denoised', 'realistic:screen-space-occlusion-denoise'],
     ['realistic:frame-graded', 'realistic:frame-grade'],
+    // The bloom keeps only what is brighter than its threshold, capped per pixel.
+    ['UnrealBloomPass.bright', 'realistic:bloom-high-pass'],
   ]);
   const scenePass = renderer.draws[0].renderTarget;
   assert.equal(scenePass.samples, 4, 'multisampled anti-aliasing');
@@ -190,7 +215,6 @@ test('the top tiers light the frame in linear values and tone-map once, at the v
   assert.equal(scenePass.width, 800);
   // The bloom adds onto the graded frame, then the output pass tone-maps it to the screen.
   const afterGrade = renderer.draws.slice(renderer.draws.findIndex(({ material }) => material === 'realistic:frame-grade') + 1);
-  assert.ok(afterGrade.some(({ target }) => target === 'UnrealBloomPass.bright'));
   assert.equal(afterGrade.at(-2).target, 'realistic:frame-graded');
   assert.deepEqual(afterGrade.at(-1), {
     target: 'screen',
