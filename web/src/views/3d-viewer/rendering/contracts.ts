@@ -153,6 +153,8 @@ export interface VisualAssetAdapter {
   readonly waterReflection?: 'planar' | 'probe' | 'none';
   /** 鏡牆鏡面的倒影來源：反射探針照出場景，或只有環境貼圖。 */
   readonly mirrorReflection?: 'probe' | 'environment';
+  /** 池廳裡的構件照出池館本身（`probe`）或只照環境貼圖（`environment`）。 */
+  readonly hallReflection?: 'probe' | 'environment';
   /** 光線、天候或可見物件改變後呼叫，讓事先拍好的倒影等資料重新產生。 */
   invalidateLighting?(): void;
   dispose(): void;
