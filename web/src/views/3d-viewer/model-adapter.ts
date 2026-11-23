@@ -356,12 +356,12 @@ export interface ViewerModel {
         lowerStartX: number;
         riserCount: number;
         runs: 2;
-        risersPerRun: number;
-        treadsPerRun: number;
+        risersPerRun: [number, number];
+        treadsPerRun: [number, number];
         riserHeight: number;
         treadDepth: number;
-        runLengthPerFlight: number;
-        flightRun: number;
+        runLengths: [number, number];
+        flightRuns: [number, number];
         midLandingLength: number;
         upperLandingLength: number;
         midLandingElevation: number;

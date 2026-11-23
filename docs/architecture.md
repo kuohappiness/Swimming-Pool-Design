@@ -19,7 +19,7 @@ Swimming-Pool-Design/
 ├─ .agents/                  skills/swimming-pool-design/（與 .claude 版本逐位元組相同）
 ├─ model/                    唯一的設計模型與分析登錄
 ├─ core/                     純邏輯，網站與工具共用
-│  ├─ geometry/              active-geometry、drawing-geometry、site-orientation、mirror-geometry、class-route（一堂課的平面動線）
+│  ├─ geometry/              active-geometry、drawing-geometry、site-orientation、mirror-geometry、class-route（一堂課的平面動線）、stair-geometry（兩跑樓梯、淨高與樓梯口）
 │  ├─ solar/                 solar-reflection、pool-footprint、solar-angle-analysis、solar-energy-analysis
 │  ├─ viewer/                viewer-data、render-budgets（3D 畫質分級與資產的成本上限）
 │  ├─ water/                 roof-rainfall（雨量換算成落在屋頂上的雨水）

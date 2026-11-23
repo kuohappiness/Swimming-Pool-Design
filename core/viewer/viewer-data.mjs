@@ -218,9 +218,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         zones: structuredClone(active.l2.zones),
         stairToL3: {
           ...structuredClone(active.l2.stairToL3),
-          flightRun: active.l2.stairToL3.runLengthPerFlight,
-          midLandingElevation:
-            active.l2.stairToL3.lowerElevation + active.l2.stairToL3.totalRise / 2,
+          flightRuns: structuredClone(active.l2.stairToL3.runLengths),
           bounds: structuredClone(stairToL3.bounds),
         },
         planPivot: {
