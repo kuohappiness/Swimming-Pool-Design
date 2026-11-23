@@ -6,108 +6,6 @@
   margin-top: .8rem;
 }
 
-.water-index,
-.water-sections {
-  width: var(--site-page);
-  margin: 0 auto;
-}
-
-.water-index {
-  border-block: 1px solid var(--site-line-strong);
-}
-
-.water-index ol {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 clamp(1rem, 3vw, 2.5rem);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: water-index;
-}
-
-.water-index li {
-  counter-increment: water-index;
-}
-
-.water-index a {
-  display: inline-flex;
-  gap: .6rem;
-  align-items: center;
-  min-height: 48px;
-  color: var(--site-ink);
-  font-size: .92rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.water-index a::before {
-  color: var(--site-terracotta);
-  font-family: var(--site-mono);
-  font-size: .72rem;
-  letter-spacing: .08em;
-  content: counter(water-index, decimal-leading-zero);
-}
-
-.water-index a:hover {
-  color: var(--site-water);
-}
-
-.water-sections {
-  display: grid;
-  gap: clamp(3.5rem, 7vw, 6.5rem);
-  padding-top: clamp(2.5rem, 5vw, 4.5rem);
-}
-
-.water-section,
-.water-card,
-.water-step {
-  scroll-margin-top: calc(var(--site-header-height) + 1rem);
-}
-
-.water-section-header {
-  max-width: 52rem;
-  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.water-section h2 {
-  margin: 0 0 .8rem;
-  color: var(--site-water);
-  font-family: var(--site-serif);
-  font-size: clamp(1.5rem, 2.6vw, 2.2rem);
-  font-weight: 600;
-  line-height: 1.25;
-}
-
-.water-section h3 {
-  margin: 0 0 .4rem;
-  color: var(--site-ink);
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.water-section p {
-  margin: 0;
-  color: var(--site-ink);
-  font-size: 1rem;
-  line-height: 1.9;
-}
-
-.water-section p + p {
-  margin-top: .8rem;
-}
-
-.water-section a {
-  color: var(--site-water);
-  text-decoration-thickness: 1px;
-  text-underline-offset: .22em;
-}
-
-.water-section-intro p {
-  color: var(--site-muted);
-}
-
 /* Monthly rainfall chart */
 
 .water-chart {
@@ -126,12 +24,12 @@
 
 .water-chart-caption strong {
   color: var(--site-ink);
-  font-size: 1rem;
+  font-size: var(--site-text-md);
 }
 
 .water-chart-caption span {
   color: var(--site-muted);
-  font-size: .82rem;
+  font-size: var(--site-text-sm);
 }
 
 .water-chart-plot {
@@ -151,7 +49,7 @@
   right: 0;
   bottom: var(--water-level);
   color: var(--site-muted);
-  font-size: .75rem;
+  font-size: var(--site-text-xs);
   font-variant-numeric: tabular-nums;
   line-height: 1;
   transform: translateY(50%);
@@ -181,7 +79,7 @@
   border-inline: 1px dashed var(--site-line);
   background: color-mix(in srgb, var(--site-water) 6%, transparent);
   color: var(--site-muted);
-  font-size: .75rem;
+  font-size: var(--site-text-xs);
   line-height: 1.1rem;
   text-align: center;
 }
@@ -226,7 +124,7 @@
   position: absolute;
   bottom: calc(var(--water-level) + .3rem);
   color: var(--site-ink);
-  font-size: .75rem;
+  font-size: var(--site-text-xs);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1;
@@ -245,9 +143,9 @@
   border: 1px solid var(--site-line-strong);
   border-radius: var(--site-radius);
   background: var(--site-white);
-  box-shadow: 0 6px 18px rgb(23 40 41 / 14%);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--site-ink) 14%, transparent);
   color: var(--site-ink);
-  font-size: .82rem;
+  font-size: var(--site-text-sm);
   line-height: 1.5;
   pointer-events: none;
   transform: translateX(-50%);
@@ -278,7 +176,7 @@
   grid-column: 2;
   padding-top: .5rem;
   color: var(--site-muted);
-  font-size: .78rem;
+  font-size: var(--site-text-xs);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -293,7 +191,7 @@
   align-items: center;
   min-height: 48px;
   color: var(--site-water);
-  font-size: .92rem;
+  font-size: var(--site-text-sm);
   font-weight: 700;
   cursor: pointer;
 }
@@ -307,7 +205,7 @@
   width: 100%;
   min-width: 24rem;
   border-collapse: collapse;
-  font-size: .9rem;
+  font-size: var(--site-text-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -323,7 +221,7 @@
 .water-chart-table thead th {
   border-top: 0;
   color: var(--site-muted);
-  font-size: .82rem;
+  font-size: var(--site-text-sm);
 }
 
 .water-chart-table th:first-child {
@@ -353,7 +251,7 @@
 
 .water-figure dt {
   color: var(--site-muted);
-  font-size: .88rem;
+  font-size: var(--site-text-sm);
   line-height: 1.6;
 }
 
@@ -361,7 +259,7 @@
   margin: .25rem 0 0;
   color: var(--site-ink);
   font-family: var(--site-serif);
-  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  font-size: var(--site-text-h2);
   font-weight: 600;
   line-height: 1.2;
 }
@@ -369,7 +267,7 @@
 .water-section p.water-estimate-note {
   margin: 1rem 0 clamp(1.75rem, 3vw, 2.5rem);
   color: var(--site-muted);
-  font-size: .85rem;
+  font-size: var(--site-text-sm);
 }
 
 /* The path of a raindrop */
@@ -387,6 +285,7 @@
   position: relative;
   padding-top: 1rem;
   border-top: 1px solid var(--site-line-strong);
+  scroll-margin-top: calc(var(--site-header-height) + 1rem);
 }
 
 /* The arrowhead closes each step's rule and points at the next step. */
@@ -404,57 +303,21 @@
 
 .water-section p.water-step-number {
   margin-bottom: .35rem;
-  color: var(--site-terracotta);
-  font-family: var(--site-mono);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  line-height: 1.6;
 }
 
 .water-step p:not(.water-step-number) {
-  font-size: .95rem;
+  font-size: var(--site-text-md);
   line-height: 1.85;
-}
-
-/* Explanatory cards */
-
-.water-cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 clamp(1.5rem, 4vw, 4rem);
-  max-width: 76rem;
-}
-
-.water-cards--rainfall,
-.water-cards--seasons,
-.water-cards--open {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.water-card {
-  padding: 1.1rem 0 1.4rem;
-  border-top: 1px solid var(--site-line);
 }
 
 @media (max-width: 1000px) {
   .water-path {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .water-cards--rainfall,
-  .water-cards--seasons,
-  .water-cards--open {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 760px) {
   .water-path,
-  .water-cards,
-  .water-cards--rainfall,
-  .water-cards--seasons,
-  .water-cards--open,
   .water-figures {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -490,7 +353,7 @@
   .water-chart-months::after {
     grid-column: 1 / -1;
     padding-top: .2rem;
-    font-size: .75rem;
+    font-size: var(--site-text-xs);
     content: "月份";
   }
 }

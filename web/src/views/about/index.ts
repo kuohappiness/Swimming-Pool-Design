@@ -102,7 +102,7 @@ export function mount(container: HTMLElement): MountedView {
       <p>${model.project.disclaimer}。這一頁說明網站內容的來源、限制與讀法。</p>
     </section>
     <div class="about-layout" data-content-hash="${content.contentHash}">
-      <nav class="about-contents" aria-label="本頁目錄">
+      <nav class="about-contents site-chapter-index site-chapter-index--aside" aria-label="本頁目錄">
         <ol>
           ${content.sections.map((section) => `
             <li><a href="#${anchorFor(section.id)}">${section.title}</a></li>
@@ -112,7 +112,7 @@ export function mount(container: HTMLElement): MountedView {
       <div class="about-sections">
         ${content.sections.map((section) => `
           <section
-            class="about-section about-section--${section.id}"
+            class="about-section site-chapter about-section--${section.id}"
             id="${anchorFor(section.id)}"
             aria-labelledby="${anchorFor(section.id)}-title"
           >

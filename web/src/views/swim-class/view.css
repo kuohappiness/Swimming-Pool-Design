@@ -6,108 +6,6 @@
   margin-top: .8rem;
 }
 
-.swim-index,
-.swim-sections {
-  width: var(--site-page);
-  margin: 0 auto;
-}
-
-.swim-index {
-  border-block: 1px solid var(--site-line-strong);
-}
-
-.swim-index ol {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 clamp(1rem, 3vw, 2.5rem);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: swim-index;
-}
-
-.swim-index li {
-  counter-increment: swim-index;
-}
-
-.swim-index a {
-  display: inline-flex;
-  gap: .6rem;
-  align-items: center;
-  min-height: 48px;
-  color: var(--site-ink);
-  font-size: .92rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.swim-index a::before {
-  color: var(--site-terracotta);
-  font-family: var(--site-mono);
-  font-size: .72rem;
-  letter-spacing: .08em;
-  content: counter(swim-index, decimal-leading-zero);
-}
-
-.swim-index a:hover {
-  color: var(--site-water);
-}
-
-.swim-sections {
-  display: grid;
-  gap: clamp(3.5rem, 7vw, 6.5rem);
-  padding-top: clamp(2.5rem, 5vw, 4.5rem);
-}
-
-.swim-section,
-.swim-card,
-.swim-step {
-  scroll-margin-top: calc(var(--site-header-height) + 1rem);
-}
-
-.swim-section-header {
-  max-width: 52rem;
-  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.swim-section h2 {
-  margin: 0 0 .8rem;
-  color: var(--site-water);
-  font-family: var(--site-serif);
-  font-size: clamp(1.5rem, 2.6vw, 2.2rem);
-  font-weight: 600;
-  line-height: 1.25;
-}
-
-.swim-section h3 {
-  margin: 0 0 .4rem;
-  color: var(--site-ink);
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.swim-section p {
-  margin: 0;
-  color: var(--site-ink);
-  font-size: 1rem;
-  line-height: 1.9;
-}
-
-.swim-section p + p {
-  margin-top: .8rem;
-}
-
-.swim-section a {
-  color: var(--site-water);
-  text-decoration-thickness: 1px;
-  text-underline-offset: .22em;
-}
-
-.swim-section-intro p {
-  color: var(--site-muted);
-}
-
 /* Plan of the first floor */
 
 .swim-group {
@@ -231,7 +129,7 @@
 
 .swim-plan-label {
   color: var(--site-muted);
-  font-size: .78rem;
+  font-size: var(--site-text-xs);
   line-height: 1.2;
   white-space: nowrap;
   pointer-events: none;
@@ -248,7 +146,7 @@
 
 .swim-plan-label--stair {
   color: var(--site-ink);
-  font-size: .72rem;
+  font-size: var(--site-text-xs);
 }
 
 /* The entrance is on the lower edge of the plan; its label hangs just below the wall. */
@@ -267,7 +165,7 @@
   background: var(--site-white);
   color: var(--site-terracotta);
   font-family: var(--site-sans);
-  font-size: .8rem;
+  font-size: var(--site-text-sm);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1;
@@ -291,7 +189,7 @@
 .swim-plan figcaption {
   padding: .35rem 0 0;
   color: var(--site-muted);
-  font-size: .82rem;
+  font-size: var(--site-text-sm);
   line-height: 1.7;
 }
 
@@ -314,6 +212,7 @@
   align-content: start;
   padding-top: 1rem;
   border-top: 1px solid var(--site-line-strong);
+  scroll-margin-top: calc(var(--site-header-height) + 1rem);
 }
 
 .swim-step.is-active,
@@ -334,32 +233,15 @@
   color: var(--site-white);
 }
 
-.swim-locate:focus-visible {
-  outline: 2px solid var(--site-water);
-  outline-offset: 3px;
-}
-
 .swim-step-body p {
-  font-size: .95rem;
+  font-size: var(--site-text-md);
   line-height: 1.85;
-}
-
-.swim-cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 clamp(1.5rem, 4vw, 4rem);
-  max-width: 76rem;
 }
 
 .swim-cards--care {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: clamp(1rem, 2vw, 1.75rem);
   max-width: none;
-}
-
-.swim-card {
-  padding: 1.1rem 0 1.4rem;
-  border-top: 1px solid var(--site-line);
 }
 
 .swim-card--located {
@@ -372,15 +254,10 @@
   .swim-cards--care {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .swim-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 760px) {
   .swim-steps,
-  .swim-cards,
   .swim-cards--care {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -392,7 +269,7 @@
   }
 
   .swim-plan-label {
-    font-size: .72rem;
+    font-size: var(--site-text-xs);
   }
 
   /* On a phone the list is longer than the screen, so the plan stays under the header while the list scrolls. */
@@ -416,7 +293,7 @@
   }
 
   .swim-plan figcaption::before {
-    font-size: .78rem;
+    font-size: var(--site-text-xs);
     content: "左右滑動可以看完整的平面";
   }
 }

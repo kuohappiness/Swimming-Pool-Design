@@ -168,7 +168,7 @@ function renderPath({ items }: WaterSection): string {
     <ol class="water-path">
       ${items.map((item, index) => `
         <li class="water-step" id="${anchorFor(item.id)}">
-          <p class="water-step-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</p>
+          <p class="water-step-number site-card-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</p>
           <h3>${item.title}</h3>
           ${item.html}
         </li>
@@ -177,11 +177,14 @@ function renderPath({ items }: WaterSection): string {
   `;
 }
 
+/** 這三節的卡片短，排三欄；其餘兩欄。 */
+const threeColumnCards = new Set(['rainfall', 'seasons', 'open']);
+
 function renderCards({ items }: WaterSection, modifier: string): string {
   return `
-    <div class="water-cards water-cards--${modifier}">
+    <div class="water-cards site-cards${threeColumnCards.has(modifier) ? '' : ' site-cards--two'} water-cards--${modifier}">
       ${items.map((item) => `
-        <article class="water-card" id="${anchorFor(item.id)}">
+        <article class="water-card site-card" id="${anchorFor(item.id)}">
           <h3>${item.title}</h3>
           ${item.html}
         </article>
@@ -222,21 +225,21 @@ export function mount(container: HTMLElement): MountedView {
       <h1 id="water-cycle-title">跟著一滴雨，<br>從屋頂走到廁所。</h1>
       ${overview.html}
     </section>
-    <nav class="water-index" aria-label="本頁目錄">
+    <nav class="water-index site-chapter-index" aria-label="本頁目錄">
       <ol>
         ${sections.map(({ id, title }) => `<li><a href="#${anchorFor(id)}">${title}</a></li>`).join('')}
       </ol>
     </nav>
-    <div class="water-sections" data-content-hash="${content.contentHash}">
+    <div class="water-sections site-chapters" data-content-hash="${content.contentHash}">
       ${sections.map((current) => `
         <section
-          class="water-section water-section--${current.id}"
+          class="water-section site-chapter water-section--${current.id}"
           id="${anchorFor(current.id)}"
           aria-labelledby="${anchorFor(current.id)}-title"
         >
-          <header class="water-section-header">
+          <header class="water-section-header site-chapter-header">
             <h2 id="${anchorFor(current.id)}-title">${current.title}</h2>
-            <div class="water-section-intro">${current.html}</div>
+            <div class="water-section-intro site-chapter-intro">${current.html}</div>
           </header>
           ${renderSectionBody(current)}
         </section>
