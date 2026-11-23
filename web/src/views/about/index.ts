@@ -95,7 +95,7 @@ function renderSectionBody(section: AboutSection): string {
 
 export function mount(container: HTMLElement): MountedView {
   container.innerHTML = `
-    <section class="view-intro view-intro--about" aria-labelledby="about-title">
+    <section class="view-intro" aria-labelledby="about-title">
       <p class="site-kicker">${definition.eyebrow}</p>
       <p class="site-section-description">${definition.description}</p>
       <h1 id="about-title">誰做的、資料從哪裡來、<br>這些名詞是什麼意思。</h1>

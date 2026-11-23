@@ -3,8 +3,13 @@ html {
   background: var(--site-paper);
   color: var(--site-ink);
   font-family: var(--site-sans);
+  font-kerning: normal;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+
+  /* 中文排版：避頭尾用嚴格規則，中英數之間自動留空，不必在原稿手打空格。 */
+  line-break: strict;
+  text-autospace: normal;
 }
 
 body,
@@ -21,47 +26,41 @@ blockquote {
   text-wrap: balance;
 }
 
-.site-kicker,
-.site-section-description,
-.site-release,
-.site-footer-meta {
-  font-family: var(--site-mono);
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .14em;
+/* 英文大寫小標：只有這類英文標籤才用大寫與字距。 */
+.site-kicker {
+  font-size: var(--site-text-sm);
+  font-weight: var(--site-weight-bold);
+  letter-spacing: var(--site-tracking-caps);
   text-transform: uppercase;
 }
 
-.site-kicker {
-  font-size: .884rem;
+/* 中文副標：不用等寬字型、不加字距。 */
+.site-section-description {
+  font-size: var(--site-text-sm);
+  font-weight: var(--site-weight-medium);
 }
 
-/* 頁尾這一行含單位「m」，不能轉成大寫。 */
+/* 版本與座標屬於代碼，才用等寬字型；這一行含單位「m」，不轉大寫。 */
 .site-footer-meta {
-  text-transform: none;
+  font-family: var(--site-mono);
+  font-size: var(--site-text-xs);
+  font-weight: var(--site-weight-medium);
+  letter-spacing: 0.04em;
 }
 
 .view-intro h1 {
   max-width: 980px;
-  margin: .4em 0 .45em;
+  margin: 0.4em 0 0.45em;
   font-family: var(--site-serif);
-  font-size: clamp(1.59rem, 3.84vw, 3.96rem);
-  font-weight: 600;
-  line-height: 1.14;
-  letter-spacing: -.055em;
+  font-size: var(--site-text-h1);
+  font-weight: var(--site-weight-bold);
+  line-height: 1.2;
 }
 
 .view-intro > p:last-child {
   max-width: var(--site-reading);
   margin: 0;
-  color: var(--site-muted);
-  font-size: clamp(1rem, 1.45vw, 1.25rem);
-  line-height: 1.85;
-}
-
-@media (max-width: 520px) {
-  .view-intro h1 {
-    font-size: clamp(1.47rem, 8.4vw, 2.4rem);
-    line-height: 1.14;
-  }
+  color: var(--site-text);
+  font-size: var(--site-text-lead);
+  line-height: var(--site-leading);
 }

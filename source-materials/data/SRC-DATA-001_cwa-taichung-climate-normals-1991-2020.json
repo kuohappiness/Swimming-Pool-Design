@@ -1,0 +1,38 @@
+{
+  "id": "SRC-DATA-001",
+  "title": "臺中氣象站氣候月平均：降水量與降水日數（1991～2020）",
+  "provider": "交通部中央氣象署",
+  "tier": "官方統計資料",
+  "retrievedOn": "2026-11-22",
+  "statisticalPeriod": "1991～2020",
+  "station": {
+    "name": "臺中氣象站",
+    "number": "46749",
+    "address": "臺中市精武路295號",
+    "latitude": 24.147494,
+    "longitude": 120.675919,
+    "altitudeMetres": 84.04,
+    "coordinateNote": "由測站頁面的北緯 24°08'50.98\"、東經 120°40'33.31\" 換算為十進位度",
+    "url": "https://www.cwa.gov.tw/V8/C/A/organ/46749.html"
+  },
+  "urls": {
+    "precipitation": "https://www.cwa.gov.tw/V8/E/C/Statistics/MonthlyMean/MOD/Taiwan_precp.html",
+    "precipitationDays": "https://www.cwa.gov.tw/V8/E/C/Statistics/MonthlyMean/MOD/Taiwan_precpday.html",
+    "terms": "https://www.cwa.gov.tw/V8/C/information.html",
+    "unitDefinition": "https://www.stat.gov.tw/News_NoticeCalendar_Content.aspx?Ln=1&MetaI_D=735"
+  },
+  "terms": "氣象署〈政府網站資料開放宣告〉：網站資料可無償、非專屬、得再授權地利用，使用時應註明出處；依政府資料開放授權條款（https://data.gov.tw/license）。",
+  "transcription": "本檔是 2026-11-22 從上述兩個網頁表格的 Taichung 一列逐值轉錄的數字，不是網頁的原始位元組。十二個月相加與表上的全年值一致。",
+  "monthlyPrecipitation": {
+    "unit": "mm",
+    "unitNote": "表格本身沒有印出單位；單位依氣象署氣象概況統計的說明「降水量為毫米」登錄（見 urls.unitDefinition）。",
+    "values": [36.6, 63.0, 86.9, 126.8, 249.6, 329.0, 303.3, 340.8, 147.5, 25.0, 23.8, 30.5],
+    "annual": 1762.8
+  },
+  "monthlyPrecipitationDays": {
+    "unit": "day",
+    "definitionNote": "表格沒有寫降水日的門檻，尚未確認；在確認前網站不引用這一列。",
+    "values": [6.6, 8.0, 10.1, 10.8, 12.3, 14.1, 13.5, 15.8, 8.5, 3.0, 4.1, 5.3],
+    "annual": 112.1
+  }
+}

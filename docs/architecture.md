@@ -22,22 +22,24 @@ Swimming-Pool-Design/
 │  ├─ geometry/              active-geometry、drawing-geometry、site-orientation、mirror-geometry
 │  ├─ solar/                 solar-reflection、pool-footprint、solar-angle-analysis、solar-energy-analysis
 │  ├─ viewer/                viewer-data、render-budgets（3D 畫質分級與資產的成本上限）
+│  ├─ water/                 roof-rainfall（雨量換算成落在屋頂上的雨水）
 │  └─ validation/            model-validation
-├─ content/                  網站文案原始檔 design-concept.md、design-process.md、about.md；公開文字快照 website-copy.md
+├─ content/                  網站文案原始檔 design-concept.md、water-cycle.md、design-process.md、about.md；公開文字快照 website-copy.md
 ├─ drawings/
 │  └─ current/               現行圖面 DRAW-*.svg，檔名不帶版號；PNG 由 build:drawings 產生，不入庫
 ├─ web/                      網站（Vite root），產出到 dist/web/
 │  ├─ index.html             唯一的 HTML 入口
+│  ├─ public/                原樣複製到網站根目錄的檔案：網站圖示與分享預覽圖（build:icons 產生，入庫）
 │  └─ src/
 │     ├─ app/                bootstrap、app-shell、router、view-contract
-│     ├─ design-system/      共用樣式：index.css（唯一入口，定層的先後）、reset、tokens、typography、layout、components
+│     ├─ design-system/      共用樣式：index.css（唯一入口，定層的先後）、reset、tokens、typography、layout、components、print
 │     ├─ shared/             types.ts、external-links.ts、assets/brand/
-│     ├─ generated/          build:content 的產物，不入庫
+│     ├─ generated/          build:content 與 build:fonts 的產物，不入庫
 │     └─ views/<view id>/    每個分頁一個資料夾；影像衍生檔放該頁的 assets/
 ├─ tools/                    命令列工具，不被網站匯入
 │  ├─ section.mjs            只印文件的一節或一列（見 agents/workflow.md 第 5 節）
-│  ├─ build/                 build-content、build-drawings、render-drawing-png、build-copy、clean-dist、
-│  │                         build-textures；textures/ 放自製貼圖的產生程式，一張一檔
+│  ├─ build/                 build-content、build-fonts、build-drawings、render-drawing-png、build-copy、clean-dist、
+│  │                         build-textures、build-icons；textures/ 放自製貼圖的產生程式，一張一檔
 │  ├─ check/                 check-docs、check-model、check-assets；status-line、workflow-docs（狀態行與 roadmap、backlog 分節）、
 │  │                         stylelint-view-scope（分頁樣式不得外溢的 stylelint 規則）、
 │  │                         source-registry（來源表與模型 sources 一致）、
@@ -50,7 +52,8 @@ Swimming-Pool-Design/
 │  └─ fixtures/              測試與工具讀取的固定資料
 ├─ source-materials/         原始來源，只增不改
 │  ├─ site/                  衛星圖、標註圖、氣象資料、校徽；photos/ 校園場勘照片
-│  └─ concepts/              概念圖與標註；hand-sketches/ 只放手繪稿
+│  ├─ concepts/              概念圖與標註；hand-sketches/ 只放手繪稿
+│  └─ data/                  公開統計資料的轉錄檔（SRC-DATA-*），檔內寫明提供者、測站、統計期間、取得日期與網址
 └─ docs/
    ├─ product.md             為什麼做、為誰做、範圍
    ├─ site-and-sources.md    基地與來源登錄
@@ -68,7 +71,7 @@ Swimming-Pool-Design/
                              analysis/、subprojects/、legacy-models/、deliverables/
 ```
 
-`tests/fixtures/`、`docs/agents/quality.md`、`web/public/`、`source-materials/data/` 等資料夾在第一個檔案出現時才建立，屆時更新本節。
+`tests/fixtures/`、`docs/agents/quality.md`、`source-materials/regulations/` 等資料夾在第一個檔案出現時才建立，屆時更新本節。
 
 ## 2. 每類資訊放哪裡
 
@@ -93,6 +96,7 @@ Swimming-Pool-Design/
 | 公開設計理念的敘事文字 | `content/design-concept.md` |
 | 關於頁的說明、名詞解釋與常見問題 | `content/about.md`；名詞與問答只摘要 owner 文件的答案並連回去，不另立設計答案 |
 | 設計歷程頁的時間軸、轉折、更正與待解問題 | `content/design-process.md`；現行數值用模型 token，已被取代的舊值用 `{{record:<版本或 sources>|<原文>}}` 引自發布紀錄或[基地與來源](site-and-sources.md)，建置時比對原文確實存在 |
+| 水循環頁的雨量、屋頂雨水估算、雨水路徑與待解問題 | `content/water-cycle.md`；雨量用 `{{data:<欄位>|<格式>}}` 讀 `SRC-DATA-001` 經 `core/water/roof-rainfall.mjs` 換算的結果，尺寸用模型 token，文案不手寫帶單位的數字 |
 | 公開網站各分頁的可見文字版本快照 | `content/website-copy.md`；屬衍生備份，不取代各頁資料 owner |
 | 唯一的設計模型 | `model/project-model.json` |
 | 原始來源檔 | `source-materials/`，登錄在 site-and-sources.md |
@@ -117,6 +121,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 | 單元測試 | `tests/unit/` 下對應原始碼位置的子資料夾，檔名是受測模組名加 `.test.mjs` |
 | 瀏覽器測試 | `tests/e2e/<對象>.e2e.mjs` |
 | 使用者提供的原始來源 | `source-materials/site/` 或 `source-materials/concepts/`，命名與登錄見 [agents/workflow.md](agents/workflow.md) 第 2 節 |
+| 公開統計資料（氣象、用水等） | `source-materials/data/SRC-DATA-<序號>_<描述>.json`，登錄方式同上 |
 | 任務說明 | `docs/tasks/<YYYY-MM-DD>-<主題>.md`，寫法見 [agents/workflow.md](agents/workflow.md) 第 2.4 節 |
 | 專題分析 | `docs/analysis/<主題>.md` |
 
@@ -133,9 +138,9 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 三個輸入與衍生資料夾：
 
-- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`（`concept-content.json`、`design-process-content.json`、`about-content.json`），網站只讀編譯結果。文案裡的站內連結寫 `./` 或 `?view=<view id>`，`check:docs` 會比對路由登錄表。編譯結果不入庫，`npm install`、`dev`、`test`、`typecheck` 與 `build` 都會先自動產生。
+- `content/`：公開文案的 Markdown 原始檔。由 `tools/build/build-content.mjs` 編譯到 `web/src/generated/`（`concept-content.json`、`water-cycle-content.json`、`water-cycle-data.json`、`design-process-content.json`、`about-content.json`），網站只讀編譯結果。文案裡的站內連結寫 `./` 或 `?view=<view id>`，`check:docs` 會比對路由登錄表。編譯結果不入庫，`npm install`、`dev`、`test`、`typecheck` 與 `build` 都會先自動產生。
 - `drawings/current/`：現行圖面，由 `npm run build:drawings` 自模型產生，網站以原始 SVG 內嵌。SVG 入庫；同時產生的 PNG 需要瀏覽器才能轉出，不入庫。
-- `source-materials/`：原始來源，只有 `tools/` 可讀。網站需要的影像必須先成為 `web/` 內的衍生檔，並在[基地與來源](site-and-sources.md)記下對應的來源編號、尺寸與雜湊。
+- `source-materials/`：原始來源，只有 `tools/` 可讀（測試可以讀來核對）。網站要用的資料由 `tools/build/build-content.mjs` 讀入、經 `core/` 換算後寫到 `web/src/generated/`。網站需要的影像必須先成為 `web/` 內的衍生檔，並在[基地與來源](site-and-sources.md)記下對應的來源編號、尺寸與雜湊。
 
 規則：
 
@@ -157,12 +162,13 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 - **殼層：** `web/src/app/app-shell.ts` 擁有頁首、主導覽、頁尾與主要內容容器。view 不得自行產生第二組導覽或頁尾。
 - **頁面模組契約：** 每個 view 在 `web/src/views/<view id>/index.ts` 匯出 `mount(container)` 並回傳 `destroy()`。`bootstrap.ts` 以動態 import 載入，一次只掛載一個 view；切換分頁是整頁重新載入。
 
-現行六個 view：
+現行七個 view：
 
 | view id | 頁名 | 群組 | 網址 |
 | --- | --- | --- | --- |
 | `design-concept` | 設計理念 | — | `./` |
 | `solar-study` | 日照研究 | 四向專題 | `?view=solar-study` |
+| `water-cycle` | 水循環 | 四向專題 | `?view=water-cycle` |
 | `design-process` | 設計歷程 | 四向專題 | `?view=design-process` |
 | `drawings` | 圖面 | — | `?view=drawings` |
 | `3d-viewer` | 3D | — | `?view=3d-viewer` |
@@ -175,6 +181,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 - 設計理念：章節錨點，例如 `#concept-light`；載入後會扣掉頁首高度再捲動。
 - 圖面：圖號 `#SITE`、`#L1`、`#L2`、`#L3`、`#SECTION`；舊的 `#REF-001`、`#V067-*` 轉到新圖號。
 - 3D：場景 id，`#overview`、`#light`、`#rain`、`#people`、`#time`。日照時刻用 `time`（校址當地時間，`2026-12-21T09:30`）與 `weather`（`clear`、`overcast`、`rain`；`night` 是晴天晚上九點的簡寫），只在使用者調離場景自帶的設定時才出現在網址上（[DEC-191](decisions.md)）。另接受 `quality`（`ultra`、`high`、`medium`、`saver`，舊連結的 `low` 視為 `saver`；優先於畫質選單記住的選擇），以及診斷用參數 `adaptive`、`rendering`、`water`、`batch`、`forceFallback`。
+- 水循環：章節錨點 `#water-<節 id>`（`rainfall`、`roof`、`path`、`seasons`、`open`）與項目錨點 `#water-<節 id>-<序號>`。
 - 設計歷程：章節錨點 `#process-<節 id>`（`timeline`、`versions`、`pivots`、`corrections`、`open`）與項目錨點 `#process-<節 id>-<序號>`。
 - 關於：章節錨點 `#about-<節 id>`（`project`、`reading`、`sources`、`glossary`、`faq`、`downloads`）與項目錨點 `#about-<節 id>-<序號>`；指到常見問題的某一題時會自動展開。
 
@@ -183,7 +190,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 1. 在 `router.ts` 的 `viewIds` 與 `viewDefinitions` 登錄；屬於群組的頁面加上 `group`。
 2. 在 `bootstrap.ts` 的 `loaders` 加入動態 import。
 3. 建立 `web/src/views/<view id>/`，含 `index.ts` 與 `view.css`；頁面有大段靜態 HTML 時另放 `template.html`（目前 `solar-study`、`3d-viewer` 有）。
-4. 文案放 `content/<view id>.md`；分節的說明頁用 `<!-- section:id -->` 寫法，由 `compileSectionedContent` 編譯（關於頁與設計歷程頁都是）。
+4. 文案放 `content/<view id>.md`；分節的說明頁用 `<!-- section:id -->` 寫法，由 `compileSectionedContent` 編譯（關於頁、設計歷程頁與水循環頁都是）。
 5. 更新測試與本文件的名詞對照表。
 
 規則：
@@ -197,8 +204,10 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 1. 共用樣式只放 `web/src/design-system/`。`index.css` 是唯一入口，並在那裡定層的先後：`reset → tokens → base → layout → components`，後面的層蓋過前面的層，不看選擇器權重。
 2. 分頁樣式只放 `web/src/views/<view id>/view.css`，一頁一檔，不放進層，所以一定蓋過共用樣式；不需要為了蓋過共用樣式而加重選擇器或用 `!important`。
 3. 分頁樣式不得影響別頁與共用外框：最外層的選擇器只能以這一頁自己的 class、id 或 `:where(.<class>)` 開頭，不寫 `html`、`body`、標籤、屬性選擇器或 `.site-*`。要用標籤選擇器時，包在 `:where(.site-view--<view id>) { … }` 裡（巢狀只用這一層）。分頁要調整頁尾間距時寫成 `.site-view--<view id> + .site-footer`。
-4. `--site-*` 設計變數只在 `tokens.css` 定義；用到的都要有定義，定義的都要有人用。
-5. 現存例外：`3d-viewer` 仍有 `styles.css` 與 `view.css` 兩個檔，且暫不受第 3 點檢查，等 3D 介面改版時併成一檔。
+4. `--site-*` 設計變數只在 `tokens.css` 定義；用到的都要有定義，定義的都要有人用。顏色、字級與焦點框用變數：文字最小 `--site-text-xs`（12px），段落用 `--site-text`，圖表與 3D 的資料色用 `--site-data-*`，不當文字色。焦點框由 `components.css` 全站統一，分頁不自訂。
+5. 網站字型是 `npm run build:fonts` 從思源黑體、思源宋體切出的子集（[DEC-211](decisions.md)），產物在 `web/src/generated/fonts/`，由 `index.css` 匯入；`prepare`、`predev`、`build` 會自動產生，加新文字不需要手動處理。
+6. 標題字級：每頁 H1 是該頁最大的字，用 `--site-text-h1`，只有首頁 H1 用 `--site-text-display`；H2 用 `--site-text-h2`，H3 用 `--site-text-h3`。各頁首區共用 `.view-intro` 的一欄排法，分頁不另排。列印樣式放在 `print.css`，分頁只補自己的列印規則（[DEC-212](decisions.md)）。
+7. 現存例外：`3d-viewer` 仍有 `styles.css` 與 `view.css` 兩個檔，且暫不受第 3 點檢查，等 3D 介面改版時併成一檔。
 
 ## 6. 名詞對照
 
@@ -210,6 +219,7 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 | --- | --- | --- | --- | --- |
 | 設計理念 | DESIGN NARRATIVE | `design-concept` | `web/src/views/design-concept/` | 重新定向（當頁名時） |
 | 日照研究 | SOLAR STUDY | `solar-study` | `web/src/views/solar-study/` | 冬夏日照互動研究、日照互動研究、向光而轉（當頁名時） |
+| 水循環 | WATER CYCLE | `water-cycle` | `web/src/views/water-cycle/` | 向雨而生（當頁名時） |
 | 設計歷程 | DESIGN PROCESS | `design-process` | `web/src/views/design-process/` | 從手稿到模型（當頁名時） |
 | 圖面 | DRAWING ATLAS | `drawings` | `web/src/views/drawings/` | 圖面設計、建築圖冊、空間參照圖集、Reference Atlas、reference atlas、圖集、建築圖集 |
 | 3D | SPATIAL EXPERIENCE | `3d-viewer` | `web/src/views/3d-viewer/` | 3D 展示、走入建築、3D Viewer（僅指頁名；view id 與 `contracts/3d-viewer.md` 檔名不變） |

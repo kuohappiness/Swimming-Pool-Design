@@ -6,7 +6,10 @@
 @layer reset, tokens, base, layout, components;
 
 @import './reset.css' layer(reset);
+/* 網站自帶的思源黑體、宋體子集，由 npm run build:fonts 產生（DEC-211）。 */
+@import '../generated/fonts/fonts.css' layer(base);
 @import './tokens.css' layer(tokens);
 @import './typography.css' layer(base);
 @import './layout.css' layer(layout);
 @import './components.css' layer(components);
+@import './print.css' layer(components);

@@ -17,11 +17,15 @@ const chromeCandidates = [
   '/usr/bin/chromium',
 ].filter(Boolean);
 
+// Registry order (router.ts viewDefinitions), which the footer's previous/next links follow.
+const pageOrder = ['design-concept', 'solar-study', 'water-cycle', 'design-process', 'drawings', '3d-viewer', 'about'];
+
 const routes = [
   { id: 'design-concept', url: '/' },
   { id: 'solar-study', url: '/?view=solar-study', group: 'topics' },
   { id: 'drawings', url: '/?view=drawings' },
   { id: '3d-viewer', url: '/?view=3d-viewer&quality=low&adaptive=off' },
+  { id: 'water-cycle', url: '/?view=water-cycle', group: 'topics' },
   { id: 'design-process', url: '/?view=design-process', group: 'topics' },
   { id: 'about', url: '/?view=about' },
 ];
@@ -81,9 +85,34 @@ async function waitForView(page, viewId) {
   }
 }
 
+async function openMenuIfFolded(page) {
+  // At 900px and below the main navigation folds into the menu panel (a native popover).
+  const menuButton = page.locator('.site-menu-button');
+  if (!(await menuButton.isVisible())) return false;
+  await menuButton.click();
+  assert.equal(await page.locator('#site-navigation').evaluate((nav) => nav.matches(':popover-open')), true);
+  return true;
+}
+
 async function assertCommonShell(page, route, viewport) {
   // DEC-170: five main items; 四向專題 is a group, not a page.
   assert.equal(await page.locator('[data-site-nav]').count(), 5);
+  const folded = await openMenuIfFolded(page);
+  assert.equal(folded, viewport.width <= 900, `${route.id} menu button visibility is wrong at ${viewport.width}px`);
+  if (folded) {
+    const button = await page.locator('.site-menu-button').boundingBox();
+    assert.ok(button.width >= 44 && button.height >= 44, `${route.id} menu button is smaller than 44px at ${viewport.width}px`);
+    assert.equal(
+      await page.locator('[data-site-nav]').evaluateAll((links) =>
+        links.every((link) => {
+          const rect = link.getBoundingClientRect();
+          return rect.left >= 0 && rect.right <= window.innerWidth && rect.bottom <= window.innerHeight;
+        }),
+      ),
+      true,
+      `${route.id} menu panel does not fit the screen at ${viewport.width}px`,
+    );
+  }
   assert.deepEqual(
     (await page.locator('[data-site-nav]').allTextContents()).map((text) => text.trim()),
     ['設計理念', '四向專題', '圖面', '3D', '關於'],
@@ -98,6 +127,10 @@ async function assertCommonShell(page, route, viewport) {
     `${route.id} current navigation link is scrolled out of view at ${viewport.width}px`,
   );
   assert.equal(await page.locator('[data-site-nav][aria-current]').count(), 1);
+  if (folded) {
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#site-navigation').evaluate((nav) => nav.matches(':popover-open')), false);
+  }
   const label = await page.locator(route.group ? `[data-site-subnav="${route.id}"]` : `[data-site-nav="${route.id}"]`).textContent();
   assert.equal(await page.title(), `${label.trim()}｜實小泳池改建概念設計`);
   if (route.group) {
@@ -108,25 +141,31 @@ async function assertCommonShell(page, route, viewport) {
       const masthead = document.querySelector('.site-masthead').getBoundingClientRect();
       const subnavigation = document.querySelector('.site-subnavigation').getBoundingClientRect();
       const tabs = [...document.querySelectorAll('[data-site-subnav]')].map((tab) => tab.getBoundingClientRect());
-      const probe = document.createElement('div');
-      probe.style.height = 'var(--site-header-height)';
-      document.body.append(probe);
-      const headerHeight = probe.getBoundingClientRect().height;
-      probe.remove();
       return {
         inside: subnavigation.top >= masthead.top - 1 && subnavigation.bottom <= masthead.bottom + 1,
         targets: tabs.every(({ height, width }) => height >= 44 && width >= 44),
-        // 721–900 px already runs a two-row masthead against the one-row 76 px token (pre-existing, not group-specific).
-        headerMatches: (window.innerWidth > 720 && window.innerWidth <= 900) || Math.abs(masthead.height - headerHeight) <= 2,
       };
     });
     assert.equal(layout.inside, true, `${route.id} second-level tabs fall outside the masthead at ${viewport.width}px`);
     assert.equal(layout.targets, true, `${route.id} second-level tab is smaller than 44px at ${viewport.width}px`);
-    assert.equal(layout.headerMatches, true, `${route.id} --site-header-height does not match the masthead at ${viewport.width}px`);
   } else {
     assert.equal(await page.locator(`[data-site-nav="${route.id}"]`).getAttribute('aria-current'), 'page');
     assert.equal(await page.locator('.site-subnavigation').count(), 0);
   }
+  // Sticky elements and anchors offset by --site-header-height, so it must equal the masthead
+  // exactly (border included) on every page and width, or they slide under the masthead.
+  const header = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.height = 'var(--site-header-height)';
+    document.body.append(probe);
+    const token = probe.getBoundingClientRect().height;
+    probe.remove();
+    return { masthead: document.querySelector('.site-masthead').getBoundingClientRect().height, token };
+  });
+  assert.ok(
+    Math.abs(header.masthead - header.token) <= 0.5,
+    `${route.id} masthead is ${header.masthead}px but --site-header-height is ${header.token}px at ${viewport.width}px`,
+  );
   assert.equal(await page.locator('main').count(), 1);
   assert.equal(await page.locator('footer.site-footer').count(), 1);
   assert.equal(
@@ -135,6 +174,7 @@ async function assertCommonShell(page, route, viewport) {
     `${route.id} overflows at ${viewport.width}px`,
   );
 
+  const reopened = await openMenuIfFolded(page);
   const navigationTargets = await page.locator('[data-site-nav]').evaluateAll((links) =>
     links.map((link) => {
       const rect = link.getBoundingClientRect();
@@ -146,6 +186,27 @@ async function assertCommonShell(page, route, viewport) {
     true,
     `${route.id} navigation target is smaller than 44px at ${viewport.width}px`,
   );
+  if (reopened) await page.keyboard.press('Escape');
+
+  // Footer: previous and next page in registry order, each a 44px target.
+  const index = pageOrder.indexOf(route.id);
+  const pager = await page.locator('[data-site-pager]').evaluateAll((links) =>
+    links.map((link) => ({
+      rel: link.getAttribute('rel'),
+      href: link.getAttribute('href'),
+      height: link.getBoundingClientRect().height,
+    })),
+  );
+  const expectedPager = [
+    index > 0 && { rel: 'prev', view: pageOrder[index - 1] },
+    index < pageOrder.length - 1 && { rel: 'next', view: pageOrder[index + 1] },
+  ].filter(Boolean);
+  assert.deepEqual(
+    pager.map(({ rel, href }) => ({ rel, view: new URL(href, origin).searchParams.get('view') ?? 'design-concept' })),
+    expectedPager,
+    `${route.id} footer previous/next links are wrong`,
+  );
+  assert.equal(pager.every(({ height }) => height >= 44), true, `${route.id} footer pager target is smaller than 44px`);
 
   const resourceOrigins = await page.evaluate(() =>
     [...new Set(performance.getEntriesByType('resource').map(({ name }) => new URL(name).origin))],
@@ -210,7 +271,24 @@ try {
     }
   }
 
-  for (const viewId of ['design-concept', 'solar-study', 'design-process', 'drawings', 'about']) {
+  // Site icons and the share card are published next to index.html (npm run build:icons).
+  const iconPage = await browser.newPage();
+  await iconPage.goto(origin, { waitUntil: 'networkidle' });
+  for (const [selector, attribute] of [
+    ['link[rel="icon"]', 'href'],
+    ['link[rel="apple-touch-icon"]', 'href'],
+  ]) {
+    const href = await iconPage.locator(selector).getAttribute(attribute);
+    const response = await iconPage.request.get(new URL(href, iconPage.url()).href);
+    assert.equal(response.ok(), true, `${selector} ${href} is missing`);
+    assert.equal(response.headers()['content-type'], 'image/png');
+  }
+  const shareImage = await iconPage.locator('meta[property="og:image"]').getAttribute('content');
+  const shareResponse = await iconPage.request.get(`${origin}/${new URL(shareImage).pathname.split('/').pop()}`);
+  assert.equal(shareResponse.ok(), true, 'share card is not published next to index.html');
+  await iconPage.close();
+
+  for (const viewId of ['design-concept', 'solar-study', 'water-cycle', 'design-process', 'drawings', 'about']) {
     const metrics = routeScriptMetrics.get(viewId) ?? [];
     assert.equal(
       metrics.some(({ decodedBodySize }) => decodedBodySize > 500_000),
@@ -366,6 +444,137 @@ try {
     return shell?.classList.contains('can-scroll-left') && !shell.classList.contains('can-scroll-right');
   });
   await drawings.close();
+
+  const waterCycle = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  trackErrors(waterCycle, errors);
+  await waterCycle.goto(`${origin}/?view=water-cycle`, { waitUntil: 'networkidle' });
+  await waitForView(waterCycle, 'water-cycle');
+  assert.match(await waterCycle.title(), /^水循環｜.+概念設計$/);
+  const waterSectionIds = ['rainfall', 'roof', 'path', 'seasons', 'open'].map((id) => `water-${id}`);
+  assert.deepEqual(
+    await waterCycle.locator('.water-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    waterSectionIds,
+  );
+  assert.deepEqual(
+    await waterCycle.locator('.water-index a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    waterSectionIds.map((id) => `#${id}`),
+  );
+  assert.equal(await waterCycle.locator('h1').count(), 1);
+  // The chart draws twelve months to scale, on one axis, and labels only the wettest and driest month.
+  const chart = await waterCycle.locator('.water-chart').evaluate((figure) => {
+    const area = figure.querySelector('.water-chart-area').getBoundingClientRect();
+    const rows = [...figure.querySelectorAll('.water-chart-table tbody tr')].map((row) => ({
+      month: Number.parseInt(row.querySelector('th').textContent, 10),
+      millimetres: Number.parseFloat(row.querySelectorAll('td')[0].textContent.replace(',', '')),
+    }));
+    const columns = [...figure.querySelectorAll('.water-chart-column')].map((column) => {
+      const bar = column.querySelector('.water-chart-bar').getBoundingClientRect();
+      return {
+        month: Number(column.dataset.waterMonth),
+        height: bar.height,
+        width: bar.width,
+        baseline: Math.abs(bar.bottom - area.bottom),
+        label: column.querySelector('.water-chart-value')?.textContent.trim() ?? null,
+      };
+    });
+    const ticks = [...figure.querySelectorAll('.water-chart-axis span')].map((tick) => Number(tick.textContent));
+    return {
+      sourceId: figure.dataset.sourceId,
+      plotLabel: figure.querySelector('.water-chart-plot').getAttribute('aria-label'),
+      areaHeight: area.height,
+      rows,
+      columns,
+      ticks,
+      total: figure.querySelector('.water-chart-table tfoot td').textContent,
+    };
+  });
+  assert.equal(chart.sourceId, 'SRC-DATA-001');
+  assert.match(chart.plotLabel, /^長條圖：.+最多是 \d+ 月 .+ mm，最少是 \d+ 月 .+ mm，全年 .+ mm。$/);
+  assert.deepEqual(chart.rows.map(({ month }) => month), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  assert.deepEqual(chart.columns.map(({ month }) => month), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  const axisTop = chart.ticks.at(-1);
+  assert.equal(chart.ticks[0], 0);
+  assert.ok(axisTop >= Math.max(...chart.rows.map(({ millimetres }) => millimetres)));
+  for (const [index, column] of chart.columns.entries()) {
+    const expected = chart.rows[index].millimetres / axisTop * chart.areaHeight;
+    assert.ok(Math.abs(column.height - expected) <= 1.5, `month ${column.month} bar is ${column.height}px, expected ${expected}px`);
+    assert.ok(column.baseline <= 1, `month ${column.month} bar does not sit on the baseline`);
+    assert.ok(column.width <= 24, `month ${column.month} bar is wider than 24px`);
+  }
+  const sortedRows = [...chart.rows].sort((left, right) => left.millimetres - right.millimetres);
+  assert.deepEqual(
+    chart.columns.filter(({ label }) => label !== null).map(({ month }) => month).sort((left, right) => left - right),
+    [sortedRows[0].month, sortedRows.at(-1).month].sort((left, right) => left - right),
+  );
+  const monthlySum = chart.rows.reduce((total, { millimetres }) => total + millimetres, 0);
+  assert.ok(Math.abs(monthlySum - Number.parseFloat(chart.total.replace(',', ''))) <= 0.05, 'table months must add up to the annual row');
+  // Hover shows one month's values; the table is the text alternative and opens from the keyboard.
+  const august = waterCycle.locator('.water-chart-column[data-water-month="8"]');
+  assert.equal(await august.locator('.water-chart-tip').isVisible(), false);
+  await august.hover();
+  assert.equal(await august.locator('.water-chart-tip').isVisible(), true);
+  assert.match(await august.locator('.water-chart-tip').innerText(), /8 月\s+降水量 [\d.,]+ mm\s+落在屋頂約 [\d,]+ m³/);
+  await waterCycle.mouse.move(0, 0);
+  assert.equal(await august.locator('.water-chart-tip').isVisible(), false);
+  const tableToggle = waterCycle.locator('.water-chart-table summary');
+  assert.equal(await waterCycle.locator('.water-chart-table table').isVisible(), false);
+  await tableToggle.focus();
+  await waterCycle.keyboard.press('Enter');
+  assert.equal(await waterCycle.locator('.water-chart-table table').isVisible(), true);
+  assert.equal(await waterCycle.locator('.water-figure').count(), 3);
+  assert.match(await waterCycle.locator('.water-estimate-note').innerText(), /概念估算/);
+  assert.equal(await waterCycle.locator('.water-step').count(), 8);
+  assert.equal(
+    await waterCycle.locator('.water-section a[href^="http"]').evaluateAll((links) =>
+      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener')),
+    true,
+  );
+  assert.deepEqual(
+    await waterCycle.locator('.water-section a:not([href^="http"])').evaluateAll((links) =>
+      links.map((link) => link.getAttribute('href'))),
+    ['?view=3d-viewer#rain'],
+    'water-cycle in-site links must point to registered views',
+  );
+  await waterCycle.screenshot({ path: resolve(outputDirectory, 'public-water-cycle-desktop.png'), fullPage: true });
+  await waterCycle.close();
+
+  const waterCycleMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  trackErrors(waterCycleMobile, errors);
+  await waterCycleMobile.goto(`${origin}/?view=water-cycle#water-rainfall`, { waitUntil: 'networkidle' });
+  await waitForView(waterCycleMobile, 'water-cycle');
+  await waterCycleMobile.waitForFunction(() => {
+    const target = document.querySelector('#water-rainfall');
+    const masthead = document.querySelector('.site-masthead');
+    if (!target || !masthead) return false;
+    const top = target.getBoundingClientRect().top;
+    return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
+  });
+  assert.equal(
+    await waterCycleMobile.locator('.water-index a, .water-chart-table summary').evaluateAll((targets) =>
+      targets.every((target) => target.getBoundingClientRect().height >= 44 && target.getBoundingClientRect().width >= 44)),
+    true,
+    'water-cycle tap targets are smaller than 44px at 390px',
+  );
+  // A tap pins one month, the tooltip stays inside the screen, and a second tap releases it.
+  for (const month of [1, 8, 12]) {
+    const column = waterCycleMobile.locator(`.water-chart-column[data-water-month="${month}"]`);
+    await column.tap();
+    const tip = column.locator('.water-chart-tip');
+    assert.equal(await tip.isVisible(), true, `month ${month} tooltip did not open on tap`);
+    const box = await tip.boundingBox();
+    assert.ok(box.x >= 0 && box.x + box.width <= 390, `month ${month} tooltip leaves the screen`);
+    assert.equal(await waterCycleMobile.locator('.water-chart-column[data-water-active]').count(), 1);
+    await column.tap();
+    assert.equal(await waterCycleMobile.locator('.water-chart-column[data-water-active]').count(), 0);
+  }
+  assert.equal(
+    await waterCycleMobile.locator('.water-path').evaluate((list) =>
+      getComputedStyle(list).gridTemplateColumns.trim().split(/\s+/).length),
+    1,
+    'the path of a raindrop should stack into one column on a phone',
+  );
+  await waterCycleMobile.screenshot({ path: resolve(outputDirectory, 'public-water-cycle-mobile.png') });
+  await waterCycleMobile.close();
 
   const designProcess = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   trackErrors(designProcess, errors);
@@ -553,6 +762,7 @@ try {
   trackErrors(reentry, errors);
   await reentry.goto(origin, { waitUntil: 'networkidle' });
   for (const viewId of ['3d-viewer', 'design-concept', '3d-viewer']) {
+    await openMenuIfFolded(reentry);
     await Promise.all([
       reentry.waitForNavigation({ waitUntil: 'networkidle' }),
       reentry.locator(`[data-site-nav="${viewId}"]`).click(),
@@ -589,7 +799,7 @@ try {
 
   assert.equal(errors.length, 0, errors.join('\n'));
   process.stdout.write(
-    'Unified public site smoke passed: 6 views × 5 viewports, routing, accessibility, isolation, and reduced motion.\n',
+    `Unified public site smoke passed: ${routes.length} views × ${viewports.length} viewports, routing, accessibility, isolation, and reduced motion.\n`,
   );
   process.stdout.write(`Screenshots: ${outputDirectory}\n`);
 } finally {

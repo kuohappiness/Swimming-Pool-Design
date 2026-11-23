@@ -7,15 +7,17 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "prepare": "npm run build:content",
-    "predev": "npm run build:content",
+    "prepare": "npm run build:content && npm run build:fonts",
+    "predev": "npm run build:content && npm run build:fonts",
     "dev": "vite",
     "dev:lan": "npm run dev -- --host",
     "build:content": "node tools/build/build-content.mjs",
+    "build:fonts": "node tools/build/build-fonts.mjs",
     "build:drawings": "node tools/build/build-drawings.mjs && node tools/build/render-drawing-png.mjs drawings/current/DRAW-L1-PLAN.svg drawings/current/DRAW-L2-PLAN.svg drawings/current/DRAW-L3-PLAN.svg drawings/current/DRAW-LONGITUDINAL-SECTION.svg",
     "build:analysis": "node tools/analysis/solar-optimize.mjs",
     "build:copy": "node tools/build/build-copy.mjs",
     "build:textures": "node tools/build/build-textures.mjs",
+    "build:icons": "node tools/build/build-icons.mjs",
     "check:docs": "node tools/check/check-docs.mjs",
     "check:model": "node tools/check/check-model.mjs",
     "check:assets": "node tools/check/check-assets.mjs",
@@ -31,10 +33,12 @@
     "test:e2e": "node tests/e2e/web.e2e.mjs && node tests/e2e/3d-viewer.e2e.mjs",
     "capture:viewer-quality": "npm run build && node tools/capture/capture-viewer-quality.mjs",
     "clean:dist": "node tools/build/clean-dist.mjs",
-    "build": "npm run build:content && npm run check:docs && npm run check:model && npm run check:assets && npm test && npm run typecheck && npm run clean:dist && vite build"
+    "build": "npm run build:content && npm run check:docs && npm run check:model && npm run check:assets && npm test && npm run typecheck && npm run clean:dist && npm run build:fonts && vite build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@fontsource-variable/noto-sans-tc": "^5.3.1",
+    "@fontsource-variable/noto-serif-tc": "^5.3.1",
     "@types/node": "^24.13.3",
     "@types/three": "^0.185.1",
     "eslint": "^10.15.0",
@@ -45,6 +49,7 @@
     "prettier": "^3.10.1",
     "stylelint": "^18.1.0",
     "stylelint-config-recommended": "^19.1.0",
+    "subset-font": "^2.9.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.73.0",
     "vite": "^6.3.5"

@@ -7,7 +7,7 @@
   top: 0;
   z-index: 100;
   display: grid;
-  grid-template-columns: minmax(220px, .8fr) minmax(500px, auto) minmax(84px, .25fr);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: stretch;
   min-height: var(--site-header-height);
   padding: 0 max(20px, calc((100vw - 1440px) / 2));
@@ -43,17 +43,35 @@
   display: block;
   color: #000;
   font-family: inherit;
-  font-size: 1.26rem;
-  font-weight: 700;
+  font-size: var(--site-text-h4);
+  font-weight: var(--site-weight-bold);
   letter-spacing: 0;
 }
 
+.site-menu-button {
+  display: none;
+}
+
+/*
+ * 主導覽在桌機是頁首中間的一列；900px 以下收進「選單」面板。
+ * 面板用瀏覽器原生的 popover（按 Esc 或點面板外就關），不需要另寫程式，
+ * 所以這裡先把 popover 的預設外觀（置中浮層、框線、底色）還原成一般的導覽列。
+ */
 .site-navigation {
+  position: static;
   display: grid;
   grid-auto-columns: max-content;
   grid-auto-flow: column;
   align-items: stretch;
   justify-content: center;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  color: inherit;
+  border: 0;
+  background: transparent;
 }
 
 .site-navigation a {
@@ -64,10 +82,11 @@
   min-height: 44px;
   padding: 0 18px;
   color: var(--site-muted);
-  font-size: .86rem;
-  font-weight: 700;
+  font-size: var(--site-text-sm);
+  font-weight: var(--site-weight-bold);
   text-decoration: none;
   white-space: nowrap;
+  transition: color var(--site-duration-fast) ease;
 }
 
 .site-navigation a::after {
@@ -78,14 +97,24 @@
   height: 2px;
   background: transparent;
   content: "";
+  transition: background-color var(--site-duration-fast) ease;
+}
+
+.site-navigation a:hover {
+  color: var(--site-ink);
+}
+
+.site-navigation a:hover::after {
+  background: var(--site-line-strong);
+}
+
+.site-navigation a:active::after,
+.site-navigation a[aria-current]::after {
+  background: var(--site-terracotta);
 }
 
 .site-navigation a[aria-current] {
   color: var(--site-ink);
-}
-
-.site-navigation a[aria-current]::after {
-  background: var(--site-terracotta);
 }
 
 /* 四向專題等群組的第二層頁籤（DEC-170）：只在群組內的頁面出現，接在主導覽下方。 */
@@ -105,8 +134,8 @@
   min-height: 44px;
   padding: 0 16px;
   color: var(--site-muted);
-  font-size: .8rem;
-  font-weight: 600;
+  font-size: var(--site-text-sm);
+  font-weight: var(--site-weight-bold);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -121,24 +150,20 @@
   content: "";
 }
 
+.site-subnavigation a:hover {
+  color: var(--site-ink);
+}
+
+.site-subnavigation a:hover::after {
+  background: var(--site-line-strong);
+}
+
 .site-subnavigation a[aria-current="page"] {
   color: var(--site-ink);
 }
 
 .site-subnavigation a[aria-current="page"]::after {
   background: var(--site-terracotta);
-}
-
-.site-release {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 7px;
-  color: var(--site-muted);
-}
-
-.site-release strong {
-  color: var(--site-ink);
 }
 
 .site-view {
@@ -155,10 +180,11 @@
   color: var(--site-muted);
 }
 
+/* 各頁共用的頁面首區：英文小標、副標、H1、一段導言，由上而下一欄排列。 */
 .view-intro {
   width: var(--site-page);
   margin: 0 auto;
-  padding: clamp(1.75rem, 3vw, 3rem) 0 clamp(3rem, 6vw, 6rem);
+  padding: clamp(1.75rem, 3vw, 3rem) 0 clamp(1.5rem, 3vw, 3rem);
 }
 
 .site-footer {
@@ -170,12 +196,72 @@
   padding: 1.5rem 0 max(2rem, env(safe-area-inset-bottom));
   color: var(--site-muted);
   border-top: 1px solid var(--site-line);
-  font-size: .74rem;
+  font-size: var(--site-text-sm);
   line-height: 1.6;
 }
 
 .site-footer p {
   margin: 0;
+}
+
+/* 上一章、下一章：依主導覽的頁序，下一章固定在右欄。 */
+.site-pager {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--site-line);
+}
+
+.site-pager-link {
+  display: grid;
+  gap: .15rem;
+  align-content: center;
+  min-height: 44px;
+  color: var(--site-ink);
+  text-decoration: none;
+}
+
+.site-pager-link span {
+  color: var(--site-muted);
+  font-size: var(--site-text-xs);
+  font-weight: var(--site-weight-medium);
+}
+
+.site-pager-link strong {
+  font-family: var(--site-serif);
+  font-size: var(--site-text-h4);
+  font-weight: var(--site-weight-bold);
+  transition: color var(--site-duration-fast) ease;
+}
+
+.site-pager-link:hover strong {
+  color: var(--site-water);
+}
+
+.site-pager-link--next {
+  grid-column: 2;
+  justify-items: end;
+  text-align: right;
+}
+
+/* 版號與座標是給查核用的技術資料，收合在頁尾，不放在每一頁最上面。 */
+.site-technical {
+  justify-self: end;
+  text-align: right;
+}
+
+.site-technical summary {
+  display: inline-flex;
+  align-items: center;
+  color: var(--site-muted);
+  font-weight: var(--site-weight-medium);
+  cursor: pointer;
+}
+
+.site-technical summary:hover {
+  color: var(--site-ink);
 }
 
 .site-footer strong {
@@ -186,44 +272,123 @@
   display: block;
   margin-top: .45rem;
   color: var(--site-muted);
-  font-size: .68rem;
-  font-weight: 500;
-  letter-spacing: .08em;
+  font-size: var(--site-text-xs);
+  font-weight: var(--site-weight-medium);
+  letter-spacing: 0.04em;
 }
 
 @media (max-width: 900px) {
+  /* 55 + 1px 底線 = 56px，等於 --site-header-height；群組頁再加第二層頁籤一列。 */
   .site-masthead {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 55px;
     padding-inline: 18px;
   }
 
-  .site-navigation {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-content: start;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: none;
+  .site-identity-copy strong {
+    font-size: var(--site-text-lead);
   }
 
-  .site-navigation::-webkit-scrollbar {
+  .site-menu-button {
+    display: inline-flex;
+    grid-column: 2;
+    grid-row: 1;
+    align-items: center;
+    align-self: center;
+    gap: 8px;
+    min-width: 44px;
+    padding: 0 0 0 10px;
+    color: var(--site-ink);
+    border: 0;
+    background: transparent;
+    font-size: var(--site-text-sm);
+    font-weight: var(--site-weight-bold);
+    cursor: pointer;
+  }
+
+  .site-menu-icon,
+  .site-menu-icon::before,
+  .site-menu-icon::after {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: currentcolor;
+    transition: transform var(--site-duration-fast) ease, background-color var(--site-duration-fast) ease;
+  }
+
+  .site-menu-icon {
+    position: relative;
+  }
+
+  .site-menu-icon::before,
+  .site-menu-icon::after {
+    position: absolute;
+    left: 0;
+    content: "";
+  }
+
+  .site-menu-icon::before {
+    top: -6px;
+  }
+
+  .site-menu-icon::after {
+    top: 6px;
+  }
+
+  .site-masthead:has(.site-navigation:popover-open) .site-menu-icon {
+    background: transparent;
+  }
+
+  .site-masthead:has(.site-navigation:popover-open) .site-menu-icon::before {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .site-masthead:has(.site-navigation:popover-open) .site-menu-icon::after {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .site-navigation:not(:popover-open) {
     display: none;
   }
 
+  /* 選單面板：接在頁首下緣，一項一列，目前所在以左側赭紅線標示。 */
+  .site-navigation:popover-open {
+    position: fixed;
+    inset: var(--site-header-height) 0 auto;
+    grid-auto-columns: auto;
+    grid-auto-flow: row;
+    justify-content: stretch;
+    max-height: calc(100dvh - var(--site-header-height));
+    padding: 8px 18px max(16px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    border-bottom: 1px solid var(--site-line);
+    background: var(--site-paper-raised);
+    box-shadow: 0 16px 32px rgb(23 40 41 / 12%);
+  }
+
   .site-navigation a {
-    padding-inline: 16px;
+    place-items: center start;
+    min-height: 52px;
+    padding: 0 0 0 14px;
+    font-size: var(--site-text-md);
+    border-bottom: 1px solid var(--site-line);
   }
 
-  .site-navigation a:first-child {
-    padding-left: 0;
+  .site-navigation a:last-child {
+    border-bottom: 0;
   }
 
-  .site-navigation a:first-child::after {
+  .site-navigation a::after {
+    top: 14px;
+    right: auto;
+    bottom: 14px;
     left: 0;
+    width: 3px;
+    height: auto;
   }
 
   .site-subnavigation {
-    grid-row: 3;
+    grid-row: 2;
     justify-content: start;
     overflow-x: auto;
     overscroll-behavior-inline: contain;
@@ -242,46 +407,30 @@
     left: 0;
   }
 
-  .site-release {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
   .site-footer {
     grid-template-columns: 1fr;
   }
 
-  .site-footer-meta {
-    grid-column: auto;
+  .site-technical {
+    justify-self: start;
+    text-align: left;
   }
 }
 
 @media (max-width: 520px) {
   .site-masthead {
-    grid-template-rows: 67px 49px;
     padding-inline: 14px;
   }
 
-  .site-release span {
-    display: none;
+  .site-identity {
+    gap: 8px;
   }
 
-  .site-navigation a {
-    padding-inline: 10px;
-    font-size: .82rem;
-  }
-
-  .site-navigation a::after {
-    right: 10px;
-    left: 10px;
+  .site-identity-copy strong {
+    font-size: var(--site-text-md);
   }
 
   .site-footer {
-    grid-template-columns: 1fr;
     gap: 1rem;
-  }
-
-  .site-footer-meta {
-    grid-column: auto;
   }
 }
