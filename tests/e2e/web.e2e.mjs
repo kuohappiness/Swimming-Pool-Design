@@ -22,6 +22,7 @@ const routes = [
   { id: 'solar-study', url: '/?view=solar-study', group: 'topics' },
   { id: 'drawings', url: '/?view=drawings' },
   { id: '3d-viewer', url: '/?view=3d-viewer&quality=low&adaptive=off' },
+  { id: 'water-cycle', url: '/?view=water-cycle', group: 'topics' },
   { id: 'design-process', url: '/?view=design-process', group: 'topics' },
   { id: 'about', url: '/?view=about' },
 ];
@@ -210,7 +211,7 @@ try {
     }
   }
 
-  for (const viewId of ['design-concept', 'solar-study', 'design-process', 'drawings', 'about']) {
+  for (const viewId of ['design-concept', 'solar-study', 'water-cycle', 'design-process', 'drawings', 'about']) {
     const metrics = routeScriptMetrics.get(viewId) ?? [];
     assert.equal(
       metrics.some(({ decodedBodySize }) => decodedBodySize > 500_000),
@@ -366,6 +367,137 @@ try {
     return shell?.classList.contains('can-scroll-left') && !shell.classList.contains('can-scroll-right');
   });
   await drawings.close();
+
+  const waterCycle = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  trackErrors(waterCycle, errors);
+  await waterCycle.goto(`${origin}/?view=water-cycle`, { waitUntil: 'networkidle' });
+  await waitForView(waterCycle, 'water-cycle');
+  assert.match(await waterCycle.title(), /^水循環｜.+概念設計$/);
+  const waterSectionIds = ['rainfall', 'roof', 'path', 'seasons', 'open'].map((id) => `water-${id}`);
+  assert.deepEqual(
+    await waterCycle.locator('.water-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    waterSectionIds,
+  );
+  assert.deepEqual(
+    await waterCycle.locator('.water-index a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    waterSectionIds.map((id) => `#${id}`),
+  );
+  assert.equal(await waterCycle.locator('h1').count(), 1);
+  // The chart draws twelve months to scale, on one axis, and labels only the wettest and driest month.
+  const chart = await waterCycle.locator('.water-chart').evaluate((figure) => {
+    const area = figure.querySelector('.water-chart-area').getBoundingClientRect();
+    const rows = [...figure.querySelectorAll('.water-chart-table tbody tr')].map((row) => ({
+      month: Number.parseInt(row.querySelector('th').textContent, 10),
+      millimetres: Number.parseFloat(row.querySelectorAll('td')[0].textContent.replace(',', '')),
+    }));
+    const columns = [...figure.querySelectorAll('.water-chart-column')].map((column) => {
+      const bar = column.querySelector('.water-chart-bar').getBoundingClientRect();
+      return {
+        month: Number(column.dataset.waterMonth),
+        height: bar.height,
+        width: bar.width,
+        baseline: Math.abs(bar.bottom - area.bottom),
+        label: column.querySelector('.water-chart-value')?.textContent.trim() ?? null,
+      };
+    });
+    const ticks = [...figure.querySelectorAll('.water-chart-axis span')].map((tick) => Number(tick.textContent));
+    return {
+      sourceId: figure.dataset.sourceId,
+      plotLabel: figure.querySelector('.water-chart-plot').getAttribute('aria-label'),
+      areaHeight: area.height,
+      rows,
+      columns,
+      ticks,
+      total: figure.querySelector('.water-chart-table tfoot td').textContent,
+    };
+  });
+  assert.equal(chart.sourceId, 'SRC-DATA-001');
+  assert.match(chart.plotLabel, /^長條圖：.+最多是 \d+ 月 .+ mm，最少是 \d+ 月 .+ mm，全年 .+ mm。$/);
+  assert.deepEqual(chart.rows.map(({ month }) => month), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  assert.deepEqual(chart.columns.map(({ month }) => month), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  const axisTop = chart.ticks.at(-1);
+  assert.equal(chart.ticks[0], 0);
+  assert.ok(axisTop >= Math.max(...chart.rows.map(({ millimetres }) => millimetres)));
+  for (const [index, column] of chart.columns.entries()) {
+    const expected = chart.rows[index].millimetres / axisTop * chart.areaHeight;
+    assert.ok(Math.abs(column.height - expected) <= 1.5, `month ${column.month} bar is ${column.height}px, expected ${expected}px`);
+    assert.ok(column.baseline <= 1, `month ${column.month} bar does not sit on the baseline`);
+    assert.ok(column.width <= 24, `month ${column.month} bar is wider than 24px`);
+  }
+  const sortedRows = [...chart.rows].sort((left, right) => left.millimetres - right.millimetres);
+  assert.deepEqual(
+    chart.columns.filter(({ label }) => label !== null).map(({ month }) => month).sort((left, right) => left - right),
+    [sortedRows[0].month, sortedRows.at(-1).month].sort((left, right) => left - right),
+  );
+  const monthlySum = chart.rows.reduce((total, { millimetres }) => total + millimetres, 0);
+  assert.ok(Math.abs(monthlySum - Number.parseFloat(chart.total.replace(',', ''))) <= 0.05, 'table months must add up to the annual row');
+  // Hover shows one month's values; the table is the text alternative and opens from the keyboard.
+  const august = waterCycle.locator('.water-chart-column[data-water-month="8"]');
+  assert.equal(await august.locator('.water-chart-tip').isVisible(), false);
+  await august.hover();
+  assert.equal(await august.locator('.water-chart-tip').isVisible(), true);
+  assert.match(await august.locator('.water-chart-tip').innerText(), /8 月\s+降水量 [\d.,]+ mm\s+落在屋頂約 [\d,]+ m³/);
+  await waterCycle.mouse.move(0, 0);
+  assert.equal(await august.locator('.water-chart-tip').isVisible(), false);
+  const tableToggle = waterCycle.locator('.water-chart-table summary');
+  assert.equal(await waterCycle.locator('.water-chart-table table').isVisible(), false);
+  await tableToggle.focus();
+  await waterCycle.keyboard.press('Enter');
+  assert.equal(await waterCycle.locator('.water-chart-table table').isVisible(), true);
+  assert.equal(await waterCycle.locator('.water-figure').count(), 3);
+  assert.match(await waterCycle.locator('.water-estimate-note').innerText(), /概念估算/);
+  assert.equal(await waterCycle.locator('.water-step').count(), 8);
+  assert.equal(
+    await waterCycle.locator('.water-section a[href^="http"]').evaluateAll((links) =>
+      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener')),
+    true,
+  );
+  assert.deepEqual(
+    await waterCycle.locator('.water-section a:not([href^="http"])').evaluateAll((links) =>
+      links.map((link) => link.getAttribute('href'))),
+    ['?view=3d-viewer#rain'],
+    'water-cycle in-site links must point to registered views',
+  );
+  await waterCycle.screenshot({ path: resolve(outputDirectory, 'public-water-cycle-desktop.png'), fullPage: true });
+  await waterCycle.close();
+
+  const waterCycleMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  trackErrors(waterCycleMobile, errors);
+  await waterCycleMobile.goto(`${origin}/?view=water-cycle#water-rainfall`, { waitUntil: 'networkidle' });
+  await waitForView(waterCycleMobile, 'water-cycle');
+  await waterCycleMobile.waitForFunction(() => {
+    const target = document.querySelector('#water-rainfall');
+    const masthead = document.querySelector('.site-masthead');
+    if (!target || !masthead) return false;
+    const top = target.getBoundingClientRect().top;
+    return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
+  });
+  assert.equal(
+    await waterCycleMobile.locator('.water-index a, .water-chart-table summary').evaluateAll((targets) =>
+      targets.every((target) => target.getBoundingClientRect().height >= 44 && target.getBoundingClientRect().width >= 44)),
+    true,
+    'water-cycle tap targets are smaller than 44px at 390px',
+  );
+  // A tap pins one month, the tooltip stays inside the screen, and a second tap releases it.
+  for (const month of [1, 8, 12]) {
+    const column = waterCycleMobile.locator(`.water-chart-column[data-water-month="${month}"]`);
+    await column.tap();
+    const tip = column.locator('.water-chart-tip');
+    assert.equal(await tip.isVisible(), true, `month ${month} tooltip did not open on tap`);
+    const box = await tip.boundingBox();
+    assert.ok(box.x >= 0 && box.x + box.width <= 390, `month ${month} tooltip leaves the screen`);
+    assert.equal(await waterCycleMobile.locator('.water-chart-column[data-water-active]').count(), 1);
+    await column.tap();
+    assert.equal(await waterCycleMobile.locator('.water-chart-column[data-water-active]').count(), 0);
+  }
+  assert.equal(
+    await waterCycleMobile.locator('.water-path').evaluate((list) =>
+      getComputedStyle(list).gridTemplateColumns.trim().split(/\s+/).length),
+    1,
+    'the path of a raindrop should stack into one column on a phone',
+  );
+  await waterCycleMobile.screenshot({ path: resolve(outputDirectory, 'public-water-cycle-mobile.png') });
+  await waterCycleMobile.close();
 
   const designProcess = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   trackErrors(designProcess, errors);
@@ -589,7 +721,7 @@ try {
 
   assert.equal(errors.length, 0, errors.join('\n'));
   process.stdout.write(
-    'Unified public site smoke passed: 6 views × 5 viewports, routing, accessibility, isolation, and reduced motion.\n',
+    `Unified public site smoke passed: ${routes.length} views × ${viewports.length} viewports, routing, accessibility, isolation, and reduced motion.\n`,
   );
   process.stdout.write(`Screenshots: ${outputDirectory}\n`);
 } finally {

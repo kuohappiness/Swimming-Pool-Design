@@ -4,13 +4,16 @@ import { fileURLToPath } from 'node:url';
 import { deriveReferenceGeometry } from '../../core/geometry/drawing-geometry.mjs';
 import { buildViewerModel, hashData } from '../../core/viewer/viewer-data.mjs';
 import { resolveActiveGeometry } from '../../core/geometry/active-geometry.mjs';
+import { buildWaterCycleData } from '../../core/water/roof-rainfall.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const TOKEN_PATTERN = /\{\{(model|active|derived):([A-Za-z0-9_.]+)\|([a-zA-Z]+)\}\}/g;
+const TOKEN_PATTERN = /\{\{(model|active|derived|data):([A-Za-z0-9_.]+)\|([a-zA-Z0-9]+)\}\}/g;
 const SCENE_PATTERN = /^<!--\s*scene:([a-z0-9-]+)\s*-->$/;
 const SECTION_PATTERN = /^<!--\s*section:([a-z0-9-]+)\s*-->$/;
 export const ABOUT_SECTION_IDS = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'];
 export const DESIGN_PROCESS_SECTION_IDS = ['overview', 'timeline', 'versions', 'pivots', 'corrections', 'open'];
+export const WATER_CYCLE_SECTION_IDS = ['overview', 'rainfall', 'roof', 'path', 'seasons', 'open'];
+export const RAINFALL_SOURCE_PATH = 'source-materials/data/SRC-DATA-001_cwa-taichung-climate-normals-1991-2020.json';
 const RECORD_PATTERN = /\{\{record:([a-z0-9.-]+)\|([^{}|]+)\}\}/g;
 
 const escapeHtml = (value) => String(value)
@@ -23,13 +26,29 @@ const formatNumber = (value, digits = 3) => Number(value).toFixed(digits)
   .replace(/\.0+$/, '')
   .replace(/(\.\d*?)0+$/, '$1');
 
+const formatGrouped = (value, digits) => Number(value).toLocaleString('en-US', {
+  minimumFractionDigits: digits,
+  maximumFractionDigits: digits,
+});
+
 function formatToken(value, format) {
+  if (format === 'text') {
+    if (typeof value !== 'string' || !value.trim()) throw new TypeError('Token format text requires a non-empty string.');
+    return value;
+  }
   const numeric = typeof value === 'object' && value !== null && 'value' in value ? value.value : value;
   if (!Number.isFinite(numeric)) throw new TypeError(`Model token format ${format} requires a finite number.`);
   if (format === 'degree') return `${formatNumber(numeric, 1)}°`;
   if (format === 'metre') return `${formatNumber(numeric, 3)} m`;
   if (format === 'elevation') return `${numeric >= 0 ? '+' : ''}${Number(numeric).toFixed(3)} m`;
   if (format === 'number') return formatNumber(numeric, 3);
+  // Rainfall and the estimates built on it: one decimal where the source has one, whole numbers for estimates.
+  if (format === 'millimetre') return `${formatGrouped(numeric, 1)} mm`;
+  if (format === 'squareMetre') return `${formatGrouped(numeric, 0)} m²`;
+  if (format === 'cubicMetre') return `${formatGrouped(numeric, 0)} m³`;
+  if (format === 'kilometre') return `${formatGrouped(numeric, 1)} km`;
+  if (format === 'percent') return `${formatGrouped(numeric * 100, 0)}%`;
+  if (format === 'decimal1') return formatGrouped(numeric, 1);
   throw new TypeError(`Unknown model token format: ${format}`);
 }
 
@@ -39,11 +58,13 @@ function getPath(owner, path) {
   return value;
 }
 
-export function injectModelTokens(markdown, model) {
-  const derived = deriveReferenceGeometry(model);
-  const active = resolveActiveGeometry(model);
-  const output = markdown.replace(TOKEN_PATTERN, (_, owner, path, format) =>
-    formatToken(getPath(owner === 'model' ? model : owner === 'active' ? active : derived, path), format));
+/** `data` holds the page's registered external data (the `{{data:…}}` owner); pages without any omit it. */
+export function injectModelTokens(markdown, model, data) {
+  const owners = { model, active: resolveActiveGeometry(model), derived: deriveReferenceGeometry(model), data };
+  const output = markdown.replace(TOKEN_PATTERN, (_, owner, path, format) => {
+    if (owners[owner] === undefined) throw new TypeError(`Token owner ${owner} was not provided for path: ${path}`);
+    return formatToken(getPath(owners[owner], path), format);
+  });
   const unresolved = output.match(/\{\{[^}]+\}\}/g);
   if (unresolved) throw new TypeError(`Unresolved model token: ${unresolved[0]}`);
   return output;
@@ -185,10 +206,11 @@ export function compilePublicContent(markdown, model, sceneManifest) {
  * Compiles a page written as `<!-- section:id -->` blocks. Each section starts with one `##` title;
  * text before the first `###` is the section intro, and every `###` opens one item (a glossary term,
  * a question, a sub-topic). The section list must match `sectionIds` exactly and in order.
- * `records` maps record keys to the text of the cited documents, for `{{record:…}}` quotes.
+ * `records` maps record keys to the text of the cited documents, for `{{record:…}}` quotes;
+ * `data` is the owner of `{{data:…}}` tokens.
  */
-export function compileSectionedContent(markdown, model, sectionIds, { records } = {}) {
-  const renderedMarkdown = injectModelTokens(injectRecordQuotes(markdown, records), model);
+export function compileSectionedContent(markdown, model, sectionIds, { records, data } = {}) {
+  const renderedMarkdown = injectModelTokens(injectRecordQuotes(markdown, records), model, data);
   const sectionLines = new Map();
   let currentSection = null;
   for (const line of renderedMarkdown.split(/\r?\n/)) {
@@ -251,12 +273,37 @@ export async function readRecords(root, markdown) {
   return Object.fromEntries(keys.map((key, index) => [key, texts[index]]));
 }
 
+/** The water-cycle page's data: registered rainfall normals applied to the active roof, pool and site. */
+export function waterCycleDataFor(model, rainfallSource) {
+  const active = resolveActiveGeometry(model);
+  return buildWaterCycleData({
+    rainfallSource,
+    roofBounds: active.roof.bounds,
+    poolVolumeM3: active.l1.pool.waterVolume,
+    site: {
+      latitude: model.referenceSystem.siteLocation.latitude.value,
+      longitude: model.referenceSystem.siteLocation.longitude.value,
+    },
+  });
+}
+
 export async function buildPublicContent({ root = repoRoot } = {}) {
-  const [modelText, markdown, aboutMarkdown, designProcessMarkdown, manifestText, registryText] = await Promise.all([
+  const [
+    modelText,
+    markdown,
+    aboutMarkdown,
+    designProcessMarkdown,
+    waterCycleMarkdown,
+    rainfallText,
+    manifestText,
+    registryText,
+  ] = await Promise.all([
     readFile(resolve(root, 'model/project-model.json'), 'utf8'),
     readFile(resolve(root, 'content/design-concept.md'), 'utf8'),
     readFile(resolve(root, 'content/about.md'), 'utf8'),
     readFile(resolve(root, 'content/design-process.md'), 'utf8'),
+    readFile(resolve(root, 'content/water-cycle.md'), 'utf8'),
+    readFile(resolve(root, RAINFALL_SOURCE_PATH), 'utf8'),
     readFile(resolve(root, 'web/src/views/3d-viewer/scene-manifest.json'), 'utf8'),
     readFile(resolve(root, 'model/analysis-registry.json'), 'utf8').catch(() => '{}'),
   ]);
@@ -272,6 +319,13 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
     DESIGN_PROCESS_SECTION_IDS,
     { records },
   );
+  const waterCycleData = waterCycleDataFor(model, JSON.parse(rainfallText));
+  const waterCycleContent = compileSectionedContent(
+    waterCycleMarkdown,
+    model,
+    WATER_CYCLE_SECTION_IDS,
+    { data: waterCycleData },
+  );
   const viewerModel = buildViewerModel(model, analysisRegistry);
   const outputDirectory = resolve(root, 'web/src/generated');
   await mkdir(outputDirectory, { recursive: true });
@@ -282,9 +336,14 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
       resolve(outputDirectory, 'design-process-content.json'),
       `${JSON.stringify(designProcessContent, null, 2)}\n`,
     ),
+    writeFile(
+      resolve(outputDirectory, 'water-cycle-content.json'),
+      `${JSON.stringify(waterCycleContent, null, 2)}\n`,
+    ),
+    writeFile(resolve(outputDirectory, 'water-cycle-data.json'), `${JSON.stringify(waterCycleData, null, 2)}\n`),
     writeFile(resolve(outputDirectory, 'viewer-model.json'), `${JSON.stringify(viewerModel, null, 2)}\n`),
   ]);
-  return { content, aboutContent, designProcessContent, viewerModel };
+  return { content, aboutContent, designProcessContent, waterCycleContent, waterCycleData, viewerModel };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
