@@ -11,9 +11,7 @@ export const viewIds = [
 
 export type ViewId = (typeof viewIds)[number];
 
-export const navigationGroupIds = ['topics'] as const;
-
-export type NavigationGroupId = (typeof navigationGroupIds)[number];
+export type NavigationGroupId = 'topics';
 
 export interface ViewDefinition {
   id: ViewId;
@@ -128,7 +126,7 @@ export function navigationItems(): NavigationItem[] {
   return items;
 }
 
-export function isViewId(value: string | null): value is ViewId {
+function isViewId(value: string | null): value is ViewId {
   return value !== null && viewIds.includes(value as ViewId);
 }
 

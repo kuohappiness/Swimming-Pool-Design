@@ -31,7 +31,7 @@ export const ASSET_FILE_LIMITS = Object.freeze({
  * 原始貼圖（PNG、JPEG、EXR、HDR、TIFF）只留轉檔後的 .ktx2，來源記在資產清單。
  * .svg 是 0.8 版自製的代理圖樣，換成 .ktx2 後移除。
  */
-export const ASSET_EXTENSION_KINDS = Object.freeze({
+const ASSET_EXTENSION_KINDS = Object.freeze({
   '.ktx2': 'texture',
   '.svg': 'texture',
   '.glb': 'model',

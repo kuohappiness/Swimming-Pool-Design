@@ -23,7 +23,7 @@ export function hashData(value) {
     .digest('hex');
 }
 
-export function solarAnalysisInput(model) {
+function solarAnalysisInput(model) {
   const active = resolveActiveGeometry(model);
   const orientation = deriveSiteOrientation(model.referenceSystem);
   const pool = resolveGeometryEntity(active, 'POOL-01');
