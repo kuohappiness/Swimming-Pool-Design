@@ -9,7 +9,7 @@ const viewDescription = getViewDefinition('drawings').description;
 
 export async function mount(container: HTMLElement): Promise<MountedView> {
   container.innerHTML = `
-    <section class="view-intro view-intro--drawings" aria-labelledby="drawings-title">
+    <section class="view-intro" aria-labelledby="drawings-title">
       <p class="site-kicker">DRAWING ATLAS</p>
       <p class="site-section-description">${viewDescription}</p>
       <h1 id="drawings-title">圖面是設計的語言，<br />讓原始的靈感得以實現。</h1>

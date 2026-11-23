@@ -901,7 +901,7 @@
     margin: 0;
     color: var(--site-ink);
     font-family: var(--site-sans);
-    font-size: clamp(1.68rem, 2.88vw, 2.16rem);
+    font-size: var(--site-text-h2);
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: 0;
@@ -1059,7 +1059,7 @@
     cursor: pointer;
     color: var(--site-ink);
     font-family: var(--site-sans);
-    font-size: clamp(1.68rem, 2.88vw, 2.16rem);
+    font-size: var(--site-text-h2);
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: 0;

@@ -41,7 +41,6 @@ blockquote {
 }
 
 /* 版本與座標屬於代碼，才用等寬字型；這一行含單位「m」，不轉大寫。 */
-.site-release,
 .site-footer-meta {
   font-family: var(--site-mono);
   font-size: var(--site-text-xs);
@@ -53,7 +52,7 @@ blockquote {
   max-width: 980px;
   margin: 0.4em 0 0.45em;
   font-family: var(--site-serif);
-  font-size: clamp(1.59rem, 3.84vw, 3.96rem);
+  font-size: var(--site-text-h1);
   font-weight: var(--site-weight-bold);
   line-height: 1.2;
 }
@@ -64,10 +63,4 @@ blockquote {
   color: var(--site-text);
   font-size: var(--site-text-lead);
   line-height: var(--site-leading);
-}
-
-@media (max-width: 520px) {
-  .view-intro h1 {
-    font-size: clamp(1.75rem, 8.4vw, 2.4rem);
-  }
 }

@@ -68,7 +68,7 @@
 
 `SRC-SITE-004` 於 2026-07-20 由使用者提供，原始檔完整保存，未裁切、縮放或重新壓縮。圖面可直接觀察到紅色框與上下兩個綠色框；框線語意依使用者隨附說明登錄為：紅框是目前泳池本體，上方綠框是廁所＋女生更衣室，下方綠框是男生更衣室。收件時記為取代當時 `REF-001` HTML 的舊衛星空照圖；現行圖面頁 `SITE`（2026-11-22 以前圖號 `REF-001`）的底圖是 `SRC-SITE-001` 的衍生檔（見上段），`SRC-SITE-004` 目前沒有網頁引用（2026-11-22 以像素比對確認，TASK-121）。`SRC-SITE-001`／`SRC-SITE-002` 仍保留，不以新檔覆寫既有證據。彩框只確認現況位置與用途，不提供地籍邊界或精確尺寸。
 
-`SRC-SITE-005` 於 2026-07-25 由使用者提供；原始透明 PNG 保留於來源資料夾，頁首使用 `web/src/shared/assets/brand/school-emblem-header.webp`（96 × 96、4,688 bytes、SHA-256 `CC44D1B1785885EC31076433B56068A8102267913715FF6968AE9B360AD800FB`）衍生檔：頁首只以 32 × 32 CSS 像素顯示，96 像素足夠三倍密度螢幕；2026-11-22 TASK-161 由先前 256 × 256 的 PNG 衍生檔（71,133 bytes）縮小並轉為 WebP（品質 90、保留透明）。
+`SRC-SITE-005` 於 2026-07-25 由使用者提供；原始透明 PNG 保留於來源資料夾，頁首使用 `web/src/shared/assets/brand/school-emblem-header.webp`（96 × 96、4,688 bytes、SHA-256 `CC44D1B1785885EC31076433B56068A8102267913715FF6968AE9B360AD800FB`）衍生檔：頁首只以 32 × 32 CSS 像素顯示，96 像素足夠三倍密度螢幕；2026-11-22 TASK-161 由先前 256 × 256 的 PNG 衍生檔（71,133 bytes）縮小並轉為 WebP（品質 90、保留透明）。2026-11-23 TASK-172 以 `npm run build:icons` 從原始透明 PNG 另做三個衍生檔，放在 `web/public/`：網站圖示 `favicon-32.png`（32 × 32、透明，1,972 bytes、SHA-256 `4345AE13973923B00E90F2C0C446A8688E763EF2321DD74A33D48ABB8E875736`）、加到主畫面用的 `apple-touch-icon.png`（180 × 180、紙色底，15,131 bytes、SHA-256 `B9DE1CD72007B7876457186808E1CF2A3F30D89DE6C7BFF9C0220F78BAC020C6`）、社群分享預覽 `share-card.png`（1200 × 630，校徽加站名與「向光、向雨、向人、向時間」，81,671 bytes、SHA-256 `83977B7721D23CF3F12C2A243C9350B83A3D57F42CE56E168CDE1118478A21DB`）。
 
 `SRC-SITE-003` 於 2026-07-16 由 PVGIS 5.3 TMY API 以 `24.14434°N, 120.67341°E` 取得；原始 metadata 記錄海拔 84 m、`PVGIS-ERA5`／ERA5、2005～2023、啟用 DEM horizon，12 個月份各選一個典型月份。觀察資料包含逐時 GHI `G(h)`、DNI `Gb(n)`、DHI `Gd(h)`、溫度、濕度、風與氣壓；本專案只解讀輻射欄位作概念能量比較。TMY 是長期典型月份的組合，不代表 2026 年實際天氣，也不是施工熱負荷保證。來源：[PVGIS 5.3 API](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en)、[PVGIS TMY 說明](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/pvgis-5-tools/pvgis-typical-meteorological-year-tmy-generator_en)。
 
@@ -98,7 +98,7 @@
 | --- | --- | --- |
 | `SRC-SITE-001`、`002`、`004` Google Maps 衛星截圖 | Google 與影像、地圖資料提供者 | 圖面頁 `SITE` 底圖衍生檔保留截圖原有的 Google Maps 標誌與「圖像 © 2026 Airbus、CNES / Airbus、Maxar Technologies、地圖資料 ©2026 Google」署名列（2026-11-22 檢視確認）。衍生檔不得裁掉這一列。 |
 | `SRC-SITE-003` PVGIS 氣象年資料 | European Commission JRC | 日照研究頁〈研究方法、來源與專業限制〉寫明採用 PVGIS TMY 並連到 PVGIS 說明 |
-| `SRC-SITE-005` 校徽 | 學校 | 頁首識別用途；使用者 2026-11-22 表示學校同意網站使用校徽與校名（原話：「學校同意網站使用校徽與校名」） |
+| `SRC-SITE-005` 校徽 | 學校 | 頁首識別、網站圖示與分享預覽圖；使用者 2026-11-22 表示學校同意網站使用校徽與校名（原話：「學校同意網站使用校徽與校名」） |
 
 國外指南（例如 Sport England、CDC MAHC）只作為技術參考，不具臺灣法規效力；法規與技術參考的登錄見〈法規來源〉。
 

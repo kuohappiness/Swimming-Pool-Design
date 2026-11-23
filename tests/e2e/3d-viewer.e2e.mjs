@@ -144,7 +144,11 @@ try {
   assert.equal(await desktop.locator('[data-layer-list] input').count(), 10);
   assert.equal(await desktop.locator('input[value="energy"]').isChecked(), true);
   assert.equal(await desktop.locator('canvas[aria-label*="3D 模型"]').count(), 1);
-  assert.equal(await desktop.locator('.site-release strong').innerText(), expectedModelVersion);
+  // The model version sits in the footer's collapsed technical details, so read textContent.
+  assert.match(
+    await desktop.locator('.site-footer-meta').textContent(),
+    new RegExp(`^MODEL ${expectedModelVersion.replaceAll('.', '\\.')} · `),
+  );
   assert.equal(await desktop.locator('.topbar').count(), 0);
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'), '25.5°');
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-deck-elevation'), '+0.300 m');
@@ -1000,7 +1004,7 @@ try {
     `STUDY ${expectedGeometryRevision}`,
   );
   assert.match(
-    await solarDesktop.locator('.site-footer-meta').innerText(),
+    await solarDesktop.locator('.site-footer-meta').textContent(),
     new RegExp(`^MODEL ${expectedModelVersion.replaceAll('.', '\\.')} · ${projectModel.activeGeometryRevisionId} · `),
   );
   const signedDegrees = (value) => `${value > 0 ? '+' : ''}${value.toFixed(1)}°`;

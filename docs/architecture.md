@@ -29,16 +29,17 @@ Swimming-Pool-Design/
 │  └─ current/               現行圖面 DRAW-*.svg，檔名不帶版號；PNG 由 build:drawings 產生，不入庫
 ├─ web/                      網站（Vite root），產出到 dist/web/
 │  ├─ index.html             唯一的 HTML 入口
+│  ├─ public/                原樣複製到網站根目錄的檔案：網站圖示與分享預覽圖（build:icons 產生，入庫）
 │  └─ src/
 │     ├─ app/                bootstrap、app-shell、router、view-contract
-│     ├─ design-system/      共用樣式：index.css（唯一入口，定層的先後）、reset、tokens、typography、layout、components
+│     ├─ design-system/      共用樣式：index.css（唯一入口，定層的先後）、reset、tokens、typography、layout、components、print
 │     ├─ shared/             types.ts、external-links.ts、assets/brand/
 │     ├─ generated/          build:content 與 build:fonts 的產物，不入庫
 │     └─ views/<view id>/    每個分頁一個資料夾；影像衍生檔放該頁的 assets/
 ├─ tools/                    命令列工具，不被網站匯入
 │  ├─ section.mjs            只印文件的一節或一列（見 agents/workflow.md 第 5 節）
 │  ├─ build/                 build-content、build-fonts、build-drawings、render-drawing-png、build-copy、clean-dist、
-│  │                         build-textures；textures/ 放自製貼圖的產生程式，一張一檔
+│  │                         build-textures、build-icons；textures/ 放自製貼圖的產生程式，一張一檔
 │  ├─ check/                 check-docs、check-model、check-assets；status-line、workflow-docs（狀態行與 roadmap、backlog 分節）、
 │  │                         stylelint-view-scope（分頁樣式不得外溢的 stylelint 規則）、
 │  │                         source-registry（來源表與模型 sources 一致）、
@@ -70,7 +71,7 @@ Swimming-Pool-Design/
                              analysis/、subprojects/、legacy-models/、deliverables/
 ```
 
-`tests/fixtures/`、`docs/agents/quality.md`、`web/public/`、`source-materials/regulations/` 等資料夾在第一個檔案出現時才建立，屆時更新本節。
+`tests/fixtures/`、`docs/agents/quality.md`、`source-materials/regulations/` 等資料夾在第一個檔案出現時才建立，屆時更新本節。
 
 ## 2. 每類資訊放哪裡
 
@@ -205,7 +206,8 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 3. 分頁樣式不得影響別頁與共用外框：最外層的選擇器只能以這一頁自己的 class、id 或 `:where(.<class>)` 開頭，不寫 `html`、`body`、標籤、屬性選擇器或 `.site-*`。要用標籤選擇器時，包在 `:where(.site-view--<view id>) { … }` 裡（巢狀只用這一層）。分頁要調整頁尾間距時寫成 `.site-view--<view id> + .site-footer`。
 4. `--site-*` 設計變數只在 `tokens.css` 定義；用到的都要有定義，定義的都要有人用。顏色、字級與焦點框用變數：文字最小 `--site-text-xs`（12px），段落用 `--site-text`，圖表與 3D 的資料色用 `--site-data-*`，不當文字色。焦點框由 `components.css` 全站統一，分頁不自訂。
 5. 網站字型是 `npm run build:fonts` 從思源黑體、思源宋體切出的子集（[DEC-211](decisions.md)），產物在 `web/src/generated/fonts/`，由 `index.css` 匯入；`prepare`、`predev`、`build` 會自動產生，加新文字不需要手動處理。
-6. 現存例外：`3d-viewer` 仍有 `styles.css` 與 `view.css` 兩個檔，且暫不受第 3 點檢查，等 3D 介面改版時併成一檔。
+6. 標題字級：每頁 H1 是該頁最大的字，用 `--site-text-h1`，只有首頁 H1 用 `--site-text-display`；H2 用 `--site-text-h2`，H3 用 `--site-text-h3`。各頁首區共用 `.view-intro` 的一欄排法，分頁不另排。列印樣式放在 `print.css`，分頁只補自己的列印規則（[DEC-212](decisions.md)）。
+7. 現存例外：`3d-viewer` 仍有 `styles.css` 與 `view.css` 兩個檔，且暫不受第 3 點檢查，等 3D 介面改版時併成一檔。
 
 ## 6. 名詞對照
 

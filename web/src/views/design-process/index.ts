@@ -213,7 +213,7 @@ export function mount(container: HTMLElement): MountedView {
   const overview = section('overview');
   const sections = content.sections.filter(({ id }) => id !== 'overview');
   container.innerHTML = `
-    <section class="view-intro view-intro--design-process" aria-labelledby="design-process-title">
+    <section class="view-intro" aria-labelledby="design-process-title">
       <p class="site-kicker">${definition.eyebrow}</p>
       <p class="site-section-description">${definition.description}</p>
       <h1 id="design-process-title">從第一張手繪稿，<br>到現在的每一次修改。</h1>
