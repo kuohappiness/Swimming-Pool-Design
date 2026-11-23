@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 import { BaselineMaterialRegistry } from '../baseline-material-registry';
 import type { MaterialRegistry, SemanticMaterialId } from '../contracts';
-import {
-  assertRenderQualityProfile,
-  type RenderQualityProfile,
-} from '../quality-profile';
+import { assertRenderQualityProfile, type RenderQualityProfile } from '../quality-profile';
 import { createGlossyFilmMaterial } from './glossy-film-material';
 import {
   EnhancedTextureLoader,
@@ -28,7 +25,13 @@ const GLASS_LOOK = {
 } as const;
 const LOW_TIER_GLASS = { opacity: 0.3, scatter: 1 } as const;
 // 濕地面都在室內，倒影照到的是天花板，比環境貼圖的天空暗。
-const WET_FILM = { tint: 0x9fc3c7, roughness: 0.08, opacity: 0.2, scatter: 0.15, reflectionIntensity: 0.4 } as const;
+const WET_FILM = {
+  tint: 0x9fc3c7,
+  roughness: 0.08,
+  opacity: 0.2,
+  scatter: 0.15,
+  reflectionIntensity: 0.4,
+} as const;
 
 function filmColor(tint: number, scatter: number) {
   return new THREE.Color(tint).multiplyScalar(scatter);
@@ -115,141 +118,194 @@ export class EnhancedPbrMaterialRegistry implements MaterialRegistry {
     const poolTileNormal = this.textureLoader.get('material-pool-tile-normal-v1');
     const deckColor = this.textureLoader.get('material-deck-grain-v1');
     const deckNormal = this.textureLoader.get('material-deck-normal-v1');
-    const concrete = (color: number, roughness: number) => new THREE.MeshStandardMaterial({
-      color,
-      map: concreteColor,
-      normalMap: concreteNormal,
-      normalScale: new THREE.Vector2(0.16, 0.16),
-      roughness,
-      roughnessMap: concreteRoughness,
-      metalness: 0,
-    });
-    const glass = (id: keyof typeof GLASS_LOOK) => createGlossyFilmMaterial({
-      color: filmColor(GLASS_LOOK[id].tint, GLASS_LOOK[id].scatter),
-      roughness: GLASS_LOOK[id].roughness,
-      opacity: GLASS_LOOK[id].opacity,
-      side: THREE.DoubleSide,
-    });
+    const concrete = (color: number, roughness: number) =>
+      new THREE.MeshStandardMaterial({
+        color,
+        map: concreteColor,
+        normalMap: concreteNormal,
+        normalScale: new THREE.Vector2(0.16, 0.16),
+        roughness,
+        roughnessMap: concreteRoughness,
+        metalness: 0,
+      });
+    const glass = (id: keyof typeof GLASS_LOOK) =>
+      createGlossyFilmMaterial({
+        color: filmColor(GLASS_LOOK[id].tint, GLASS_LOOK[id].scatter),
+        roughness: GLASS_LOOK[id].roughness,
+        opacity: GLASS_LOOK[id].opacity,
+        side: THREE.DoubleSide,
+      });
     const roofGlass = glass('roof-glass');
     const safetyGlass = glass('safety-glass');
 
     this.overrides.set('exposed-concrete-l1', concrete(0xc3c0b9, 0.9));
     this.overrides.set('exposed-concrete-l2', concrete(0xb5b2ab, 0.88));
     this.overrides.set('exposed-concrete-l3', concrete(0xa8a59e, 0.86));
-    this.overrides.set('structural-steel', new THREE.MeshStandardMaterial({
-      color: 0x263238,
-      roughness: 0.36,
-      metalness: 0.62,
-    }));
+    this.overrides.set(
+      'structural-steel',
+      new THREE.MeshStandardMaterial({
+        color: 0x263238,
+        roughness: 0.36,
+        metalness: 0.62,
+      }),
+    );
     this.overrides.set('roof-glass', roofGlass);
     this.overrides.set('safety-glass', safetyGlass);
-    this.overrides.set('water', new THREE.MeshStandardMaterial({
-      color: 0x2f94ac,
-      roughness: 0.1,
-      metalness: 0,
-      transparent: true,
-      opacity: 0.64,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    }));
-    this.overrides.set('pool-basin', new THREE.MeshStandardMaterial({
-      color: 0xe5eeee,
-      map: poolTileColor,
-      normalMap: poolTileNormal,
-      normalScale: new THREE.Vector2(0.42, 0.42),
-      roughness: 0.62,
-      metalness: 0,
-      side: THREE.DoubleSide,
-    }));
-    this.overrides.set('pool-deck', new THREE.MeshStandardMaterial({
-      color: 0xddd7cb,
-      map: deckColor,
-      normalMap: deckNormal,
-      normalScale: new THREE.Vector2(0.24, 0.24),
-      roughness: 0.92,
-      metalness: 0,
-    }));
-    this.overrides.set('pool-rail', new THREE.MeshStandardMaterial({
-      color: 0xc7d0d2,
-      roughness: 0.24,
-      metalness: 0.82,
-    }));
-    this.overrides.set('pool-caustic', new THREE.MeshBasicMaterial({
-      color: 0xd7ffff,
-      transparent: true,
-      opacity: 0.16,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }));
-    this.overrides.set('sanitary-fixture', new THREE.MeshPhysicalMaterial({
-      color: 0xf8faf7,
-      roughness: 0.16,
-      metalness: 0,
-      clearcoat: 0.52,
-      clearcoatRoughness: 0.12,
-    }));
-    this.overrides.set('sanitary-metal', new THREE.MeshStandardMaterial({
-      color: 0xd5dddd,
-      roughness: 0.16,
-      metalness: 0.9,
-    }));
-    this.overrides.set('sanitary-seat', new THREE.MeshPhysicalMaterial({
-      color: 0xe7e9e6,
-      roughness: 0.24,
-      clearcoat: 0.24,
-      clearcoatRoughness: 0.18,
-    }));
-    this.overrides.set('sanitary-dark', new THREE.MeshStandardMaterial({
-      color: 0x273134,
-      roughness: 0.48,
-      metalness: 0.28,
-    }));
-    this.overrides.set('wet-surface', createGlossyFilmMaterial({
-      color: filmColor(WET_FILM.tint, WET_FILM.scatter),
-      roughness: WET_FILM.roughness,
-      opacity: WET_FILM.opacity,
-      reflectionIntensity: WET_FILM.reflectionIntensity,
-    }));
-    this.overrides.set('interior-tile', new THREE.MeshStandardMaterial({
-      color: 0xdce6e3,
-      map: poolTileColor,
-      normalMap: poolTileNormal,
-      normalScale: new THREE.Vector2(0.18, 0.18),
-      roughness: 0.72,
-      metalness: 0,
-    }));
-    this.overrides.set('interior-grout', new THREE.MeshStandardMaterial({
-      color: 0x939d9a,
-      roughness: 0.98,
-      metalness: 0,
-    }));
-    this.overrides.set('interior-light', new THREE.MeshStandardMaterial({
-      color: 0xfff9ec,
-      roughness: 0.24,
-      emissive: 0xffe7b0,
-      emissiveIntensity: 0.72,
-    }));
-    this.overrides.set('signage', new THREE.MeshStandardMaterial({
-      color: 0x345f64,
-      roughness: 0.54,
-      metalness: 0.04,
-    }));
-    this.overrides.set('mirror', new THREE.MeshPhysicalMaterial({
-      color: 0xd7e6e8,
-      roughness: 0.025,
-      metalness: 1,
-      clearcoat: 0.35,
-      clearcoatRoughness: 0.06,
-      side: THREE.DoubleSide,
-    }));
-    this.overrides.set('photovoltaic', new THREE.MeshPhysicalMaterial({
-      color: 0x236a86,
-      roughness: 0.2,
-      metalness: 0.32,
-      clearcoat: 0.72,
-      clearcoatRoughness: 0.11,
-      side: THREE.DoubleSide,
-    }));
+    this.overrides.set(
+      'water',
+      new THREE.MeshStandardMaterial({
+        color: 0x2f94ac,
+        roughness: 0.1,
+        metalness: 0,
+        transparent: true,
+        opacity: 0.64,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    this.overrides.set(
+      'pool-basin',
+      new THREE.MeshStandardMaterial({
+        color: 0xe5eeee,
+        map: poolTileColor,
+        normalMap: poolTileNormal,
+        normalScale: new THREE.Vector2(0.42, 0.42),
+        roughness: 0.62,
+        metalness: 0,
+        side: THREE.DoubleSide,
+      }),
+    );
+    this.overrides.set(
+      'pool-deck',
+      new THREE.MeshStandardMaterial({
+        color: 0xddd7cb,
+        map: deckColor,
+        normalMap: deckNormal,
+        normalScale: new THREE.Vector2(0.24, 0.24),
+        roughness: 0.92,
+        metalness: 0,
+      }),
+    );
+    this.overrides.set(
+      'pool-rail',
+      new THREE.MeshStandardMaterial({
+        color: 0xc7d0d2,
+        roughness: 0.24,
+        metalness: 0.82,
+      }),
+    );
+    this.overrides.set(
+      'pool-caustic',
+      new THREE.MeshBasicMaterial({
+        color: 0xd7ffff,
+        transparent: true,
+        opacity: 0.16,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    this.overrides.set(
+      'sanitary-fixture',
+      new THREE.MeshPhysicalMaterial({
+        color: 0xf8faf7,
+        roughness: 0.16,
+        metalness: 0,
+        clearcoat: 0.52,
+        clearcoatRoughness: 0.12,
+      }),
+    );
+    this.overrides.set(
+      'sanitary-metal',
+      new THREE.MeshStandardMaterial({
+        color: 0xd5dddd,
+        roughness: 0.16,
+        metalness: 0.9,
+      }),
+    );
+    this.overrides.set(
+      'sanitary-seat',
+      new THREE.MeshPhysicalMaterial({
+        color: 0xe7e9e6,
+        roughness: 0.24,
+        clearcoat: 0.24,
+        clearcoatRoughness: 0.18,
+      }),
+    );
+    this.overrides.set(
+      'sanitary-dark',
+      new THREE.MeshStandardMaterial({
+        color: 0x273134,
+        roughness: 0.48,
+        metalness: 0.28,
+      }),
+    );
+    this.overrides.set(
+      'wet-surface',
+      createGlossyFilmMaterial({
+        color: filmColor(WET_FILM.tint, WET_FILM.scatter),
+        roughness: WET_FILM.roughness,
+        opacity: WET_FILM.opacity,
+        reflectionIntensity: WET_FILM.reflectionIntensity,
+      }),
+    );
+    this.overrides.set(
+      'interior-tile',
+      new THREE.MeshStandardMaterial({
+        color: 0xdce6e3,
+        map: poolTileColor,
+        normalMap: poolTileNormal,
+        normalScale: new THREE.Vector2(0.18, 0.18),
+        roughness: 0.72,
+        metalness: 0,
+      }),
+    );
+    this.overrides.set(
+      'interior-grout',
+      new THREE.MeshStandardMaterial({
+        color: 0x939d9a,
+        roughness: 0.98,
+        metalness: 0,
+      }),
+    );
+    this.overrides.set(
+      'interior-light',
+      new THREE.MeshStandardMaterial({
+        color: 0xfff9ec,
+        roughness: 0.24,
+        emissive: 0xffe7b0,
+        emissiveIntensity: 0.72,
+      }),
+    );
+    this.overrides.set(
+      'signage',
+      new THREE.MeshStandardMaterial({
+        color: 0x345f64,
+        roughness: 0.54,
+        metalness: 0.04,
+      }),
+    );
+    this.overrides.set(
+      'mirror',
+      new THREE.MeshPhysicalMaterial({
+        color: 0xd7e6e8,
+        roughness: 0.025,
+        metalness: 1,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.06,
+        side: THREE.DoubleSide,
+      }),
+    );
+    this.overrides.set(
+      'photovoltaic',
+      new THREE.MeshPhysicalMaterial({
+        color: 0x236a86,
+        roughness: 0.2,
+        metalness: 0.32,
+        clearcoat: 0.72,
+        clearcoatRoughness: 0.11,
+        side: THREE.DoubleSide,
+      }),
+    );
 
     for (const [id, material] of this.overrides) {
       material.name = `enhanced:${id}`;

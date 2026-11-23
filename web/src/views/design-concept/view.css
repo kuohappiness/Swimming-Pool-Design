@@ -14,12 +14,12 @@
 }
 
 .concept-overview h1 {
-  margin: .42em 0 .24em;
+  margin: 0.42em 0 0.24em;
   font-family: var(--site-serif);
   font-size: var(--site-text-display);
   font-weight: 600;
   line-height: 1.14;
-  letter-spacing: -.055em;
+  letter-spacing: -0.055em;
 }
 
 .concept-overview h2 {
@@ -60,7 +60,7 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 1rem;
-  padding-top: .75rem;
+  padding-top: 0.75rem;
   color: var(--site-muted);
   font-size: var(--site-text-sm);
   line-height: 1.6;
@@ -70,7 +70,7 @@
 .concept-plan-figure figcaption {
   font-family: var(--site-mono);
   font-size: var(--site-text-xs);
-  letter-spacing: .09em;
+  letter-spacing: 0.09em;
 }
 
 .concept-hero-figure figcaption p {
@@ -106,12 +106,12 @@
 
 .concept-intro-copy ul {
   display: grid;
-  gap: .45rem;
+  gap: 0.45rem;
   padding-left: 1.2rem;
 }
 
 .concept-intro-copy li a {
-  text-underline-offset: .2em;
+  text-underline-offset: 0.2em;
 }
 
 .concept-drawing-window {
@@ -125,9 +125,9 @@
 .concept-drawing-window::after {
   position: absolute;
   inset: 0;
-  border: 14px solid rgba(244, 240, 232, .56);
+  border: 14px solid rgba(244, 240, 232, 0.56);
   pointer-events: none;
-  content: "";
+  content: '';
 }
 
 .concept-drawing {
@@ -140,13 +140,13 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding-top: .75rem;
+  padding-top: 0.75rem;
   color: var(--site-muted);
 }
 
 .concept-origin {
   display: grid;
-  grid-template-columns: minmax(320px, .85fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
   gap: 2rem clamp(3rem, 8vw, 9rem);
   width: var(--site-page);
   margin: 0 auto;
@@ -164,7 +164,7 @@
 .concept-origin-kicker {
   display: flex;
   align-items: baseline;
-  gap: .55rem;
+  gap: 0.55rem;
 }
 
 .concept-origin-number {
@@ -183,7 +183,7 @@
   font-size: var(--site-text-h2);
   font-weight: 500;
   line-height: 1.05;
-  letter-spacing: -.045em;
+  letter-spacing: -0.045em;
 }
 
 .concept-origin-copy p {
@@ -221,12 +221,12 @@
   font-size: var(--site-text-h3);
   font-weight: 500;
   line-height: 1.15;
-  letter-spacing: -.035em;
+  letter-spacing: -0.035em;
 }
 
 .concept-origin-stage-heading p {
   max-width: 38rem;
-  margin: .75rem 0 0;
+  margin: 0.75rem 0 0;
   color: var(--site-muted);
   font-size: var(--site-text-md);
   line-height: 1.85;
@@ -293,13 +293,13 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
-  padding-top: .525rem;
+  padding-top: 0.525rem;
   color: var(--site-muted);
   border-top: 1px solid transparent;
 }
 
 .concept-origin-figure--primary figcaption {
-  padding-top: .2625rem;
+  padding-top: 0.2625rem;
 }
 
 .concept-origin-figure figcaption span {
@@ -327,7 +327,9 @@
   padding: 1.25rem;
   border-left: 1px solid var(--site-line);
   text-decoration: none;
-  transition: background-color var(--site-duration-fast) ease, color var(--site-duration-fast) ease;
+  transition:
+    background-color var(--site-duration-fast) ease,
+    color var(--site-duration-fast) ease;
 }
 
 .concept-index a:hover {
@@ -356,7 +358,7 @@
 }
 
 .concept-index small {
-  margin-top: .25rem;
+  margin-top: 0.25rem;
   color: var(--site-muted);
   line-height: 1.5;
 }
@@ -387,12 +389,12 @@
 
 .concept-chapter-number {
   display: block;
-  margin-bottom: .6rem;
+  margin-bottom: 0.6rem;
   color: var(--site-terracotta);
   font-family: var(--site-mono);
   font-size: var(--site-text-lead);
   font-weight: 400;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .concept-chapter-figure,
@@ -445,7 +447,7 @@
 }
 
 .concept-chapter-copy h3 {
-  margin: 1.96rem 0 .75rem;
+  margin: 1.96rem 0 0.75rem;
   color: var(--site-water);
   font-family: var(--site-serif);
   font-size: var(--site-text-h4);
@@ -458,7 +460,7 @@
 }
 
 .concept-detail-card h3 {
-  margin: 0 0 .75rem;
+  margin: 0 0 0.75rem;
   color: var(--site-water);
   font-family: var(--site-serif);
   font-size: var(--site-text-h4);
@@ -483,7 +485,7 @@
   font-size: clamp(1.5rem, 2.5vw, 2.25rem);
   font-weight: 400;
   line-height: 1.9;
-  letter-spacing: .025em;
+  letter-spacing: 0.025em;
 }
 
 .concept-chapter-copy p,
@@ -535,7 +537,7 @@
   border-radius: 50%;
 }
 
-.concept-chapter--sun .concept-motif span:nth-child(n+2) {
+.concept-chapter--sun .concept-motif span:nth-child(n + 2) {
   top: 50%;
   left: 12%;
   width: 76%;
@@ -544,9 +546,15 @@
   transform: rotate(calc((var(--i, 1) - 2) * 24deg));
 }
 
-.concept-chapter--sun .concept-motif span:nth-child(2) { --i: 1; }
-.concept-chapter--sun .concept-motif span:nth-child(3) { --i: 2; }
-.concept-chapter--sun .concept-motif span:nth-child(4) { --i: 3; }
+.concept-chapter--sun .concept-motif span:nth-child(2) {
+  --i: 1;
+}
+.concept-chapter--sun .concept-motif span:nth-child(3) {
+  --i: 2;
+}
+.concept-chapter--sun .concept-motif span:nth-child(4) {
+  --i: 3;
+}
 
 .concept-chapter--water .concept-motif span {
   right: 14%;
@@ -555,10 +563,18 @@
   background: var(--site-water);
 }
 
-.concept-chapter--water .concept-motif span:nth-child(1) { top: 28%; }
-.concept-chapter--water .concept-motif span:nth-child(2) { top: 43%; }
-.concept-chapter--water .concept-motif span:nth-child(3) { top: 58%; }
-.concept-chapter--water .concept-motif span:nth-child(4) { top: 73%; }
+.concept-chapter--water .concept-motif span:nth-child(1) {
+  top: 28%;
+}
+.concept-chapter--water .concept-motif span:nth-child(2) {
+  top: 43%;
+}
+.concept-chapter--water .concept-motif span:nth-child(3) {
+  top: 58%;
+}
+.concept-chapter--water .concept-motif span:nth-child(4) {
+  top: 73%;
+}
 
 .concept-chapter--people .concept-motif span {
   top: 16%;
@@ -567,10 +583,18 @@
   background: var(--site-terracotta);
 }
 
-.concept-chapter--people .concept-motif span:nth-child(1) { left: 22%; }
-.concept-chapter--people .concept-motif span:nth-child(2) { left: 41%; }
-.concept-chapter--people .concept-motif span:nth-child(3) { left: 60%; }
-.concept-chapter--people .concept-motif span:nth-child(4) { left: 79%; }
+.concept-chapter--people .concept-motif span:nth-child(1) {
+  left: 22%;
+}
+.concept-chapter--people .concept-motif span:nth-child(2) {
+  left: 41%;
+}
+.concept-chapter--people .concept-motif span:nth-child(3) {
+  left: 60%;
+}
+.concept-chapter--people .concept-motif span:nth-child(4) {
+  left: 79%;
+}
 
 .concept-chapter--time .concept-motif span {
   inset: calc(12% + var(--ring, 0) * 9%);
@@ -578,10 +602,18 @@
   border-radius: 50%;
 }
 
-.concept-chapter--time .concept-motif span:nth-child(1) { --ring: 0; }
-.concept-chapter--time .concept-motif span:nth-child(2) { --ring: 1; }
-.concept-chapter--time .concept-motif span:nth-child(3) { --ring: 2; }
-.concept-chapter--time .concept-motif span:nth-child(4) { --ring: 3; }
+.concept-chapter--time .concept-motif span:nth-child(1) {
+  --ring: 0;
+}
+.concept-chapter--time .concept-motif span:nth-child(2) {
+  --ring: 1;
+}
+.concept-chapter--time .concept-motif span:nth-child(3) {
+  --ring: 2;
+}
+.concept-chapter--time .concept-motif span:nth-child(4) {
+  --ring: 3;
+}
 
 .concept-journey {
   width: var(--site-page);
@@ -601,7 +633,7 @@
   font-size: var(--site-text-h1);
   font-weight: 500;
   line-height: 1.08;
-  letter-spacing: -.05em;
+  letter-spacing: -0.05em;
 }
 
 .concept-journey > p:not(.site-kicker) {
@@ -630,7 +662,9 @@
   font-size: 1.65rem;
   font-weight: 700;
   text-decoration: none;
-  transition: background-color var(--site-duration-fast) ease, color var(--site-duration-fast) ease;
+  transition:
+    background-color var(--site-duration-fast) ease,
+    color var(--site-duration-fast) ease;
 }
 
 .concept-journey a:hover {
@@ -652,7 +686,7 @@
   }
 
   .concept-origin {
-    grid-template-columns: minmax(270px, .8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(270px, 0.8fr) minmax(0, 1.2fr);
     gap: 2.5rem;
   }
 
@@ -666,7 +700,7 @@
   }
 
   .concept-chapter {
-    grid-template-columns: minmax(0, 1fr) minmax(200px, .6fr);
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 0.6fr);
   }
 
   .concept-motif {
@@ -687,7 +721,7 @@
 
   .concept-hero-figure figcaption {
     grid-template-columns: minmax(0, 1fr);
-    gap: .25rem;
+    gap: 0.25rem;
   }
 
   .concept-overview h1 {

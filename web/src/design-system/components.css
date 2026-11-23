@@ -18,7 +18,7 @@
  * 全站同一種焦點框：赭紅框線，框與元件之間墊一圈紙色，
  * 放在紙面、照片或 3D 畫布上都看得見。分頁不要再自訂焦點框。
  */
-:where(a, button, input, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+:where(a, button, input, select, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
   outline: var(--site-focus-width) solid var(--site-terracotta);
   outline-offset: var(--site-focus-width);
   box-shadow: 0 0 0 var(--site-focus-width) var(--site-paper);
@@ -26,8 +26,8 @@
 
 button,
 select,
-input[type="range"],
-input[type="number"],
+input[type='range'],
+input[type='number'],
 summary {
   min-height: 44px;
 }
@@ -84,7 +84,7 @@ summary {
 
 .site-chapter-index a {
   display: inline-flex;
-  gap: .6rem;
+  gap: 0.6rem;
   align-items: center;
   min-height: 48px;
   color: var(--site-ink);
@@ -98,7 +98,7 @@ summary {
   color: var(--site-terracotta);
   font-family: var(--site-mono);
   font-size: var(--site-text-xs);
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   content: counter(site-chapter, decimal-leading-zero);
 }
 
@@ -118,7 +118,7 @@ summary {
 
 .site-chapter-index--aside ol {
   display: grid;
-  gap: .15rem;
+  gap: 0.15rem;
 }
 
 .site-chapter-index--aside a {
@@ -147,7 +147,7 @@ summary {
 }
 
 .site-chapter h2 {
-  margin: 0 0 .8rem;
+  margin: 0 0 0.8rem;
   color: var(--site-water);
   font-family: var(--site-serif);
   font-size: var(--site-text-h2);
@@ -156,7 +156,7 @@ summary {
 }
 
 .site-chapter h3 {
-  margin: 0 0 .4rem;
+  margin: 0 0 0.4rem;
   color: var(--site-ink);
   font-size: var(--site-text-md);
   font-weight: 700;
@@ -173,13 +173,13 @@ summary {
 }
 
 .site-chapter p + p {
-  margin-top: .8rem;
+  margin-top: 0.8rem;
 }
 
 .site-chapter a {
   color: var(--site-water);
   text-decoration-thickness: 1px;
-  text-underline-offset: .22em;
+  text-underline-offset: 0.22em;
 }
 
 .site-chapter-intro p {
@@ -207,7 +207,7 @@ summary {
   font-family: var(--site-mono);
   font-size: var(--site-text-xs);
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   line-height: 1.6;
 }
 

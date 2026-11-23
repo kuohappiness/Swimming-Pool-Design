@@ -86,30 +86,36 @@ export function createL2InteriorDetails(model: ViewerModel, materials: MaterialR
   for (const zone of Object.values(l2.zones)) {
     for (const bank of zone.lockerBanks) {
       const extent = bank.planExtent;
-      const onXWall = (extent.x2 - extent.x1) < (extent.y2 - extent.y1);
+      const onXWall = extent.x2 - extent.x1 < extent.y2 - extent.y1;
       const span = onXWall ? extent.y2 - extent.y1 : extent.x2 - extent.x1;
       const modules = Math.max(1, Math.floor(span / 0.46));
       for (let index = 1; index < modules; index += 1) {
         const fraction = index / modules;
         if (onXWall) {
-          reduced.add(box(
-            [extent.x2 - extent.x1 + 0.012, 1.78, 0.012],
-            [(extent.x1 + extent.x2) / 2, l2.baseElevation + 0.95, extent.y1 + span * fraction],
-            dark,
-          ));
+          reduced.add(
+            box(
+              [extent.x2 - extent.x1 + 0.012, 1.78, 0.012],
+              [(extent.x1 + extent.x2) / 2, l2.baseElevation + 0.95, extent.y1 + span * fraction],
+              dark,
+            ),
+          );
         } else {
-          reduced.add(box(
-            [0.012, 1.78, extent.y2 - extent.y1 + 0.012],
-            [extent.x1 + span * fraction, l2.baseElevation + 0.95, (extent.y1 + extent.y2) / 2],
-            dark,
-          ));
+          reduced.add(
+            box(
+              [0.012, 1.78, extent.y2 - extent.y1 + 0.012],
+              [extent.x1 + span * fraction, l2.baseElevation + 0.95, (extent.y1 + extent.y2) / 2],
+              dark,
+            ),
+          );
         }
       }
-      reduced.add(box(
-        [extent.x2 - extent.x1 + 0.014, 0.014, extent.y2 - extent.y1 + 0.014],
-        [(extent.x1 + extent.x2) / 2, l2.baseElevation + 0.96, (extent.y1 + extent.y2) / 2],
-        dark,
-      ));
+      reduced.add(
+        box(
+          [extent.x2 - extent.x1 + 0.014, 0.014, extent.y2 - extent.y1 + 0.014],
+          [(extent.x1 + extent.x2) / 2, l2.baseElevation + 0.96, (extent.y1 + extent.y2) / 2],
+          dark,
+        ),
+      );
       const handleCount = modules * 2;
       const handleGeometry = new THREE.BoxGeometry(0.025, 0.12, 0.025);
       const handles = new THREE.InstancedMesh(handleGeometry, metal, handleCount);
@@ -139,7 +145,11 @@ export function createL2InteriorDetails(model: ViewerModel, materials: MaterialR
   // 天花燈的位置與燈光計算共用 fixture-layout.ts 的同一份。
   const lightCentres = getL2CeilingFixtureCentres(model);
   const lightGeometry = new THREE.BoxGeometry(1.05, 0.06, 0.28);
-  const ceilingLights = new THREE.InstancedMesh(lightGeometry, materials.get('interior-light'), lightCentres.length);
+  const ceilingLights = new THREE.InstancedMesh(
+    lightGeometry,
+    materials.get('interior-light'),
+    lightCentres.length,
+  );
   ceilingLights.name = L2_FIXTURE_MESH_NAME;
   lightCentres.forEach(([x, y, z], index) => {
     matrix.makeTranslation(x, y, z);
@@ -170,7 +180,11 @@ export function createL2InteriorDetails(model: ViewerModel, materials: MaterialR
 
   const tileBase = box(
     [l2.bounds.x2 - l2.bounds.x1 - 3.1, 0.012, l2.bounds.y2 - l2.bounds.y1 - 2.7],
-    [(l2.bounds.x1 + l2.bounds.x2 + 3.1) / 2, l2.baseElevation + 0.008, (l2.bounds.y1 + l2.bounds.y2 + 2.7) / 2],
+    [
+      (l2.bounds.x1 + l2.bounds.x2 + 3.1) / 2,
+      l2.baseElevation + 0.008,
+      (l2.bounds.y1 + l2.bounds.y2 + 2.7) / 2,
+    ],
     tile,
   );
   tileBase.renderOrder = 0;

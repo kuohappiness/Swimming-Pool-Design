@@ -62,9 +62,11 @@ export class FrameStatistics {
       samples: this.count,
       intervalP95Milliseconds: percentile95(this.intervals, this.count),
       workP95Milliseconds: percentile95(this.work, this.count),
-      intervalAverageMilliseconds: this.count === 0
-        ? 0
-        : this.intervals.subarray(0, this.count).reduce((sum, value) => sum + value, 0) / this.count,
+      intervalAverageMilliseconds:
+        this.count === 0
+          ? 0
+          : this.intervals.subarray(0, this.count).reduce((sum, value) => sum + value, 0) /
+            this.count,
     };
   }
 }

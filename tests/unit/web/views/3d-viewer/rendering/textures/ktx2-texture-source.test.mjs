@@ -11,11 +11,8 @@ const vite = await createServer({
   server: { middlewareMode: true, hmr: false },
 });
 test.after(async () => vite.close());
-const {
-  BUNDLED_TRANSCODER_URLS,
-  Ktx2TextureSource,
-  resolveTranscoderUrl,
-} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/textures/ktx2-texture-source.ts');
+const { BUNDLED_TRANSCODER_URLS, Ktx2TextureSource, resolveTranscoderUrl } =
+  await vite.ssrLoadModule('/src/views/3d-viewer/rendering/textures/ktx2-texture-source.ts');
 
 test('the Basis transcoder is bundled from three.js, not fetched from another origin', () => {
   assert.match(BUNDLED_TRANSCODER_URLS.script, /basis_transcoder[^/]*\.js$/);
@@ -27,7 +24,10 @@ test('the Basis transcoder is bundled from three.js, not fetched from another or
 });
 
 test('only the two fixed transcoder file names are rewritten', () => {
-  const urls = { script: '/assets/basis_transcoder-abc.js', wasm: '/assets/basis_transcoder-def.wasm' };
+  const urls = {
+    script: '/assets/basis_transcoder-abc.js',
+    wasm: '/assets/basis_transcoder-def.wasm',
+  };
   assert.equal(resolveTranscoderUrl('basis-transcoder:/basis_transcoder.js', urls), urls.script);
   assert.equal(resolveTranscoderUrl('basis-transcoder:/basis_transcoder.wasm', urls), urls.wasm);
   assert.equal(

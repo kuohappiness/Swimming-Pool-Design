@@ -44,18 +44,18 @@ const VERTEX_PROJECT = '#include <project_vertex>';
 const FRAGMENT_COMMON = '#include <common>';
 const FRAGMENT_NORMAL = '#include <normal_fragment_maps>';
 
-const RAIN_VERTEX_DECLARATIONS = /* glsl */`
+const RAIN_VERTEX_DECLARATIONS = /* glsl */ `
 varying vec3 vRainWorld;
 varying vec3 vRainNormal;
 `;
-const RAIN_VERTEX_APPLY = /* glsl */`
+const RAIN_VERTEX_APPLY = /* glsl */ `
 vRainWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;
 vRainNormal = normalize( mat3( modelMatrix ) * objectNormal );
 `;
 /**
  * 水的高度（公尺）乘在 `rainHeight` 上；法線照真正的表面坡度傾斜（和畫面解析度無關）。
  */
-const RAIN_FRAGMENT_APPLY = /* glsl */`
+const RAIN_FRAGMENT_APPLY = /* glsl */ `
 if ( uRainAmount > 0.0 ) {
   vec3 rainNormal = normalize( vRainNormal );
   vec3 rainDownhill = vec3( 0.0, -1.0, 0.0 ) + rainNormal * rainNormal.y;
@@ -80,12 +80,15 @@ if ( uRainAmount > 0.0 ) {
 `;
 
 /** 只有標準材質、而且三段錨點都在才裝；找不到錨點（three.js 改版）就不裝，回報 false。 */
-export function patchRainOnGlassShader(shader: { vertexShader: string; fragmentShader: string }): boolean {
+export function patchRainOnGlassShader(shader: {
+  vertexShader: string;
+  fragmentShader: string;
+}): boolean {
   if (
-    !shader.vertexShader.includes(VERTEX_COMMON)
-    || !shader.vertexShader.includes(VERTEX_PROJECT)
-    || !shader.fragmentShader.includes(FRAGMENT_COMMON)
-    || !shader.fragmentShader.includes(FRAGMENT_NORMAL)
+    !shader.vertexShader.includes(VERTEX_COMMON) ||
+    !shader.vertexShader.includes(VERTEX_PROJECT) ||
+    !shader.fragmentShader.includes(FRAGMENT_COMMON) ||
+    !shader.fragmentShader.includes(FRAGMENT_NORMAL)
   ) {
     return false;
   }
@@ -145,7 +148,10 @@ export function createRainCurtainMaterial(uniforms: RainUniforms, top: number, b
 }
 
 /** 雨簾照到的光（線性色、場景單位）。 */
-export function rainCurtainRadiance(lighting: SunLighting, target = new THREE.Color()): THREE.Color {
+export function rainCurtainRadiance(
+  lighting: SunLighting,
+  target = new THREE.Color(),
+): THREE.Color {
   const sky = lighting.sky;
   const key = lighting.key;
   const keyLift = Math.max(key.direction.z, 0) * key.intensity * CURTAIN_KEY_SHARE;
@@ -178,7 +184,8 @@ export class RainEffects {
     const geometry = targets.curtain.geometry;
     geometry.computeBoundingBox();
     const box = geometry.boundingBox;
-    if (!box || !(box.max.y > box.min.y)) throw new TypeError('Rain curtain mesh must span a height.');
+    if (!box || !(box.max.y > box.min.y))
+      throw new TypeError('Rain curtain mesh must span a height.');
     this.curtainMaterial = createRainCurtainMaterial(this.uniforms, box.max.y, box.min.y);
     this.placeholderMaterial = targets.curtain.material;
     targets.curtain.castShadow = false;
@@ -203,7 +210,10 @@ export class RainEffects {
 
   setLighting(lighting: SunLighting): void {
     this.amount = RAIN_AMOUNT[lighting.weather] ?? 0;
-    rainCurtainRadiance(lighting, this.curtainMaterial.uniforms.uCurtainRadiance.value as THREE.Color);
+    rainCurtainRadiance(
+      lighting,
+      this.curtainMaterial.uniforms.uCurtainRadiance.value as THREE.Color,
+    );
     this.sync();
   }
 

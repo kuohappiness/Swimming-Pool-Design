@@ -50,7 +50,7 @@ export function createHallReflectionUniforms(): HallReflectionUniforms {
   };
 }
 
-const HALL_REFLECTION_PARS = /* glsl */`
+const HALL_REFLECTION_PARS = /* glsl */ `
 uniform samplerCube uHallProbe;
 uniform float uHallProbeStrength;
 uniform mat4 uHallProbeWorldToLocal;
@@ -94,7 +94,7 @@ float hallProbeReach( vec3 origin, vec3 direction ) {
  * 加在 three.js 的環境光照（lights_fragment_maps）之後：radiance 已經有環境貼圖的反射，
  * 在池廳裡換成探針的反射。反射方向的算法與 three.js 的 getIBLRadiance 相同。
  */
-const HALL_REFLECTION_APPLY = /* glsl */`
+const HALL_REFLECTION_APPLY = /* glsl */ `
 #if defined( RE_IndirectSpecular ) && defined( USE_ENVMAP )
 	if ( uHallProbeStrength > 0.0 ) {
 		vec3 hallWorld = ( vec4( geometryPosition - viewMatrix[ 3 ].xyz, 0.0 ) * viewMatrix ).xyz;
@@ -128,14 +128,18 @@ const COMMON = '#include <common>';
  * 把池廳反射裝進一個 three.js 內建的受光材質（標準、物理）。回傳 false 代表不裝
  * （不是標準材質，或它已經有自己的反射探針，例如鏡牆）。
  */
-export function installHallReflection(material: THREE.Material, uniforms: HallReflectionUniforms): boolean {
+export function installHallReflection(
+  material: THREE.Material,
+  uniforms: HallReflectionUniforms,
+): boolean {
   if ((material as THREE.MeshStandardMaterial).isMeshStandardMaterial !== true) return false;
   if (material.userData.hallReflection === uniforms) return true;
   const previous = material.onBeforeCompile;
   const previousKey = material.customProgramCacheKey;
   material.onBeforeCompile = function onBeforeCompile(shader, renderer) {
     previous.call(this, shader, renderer);
-    if (!shader.fragmentShader.includes(LIGHTS_MAPS) || !shader.fragmentShader.includes(COMMON)) return;
+    if (!shader.fragmentShader.includes(LIGHTS_MAPS) || !shader.fragmentShader.includes(COMMON))
+      return;
     Object.assign(shader.uniforms, uniforms);
     shader.fragmentShader = shader.fragmentShader
       .replace(COMMON, `${COMMON}\n${HALL_REFLECTION_PARS}`)
@@ -183,7 +187,10 @@ export class HallReflection {
     scene.onBeforeRender = (...args) => {
       this.previousBefore?.apply(scene, args);
       const camera = args[2];
-      this.saved.push({ texture: this.uniforms.uHallProbe.value, strength: this.uniforms.uHallProbeStrength.value });
+      this.saved.push({
+        texture: this.uniforms.uHallProbe.value,
+        strength: this.uniforms.uHallProbeStrength.value,
+      });
       if (isReflectionCapture(camera)) {
         this.uniforms.uHallProbe.value = null;
         this.uniforms.uHallProbeStrength.value = 0;
@@ -237,8 +244,15 @@ export class HallReflection {
     uniforms.uHallProbeWorldToLocal.value.copy(source.localToWorld).invert();
     uniforms.uHallProbeLocalToWorld.value.setFromMatrix4(source.localToWorld);
     uniforms.uHallProbeMin.value.set(hall.minX, hall.floor, hall.minZ);
-    uniforms.uHallProbeMax.value.set(hall.maxX, Math.max(hall.roofAtMinX, hall.roofAtMaxX), hall.maxZ);
-    uniforms.uHallProbeRoof.value.set(hall.roofAtMinX, (hall.roofAtMaxX - hall.roofAtMinX) / (hall.maxX - hall.minX));
+    uniforms.uHallProbeMax.value.set(
+      hall.maxX,
+      Math.max(hall.roofAtMinX, hall.roofAtMaxX),
+      hall.maxZ,
+    );
+    uniforms.uHallProbeRoof.value.set(
+      hall.roofAtMinX,
+      (hall.roofAtMaxX - hall.roofAtMinX) / (hall.maxX - hall.minX),
+    );
     uniforms.uHallProbePosition.value.copy(source.probePosition);
     uniforms.uHallProbeMaxMip.value = Math.log2(Math.max(source.size, 1));
   }

@@ -1,7 +1,4 @@
-import type {
-  RenderQualityProfile,
-  RenderQualityTier,
-} from '../rendering/quality-profile.js';
+import type { RenderQualityProfile, RenderQualityTier } from '../rendering/quality-profile.js';
 
 export interface WalkthroughCapabilityProfile {
   readonly id: RenderQualityTier;
@@ -11,27 +8,28 @@ export interface WalkthroughCapabilityProfile {
   readonly cameraMotion: boolean;
 }
 
-const CAPABILITIES: Readonly<Record<RenderQualityTier, Omit<WalkthroughCapabilityProfile, 'cameraMotion'>>> =
-  Object.freeze({
-    high: Object.freeze({
-      id: 'high',
-      pixelRatioCap: 2,
-      shadows: true,
-      underwaterEffect: 'full',
-    }),
-    medium: Object.freeze({
-      id: 'medium',
-      pixelRatioCap: 1.5,
-      shadows: true,
-      underwaterEffect: 'reduced',
-    }),
-    low: Object.freeze({
-      id: 'low',
-      pixelRatioCap: 1,
-      shadows: false,
-      underwaterEffect: 'essential',
-    }),
-  });
+const CAPABILITIES: Readonly<
+  Record<RenderQualityTier, Omit<WalkthroughCapabilityProfile, 'cameraMotion'>>
+> = Object.freeze({
+  high: Object.freeze({
+    id: 'high',
+    pixelRatioCap: 2,
+    shadows: true,
+    underwaterEffect: 'full',
+  }),
+  medium: Object.freeze({
+    id: 'medium',
+    pixelRatioCap: 1.5,
+    shadows: true,
+    underwaterEffect: 'reduced',
+  }),
+  low: Object.freeze({
+    id: 'low',
+    pixelRatioCap: 1,
+    shadows: false,
+    underwaterEffect: 'essential',
+  }),
+});
 
 export function getWalkthroughCapabilityProfile(
   tier: RenderQualityTier,

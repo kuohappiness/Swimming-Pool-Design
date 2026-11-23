@@ -14,14 +14,14 @@ const vite = await createServer({
 });
 test.after(async () => vite.close());
 
-const { aimKeyLight, deriveShadowFocus, siteDirectionToWorld, toSceneLighting } = await vite.ssrLoadModule(
-  '/src/views/3d-viewer/rendering/lighting/scene-lighting.ts',
-);
+const { aimKeyLight, deriveShadowFocus, siteDirectionToWorld, toSceneLighting } =
+  await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/scene-lighting.ts');
 const { SKY_NOON_INTENSITY, computeSunLighting } = await vite.ssrLoadModule(
   '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
 );
 const { deriveViewerOrientation } = await vite.ssrLoadModule('/src/views/3d-viewer/orientation.ts');
-const { solarDirectionInLocalCoordinates } = await import('../../../../../../../core/solar/solar-reflection.mjs');
+const { solarDirectionInLocalCoordinates } =
+  await import('../../../../../../../core/solar/solar-reflection.mjs');
 
 const model = JSON.parse(readFileSync(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const bearing = model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth;
@@ -40,27 +40,42 @@ function siteRoots() {
   return siteRoot;
 }
 
-const lightingAt = (month, day, minutes, weather = 'clear') => computeSunLighting({
-  moment: { year: 2026, month, day, minutes },
-  location: {
-    latitude: siteLocation.latitude.value,
-    longitude: siteLocation.longitude.value,
-    utcOffsetHours: siteLocation.utcOffsetHours,
-  },
-  positiveXAxisBearingFromTrueNorth: bearing,
-  weather,
-});
+const lightingAt = (month, day, minutes, weather = 'clear') =>
+  computeSunLighting({
+    moment: { year: 2026, month, day, minutes },
+    location: {
+      latitude: siteLocation.latitude.value,
+      longitude: siteLocation.longitude.value,
+      utcOffsetHours: siteLocation.utcOffsetHours,
+    },
+    positiveXAxisBearingFromTrueNorth: bearing,
+    weather,
+  });
 
 test('a sun direction lands on the same compass bearing in the scene: north is world −Z, east is +X', () => {
   const siteRoot = siteRoots();
-  for (const [azimuth, altitude] of [[0, 0], [90, 0], [180, 0], [270, 0], [135, 30], [200, 65], [307, 10]]) {
-    const world = siteDirectionToWorld(solarDirectionInLocalCoordinates({ azimuth, altitude }, bearing), siteRoot);
+  for (const [azimuth, altitude] of [
+    [0, 0],
+    [90, 0],
+    [180, 0],
+    [270, 0],
+    [135, 30],
+    [200, 65],
+    [307, 10],
+  ]) {
+    const world = siteDirectionToWorld(
+      solarDirectionInLocalCoordinates({ azimuth, altitude }, bearing),
+      siteRoot,
+    );
     const expected = new THREE.Vector3(
       Math.sin(azimuth * RADIANS) * Math.cos(altitude * RADIANS),
       Math.sin(altitude * RADIANS),
       -Math.cos(azimuth * RADIANS) * Math.cos(altitude * RADIANS),
     );
-    assert.ok(world.distanceTo(expected) < 1e-9, `azimuth ${azimuth} altitude ${altitude}: ${world.toArray()}`);
+    assert.ok(
+      world.distanceTo(expected) < 1e-9,
+      `azimuth ${azimuth} altitude ${altitude}: ${world.toArray()}`,
+    );
   }
   // 模型自己的 +X 軸是方位 307°，換到世界座標也是。
   const plusX = new THREE.Vector3(1, 0, 0).transformDirection(siteRoot.matrixWorld);
@@ -70,7 +85,10 @@ test('a sun direction lands on the same compass bearing in the scene: north is w
 
 test('the winter morning sun stands in the south-east and above the horizon in world space', () => {
   const siteRoot = siteRoots();
-  const focus = deriveShadowFocus({ bounds: { x1: 0, x2: 41, y1: 0, y2: 14.5 }, height: 11, margin: 8 }, siteRoot);
+  const focus = deriveShadowFocus(
+    { bounds: { x1: 0, x2: 41, y1: 0, y2: 14.5 }, height: 11, margin: 8 },
+    siteRoot,
+  );
   const scene = toSceneLighting(lightingAt(12, 21, 9 * 60 + 30), siteRoot, focus);
   assert.ok(scene.keyDirection.x > 0.4, 'east component');
   assert.ok(scene.keyDirection.z > 0.4, 'south component');
@@ -96,7 +114,10 @@ test('the shadow focus is a sphere that contains the site, its margin and the fu
     for (const y of [source.bounds.y1 - source.margin, source.bounds.y2 + source.margin]) {
       for (const height of [0, source.height]) {
         const corner = new THREE.Vector3(x, height, y).applyMatrix4(siteRoot.matrixWorld);
-        assert.ok(corner.distanceTo(focus.centre) <= focus.radius + 1e-9, `corner ${x},${y},${height}`);
+        assert.ok(
+          corner.distanceTo(focus.centre) <= focus.radius + 1e-9,
+          `corner ${x},${y},${height}`,
+        );
       }
     }
   }
@@ -114,7 +135,10 @@ test('the shadow focus is a sphere that contains the site, its margin and the fu
 
 test('aiming the key light keeps the shadow frustum fixed in size while the sun moves', () => {
   const siteRoot = siteRoots();
-  const focus = deriveShadowFocus({ bounds: { x1: 0, x2: 41, y1: 0, y2: 14.5 }, height: 11, margin: 8 }, siteRoot);
+  const focus = deriveShadowFocus(
+    { bounds: { x1: 0, x2: 41, y1: 0, y2: 14.5 }, height: 11, margin: 8 },
+    siteRoot,
+  );
   const light = new THREE.DirectionalLight();
   for (const minutes of [7 * 60, 9 * 60 + 30, 12 * 60, 16 * 60 + 40, 22 * 60]) {
     const scene = toSceneLighting(lightingAt(12, 21, minutes), siteRoot, focus);

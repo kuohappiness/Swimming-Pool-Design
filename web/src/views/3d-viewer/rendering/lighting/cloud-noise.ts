@@ -24,7 +24,13 @@ function createRandom(seed: number) {
  * @param cells 一邊分成幾格；格點上放亂數，格點之間平滑內插。必須整除 size。
  */
 export function createCloudNoise(size = 256, cells = 16, seed = 20261122): CloudNoise {
-  if (!Number.isInteger(size) || !Number.isInteger(cells) || size <= 0 || cells <= 0 || size % cells !== 0) {
+  if (
+    !Number.isInteger(size) ||
+    !Number.isInteger(cells) ||
+    size <= 0 ||
+    cells <= 0 ||
+    size % cells !== 0
+  ) {
     throw new RangeError('Cloud noise size must be a positive multiple of its cell count.');
   }
   const random = createRandom(seed);

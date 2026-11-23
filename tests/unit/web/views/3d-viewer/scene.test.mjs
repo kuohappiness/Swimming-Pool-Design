@@ -22,7 +22,11 @@ test('L2 Y0 ray reaches glass first and the changing-room divider stays at Y8', 
   });
 
   try {
-    const [{ createViewerScene }, { adaptViewerData }, { createBaselineSceneRenderingDependencies }] = await Promise.all([
+    const [
+      { createViewerScene },
+      { adaptViewerData },
+      { createBaselineSceneRenderingDependencies },
+    ] = await Promise.all([
       vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
       vite.ssrLoadModule('/src/views/3d-viewer/model-adapter.ts'),
       vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
@@ -61,9 +65,12 @@ test('L2 Y0 ray reaches glass first and the changing-room divider stays at Y8', 
     const facadeToDivider = dividerPosition.sub(facadePosition).normalize();
     const rayOrigin = facadePosition.clone().addScaledVector(facadeToDivider, -10);
     raycaster.set(rayOrigin, facadeToDivider);
-    const firstBuildingHit = raycaster.intersectObjects([facade, genderDivider], true)
-      .find(({ object }) => object.userData.entityId === 'F-L2-Y0-01'
-        || object.name === 'W-L2-GENDER-DIVIDER:Y8');
+    const firstBuildingHit = raycaster
+      .intersectObjects([facade, genderDivider], true)
+      .find(
+        ({ object }) =>
+          object.userData.entityId === 'F-L2-Y0-01' || object.name === 'W-L2-GENDER-DIVIDER:Y8',
+      );
 
     assert.ok(firstBuildingHit);
     assert.equal(firstBuildingHit.object.name, 'F-L2-Y0-01:GLASS');
@@ -126,13 +133,15 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
       assert.equal(object instanceof THREE.GridHelper, false, object.name);
     });
 
-    const localAxisWorldDirection = new THREE.Vector3(0, 1, 0)
-      .transformDirection(localAxis.matrixWorld);
+    const localAxisWorldDirection = new THREE.Vector3(0, 1, 0).transformDirection(
+      localAxis.matrixWorld,
+    );
     assert.ok(Math.abs(localAxisWorldDirection.x - Math.sin(THREE.MathUtils.degToRad(307))) < 1e-9);
     assert.ok(Math.abs(localAxisWorldDirection.z + Math.cos(THREE.MathUtils.degToRad(307))) < 1e-9);
 
-    const northWorldDirection = new THREE.Vector3(0, 1, 0)
-      .transformDirection(trueNorth.matrixWorld);
+    const northWorldDirection = new THREE.Vector3(0, 1, 0).transformDirection(
+      trueNorth.matrixWorld,
+    );
     assert.ok(Math.abs(northWorldDirection.x) < 1e-9);
     assert.ok(Math.abs(northWorldDirection.z + 1) < 1e-9);
 
@@ -159,18 +168,30 @@ test('DEC-157 entry sits at ±0.00, its Y0-band pieces hide with the pool cutawa
     server: { middlewareMode: true, hmr: { port: 0 } },
   });
   try {
-    const [{ createViewerScene }, { createBaselineSceneRenderingDependencies }] = await Promise.all([
-      vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
-      vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
-    ]);
+    const [{ createViewerScene }, { createBaselineSceneRenderingDependencies }] = await Promise.all(
+      [
+        vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
+        vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
+      ],
+    );
     const viewerModel = buildViewerModel(sourceModel, registry);
     const graph = createViewerScene(viewerModel, createBaselineSceneRenderingDependencies());
     graph.scene.updateMatrixWorld(true);
     const selected = new Set(graph.selectables.map(({ entityId }) => entityId));
     for (const entityId of [
-      'Z-L1-ENTRY-01', 'RMP-L1-ENTRY-01', 'Z-L1-DRY-01', 'Z-L1-RINSE-01', 'Z-L1-ASSEMBLY-01',
-      'FX-L1-LIFEGUARD-01', 'Z-L1-ACC-01', 'Z-L1-STAFF-01', 'Z-L1-EQUIP-01', 'FX-L1-LIFT-01', 'POOL-PLAT-01',
-    ]) assert.ok(selected.has(entityId), `${entityId} must be selectable`);
+      'Z-L1-ENTRY-01',
+      'RMP-L1-ENTRY-01',
+      'Z-L1-DRY-01',
+      'Z-L1-RINSE-01',
+      'Z-L1-ASSEMBLY-01',
+      'FX-L1-LIFEGUARD-01',
+      'Z-L1-ACC-01',
+      'Z-L1-STAFF-01',
+      'Z-L1-EQUIP-01',
+      'FX-L1-LIFT-01',
+      'POOL-PLAT-01',
+    ])
+      assert.ok(selected.has(entityId), `${entityId} must be selectable`);
     assert.equal(selected.has('Z-STOR-01'), false);
 
     const entryFloor = graph.siteRoot.getObjectByName('POOL-USE-ENTRY-FLOOR');
@@ -185,8 +206,12 @@ test('DEC-157 entry sits at ±0.00, its Y0-band pieces hide with the pool cutawa
     const platform = graph.siteRoot.getObjectByName('POOL-PLAT-01');
     const platformBox = new THREE.Box3().setFromObject(platform);
     const top = graph.siteRoot.worldToLocal(platformBox.max.clone()).y;
-    const expectedTop = graph.water.surfaceElevation - viewerModel.geometry.pool.teachingPlatform.topWaterDepth;
-    assert.ok(Math.abs(top - expectedTop) < 1e-6, `platform top was ${top}, expected ${expectedTop}`);
+    const expectedTop =
+      graph.water.surfaceElevation - viewerModel.geometry.pool.teachingPlatform.topWaterDepth;
+    assert.ok(
+      Math.abs(top - expectedTop) < 1e-6,
+      `platform top was ${top}, expected ${expectedTop}`,
+    );
     assert.ok(top < graph.water.surfaceElevation);
   } finally {
     await vite.close();
@@ -205,13 +230,18 @@ test('only opaque parts cast sun shadows, and the 3F roof never floats without i
     server: { middlewareMode: true, hmr: { port: 0 } },
   });
   try {
-    const [{ createViewerScene, syncLayerDependents }, { createBaselineSceneRenderingDependencies }] = await Promise.all([
+    const [
+      { createViewerScene, syncLayerDependents },
+      { createBaselineSceneRenderingDependencies },
+    ] = await Promise.all([
       vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
       vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
     ]);
     const viewerModel = buildViewerModel(sourceModel, registry);
     for (const batchStaticGeometry of [false, true]) {
-      const graph = createViewerScene(viewerModel, createBaselineSceneRenderingDependencies(), { batchStaticGeometry });
+      const graph = createViewerScene(viewerModel, createBaselineSceneRenderingDependencies(), {
+        batchStaticGeometry,
+      });
 
       // 玻璃屋頂、玻璃牆與半透明的示意面不擋陽光：否則整個池廳都在影子裡。
       let casters = 0;
@@ -222,10 +252,17 @@ test('only opaque parts cast sun shadows, and the 3F roof never floats without i
         const transparent = materials.some((material) => material.transparent);
         if (transparent) transparentMeshes += 1;
         if (object.castShadow) casters += 1;
-        assert.ok(!(transparent && object.castShadow), `${object.name || object.type} is transparent and casts a shadow`);
+        assert.ok(
+          !(transparent && object.castShadow),
+          `${object.name || object.type} is transparent and casts a shadow`,
+        );
       });
       assert.ok(transparentMeshes > 0 && casters > 0);
-      assert.equal(graph.water.surface.castShadow, false, 'the water surface lets the sun through to the pool floor');
+      assert.equal(
+        graph.water.surface.castShadow,
+        false,
+        'the water surface lets the sun through to the pool floor',
+      );
 
       // 3F 屋頂掛在「屋頂」圖層，但 3F 量體關掉時不單獨懸在半空（「向雨」場景）。
       const roof = graph.layerGroups.get('roof');
@@ -241,17 +278,31 @@ test('only opaque parts cast sun shadows, and the 3F roof never floats without i
       );
       // 合併靜態幾何之後，屋頂的網格仍在自己的群組裡，沒有被併進整個屋頂圖層。
       let l3RoofMeshes = 0;
-      l3Roof.traverse((object) => { if (object.isMesh) l3RoofMeshes += 1; });
+      l3Roof.traverse((object) => {
+        if (object.isMesh) l3RoofMeshes += 1;
+      });
       assert.ok(l3RoofMeshes >= 1);
 
-      for (const [roofVisible, l3Visible] of [[true, true], [true, false], [false, true], [false, false]]) {
+      for (const [roofVisible, l3Visible] of [
+        [true, true],
+        [true, false],
+        [false, true],
+        [false, false],
+      ]) {
         roof.visible = roofVisible;
         l3.visible = l3Visible;
         syncLayerDependents(graph);
-        assert.equal(l3Roof.visible, roofVisible && l3Visible, `roof ${roofVisible}, 3F ${l3Visible}`);
+        assert.equal(
+          l3Roof.visible,
+          roofVisible && l3Visible,
+          `roof ${roofVisible}, 3F ${l3Visible}`,
+        );
       }
       // 沒有這個圖層時當作沒開。
-      syncLayerDependents({ layerGroups: new Map([['roof', roof]]), layerDependents: graph.layerDependents });
+      syncLayerDependents({
+        layerGroups: new Map([['roof', roof]]),
+        layerDependents: graph.layerDependents,
+      });
       assert.equal(l3Roof.visible, false);
     }
   } finally {

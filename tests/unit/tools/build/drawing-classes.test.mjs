@@ -12,7 +12,9 @@ test('drawing SVG classes and inline style rules stay inside the dw- namespace',
   for (const name of names) {
     const svg = await readFile(resolve(repoRoot, 'drawings/current', `${name}.svg`), 'utf8');
 
-    const classTokens = [...svg.matchAll(/ class="([^"]+)"/g)].flatMap(([, value]) => value.trim().split(/\s+/));
+    const classTokens = [...svg.matchAll(/ class="([^"]+)"/g)].flatMap(([, value]) =>
+      value.trim().split(/\s+/),
+    );
     assert.ok(classTokens.length > 0, `${name} has classes`);
     for (const token of classTokens) {
       assert.match(token, /^dw-[a-z0-9]+(?:-[a-z0-9]+)*$/, `${name} class ${token}`);
@@ -20,7 +22,9 @@ test('drawing SVG classes and inline style rules stay inside the dw- namespace',
 
     const styles = [...svg.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(([, css]) => css);
     assert.equal(styles.length, 1, `${name} has one inline style`);
-    const selectors = [...styles[0].matchAll(/(?:^|\})\s*([^{}]+)\{/g)].map(([, selector]) => selector.trim());
+    const selectors = [...styles[0].matchAll(/(?:^|\})\s*([^{}]+)\{/g)].map(([, selector]) =>
+      selector.trim(),
+    );
     assert.ok(selectors.length > 0, `${name} has style rules`);
     for (const selector of selectors) {
       assert.ok(

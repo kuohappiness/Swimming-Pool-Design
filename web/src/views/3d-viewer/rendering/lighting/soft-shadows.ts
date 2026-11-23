@@ -70,10 +70,11 @@ export function createSoftShadowChunk(source: string, options: SoftShadowOptions
     throw new RangeError('Soft shadows need a positive shadow camera depth range.');
   }
   const range = functionRange(source, FUNCTION_START);
-  if (!range || !source.includes('vogelDiskSample') || !source.includes('interleavedGradientNoise')) return null;
+  if (!range || !source.includes('vogelDiskSample') || !source.includes('interleavedGradientNoise'))
+    return null;
   const [first, second, third] = SOFT_SHADOW_PROBE_METRES;
   const toDepth = (metres: number) => glslFloat(metres / options.depthRangeMetres);
-  const replacement = /* glsl */`
+  const replacement = /* glsl */ `
 		// 距離柔化的陰影（rendering/lighting/soft-shadows.ts）。
 		#ifdef USE_REVERSED_DEPTH_BUFFER
 			#define SOFT_SHADOW_TOWARD_LIGHT 1.0
@@ -220,7 +221,9 @@ export interface ShadowFilterInput {
  */
 export function shadowFilterRadius(input: ShadowFilterInput): number {
   if (!(input.coverageMetres > 0) || !(input.mapSize > 0) || !(input.angularRadius >= 0)) {
-    throw new RangeError('Shadow filter needs a positive coverage, map size and a non-negative angular radius.');
+    throw new RangeError(
+      'Shadow filter needs a positive coverage, map size and a non-negative angular radius.',
+    );
   }
   if (!input.distanceSoftening) return PLAIN_SHADOW_RADIUS_TEXELS;
   const texelMetres = input.coverageMetres / input.mapSize;

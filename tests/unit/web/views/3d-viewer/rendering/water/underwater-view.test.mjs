@@ -13,25 +13,29 @@ const vite = await createServer({
 });
 test.after(async () => vite.close());
 const THREE = await vite.ssrLoadModule('three');
-const {
-  cameraTouchesWater,
-  MAXIMUM_SHAFT_STEPS,
-  ScreenUnderwaterView,
-} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/water/underwater-view.ts');
-const { WaterSurface } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/water/water-surface.ts');
+const { cameraTouchesWater, MAXIMUM_SHAFT_STEPS, ScreenUnderwaterView } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/water/underwater-view.ts',
+);
+const { WaterSurface } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/water/water-surface.ts',
+);
 const { POOL_BASIN_UNIFORM_NAMES } = await vite.ssrLoadModule(
   '/src/views/3d-viewer/rendering/water/pool-basin-material.ts',
 );
-const {
-  createUnderwaterMotesGeometry,
-  UnderwaterMotes,
-  UNDERWATER_MOTES_NAME,
-} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/water/underwater-motes.ts');
+const { createUnderwaterMotesGeometry, UnderwaterMotes, UNDERWATER_MOTES_NAME } =
+  await vite.ssrLoadModule('/src/views/3d-viewer/rendering/water/underwater-motes.ts');
 
 const basin = Object.freeze({
-  minX: 3, maxX: 28, minZ: 4, maxZ: 12.5,
-  waterLevel: 0.22, shallowBottom: -0.98, deepBottom: -1.28,
-  laneLineZ: [6.5, 9], laneLineWidth: 0.16, laneLineInset: 0.35,
+  minX: 3,
+  maxX: 28,
+  minZ: 4,
+  maxZ: 12.5,
+  waterLevel: 0.22,
+  shallowBottom: -0.98,
+  deepBottom: -1.28,
+  laneLineZ: [6.5, 9],
+  laneLineWidth: 0.16,
+  laneLineInset: 0.35,
 });
 
 function createSurface() {
@@ -73,12 +77,27 @@ function createRenderer() {
 
 test('the camera touches the water only inside the pool and below the surface', () => {
   const identity = new THREE.Matrix4();
-  assert.equal(cameraTouchesWater(cameraAt(10, 1.6, 8), identity, basin, 0.014), false, 'standing on the deck');
-  assert.equal(cameraTouchesWater(cameraAt(10, -0.5, 8), identity, basin, 0.014), true, 'under water');
-  assert.equal(cameraTouchesWater(cameraAt(1, -0.5, 8), identity, basin, 0.014), false, 'below deck level but outside the pool');
+  assert.equal(
+    cameraTouchesWater(cameraAt(10, 1.6, 8), identity, basin, 0.014),
+    false,
+    'standing on the deck',
+  );
+  assert.equal(
+    cameraTouchesWater(cameraAt(10, -0.5, 8), identity, basin, 0.014),
+    true,
+    'under water',
+  );
+  assert.equal(
+    cameraTouchesWater(cameraAt(1, -0.5, 8), identity, basin, 0.014),
+    false,
+    'below deck level but outside the pool',
+  );
   assert.equal(cameraTouchesWater(cameraAt(10, -0.5, 20), identity, basin, 0.014), false);
   // 眼睛在水面上 3 公分，但往下看時近裁面的下緣已經在水裡。
-  assert.equal(cameraTouchesWater(cameraAt(10, 0.25, 8, [12, -1, 8]), identity, basin, 0.014), true);
+  assert.equal(
+    cameraTouchesWater(cameraAt(10, 0.25, 8, [12, -1, 8]), identity, basin, 0.014),
+    true,
+  );
   // 近裁面最低的一角仍高於水面：不算碰到水。
   assert.equal(cameraTouchesWater(cameraAt(10, 0.3, 8), identity, basin, 0), false);
 });
@@ -117,7 +136,10 @@ test('above the water the pass does nothing; under water it draws the scene to a
   assert.equal(scenePass.camera, camera);
   assert.equal(scenePass.target.width, 800);
   assert.equal(scenePass.target.height, 500);
-  assert.ok(scenePass.target.depthTexture, 'distance through the water comes from the depth buffer');
+  assert.ok(
+    scenePass.target.depthTexture,
+    'distance through the water comes from the depth buffer',
+  );
   assert.equal(screenPass.target, null);
   assert.equal(visibleDuringScenePass, true);
   assert.equal(extra.visible, false);
@@ -127,7 +149,11 @@ test('above the water the pass does nothing; under water it draws the scene to a
   assert.equal(quad.material.uniforms.tScene.value, scenePass.target.texture);
   assert.equal(quad.material.uniforms.tDepth.value, scenePass.target.depthTexture);
   for (const name of [...POOL_BASIN_UNIFORM_NAMES, 'uWaves']) {
-    assert.equal(quad.material.uniforms[name], surface.material.uniforms[name], `${name} is shared with the water`);
+    assert.equal(
+      quad.material.uniforms[name],
+      surface.material.uniforms[name],
+      `${name} is shared with the water`,
+    );
   }
   // 鏡頭座標的原點（眼睛）轉到池體座標要回到鏡頭的位置。
   const eye = new THREE.Vector3().applyMatrix4(quad.material.uniforms.uViewToBasin.value);
@@ -167,7 +193,10 @@ test('the underwater shader takes absorption, caustics and waves from the shared
 test('motes are reproducible, hidden by default and never picked', () => {
   const first = createUnderwaterMotesGeometry(50);
   const second = createUnderwaterMotesGeometry(50);
-  assert.deepEqual([...first.getAttribute('position').array], [...second.getAttribute('position').array]);
+  assert.deepEqual(
+    [...first.getAttribute('position').array],
+    [...second.getAttribute('position').array],
+  );
   assert.equal(first.getAttribute('position').count, 50);
   assert.ok([...first.getAttribute('position').array].every((value) => value >= 0 && value < 1));
   assert.throws(() => createUnderwaterMotesGeometry(-1), /non-negative integer/);

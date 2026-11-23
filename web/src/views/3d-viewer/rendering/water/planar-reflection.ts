@@ -67,10 +67,11 @@ export class ScenePlanarReflection implements PlanarReflection {
   constructor(renderer: THREE.WebGLRenderer, width: number, height: number) {
     this.target = new THREE.WebGLRenderTarget(Math.max(1, width), Math.max(1, height), {
       // 半精度浮點才存得下比白色更亮的天窗與燈具，倒影裡的亮點才不會被截成灰色。
-      type: renderer.extensions.has('EXT_color_buffer_float')
-        || renderer.extensions.has('EXT_color_buffer_half_float')
-        ? THREE.HalfFloatType
-        : THREE.UnsignedByteType,
+      type:
+        renderer.extensions.has('EXT_color_buffer_float') ||
+        renderer.extensions.has('EXT_color_buffer_half_float')
+          ? THREE.HalfFloatType
+          : THREE.UnsignedByteType,
       minFilter: THREE.LinearFilter,
       magFilter: THREE.LinearFilter,
       generateMipmaps: false,
@@ -105,13 +106,16 @@ export class ScenePlanarReflection implements PlanarReflection {
     this.normalMatrix.getNormalMatrix(surface.matrixWorld);
     this.planeNormal.set(0, 1, 0).applyMatrix3(this.normalMatrix).normalize();
     this.cameraPosition.setFromMatrixPosition(camera.matrixWorld);
-    const height = this.offset.subVectors(this.cameraPosition, this.planePoint).dot(this.planeNormal);
+    const height = this.offset
+      .subVectors(this.cameraPosition, this.planePoint)
+      .dot(this.planeNormal);
     if (height < MINIMUM_CAMERA_HEIGHT) return false;
 
-    const unchanged = !this.stale
-      && this.lastCameraWorld.equals(camera.matrixWorld)
-      && this.lastProjection.equals(camera.projectionMatrix)
-      && this.lastSurfaceWorld.equals(surface.matrixWorld);
+    const unchanged =
+      !this.stale &&
+      this.lastCameraWorld.equals(camera.matrixWorld) &&
+      this.lastProjection.equals(camera.projectionMatrix) &&
+      this.lastSurfaceWorld.equals(surface.matrixWorld);
     if (unchanged) return true;
 
     this.placeVirtualCamera(camera, surface);
@@ -134,11 +138,17 @@ export class ScenePlanarReflection implements PlanarReflection {
     const virtual = this.virtualCamera;
     const normal = this.planeNormal;
 
-    this.mirroredPosition.subVectors(this.planePoint, this.cameraPosition).reflect(normal).negate()
+    this.mirroredPosition
+      .subVectors(this.planePoint, this.cameraPosition)
+      .reflect(normal)
+      .negate()
       .add(this.planePoint);
     this.rotation.extractRotation(camera.matrixWorld);
     this.lookAtPosition.set(0, 0, -1).applyMatrix4(this.rotation).add(this.cameraPosition);
-    this.mirroredTarget.subVectors(this.planePoint, this.lookAtPosition).reflect(normal).negate()
+    this.mirroredTarget
+      .subVectors(this.planePoint, this.lookAtPosition)
+      .reflect(normal)
+      .negate()
       .add(this.planePoint);
 
     virtual.position.copy(this.mirroredPosition);
@@ -152,12 +162,7 @@ export class ScenePlanarReflection implements PlanarReflection {
     virtual.updateMatrixWorld();
     virtual.projectionMatrix.copy(camera.projectionMatrix);
 
-    this.textureMatrix.set(
-      0.5, 0, 0, 0.5,
-      0, 0.5, 0, 0.5,
-      0, 0, 0.5, 0.5,
-      0, 0, 0, 1,
-    );
+    this.textureMatrix.set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
     this.textureMatrix.multiply(virtual.projectionMatrix);
     this.textureMatrix.multiply(virtual.matrixWorldInverse);
     this.textureMatrix.multiply(surface.matrixWorld);
@@ -165,7 +170,12 @@ export class ScenePlanarReflection implements PlanarReflection {
     // 斜近裁面（Lengyel, Oblique View Frustum Depth Projection and Clipping）。
     this.plane.setFromNormalAndCoplanarPoint(normal, this.planePoint);
     this.plane.applyMatrix4(virtual.matrixWorldInverse);
-    this.clipPlane.set(this.plane.normal.x, this.plane.normal.y, this.plane.normal.z, this.plane.constant);
+    this.clipPlane.set(
+      this.plane.normal.x,
+      this.plane.normal.y,
+      this.plane.normal.z,
+      this.plane.constant,
+    );
     const projection = virtual.projectionMatrix.elements;
     this.corner.set(
       (Math.sign(this.clipPlane.x) + (projection[8] ?? 0)) / (projection[0] ?? 1),
@@ -181,7 +191,11 @@ export class ScenePlanarReflection implements PlanarReflection {
     virtual.projectionMatrixInverse.copy(virtual.projectionMatrix).invert();
   }
 
-  private render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, hidden: readonly THREE.Object3D[]): void {
+  private render(
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene,
+    hidden: readonly THREE.Object3D[],
+  ): void {
     const visibility = hidden.map((object) => object.visible);
     const previousTarget = renderer.getRenderTarget();
     const previousCubeFace = renderer.getActiveCubeFace();

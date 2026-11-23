@@ -9,7 +9,11 @@ import {
   sourceHash,
 } from '../../../../tools/build/build-textures.mjs';
 import { TEXTURE_RECIPES } from '../../../../tools/build/textures/index.mjs';
-import { CAUSTIC_MAXIMUM_GAIN, causticIrradiance, waterCaustics } from '../../../../tools/build/textures/water-caustics.mjs';
+import {
+  CAUSTIC_MAXIMUM_GAIN,
+  causticIrradiance,
+  waterCaustics,
+} from '../../../../tools/build/textures/water-caustics.mjs';
 import { waterRippleNormal } from '../../../../tools/build/textures/water-ripple-normal.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../../../..');
@@ -27,7 +31,11 @@ test('committed KTX2 textures are up to date with their generators and settings'
 
 test('the recorded encoder is the pinned dev dependency', () => {
   assert.equal(TEXTURE_ENCODER, `ktx2-encoder@${packageJson.devDependencies['ktx2-encoder']}`);
-  assert.equal('ktx2-encoder' in (packageJson.dependencies ?? {}), false, 'the encoder must not ship with the site');
+  assert.equal(
+    'ktx2-encoder' in (packageJson.dependencies ?? {}),
+    false,
+    'the encoder must not ship with the site',
+  );
 });
 
 test('every recipe writes a .ktx2 file that carries the KTX2 identifier and its licence', async () => {
@@ -55,7 +63,11 @@ test('source hash covers both the pixels and the conversion settings', () => {
   const pixels = waterRippleNormal.generate();
   const hash = sourceHash(waterRippleNormal, pixels);
   assert.match(hash, /^[a-f0-9]{64}$/);
-  assert.equal(sourceHash(waterRippleNormal, waterRippleNormal.generate()), hash, 'generation must be repeatable');
+  assert.equal(
+    sourceHash(waterRippleNormal, waterRippleNormal.generate()),
+    hash,
+    'generation must be repeatable',
+  );
 
   const changedPixels = Uint8Array.from(pixels);
   changedPixels[0] ^= 1;
@@ -76,7 +88,7 @@ test('source hash covers both the pixels and the conversion settings', () => {
 test('water ripple normal map is a seamless field of unit normals with no directional bias', () => {
   const { width, height } = waterRippleNormal;
   const pixels = waterRippleNormal.generate();
-  const component = (x, y, channel) => pixels[(y * width + x) * 4 + channel] / 255 * 2 - 1;
+  const component = (x, y, channel) => (pixels[(y * width + x) * 4 + channel] / 255) * 2 - 1;
   let sumX = 0;
   let sumY = 0;
   let minimumZ = 1;
@@ -85,7 +97,10 @@ test('water ripple normal map is a seamless field of unit normals with no direct
       const nx = component(x, y, 0);
       const ny = component(x, y, 1);
       const nz = component(x, y, 2);
-      assert.ok(Math.abs(Math.hypot(nx, ny, nz) - 1) < 0.02, `normal at ${x},${y} is not unit length`);
+      assert.ok(
+        Math.abs(Math.hypot(nx, ny, nz) - 1) < 0.02,
+        `normal at ${x},${y} is not unit length`,
+      );
       assert.equal(pixels[(y * width + x) * 4 + 3], 255);
       sumX += nx;
       sumY += ny;
@@ -108,8 +123,14 @@ test('water ripple normal map is a seamless field of unit normals with no direct
     }
     return total / (width * 2);
   };
-  assert.ok(meanStep(width - 1, 0, false) < meanStep(255, 256, false) * 1.5, 'left and right edges must join');
-  assert.ok(meanStep(height - 1, 0, true) < meanStep(255, 256, true) * 1.5, 'top and bottom edges must join');
+  assert.ok(
+    meanStep(width - 1, 0, false) < meanStep(255, 256, false) * 1.5,
+    'left and right edges must join',
+  );
+  assert.ok(
+    meanStep(height - 1, 0, true) < meanStep(255, 256, true) * 1.5,
+    'top and bottom edges must join',
+  );
 });
 
 test('caustic pattern conserves light and stores brightness up to four times the mean', () => {
@@ -123,9 +144,15 @@ test('caustic pattern conserves light and stores brightness up to four times the
     brightest = Math.max(brightest, value);
     if (value > CAUSTIC_MAXIMUM_GAIN) aboveRange += 1;
   }
-  assert.ok(Math.abs(total / irradiance.length - 1) < 1e-9, 'every ray lands somewhere: mean irradiance is 1');
+  assert.ok(
+    Math.abs(total / irradiance.length - 1) < 1e-9,
+    'every ray lands somewhere: mean irradiance is 1',
+  );
   assert.ok(brightest > 2, 'ripples must focus light into bright lines');
-  assert.ok(aboveRange / irradiance.length < 0.005, 'almost nothing is clipped by the stored range');
+  assert.ok(
+    aboveRange / irradiance.length < 0.005,
+    'almost nothing is clipped by the stored range',
+  );
 
   const pixels = waterCaustics.generate();
   assert.equal(pixels.length, size * size * 4);

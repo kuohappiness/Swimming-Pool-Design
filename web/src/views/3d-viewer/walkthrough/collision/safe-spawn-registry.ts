@@ -32,15 +32,18 @@ export class SafeSpawnRegistry {
       const entity = source.entities[descriptor.entityId];
       if (!entity) throw new TypeError(`Safe spawn entity is missing: ${descriptor.entityId}`);
       const surface = this.resolveSurface(source, descriptor);
-      const sitePoint = applyPlanTransform(new THREE.Vector3(
-        entity.bounds.x1
-          + (entity.bounds.x2 - entity.bounds.x1) * descriptor.normalizedAnchor.x
-          + descriptor.siteOffset.x,
-        surface.elevation + descriptor.siteOffset.z + config.player.eyeHeight,
-        entity.bounds.y1
-          + (entity.bounds.y2 - entity.bounds.y1) * descriptor.normalizedAnchor.y
-          + descriptor.siteOffset.y,
-      ), surface.transform);
+      const sitePoint = applyPlanTransform(
+        new THREE.Vector3(
+          entity.bounds.x1 +
+            (entity.bounds.x2 - entity.bounds.x1) * descriptor.normalizedAnchor.x +
+            descriptor.siteOffset.x,
+          surface.elevation + descriptor.siteOffset.z + config.player.eyeHeight,
+          entity.bounds.y1 +
+            (entity.bounds.y2 - entity.bounds.y1) * descriptor.normalizedAnchor.y +
+            descriptor.siteOffset.y,
+        ),
+        surface.transform,
+      );
       const position = collisionWorld.sitePointToWorld({
         x: sitePoint.x,
         y: sitePoint.y,
@@ -49,12 +52,15 @@ export class SafeSpawnRegistry {
       if (!collisionWorld.isCapsuleClear(position) || !collisionWorld.isSupported(position)) {
         throw new TypeError(`Safe spawn is not clear and supported: ${descriptor.id}`);
       }
-      this.spawns.set(descriptor.id, Object.freeze({
-        id: descriptor.id,
-        entityId: descriptor.entityId,
-        position: Object.freeze({ ...position }),
-        elevationRole: descriptor.elevationRole,
-      }));
+      this.spawns.set(
+        descriptor.id,
+        Object.freeze({
+          id: descriptor.id,
+          entityId: descriptor.entityId,
+          position: Object.freeze({ ...position }),
+          elevationRole: descriptor.elevationRole,
+        }),
+      );
     }
   }
 
@@ -72,9 +78,10 @@ export class SafeSpawnRegistry {
     let nearest: ResolvedSafeSpawn | null = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
     for (const spawn of this.spawns.values()) {
-      const distance = (spawn.position.x - position.x) ** 2
-        + (spawn.position.y - position.y) ** 2
-        + (spawn.position.z - position.z) ** 2;
+      const distance =
+        (spawn.position.x - position.x) ** 2 +
+        (spawn.position.y - position.y) ** 2 +
+        (spawn.position.z - position.z) ** 2;
       if (distance < nearestDistance) {
         nearest = spawn;
         nearestDistance = distance;
@@ -93,11 +100,13 @@ export class SafeSpawnRegistry {
       'site-ground': () => byId('site-ground'),
       'pool-deck': () => byId('l1-pool-deck'),
       'l2-floor': () => byId('l2-floor'),
-      'l3-floor': () => source.surfaces.find(({ entityId }) => entityId === spawn.entityId)
-        ?? byId('l3-rotated-floor'),
+      'l3-floor': () =>
+        source.surfaces.find(({ entityId }) => entityId === spawn.entityId) ??
+        byId('l3-rotated-floor'),
       'roof-surface': () => byId('roof-inspection'),
     }[spawn.elevationRole]();
-    if (!surface) throw new TypeError(`Safe spawn elevation role has no surface: ${spawn.elevationRole}`);
+    if (!surface)
+      throw new TypeError(`Safe spawn elevation role has no surface: ${spawn.elevationRole}`);
     return surface ?? { elevation: 0, transform: FIXED_TRANSFORM };
   }
 }

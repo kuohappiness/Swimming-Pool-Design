@@ -1,9 +1,5 @@
 import type { FrameObservation } from './frame-governor';
-import {
-  QualityController,
-  type QualityEvent,
-  type QualityState,
-} from './quality-controller';
+import { QualityController, type QualityEvent, type QualityState } from './quality-controller';
 import {
   REALISM_TIERS,
   REALISM_TIER_ORDER,
@@ -118,7 +114,8 @@ export class QualitySession {
     });
     // 沒有人指定、也不是軟體繪圖：先用檢測基準級啟動，量完再決定。
     this.benchmarkPending = selection.source === 'default';
-    this.choice = selection.source === 'url' || selection.source === 'manual' ? selection.tier : 'auto';
+    this.choice =
+      selection.source === 'url' || selection.source === 'manual' ? selection.tier : 'auto';
     this.controller = new QualityController({
       selection: this.benchmarkPending
         ? { tier: BENCHMARK_REFERENCE_TIER, source: 'default' }
@@ -191,9 +188,11 @@ export class QualitySession {
     this.apply(event);
     if (event.kind === 'tier') {
       const label = REALISM_TIERS[event.state.tier].label;
-      this.host.announce(event.reason === 'frame-rate'
-        ? `為維持流暢，畫質已調整為「${label}」；移動與碰撞維持不變`
-        : `畫質已恢復為「${label}」`);
+      this.host.announce(
+        event.reason === 'frame-rate'
+          ? `為維持流暢，畫質已調整為「${label}」；移動與碰撞維持不變`
+          : `畫質已恢復為「${label}」`,
+      );
     }
     this.host.publish(this.snapshot);
   }

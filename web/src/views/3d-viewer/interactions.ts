@@ -65,7 +65,9 @@ export function setupSelection(options: SelectionOptions): SelectionController {
   const selectableIndex = new Map(selectables.map(({ object }, index) => [object, index]));
   // After static batching the selectable groups no longer hold their meshes, so
   // pick against the scene root and keep the nearest hit that has an owner.
-  const pickTargets = options.pickRoot ? [options.pickRoot] : selectables.map(({ object }) => object);
+  const pickTargets = options.pickRoot
+    ? [options.pickRoot]
+    : selectables.map(({ object }) => object);
   let currentIndex = -1;
   let attached = false;
   let disposed = false;
@@ -86,7 +88,9 @@ export function setupSelection(options: SelectionOptions): SelectionController {
   let pressStart: { id: number; x: number; y: number } | null = null;
 
   const rememberPress = (event: PointerEvent) => {
-    pressStart = event.isPrimary ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+    pressStart = event.isPrimary
+      ? { id: event.pointerId, x: event.clientX, y: event.clientY }
+      : null;
   };
 
   const selectFromPointer = (event: PointerEvent) => {
@@ -102,9 +106,12 @@ export function setupSelection(options: SelectionOptions): SelectionController {
     for (const hit of hits) {
       if (!isRendered(hit.object)) continue;
       // Merged lines are segment pairs, so a line hit's vertex index maps to segment index / 2.
-      const element = hit.object instanceof THREE.LineSegments
-        ? (hit.index === undefined ? null : Math.floor(hit.index / 2))
-        : hit.faceIndex;
+      const element =
+        hit.object instanceof THREE.LineSegments
+          ? hit.index === undefined
+            ? null
+            : Math.floor(hit.index / 2)
+          : hit.faceIndex;
       const index = owningSelectableIndex(hit.object, selectableIndex, element);
       if (index < 0) continue;
       select(selectables[index], index);

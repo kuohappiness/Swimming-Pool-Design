@@ -32,7 +32,9 @@ export function conversionSettings(recipe) {
 /** 來源像素加轉檔設定的雜湊：不必真的轉檔就能判斷入庫的檔案是否過期。 */
 export function sourceHash(recipe, pixels) {
   if (pixels.byteLength !== recipe.width * recipe.height * 4) {
-    throw new RangeError(`${recipe.manifest.id} must generate ${recipe.width}×${recipe.height} RGBA pixels.`);
+    throw new RangeError(
+      `${recipe.manifest.id} must generate ${recipe.width}×${recipe.height} RGBA pixels.`,
+    );
   }
   return createHash('sha256')
     .update(JSON.stringify(conversionSettings(recipe)))
@@ -70,7 +72,8 @@ export async function findStaleTextures(recipes = TEXTURE_RECIPES) {
     if (!entry) reason = '資產清單沒有這一筆';
     else if (entry.conversion?.sourceSha256 !== expected) reason = '產生貼圖的程式或轉檔設定改了';
     else if (!file) reason = '轉檔後的檔案不存在';
-    else if (sha256(file) !== entry.sha256 || file.byteLength !== entry.byteSize) reason = '檔案內容與資產清單不符';
+    else if (sha256(file) !== entry.sha256 || file.byteLength !== entry.byteSize)
+      reason = '檔案內容與資產清單不符';
     if (reason) stale.push({ id, localPath, reason, recipe, pixels, expected });
   }
   return stale;
@@ -105,13 +108,21 @@ async function main() {
   const staleIds = new Set(stale.map(({ id }) => id));
   const work = force
     ? TEXTURE_RECIPES.map((recipe) => {
-      const pixels = recipe.generate();
-      return { id: recipe.manifest.id, localPath: recipe.manifest.localPath, reason: '--force', recipe, pixels, expected: sourceHash(recipe, pixels) };
-    })
+        const pixels = recipe.generate();
+        return {
+          id: recipe.manifest.id,
+          localPath: recipe.manifest.localPath,
+          reason: '--force',
+          recipe,
+          pixels,
+          expected: sourceHash(recipe, pixels),
+        };
+      })
     : stale;
 
   for (const recipe of TEXTURE_RECIPES) {
-    if (!force && !staleIds.has(recipe.manifest.id)) console.log(`up to date  ${recipe.manifest.localPath}`);
+    if (!force && !staleIds.has(recipe.manifest.id))
+      console.log(`up to date  ${recipe.manifest.localPath}`);
   }
   if (work.length === 0) return;
 
@@ -134,8 +145,8 @@ async function main() {
     if (index === -1) manifest.assets.push(entry);
     else manifest.assets[index] = entry;
     console.log(
-      `encoded     ${localPath}  ${(bytes.byteLength / 1024).toFixed(1)} KB  `
-      + `${Math.round(performance.now() - started)} ms  (${reason})`,
+      `encoded     ${localPath}  ${(bytes.byteLength / 1024).toFixed(1)} KB  ` +
+        `${Math.round(performance.now() - started)} ms  (${reason})`,
     );
   }
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);

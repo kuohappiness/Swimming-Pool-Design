@@ -10,11 +10,12 @@ const LEVEL_RANK: Readonly<Record<VisualDetailLevel, number>> = Object.freeze({
   full: 2,
 });
 
-const QUALITY_LEVEL: Readonly<Record<RenderQualityProfile['id'], VisualDetailLevel>> = Object.freeze({
-  low: 'essential',
-  medium: 'reduced',
-  high: 'full',
-});
+const QUALITY_LEVEL: Readonly<Record<RenderQualityProfile['id'], VisualDetailLevel>> =
+  Object.freeze({
+    low: 'essential',
+    medium: 'reduced',
+    high: 'full',
+  });
 
 export class EnhancedDetailLevelAdapter implements VisualAssetAdapter {
   readonly id = 'enhanced-detail-level-adapter';
@@ -43,7 +44,9 @@ export class EnhancedDetailLevelAdapter implements VisualAssetAdapter {
         throw new TypeError(`Unsupported visual detail level: ${String(level)}`);
       }
       if (object.userData.visualOnly !== true || object.userData.collisionExcluded !== true) {
-        throw new TypeError('Quality-controlled details must be visual-only and collision-excluded.');
+        throw new TypeError(
+          'Quality-controlled details must be visual-only and collision-excluded.',
+        );
       }
       this.details.push(object);
       object.traverse((child) => {
@@ -86,9 +89,10 @@ export class EnhancedDetailLevelAdapter implements VisualAssetAdapter {
     }
     for (const mesh of this.detailMeshes) {
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      mesh.castShadow = this.quality.shadows
-        && this.shadowCasters.has(mesh)
-        && materials.every((material) => !material.transparent);
+      mesh.castShadow =
+        this.quality.shadows &&
+        this.shadowCasters.has(mesh) &&
+        materials.every((material) => !material.transparent);
       mesh.receiveShadow = this.quality.shadows;
     }
   }

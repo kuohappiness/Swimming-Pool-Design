@@ -24,7 +24,10 @@ function arrangeStage(stage: HTMLElement): void {
 
   const notes = document.createElement('div');
   notes.className = 'stage-notes';
-  for (const [label, note] of [['平面', planNote], ['剖面', sectionNote]] as const) {
+  for (const [label, note] of [
+    ['平面', planNote],
+    ['剖面', sectionNote],
+  ] as const) {
     const term = document.createElement('strong');
     term.textContent = label;
     note.prepend(term);
@@ -49,7 +52,9 @@ function studyMarkup(): string {
   const studyFacts = study.querySelector<HTMLElement>('.facts');
   const principles = study.querySelector<HTMLElement>('section.principles');
   if (!modelStage || !seasonTable || !studyFacts || !principles) {
-    throw new TypeError('Solar study template is missing its model stage, seasonal table, site facts, or design principles.');
+    throw new TypeError(
+      'Solar study template is missing its model stage, seasonal table, site facts, or design principles.',
+    );
   }
   arrangeStage(modelStage);
   const conclusion = study.querySelector<HTMLElement>('section.research-conclusion');

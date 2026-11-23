@@ -50,10 +50,34 @@ const planRotation = activeGeometry.solar.planRotation.value;
 const viewDescription = getViewDefinition('design-concept').description;
 const originTitle = '一切，從紙上的第一筆開始';
 const chapterMeta = [
-  { sceneId: 'light', number: '01', title: '向光而轉', caption: '讓建築回應季節與太陽。', motif: 'sun' },
-  { sceneId: 'rain', number: '02', title: '向雨而生', caption: '讓雨水成為建築可見的循環。', motif: 'water' },
-  { sceneId: 'people', number: '03', title: '向人而開', caption: '讓光線串聯視線、動線與彼此。', motif: 'people' },
-  { sceneId: 'time', number: '04', title: '向時間延續', caption: '讓回憶延續，新舊並存。', motif: 'time' },
+  {
+    sceneId: 'light',
+    number: '01',
+    title: '向光而轉',
+    caption: '讓建築回應季節與太陽。',
+    motif: 'sun',
+  },
+  {
+    sceneId: 'rain',
+    number: '02',
+    title: '向雨而生',
+    caption: '讓雨水成為建築可見的循環。',
+    motif: 'water',
+  },
+  {
+    sceneId: 'people',
+    number: '03',
+    title: '向人而開',
+    caption: '讓光線串聯視線、動線與彼此。',
+    motif: 'people',
+  },
+  {
+    sceneId: 'time',
+    number: '04',
+    title: '向時間延續',
+    caption: '讓回憶延續，新舊並存。',
+    motif: 'time',
+  },
 ] as const;
 const surveyImages: OriginImage[] = [
   {
@@ -154,7 +178,10 @@ function scene(id: string): ConceptScene {
 
 function accessibleDrawing(): string {
   return l3Drawing
-    .replace('<svg ', '<svg class="concept-drawing" role="img" aria-labelledby="concept-drawing-title concept-drawing-desc" ')
+    .replace(
+      '<svg ',
+      '<svg class="concept-drawing" role="img" aria-labelledby="concept-drawing-title concept-drawing-desc" ',
+    )
     .replace(
       /<title>.*?<\/title>/,
       '<title id="concept-drawing-title">三樓旋轉量體與太陽能屋頂概念平面</title><desc id="concept-drawing-desc">現行三樓平面圖，顯示旋轉量體、鏡牆、到達翼與太陽能屋頂配置。</desc>',
@@ -164,8 +191,9 @@ function accessibleDrawing(): string {
 function splitOverview(html: string): { heroHtml: string; introHtml: string; originHtml: string } {
   const template = document.createElement('template');
   template.innerHTML = html;
-  const heading = [...template.content.querySelectorAll('h2')]
-    .find((candidate) => candidate.textContent?.trim() === originTitle);
+  const heading = [...template.content.querySelectorAll('h2')].find(
+    (candidate) => candidate.textContent?.trim() === originTitle,
+  );
   if (!heading) throw new TypeError('Concept content is missing the hand-sketch origin section.');
   const origin = document.createElement('div');
   let node: ChildNode | null = heading;
@@ -217,7 +245,8 @@ function detailCards(html: string): string {
     }
     const current = cards.at(-1);
     if (current) current.append(node);
-    else if (node.textContent?.trim()) throw new TypeError('Concept detail content must start with an H3.');
+    else if (node.textContent?.trim())
+      throw new TypeError('Concept detail content must start with an H3.');
   }
   for (const card of cards) {
     if (card.querySelector('ul, ol')) card.classList.add('concept-detail-card--wide');
@@ -336,52 +365,62 @@ export function mount(container: HTMLElement): MountedView {
       </div>
     </section>
     <nav id="concept-chapters" class="concept-index" aria-label="四個設計方向">
-      ${chapterMeta.map((chapter) => `
+      ${chapterMeta
+        .map(
+          (chapter) => `
         <a href="#concept-${chapter.sceneId}">
           <span>${chapter.number}</span>
           <strong>${chapter.title}</strong>
           <small>${chapter.caption}</small>
         </a>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </nav>
     <div class="concept-chapters">
-      ${chapterMeta.map((chapter) => {
-        const contentScene = scene(chapter.sceneId);
-        let chapterHtml = contentScene.html;
-        let detailHtml = '';
-        let conclusionHtml = '';
-        if (chapter.sceneId === 'time') {
-          const detailMarker = '<h2>設計細節</h2>';
-          const conclusionMarker = '<h2>結語</h2>';
-          const detailIndex = chapterHtml.indexOf(detailMarker);
-          const conclusionIndex = chapterHtml.indexOf(conclusionMarker);
-          if (detailIndex < 0 || conclusionIndex < detailIndex) {
-            throw new TypeError('Time concept content is missing its detail or conclusion section.');
+      ${chapterMeta
+        .map((chapter) => {
+          const contentScene = scene(chapter.sceneId);
+          let chapterHtml = contentScene.html;
+          let detailHtml = '';
+          let conclusionHtml = '';
+          if (chapter.sceneId === 'time') {
+            const detailMarker = '<h2>設計細節</h2>';
+            const conclusionMarker = '<h2>結語</h2>';
+            const detailIndex = chapterHtml.indexOf(detailMarker);
+            const conclusionIndex = chapterHtml.indexOf(conclusionMarker);
+            if (detailIndex < 0 || conclusionIndex < detailIndex) {
+              throw new TypeError(
+                'Time concept content is missing its detail or conclusion section.',
+              );
+            }
+            detailHtml = chapterHtml.slice(detailIndex + detailMarker.length, conclusionIndex);
+            conclusionHtml = chapterHtml
+              .slice(conclusionIndex + conclusionMarker.length)
+              .replace('<blockquote>', '<blockquote class="concept-final-note">');
+            chapterHtml = chapterHtml.slice(0, detailIndex);
           }
-          detailHtml = chapterHtml.slice(detailIndex + detailMarker.length, conclusionIndex);
-          conclusionHtml = chapterHtml
-            .slice(conclusionIndex + conclusionMarker.length)
-            .replace(
-              '<blockquote>',
-              '<blockquote class="concept-final-note">',
-            );
-          chapterHtml = chapterHtml.slice(0, detailIndex);
-        }
-        const titleId = `concept-${chapter.sceneId}-title`;
-        return `
+          const titleId = `concept-${chapter.sceneId}-title`;
+          return `
           <section
             id="concept-${chapter.sceneId}"
             class="concept-chapter concept-chapter--${chapter.motif}"
             aria-labelledby="${titleId}"
           >
             <div class="concept-chapter-copy">${chapterWithTitle(chapterHtml, titleId, chapter.number)}</div>
-            ${chapter.sceneId === 'light' ? planFigure() : `
+            ${
+              chapter.sceneId === 'light'
+                ? planFigure()
+                : `
               <div class="concept-motif" aria-hidden="true">
                 <span></span><span></span><span></span><span></span>
               </div>
-            `}
+            `
+            }
           </section>
-          ${detailHtml ? `
+          ${
+            detailHtml
+              ? `
             <section class="concept-detail-section" aria-labelledby="concept-detail-heading">
               <h2 id="concept-detail-heading" class="concept-section-title">設計細節</h2>
               <div class="concept-detail-grid">${detailCards(detailHtml)}</div>
@@ -392,9 +431,12 @@ export function mount(container: HTMLElement): MountedView {
                 ${conclusionHtml}
               </div>
             </section>
-          ` : ''}
+          `
+              : ''
+          }
         `;
-      }).join('')}
+        })
+        .join('')}
     </div>
     <section class="concept-journey" aria-labelledby="concept-journey-title">
       <p class="site-kicker">EPILOGUE ／ FROM LINE TO SPACE</p>

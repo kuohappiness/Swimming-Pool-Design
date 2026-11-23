@@ -115,7 +115,9 @@ export function fixturesSwitchedOn(lighting: SunLighting): boolean {
 /** 這一刻 1 lux 等於場景的多少。白天到夜裡在對數上隨日光漸變，和曝光一樣是連續的。 */
 export function fixtureLuxScale(lighting: SunLighting): number {
   const daylight = Math.min(1, Math.max(0, lighting.factors.daylight));
-  return Math.exp(Math.log(NIGHT_LUX_SCALE) + (Math.log(DAY_LUX_SCALE) - Math.log(NIGHT_LUX_SCALE)) * daylight);
+  return Math.exp(
+    Math.log(NIGHT_LUX_SCALE) + (Math.log(DAY_LUX_SCALE) - Math.log(NIGHT_LUX_SCALE)) * daylight,
+  );
 }
 
 /** 室外水平面的照度（場景單位）：天光加上主光源的垂直分量。 */
@@ -132,13 +134,23 @@ export function lambertianIntensity(lumens: number): number {
  * 把燈具就近兩兩合併，直到不超過 `maximum` 盞：位置依光通量加權平均，光通量相加。
  * 低畫質用較少盞燈，總光量不變。結果與輸入順序無關（同距離時取編號小的一對）。
  */
-export function aggregateFixtures<T extends LightFixture>(fixtures: readonly T[], maximum: number): LightFixture[] | PoolLight[] {
-  if (!Number.isInteger(maximum) || maximum < 1) throw new RangeError('Fixture maximum must be a positive integer.');
-  type Cluster = { position: [number, number, number]; lumens: number; aim?: [number, number, number] };
+export function aggregateFixtures<T extends LightFixture>(
+  fixtures: readonly T[],
+  maximum: number,
+): LightFixture[] | PoolLight[] {
+  if (!Number.isInteger(maximum) || maximum < 1)
+    throw new RangeError('Fixture maximum must be a positive integer.');
+  type Cluster = {
+    position: [number, number, number];
+    lumens: number;
+    aim?: [number, number, number];
+  };
   const clusters: Cluster[] = fixtures.map((fixture) => ({
     position: [...fixture.position] as [number, number, number],
     lumens: fixture.lumens,
-    ...('aim' in fixture ? { aim: [...(fixture as unknown as PoolLight).aim] as [number, number, number] } : {}),
+    ...('aim' in fixture
+      ? { aim: [...(fixture as unknown as PoolLight).aim] as [number, number, number] }
+      : {}),
   }));
   while (clusters.length > maximum) {
     let best: [number, number] = [0, 1];
@@ -160,22 +172,30 @@ export function aggregateFixtures<T extends LightFixture>(fixtures: readonly T[]
     const lumens = first.lumens + second.lumens;
     const weight = lumens > 0 ? second.lumens / lumens : 0.5;
     const merged: Cluster = {
-      position: [0, 1, 2].map((axis) => first.position[axis]! + (second.position[axis]! - first.position[axis]!) * weight) as [number, number, number],
+      position: [0, 1, 2].map(
+        (axis) => first.position[axis]! + (second.position[axis]! - first.position[axis]!) * weight,
+      ) as [number, number, number],
       lumens,
     };
     if (first.aim && second.aim) {
-      const aim = [0, 1, 2].map((axis) => first.aim![axis]! + second.aim![axis]!) as [number, number, number];
+      const aim = [0, 1, 2].map((axis) => first.aim![axis]! + second.aim![axis]!) as [
+        number,
+        number,
+        number,
+      ];
       const length = Math.hypot(...aim) || 1;
       merged.aim = aim.map((value) => value / length) as [number, number, number];
     }
     clusters.splice(b, 1);
     clusters.splice(a, 1, merged);
   }
-  return clusters.map((cluster) => Object.freeze({
-    position: Object.freeze(cluster.position) as Vector3Tuple,
-    lumens: cluster.lumens,
-    ...(cluster.aim ? { aim: Object.freeze(cluster.aim) as Vector3Tuple } : {}),
-  })) as LightFixture[] | PoolLight[];
+  return clusters.map((cluster) =>
+    Object.freeze({
+      position: Object.freeze(cluster.position) as Vector3Tuple,
+      lumens: cluster.lumens,
+      ...(cluster.aim ? { aim: Object.freeze(cluster.aim) as Vector3Tuple } : {}),
+    }),
+  ) as LightFixture[] | PoolLight[];
 }
 
 /**
@@ -188,8 +208,8 @@ export function averageFloorIlluminance(zone: FixtureZone, samples = 6): number 
   let total = 0;
   for (let i = 0; i < samples; i += 1) {
     for (let j = 0; j < samples; j += 1) {
-      const x = min[0] + (max[0] - min[0]) * (i + 0.5) / samples;
-      const z = min[2] + (max[2] - min[2]) * (j + 0.5) / samples;
+      const x = min[0] + ((max[0] - min[0]) * (i + 0.5)) / samples;
+      const z = min[2] + ((max[2] - min[2]) * (j + 0.5)) / samples;
       for (const fixture of zone.fixtures) {
         const dx = fixture.position[0] - x;
         const dy = fixture.position[1] - floor;
@@ -198,7 +218,7 @@ export function averageFloorIlluminance(zone: FixtureZone, samples = 6): number 
         if (dy <= 0) continue;
         const cosine = dy / Math.sqrt(distanceSquared);
         // 朗伯發光面：光強度隨離開正下方的角度餘弦遞減；地面也是水平面，再乘一次餘弦。
-        total += lambertianIntensity(fixture.lumens) * cosine * cosine / distanceSquared;
+        total += (lambertianIntensity(fixture.lumens) * cosine * cosine) / distanceSquared;
       }
     }
   }
@@ -209,10 +229,14 @@ export function assertFixtureLayout(layout: FixtureLayout): FixtureLayout {
   if (layout.zones.length > FIXTURE_ZONE_SLOTS) throw new RangeError('Too many fixture zones.');
   const finite = (values: readonly number[]) => values.every(Number.isFinite);
   for (const zone of layout.zones) {
-    if (zone.fixtures.length === 0) throw new RangeError(`Fixture zone ${zone.id} has no fixtures.`);
+    if (zone.fixtures.length === 0)
+      throw new RangeError(`Fixture zone ${zone.id} has no fixtures.`);
     for (let axis = 0; axis < 3; axis += 1) {
-      if (!(zone.outer.min[axis]! < zone.inner.min[axis]! && zone.inner.min[axis]! < zone.inner.max[axis]!
-        && zone.inner.max[axis]! < zone.outer.max[axis]!)) {
+      if (!(
+        zone.outer.min[axis]! < zone.inner.min[axis]! &&
+        zone.inner.min[axis]! < zone.inner.max[axis]! &&
+        zone.inner.max[axis]! < zone.outer.max[axis]!
+      )) {
         throw new RangeError(`Fixture zone ${zone.id} boxes must nest with a margin.`);
       }
     }
@@ -220,18 +244,22 @@ export function assertFixtureLayout(layout: FixtureLayout): FixtureLayout {
       throw new RangeError(`Fixture zone ${zone.id} floor must lie inside its box.`);
     }
     for (const fixture of zone.fixtures) {
-      if (!finite(fixture.position) || !(fixture.lumens > 0)) throw new TypeError(`Fixture in ${zone.id} is invalid.`);
-      if (!(fixture.position[1] > zone.floor)) throw new RangeError(`Fixture in ${zone.id} must hang above the floor.`);
+      if (!finite(fixture.position) || !(fixture.lumens > 0))
+        throw new TypeError(`Fixture in ${zone.id} is invalid.`);
+      if (!(fixture.position[1] > zone.floor))
+        throw new RangeError(`Fixture in ${zone.id} must hang above the floor.`);
     }
   }
   for (const light of layout.poolLights) {
-    if (!finite(light.position) || !finite(light.aim) || !(light.lumens > 0)) throw new TypeError('Pool light is invalid.');
+    if (!finite(light.position) || !finite(light.aim) || !(light.lumens > 0))
+      throw new TypeError('Pool light is invalid.');
     if (Math.abs(Math.hypot(...light.aim) - 1) > 1e-6 || Math.abs(light.aim[1]) > 1e-6) {
       throw new TypeError('Pool light must aim horizontally.');
     }
   }
   if (layout.poolLights.length > POOL_LIGHT_SLOTS) throw new RangeError('Too many pool lights.');
-  if (!(layout.poolLightLensRadius > 0)) throw new RangeError('Pool light lens radius must be positive.');
+  if (!(layout.poolLightLensRadius > 0))
+    throw new RangeError('Pool light lens radius must be positive.');
   return layout;
 }
 
@@ -273,7 +301,7 @@ export function createFixtureLightUniforms(): FixtureLightUniforms {
   };
 }
 
-export const FIXTURE_LIGHTS_GLSL = /* glsl */`
+export const FIXTURE_LIGHTS_GLSL = /* glsl */ `
 #define FIXTURE_ZONE_SLOTS ${FIXTURE_ZONE_SLOTS}
 #define FIXTURE_LIGHT_SLOTS ${FIXTURE_LIGHT_SLOTS}
 uniform int uFixtureZoneCount;
@@ -309,7 +337,7 @@ const COMMON = '#include <common>';
  * 顯示卡的電腦、瀏覽器測試）不一樣，程式碼在就要花時間，所以省電級在燈沒照到構件時不編這一段
  *（見 `FixtureLightProgram`）。
  */
-const FIXTURE_LIGHTS_APPLY = /* glsl */`
+const FIXTURE_LIGHTS_APPLY = /* glsl */ `
 #if defined( RE_IndirectDiffuse )
 	for ( int zone = 0; zone < min( uFixtureZoneCount, FIXTURE_ZONE_SLOTS ); zone ++ ) {
 		vec3 fixtureWorld = ( vec4( geometryPosition - viewMatrix[ 3 ].xyz, 0.0 ) * viewMatrix ).xyz;
@@ -359,7 +387,8 @@ export function installFixtureLights(
   const previousKey = material.customProgramCacheKey;
   material.onBeforeCompile = function onBeforeCompile(shader, renderer) {
     previous.call(this, shader, renderer);
-    if (!shader.fragmentShader.includes(LIGHTS_MAPS) || !shader.fragmentShader.includes(COMMON)) return;
+    if (!shader.fragmentShader.includes(LIGHTS_MAPS) || !shader.fragmentShader.includes(COMMON))
+      return;
     // 兩個版本都帶 uniform：three.js 切回已編過的版本時沿用最後一次編譯的 uniform 清單。
     Object.assign(shader.uniforms, uniforms);
     if (!program.compiled) return;
@@ -385,7 +414,11 @@ export interface WorldFixtureLights {
    * 水面的照度近似一致，水裡只用這一個平均值，不逐盞計算。
    */
   readonly ceilingIrradiance: THREE.Color;
-  readonly pool: readonly { readonly position: THREE.Vector3; readonly aim: THREE.Vector3; readonly intensity: number }[];
+  readonly pool: readonly {
+    readonly position: THREE.Vector3;
+    readonly aim: THREE.Vector3;
+    readonly intensity: number;
+  }[];
   readonly poolColor: THREE.Color;
   /** 水下燈透鏡的亮度（場景單位，已乘燈色前）與半徑（公尺）。 */
   readonly lensLuminance: number;
@@ -396,20 +429,25 @@ export interface WorldFixtureLights {
 
 const SCENE_KEY = 'fixtureLights';
 
-export function publishSceneFixtureLights(scene: THREE.Scene, lights: WorldFixtureLights | null): void {
+export function publishSceneFixtureLights(
+  scene: THREE.Scene,
+  lights: WorldFixtureLights | null,
+): void {
   scene.userData[SCENE_KEY] = lights;
 }
 
-export function readSceneFixtureLights(scene: THREE.Scene | null | undefined): WorldFixtureLights | null {
+export function readSceneFixtureLights(
+  scene: THREE.Scene | null | undefined,
+): WorldFixtureLights | null {
   const candidate = scene?.userData[SCENE_KEY] as Partial<WorldFixtureLights> | null | undefined;
-  return candidate
-    && (candidate.ceilingIrradiance as THREE.Color | undefined)?.isColor === true
-    && Array.isArray(candidate.pool)
-    && (candidate.poolColor as THREE.Color | undefined)?.isColor === true
-    && (candidate.waterIrradiance as THREE.Color | undefined)?.isColor === true
-    && typeof candidate.lensLuminance === 'number'
-    && typeof candidate.lensRadius === 'number'
-    ? candidate as WorldFixtureLights
+  return candidate &&
+    (candidate.ceilingIrradiance as THREE.Color | undefined)?.isColor === true &&
+    Array.isArray(candidate.pool) &&
+    (candidate.poolColor as THREE.Color | undefined)?.isColor === true &&
+    (candidate.waterIrradiance as THREE.Color | undefined)?.isColor === true &&
+    typeof candidate.lensLuminance === 'number' &&
+    typeof candidate.lensRadius === 'number'
+    ? (candidate as WorldFixtureLights)
     : null;
 }
 
@@ -428,7 +466,12 @@ export interface WaterLightUniforms {
 
 export const WATER_LIGHT_UNIFORM_NAMES = Object.freeze([
   'uWaterCeilingIrradiance',
-  'uPoolLightCount', 'uPoolGlowCount', 'uPoolLights', 'uPoolLightAims', 'uPoolLightColor', 'uPoolLightLens',
+  'uPoolLightCount',
+  'uPoolGlowCount',
+  'uPoolLights',
+  'uPoolLightAims',
+  'uPoolLightColor',
+  'uPoolLightLens',
   'uWaterLightIrradiance',
 ] as const satisfies readonly (keyof WaterLightUniforms)[]);
 
@@ -446,7 +489,9 @@ export function createWaterLightUniforms(): WaterLightUniforms {
 }
 
 /** 從水面材質的 uniform 裡挑出燈光那幾個（同一批物件，不複製）。 */
-export function pickWaterLightUniforms(uniforms: Readonly<Record<string, THREE.IUniform>>): WaterLightUniforms {
+export function pickWaterLightUniforms(
+  uniforms: Readonly<Record<string, THREE.IUniform>>,
+): WaterLightUniforms {
   const picked: Record<string, THREE.IUniform> = {};
   for (const name of WATER_LIGHT_UNIFORM_NAMES) {
     const uniform = uniforms[name];
@@ -474,7 +519,8 @@ export function writeWaterLightUniforms(
   const pool = lights.pool.slice(0, POOL_LIGHT_SLOTS);
   pool.forEach((light, index) => {
     uniforms.uPoolLights.value[index]!.set(light.position.x, light.position.y, light.position.z, 1)
-      .applyMatrix4(toSpace).setW(light.intensity);
+      .applyMatrix4(toSpace)
+      .setW(light.intensity);
     uniforms.uPoolLightAims.value[index]!.copy(light.aim).transformDirection(toSpace);
   });
   uniforms.uPoolLightCount.value = pool.length;
@@ -524,7 +570,8 @@ export class FixtureLights {
   }
 
   setQuality(tier: FixtureQualityTier): void {
-    if (!Object.hasOwn(FIXTURE_COUNT_BY_TIER, tier)) throw new TypeError(`Unknown fixture quality tier: ${String(tier)}`);
+    if (!Object.hasOwn(FIXTURE_COUNT_BY_TIER, tier))
+      throw new TypeError(`Unknown fixture quality tier: ${String(tier)}`);
     this.tier = tier;
     this.sync();
   }
@@ -558,9 +605,15 @@ export class FixtureLights {
     uniforms.uFixtureColor.value.setRGB(...CEILING_FIXTURE_COLOR);
 
     // 燈具照度相對於室外日光夠大，照在構件上的燈光才值得算（白天陰雨天開燈時省下迴圈）。
-    const typicalLux = Math.max(0, ...this.layout.zones.map((zone) => averageFloorIlluminance(zone)));
-    const ratio = lighting && on ? typicalLux * scale / Math.max(outdoorIlluminance(lighting), 1e-6) : 0;
-    this.surfaceStrength = on ? smoothstep(SURFACE_LIGHT_RATIO.from, SURFACE_LIGHT_RATIO.to, ratio) : 0;
+    const typicalLux = Math.max(
+      0,
+      ...this.layout.zones.map((zone) => averageFloorIlluminance(zone)),
+    );
+    const ratio =
+      lighting && on ? (typicalLux * scale) / Math.max(outdoorIlluminance(lighting), 1e-6) : 0;
+    this.surfaceStrength = on
+      ? smoothstep(SURFACE_LIGHT_RATIO.from, SURFACE_LIGHT_RATIO.to, ratio)
+      : 0;
 
     let slot = 0;
     let waterLux = 0;
@@ -576,25 +629,40 @@ export class FixtureLights {
         uniforms.uFixtureZoneFill.value[index]!.set(0, 0, 0);
         return;
       }
-      const fixtures = aggregateFixtures(zone.fixtures, Math.min(fixtureCount, FIXTURE_LIGHT_SLOTS - slot));
+      const fixtures = aggregateFixtures(
+        zone.fixtures,
+        Math.min(fixtureCount, FIXTURE_LIGHT_SLOTS - slot),
+      );
       range.set(slot, this.surfaceStrength > 0 ? fixtures.length : 0);
       for (const fixture of fixtures) {
         const intensity = lambertianIntensity(fixture.lumens) * scale * this.surfaceStrength;
-        this.world.set(fixture.position[0], fixture.position[1] - EMITTER_OFFSET, fixture.position[2]);
+        this.world.set(
+          fixture.position[0],
+          fixture.position[1] - EMITTER_OFFSET,
+          fixture.position[2],
+        );
         this.siteRoot.localToWorld(this.world);
-        uniforms.uFixtureLights.value[slot]!.set(this.world.x, this.world.y, this.world.z, intensity);
+        uniforms.uFixtureLights.value[slot]!.set(
+          this.world.x,
+          this.world.y,
+          this.world.z,
+          intensity,
+        );
         slot += 1;
       }
       const fill = averageFloorIlluminance(zone) * scale * FLOOR_REFLECTANCE * this.surfaceStrength;
       uniforms.uFixtureZoneFill.value[index]!.set(
-        fill * CEILING_FIXTURE_COLOR[0], fill * CEILING_FIXTURE_COLOR[1], fill * CEILING_FIXTURE_COLOR[2],
+        fill * CEILING_FIXTURE_COLOR[0],
+        fill * CEILING_FIXTURE_COLOR[1],
+        fill * CEILING_FIXTURE_COLOR[2],
       );
       if (zone.reachesWater) waterLux += averageFloorIlluminance(zone);
     });
     for (let index = this.layout.zones.length; index < FIXTURE_ZONE_SLOTS; index += 1) {
       uniforms.uFixtureZoneRange.value[index]!.set(0, 0);
     }
-    uniforms.uFixtureZoneCount.value = on && slot > 0 && this.surfaceStrength > 0 ? this.layout.zones.length : 0;
+    uniforms.uFixtureZoneCount.value =
+      on && slot > 0 && this.surfaceStrength > 0 ? this.layout.zones.length : 0;
     // 省電級（繪圖管線 low，軟體繪圖一律用這一級）燈沒照到構件時不編燈具照明；其他級一直編著，開關燈不必重編。
     this.setCompiled(this.tier !== 'low' || uniforms.uFixtureZoneCount.value > 0);
 
@@ -618,9 +686,12 @@ export class FixtureLights {
   }
 
   private updateEmitters(on: boolean, scale: number): void {
-    const brightest = Math.max(0, ...this.layout.zones.flatMap((zone) => zone.fixtures.map((fixture) => fixture.lumens)));
+    const brightest = Math.max(
+      0,
+      ...this.layout.zones.flatMap((zone) => zone.fixtures.map((fixture) => fixture.lumens)),
+    );
     // 朗伯發光面的亮度 = 光通量 ÷（π × 面積）；兩區共用一個材質，取池廳燈具的亮度。
-    const luminance = on ? brightest / (Math.PI * CEILING_EMITTER_AREA) * scale : 0;
+    const luminance = on ? (brightest / (Math.PI * CEILING_EMITTER_AREA)) * scale : 0;
     for (const zone of this.layout.zones) {
       const mesh = this.scene.getObjectByName(zone.emitterName) as THREE.Mesh | undefined;
       const material = mesh?.material as THREE.MeshStandardMaterial | undefined;
@@ -632,14 +703,20 @@ export class FixtureLights {
 
   private publishWater(on: boolean, scale: number, ceilingWaterLux: number): void {
     // 白天燈光照不到構件時，水下燈只剩透鏡發亮；省電級（含軟體繪圖）連透鏡也不算，省下水裡的迴圈。
-    const poolVisible = on && (this.surfaceStrength > 0 || this.tier !== 'low')
-      && this.layout.poolLights.length > 0 && this.objectVisible(this.layout.poolLightAnchorName);
+    const poolVisible =
+      on &&
+      (this.surfaceStrength > 0 || this.tier !== 'low') &&
+      this.layout.poolLights.length > 0 &&
+      this.objectVisible(this.layout.poolLightAnchorName);
     if (!on) {
       publishSceneFixtureLights(this.scene, null);
       return;
     }
     const poolLights = poolVisible
-      ? aggregateFixtures(this.layout.poolLights, POOL_LIGHT_COUNT_BY_TIER[this.tier]) as PoolLight[]
+      ? (aggregateFixtures(
+          this.layout.poolLights,
+          POOL_LIGHT_COUNT_BY_TIER[this.tier],
+        ) as PoolLight[])
       : [];
     const pool = poolLights.map((light) => ({
       position: this.siteRoot.localToWorld(new THREE.Vector3(...light.position)),
@@ -649,24 +726,40 @@ export class FixtureLights {
     const lens = this.layout.poolLights[0];
     const lensArea = Math.PI * this.layout.poolLightLensRadius ** 2;
     // 水下燈照在池水裡的平均照度：總光通量平均分到池水的體積表面上（粗估），加上天花燈照進水裡的部分。
-    const poolLumens = poolVisible ? this.layout.poolLights.reduce((sum, light) => sum + light.lumens, 0) : 0;
+    const poolLumens = poolVisible
+      ? this.layout.poolLights.reduce((sum, light) => sum + light.lumens, 0)
+      : 0;
     const poolLux = poolLumens / Math.max(this.poolSurfaceArea(), 1);
     const waterIrradiance = new THREE.Color().setRGB(
-      (ceilingWaterLux * CEILING_FIXTURE_COLOR[0] + poolLux * POOL_LIGHT_COLOR[0]) * scale * this.surfaceStrength,
-      (ceilingWaterLux * CEILING_FIXTURE_COLOR[1] + poolLux * POOL_LIGHT_COLOR[1]) * scale * this.surfaceStrength,
-      (ceilingWaterLux * CEILING_FIXTURE_COLOR[2] + poolLux * POOL_LIGHT_COLOR[2]) * scale * this.surfaceStrength,
+      (ceilingWaterLux * CEILING_FIXTURE_COLOR[0] + poolLux * POOL_LIGHT_COLOR[0]) *
+        scale *
+        this.surfaceStrength,
+      (ceilingWaterLux * CEILING_FIXTURE_COLOR[1] + poolLux * POOL_LIGHT_COLOR[1]) *
+        scale *
+        this.surfaceStrength,
+      (ceilingWaterLux * CEILING_FIXTURE_COLOR[2] + poolLux * POOL_LIGHT_COLOR[2]) *
+        scale *
+        this.surfaceStrength,
     );
     const ceiling = ceilingWaterLux * scale * this.surfaceStrength * AIR_TO_WATER_TRANSMISSION;
-    publishSceneFixtureLights(this.scene, Object.freeze({
-      ceilingIrradiance: new THREE.Color().setRGB(
-        ceiling * CEILING_FIXTURE_COLOR[0], ceiling * CEILING_FIXTURE_COLOR[1], ceiling * CEILING_FIXTURE_COLOR[2],
-      ),
-      pool: pool.map((light) => ({ ...light, intensity: light.intensity * this.surfaceStrength })),
-      poolColor: new THREE.Color().setRGB(...POOL_LIGHT_COLOR),
-      lensLuminance: poolVisible && lens ? lens.lumens / (Math.PI * lensArea) * scale : 0,
-      lensRadius: this.layout.poolLightLensRadius,
-      waterIrradiance,
-    }));
+    publishSceneFixtureLights(
+      this.scene,
+      Object.freeze({
+        ceilingIrradiance: new THREE.Color().setRGB(
+          ceiling * CEILING_FIXTURE_COLOR[0],
+          ceiling * CEILING_FIXTURE_COLOR[1],
+          ceiling * CEILING_FIXTURE_COLOR[2],
+        ),
+        pool: pool.map((light) => ({
+          ...light,
+          intensity: light.intensity * this.surfaceStrength,
+        })),
+        poolColor: new THREE.Color().setRGB(...POOL_LIGHT_COLOR),
+        lensLuminance: poolVisible && lens ? (lens.lumens / (Math.PI * lensArea)) * scale : 0,
+        lensRadius: this.layout.poolLightLensRadius,
+        waterIrradiance,
+      }),
+    );
   }
 
   /** 水下燈照亮的面積：兩道長池壁與池底的粗估（公尺平方）。 */

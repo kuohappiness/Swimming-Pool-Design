@@ -85,11 +85,21 @@ export interface PoolHallShape {
 }
 
 export function assertPoolHallShape(hall: PoolHallShape, basin: PoolBasinShape): PoolHallShape {
-  const values = [hall.minX, hall.maxX, hall.minZ, hall.maxZ, hall.floor, hall.roofAtMinX, hall.roofAtMaxX];
+  const values = [
+    hall.minX,
+    hall.maxX,
+    hall.minZ,
+    hall.maxZ,
+    hall.floor,
+    hall.roofAtMinX,
+    hall.roofAtMaxX,
+  ];
   if (!values.every(Number.isFinite)) throw new TypeError('Pool hall shape must be finite.');
   if (
-    hall.minX > basin.minX || hall.maxX < basin.maxX
-    || hall.minZ > basin.minZ || hall.maxZ < basin.maxZ
+    hall.minX > basin.minX ||
+    hall.maxX < basin.maxX ||
+    hall.minZ > basin.minZ ||
+    hall.maxZ < basin.maxZ
   ) {
     throw new RangeError('Pool hall must contain the pool basin.');
   }
@@ -192,9 +202,16 @@ export const CALM_POOL_WAVES: readonly WaterWave[] = Object.freeze([
 
 export function assertPoolBasinShape(basin: PoolBasinShape): PoolBasinShape {
   const values = [
-    basin.minX, basin.maxX, basin.minZ, basin.maxZ,
-    basin.waterLevel, basin.shallowBottom, basin.deepBottom, ...basin.laneLineZ,
-    basin.laneLineWidth, basin.laneLineInset,
+    basin.minX,
+    basin.maxX,
+    basin.minZ,
+    basin.maxZ,
+    basin.waterLevel,
+    basin.shallowBottom,
+    basin.deepBottom,
+    ...basin.laneLineZ,
+    basin.laneLineWidth,
+    basin.laneLineInset,
   ];
   if (!values.every(Number.isFinite)) throw new TypeError('Pool basin shape must be finite.');
   if (!(basin.maxX > basin.minX && basin.maxZ > basin.minZ)) {
@@ -223,9 +240,11 @@ export function assertPoolBasinShape(basin: PoolBasinShape): PoolBasinShape {
       throw new RangeError('Submerged box must have positive size.');
     }
     if (
-      box.minX < basin.minX || box.maxX > basin.maxX
-      || box.minZ < basin.minZ || box.maxZ > basin.maxZ
-      || box.maxY >= basin.waterLevel
+      box.minX < basin.minX ||
+      box.maxX > basin.maxX ||
+      box.minZ < basin.minZ ||
+      box.maxZ > basin.maxZ ||
+      box.maxY >= basin.waterLevel
     ) {
       throw new RangeError('Submerged box must lie inside the basin, below the water level.');
     }
@@ -237,7 +256,10 @@ export function assertPoolBasinShape(basin: PoolBasinShape): PoolBasinShape {
 }
 
 /** 貼齊池壁的水面網格。格數取整，所以實際格距會略小於 cellSize。 */
-export function createWaterSurfaceGeometry(basin: PoolBasinShape, cellSize: number): THREE.BufferGeometry {
+export function createWaterSurfaceGeometry(
+  basin: PoolBasinShape,
+  cellSize: number,
+): THREE.BufferGeometry {
   assertPoolBasinShape(basin);
   if (!(cellSize > 0)) throw new RangeError('Water surface cellSize must be positive.');
   const length = basin.maxX - basin.minX;
@@ -298,10 +320,8 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
   );
   const boxes = basin.submergedBoxes ?? [];
   const metalColor = options.metalColor ?? new THREE.Color(0.45, 0.48, 0.49);
-  const boxSlot = <Value>(create: (box: SubmergedBox | undefined) => Value) => Array.from(
-    { length: MAXIMUM_SUBMERGED_BOXES },
-    (_, index) => create(boxes[index]),
-  );
+  const boxSlot = <Value>(create: (box: SubmergedBox | undefined) => Value) =>
+    Array.from({ length: MAXIMUM_SUBMERGED_BOXES }, (_, index) => create(boxes[index]));
   const material = new THREE.ShaderMaterial({
     name: 'realistic:water-surface',
     vertexShader,
@@ -360,15 +380,21 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
         uLaneLineZ: { value: laneLineZ },
         uSubmergedBoxCount: { value: boxes.length },
         uSubmergedBoxMin: {
-          value: boxSlot((box) => (box ? new THREE.Vector3(box.minX, box.minY, box.minZ) : new THREE.Vector3())),
+          value: boxSlot((box) =>
+            box ? new THREE.Vector3(box.minX, box.minY, box.minZ) : new THREE.Vector3(),
+          ),
         },
         uSubmergedBoxMax: {
-          value: boxSlot((box) => (box ? new THREE.Vector3(box.maxX, box.maxY, box.maxZ) : new THREE.Vector3())),
+          value: boxSlot((box) =>
+            box ? new THREE.Vector3(box.maxX, box.maxY, box.maxZ) : new THREE.Vector3(),
+          ),
         },
         uSubmergedBoxFinish: {
-          value: boxSlot((box) => (box?.finish === 'tile'
-            ? new THREE.Vector4(0, 0, 0, 1)
-            : new THREE.Vector4(metalColor.r, metalColor.g, metalColor.b, 0))),
+          value: boxSlot((box) =>
+            box?.finish === 'tile'
+              ? new THREE.Vector4(0, 0, 0, 1)
+              : new THREE.Vector4(metalColor.r, metalColor.g, metalColor.b, 0),
+          ),
         },
         // 清水對紅光吸收最強，所以深處偏藍綠。單位：每公尺。
         uAbsorption: { value: new THREE.Vector3(0.38, 0.07, 0.045) },
@@ -445,8 +471,10 @@ export class WaterSurface {
     this.material.uniforms.uSunShadowMap.value = this.fallbackShadowMap;
     this.mirrorBounce = pickMirrorBounceUniforms(this.material.uniforms);
     this.waterLights = pickWaterLightUniforms(this.material.uniforms);
-    this.maximumWaveHeight = (options.waves ?? CALM_POOL_WAVES)
-      .reduce((sum, wave) => sum + wave.amplitude, 0);
+    this.maximumWaveHeight = (options.waves ?? CALM_POOL_WAVES).reduce(
+      (sum, wave) => sum + wave.amplitude,
+      0,
+    );
     if (target) {
       this.adopted = { geometry: target.geometry, material: target.material };
       target.geometry = this.geometry;
@@ -517,7 +545,10 @@ export class WaterSurface {
     const shadow = frame.sunShadow ?? null;
     if (shadow) {
       uniforms.uSunShadowMap.value = shadow.map;
-      (uniforms.uSunShadowMatrix.value as THREE.Matrix4).multiplyMatrices(shadow.matrix, this.mesh.matrixWorld);
+      (uniforms.uSunShadowMatrix.value as THREE.Matrix4).multiplyMatrices(
+        shadow.matrix,
+        this.mesh.matrixWorld,
+      );
       (uniforms.uSunShadow.value as THREE.Vector3).set(1, shadow.bias, shadow.radius);
     } else {
       uniforms.uSunShadowMap.value = this.fallbackShadowMap;
@@ -526,8 +557,10 @@ export class WaterSurface {
     writeMirrorBounceUniforms(this.mirrorBounce, frame.mirrorBounce ?? null, this.inverseWorld);
     const fixtureLights = frame.fixtureLights ?? null;
     writeWaterLightUniforms(this.waterLights, fixtureLights, this.inverseWorld);
-    const light = (luminanceOf(frame.skyColor) + (fixtureLights ? luminanceOf(fixtureLights.waterIrradiance) : 0))
-      / NOON_SKY_LUMINANCE;
+    const light =
+      (luminanceOf(frame.skyColor) +
+        (fixtureLights ? luminanceOf(fixtureLights.waterIrradiance) : 0)) /
+      NOON_SKY_LUMINANCE;
     (uniforms.uScatterColor.value as THREE.Color).setRGB(
       WATER_SCATTER_AT_NOON[0] * light,
       WATER_SCATTER_AT_NOON[1] * light,

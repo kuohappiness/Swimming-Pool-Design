@@ -45,7 +45,8 @@ const LEGACY_TIER_IDS: Readonly<Record<string, RealismTierId>> = Object.freeze({
 export function parseRealismTierId(value: string | null | undefined): RealismTierId | null {
   if (!value) return null;
   const normalized = value.trim().toLowerCase();
-  if ((REALISM_TIER_ORDER as readonly string[]).includes(normalized)) return normalized as RealismTierId;
+  if ((REALISM_TIER_ORDER as readonly string[]).includes(normalized))
+    return normalized as RealismTierId;
   return LEGACY_TIER_IDS[normalized] ?? null;
 }
 
@@ -69,9 +70,10 @@ export function summarizeBenchmark(
     .sort((left, right) => left - right);
   if (samples.length < Math.max(1, minimumSamples)) return null;
   const middle = samples.length / 2;
-  const medianMilliseconds = samples.length % 2 === 0
-    ? (samples[middle - 1] + samples[middle]) / 2
-    : samples[Math.floor(middle)];
+  const medianMilliseconds =
+    samples.length % 2 === 0
+      ? (samples[middle - 1] + samples[middle]) / 2
+      : samples[Math.floor(middle)];
   const p95Index = Math.min(samples.length - 1, Math.ceil(samples.length * 0.95) - 1);
   return Object.freeze({
     frames: samples.length,
@@ -94,7 +96,10 @@ export function summarizeBenchmarkRun(
 }
 
 /** 檢測結果換算到某一級的估計每幀毫秒數。 */
-export function estimateFrameMilliseconds(benchmark: BenchmarkSummary, tier: RealismTierId): number {
+export function estimateFrameMilliseconds(
+  benchmark: BenchmarkSummary,
+  tier: RealismTierId,
+): number {
   const reference = REALISM_TIERS[BENCHMARK_REFERENCE_TIER].relativeCost;
   return benchmark.medianMilliseconds * (REALISM_TIERS[tier].relativeCost / reference);
 }
@@ -105,8 +110,12 @@ function automaticCandidates(deviceClass: DeviceClass): readonly RealismTierId[]
 }
 
 /** 估計成本在幀預算內的最高一級；都放不進去時用省電級。 */
-export function chooseTierFromBenchmark(benchmark: BenchmarkSummary, deviceClass: DeviceClass): RealismTierId {
-  const budgetMilliseconds = (1000 / FRAME_TARGETS[deviceClass].targetFps) * BENCHMARK_HEADROOM_RATIO;
+export function chooseTierFromBenchmark(
+  benchmark: BenchmarkSummary,
+  deviceClass: DeviceClass,
+): RealismTierId {
+  const budgetMilliseconds =
+    (1000 / FRAME_TARGETS[deviceClass].targetFps) * BENCHMARK_HEADROOM_RATIO;
   for (const tier of automaticCandidates(deviceClass)) {
     if (estimateFrameMilliseconds(benchmark, tier) <= budgetMilliseconds) return tier;
   }

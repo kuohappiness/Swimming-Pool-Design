@@ -20,11 +20,12 @@ const vite = await createServer({
 test.after(async () => vite.close());
 const THREE = await vite.ssrLoadModule('three');
 const { createViewerScene } = await vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts');
-const { createBaselineSceneRenderingDependencies } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts');
-const {
-  EnhancedVisualAssetAdapter,
-  getEnhancedQualityProfile,
-} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts');
+const { createBaselineSceneRenderingDependencies } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/index.ts',
+);
+const { EnhancedVisualAssetAdapter, getEnhancedQualityProfile } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/enhanced/index.ts',
+);
 const {
   getPoolLadderRails,
   getPoolLadderTreads,
@@ -41,9 +42,8 @@ const { POOL_BASIN_UNIFORM_NAMES } = await vite.ssrLoadModule(
   '/src/views/3d-viewer/rendering/water/pool-basin-material.ts',
 );
 
-const { MAXIMUM_SUBMERGED_BOXES, assertPoolBasinShape, assertPoolHallShape } = await vite.ssrLoadModule(
-  '/src/views/3d-viewer/rendering/water/water-surface.ts',
-);
+const { MAXIMUM_SUBMERGED_BOXES, assertPoolBasinShape, assertPoolHallShape } =
+  await vite.ssrLoadModule('/src/views/3d-viewer/rendering/water/water-surface.ts');
 const { REALISM_TIERS, renderQualityProfileForTier } = await vite.ssrLoadModule(
   '/src/views/3d-viewer/rendering/performance/index.ts',
 );
@@ -51,15 +51,23 @@ const { REALISM_TIERS, renderQualityProfileForTier } = await vite.ssrLoadModule(
 const basin = getViewerPoolBasinShape(viewerModel);
 const hall = getViewerPoolHallShape(viewerModel);
 /** 高級（有平面倒影）與中級（只有探針）實際交給繪圖管線的設定。 */
-const tierProfile = (id, shed = []) => renderQualityProfileForTier(
-  getEnhancedQualityProfile(REALISM_TIERS[id].legacyTier),
-  REALISM_TIERS[id],
-  shed,
-);
+const tierProfile = (id, shed = []) =>
+  renderQualityProfileForTier(
+    getEnhancedQualityProfile(REALISM_TIERS[id].legacyTier),
+    REALISM_TIERS[id],
+    shed,
+  );
 
 /** 測試用的貼圖來源與反射探針：不需要繪圖器，並記錄被呼叫的次數。 */
 function createFakes({ failOn = null } = {}) {
-  const log = { loaded: [], disposedTextures: 0, captures: [], probeSizes: [], sourceDisposed: false, probeDisposed: 0 };
+  const log = {
+    loaded: [],
+    disposedTextures: 0,
+    captures: [],
+    probeSizes: [],
+    sourceDisposed: false,
+    probeDisposed: 0,
+  };
   const textureSource = {
     async loadTexture(url) {
       log.loaded.push(url);
@@ -92,7 +100,11 @@ function createFakes({ failOn = null } = {}) {
         return true;
       },
       capture(scene, position, hidden) {
-        log.captures.push({ position: position.clone(), hidden: [...hidden], hiddenVisible: hidden.map((o) => o.visible) });
+        log.captures.push({
+          position: position.clone(),
+          hidden: [...hidden],
+          hiddenVisible: hidden.map((o) => o.visible),
+        });
       },
       dispose() {
         log.probeDisposed += 1;
@@ -195,7 +207,9 @@ test('activation swaps the scene water and basin onto one set of shared uniforms
   // 池體著色在水面網格的物件座標裡算：世界座標轉回去要得到原本的池體座標。
   const local = new THREE.Vector3(basin.minX, basin.waterLevel, basin.minZ);
   const world = surface.localToWorld(local.clone());
-  assert.ok(world.applyMatrix4(basinMaterial.uniforms.uWorldToBasin.value).distanceTo(local) < 1e-9);
+  assert.ok(
+    world.applyMatrix4(basinMaterial.uniforms.uWorldToBasin.value).distanceTo(local) < 1e-9,
+  );
 
   water.dispose();
   assert.equal(surface.material, originalMaterial);
@@ -211,7 +225,9 @@ test('reflection is captured once, with the water hidden, and again only after a
   const { graph, context, materials } = createScene();
   const { log, textureSource, createReflectionProbe } = createFakes();
   const water = new RealisticWaterPresentation(getEnhancedQualityProfile('medium'), {
-    basin, textureSource, createReflectionProbe,
+    basin,
+    textureSource,
+    createReflectionProbe,
   });
   await water.load();
   water.activate(context);
@@ -222,11 +238,13 @@ test('reflection is captured once, with the water hidden, and again only after a
   assert.equal(log.captures.length, 1);
   const [capture] = log.captures;
   assert.deepEqual(capture.hidden, [surface]);
-  const expected = surface.localToWorld(new THREE.Vector3(
-    (basin.minX + basin.maxX) / 2,
-    basin.waterLevel + 0.5,
-    (basin.minZ + basin.maxZ) / 2,
-  ));
+  const expected = surface.localToWorld(
+    new THREE.Vector3(
+      (basin.minX + basin.maxX) / 2,
+      basin.waterLevel + 0.5,
+      (basin.minZ + basin.maxZ) / 2,
+    ),
+  );
   assert.ok(capture.position.distanceTo(expected) < 1e-9);
 
   water.invalidateReflection();
@@ -253,7 +271,9 @@ test('each frame feeds the sun, sky and time; reduced motion freezes the surface
   const { graph, context, materials } = createScene();
   const { textureSource, createReflectionProbe } = createFakes();
   const water = new RealisticWaterPresentation(getEnhancedQualityProfile('high'), {
-    basin, textureSource, createReflectionProbe,
+    basin,
+    textureSource,
+    createReflectionProbe,
   });
   await water.load();
   water.activate(context);
@@ -271,10 +291,12 @@ test('each frame feeds the sun, sky and time; reduced motion freezes the surface
   assert.ok(uniforms.uCameraLocal.value.distanceTo(new THREE.Vector3(10, 1.6, 6)) < 1e-6);
   assert.ok(uniforms.uSunColor.value.equals(sun.color.clone().multiplyScalar(2.5)));
   assert.ok(uniforms.uSkyColor.value.equals(ambient.color.clone().multiplyScalar(1.5)));
-  const worldSun = sun.getWorldPosition(new THREE.Vector3())
+  const worldSun = sun
+    .getWorldPosition(new THREE.Vector3())
     .sub(sun.target.getWorldPosition(new THREE.Vector3()))
     .normalize();
-  const localSun = worldSun.clone()
+  const localSun = worldSun
+    .clone()
     .transformDirection(graph.water.surface.matrixWorld.clone().invert());
   assert.ok(uniforms.uSunDirection.value.distanceTo(localSun) < 1e-6);
   assert.ok(Math.abs(uniforms.uSunDirection.value.length() - 1) < 1e-6);
@@ -306,9 +328,15 @@ test('each frame feeds the sun, sky and time; reduced motion freezes the surface
   assert.ok(Math.abs(uniforms.uSunShadow.value.z - 2 / 2048) < 1e-12);
   const shadowPoint = new THREE.Vector3(10, basin.waterLevel, 6);
   assert.ok(
-    shadowPoint.clone().applyMatrix4(uniforms.uSunShadowMatrix.value).distanceTo(
-      shadowPoint.clone().applyMatrix4(graph.water.surface.matrixWorld).applyMatrix4(sun.shadow.matrix),
-    ) < 1e-9,
+    shadowPoint
+      .clone()
+      .applyMatrix4(uniforms.uSunShadowMatrix.value)
+      .distanceTo(
+        shadowPoint
+          .clone()
+          .applyMatrix4(graph.water.surface.matrixWorld)
+          .applyMatrix4(sun.shadow.matrix),
+      ) < 1e-9,
   );
   // 不是深度比較用的陰影貼圖（其他陰影類型）、主光關掉或不投影時，水不查陰影。
   depthTexture.compareFunction = null;
@@ -329,11 +357,15 @@ test('each frame feeds the sun, sky and time; reduced motion freezes the surface
   water.updateFrame(frame({ camera, elapsedSeconds: 9, reducedMotion: true }));
   assert.equal(uniforms.uTime.value, 0);
 
-  assert.throws(() => water.setWalkthroughState({
-    movementMode: 'walking',
-    waterSurfaceElevation: basin.waterLevel + 0.1,
-    poolCutaway: false,
-  }), /second water surface state/);
+  assert.throws(
+    () =>
+      water.setWalkthroughState({
+        movementMode: 'walking',
+        waterSurfaceElevation: basin.waterLevel + 0.1,
+        poolCutaway: false,
+      }),
+    /second water surface state/,
+  );
   water.dispose();
   materials.dispose();
 });
@@ -343,7 +375,9 @@ test('a failed texture leaves the scene untouched and releases the one that did 
   const { log, textureSource, createReflectionProbe } = createFakes({ failOn: 'caustics' });
   const originalMaterial = graph.water.surface.material;
   const water = new RealisticWaterPresentation(getEnhancedQualityProfile('high'), {
-    basin, textureSource, createReflectionProbe,
+    basin,
+    textureSource,
+    createReflectionProbe,
   });
   await assert.rejects(() => water.load(), /fixture could not load caustics/);
   assert.equal(log.disposedTextures, 1);
@@ -358,7 +392,9 @@ test('a basin that does not match the scene water is refused', async () => {
   const { textureSource, createReflectionProbe } = createFakes();
   const originalMaterial = graph.water.surface.material;
   const water = new RealisticWaterPresentation(getEnhancedQualityProfile('high'), {
-    basin: { ...basin, maxX: basin.maxX + 0.5 }, textureSource, createReflectionProbe,
+    basin: { ...basin, maxX: basin.maxX + 0.5 },
+    textureSource,
+    createReflectionProbe,
   });
   await water.load();
   assert.throws(() => water.activate(context), /not aligned/);
@@ -441,14 +477,24 @@ test('nothing but water lies between the pool floor and the water surface', () =
     solids.push(object);
   });
   // 取樣點避開水道繩（在水道帶的邊界上）與池梯。
-  for (const [x, z] of [[8, 5.6], [15.3, 8.9], [22.7, 11.1], [27.4, 6.1], [5.1, 11.9]]) {
-    const floor = basin.shallowBottom
-      + (basin.deepBottom - basin.shallowBottom) * ((x - basin.minX) / (basin.maxX - basin.minX));
+  for (const [x, z] of [
+    [8, 5.6],
+    [15.3, 8.9],
+    [22.7, 11.1],
+    [27.4, 6.1],
+    [5.1, 11.9],
+  ]) {
+    const floor =
+      basin.shallowBottom +
+      (basin.deepBottom - basin.shallowBottom) * ((x - basin.minX) / (basin.maxX - basin.minX));
     const origin = surface.localToWorld(new THREE.Vector3(x, floor + 0.1, z));
     raycaster.set(origin, up);
     raycaster.far = basin.waterLevel - floor + 0.5;
     const hits = raycaster.intersectObjects(solids, false);
-    assert.ok(hits.length > 0, `a ray from the pool floor at (${x}, ${z}) must reach the water surface`);
+    assert.ok(
+      hits.length > 0,
+      `a ray from the pool floor at (${x}, ${z}) must reach the water surface`,
+    );
     assert.equal(
       hits[0].object.name,
       'POOL-01-WATER-SURFACE',
@@ -511,20 +557,25 @@ test('ladder treads and rails are defined once: the scene draws them and the ref
   }
   materials.dispose();
 
-  const tooMany = Array.from({ length: MAXIMUM_SUBMERGED_BOXES + 1 }, () => basin.submergedBoxes[0]);
+  const tooMany = Array.from(
+    { length: MAXIMUM_SUBMERGED_BOXES + 1 },
+    () => basin.submergedBoxes[0],
+  );
   assert.throws(() => assertPoolBasinShape({ ...basin, submergedBoxes: tooMany }), /at most/);
   assert.throws(
-    () => assertPoolBasinShape({
-      ...basin,
-      submergedBoxes: [{ ...basin.submergedBoxes[0], maxY: basin.waterLevel + 0.1 }],
-    }),
+    () =>
+      assertPoolBasinShape({
+        ...basin,
+        submergedBoxes: [{ ...basin.submergedBoxes[0], maxY: basin.waterLevel + 0.1 }],
+      }),
     /below the water level/,
   );
   assert.throws(
-    () => assertPoolBasinShape({
-      ...basin,
-      submergedBoxes: [{ ...basin.submergedBoxes[0], minX: basin.minX - 1 }],
-    }),
+    () =>
+      assertPoolBasinShape({
+        ...basin,
+        submergedBoxes: [{ ...basin.submergedBoxes[0], minX: basin.minX - 1 }],
+      }),
     /inside the basin/,
   );
 });
@@ -541,13 +592,22 @@ test('the hall that corrects the probe comes from the model roof and contains th
     roofAtMaxX: roof.highElevation,
   });
   assert.doesNotThrow(() => assertPoolHallShape(hall, basin));
-  assert.throws(() => assertPoolHallShape({ ...hall, maxX: basin.maxX - 1 }, basin), /contain the pool basin/);
-  assert.throws(() => assertPoolHallShape({ ...hall, roofAtMinX: basin.waterLevel }, basin), /above the water level/);
+  assert.throws(
+    () => assertPoolHallShape({ ...hall, maxX: basin.maxX - 1 }, basin),
+    /contain the pool basin/,
+  );
+  assert.throws(
+    () => assertPoolHallShape({ ...hall, roofAtMinX: basin.waterLevel }, basin),
+    /above the water level/,
+  );
 
   const { graph, context, materials } = createScene();
   const { textureSource, createReflectionProbe } = createFakes();
   const water = new RealisticWaterPresentation(tierProfile('medium'), {
-    basin, hall, textureSource, createReflectionProbe,
+    basin,
+    hall,
+    textureSource,
+    createReflectionProbe,
   });
   await water.load();
   water.activate(context);
@@ -555,9 +615,13 @@ test('the hall that corrects the probe comes from the model roof and contains th
   assert.equal(uniforms.uHallParallax.value, 1);
   assert.deepEqual(uniforms.uHallMin.value.toArray(), [hall.minX, hall.floor, hall.minZ]);
   assert.equal(uniforms.uHallRoof.value.x, hall.roofAtMinX);
-  assert.ok(Math.abs(
-    uniforms.uHallRoof.value.x + uniforms.uHallRoof.value.y * (hall.maxX - hall.minX) - hall.roofAtMaxX,
-  ) < 1e-9);
+  assert.ok(
+    Math.abs(
+      uniforms.uHallRoof.value.x +
+        uniforms.uHallRoof.value.y * (hall.maxX - hall.minX) -
+        hall.roofAtMaxX,
+    ) < 1e-9,
+  );
   water.updateFrame(frame());
   // 視差修正要知道探針是從哪裡拍的。
   assert.deepEqual(uniforms.uProbePosition.value.toArray(), [
@@ -572,7 +636,9 @@ test('the hall that corrects the probe comes from the model roof and contains th
   const second = createScene();
   const fakes = createFakes();
   const plain = new RealisticWaterPresentation(tierProfile('medium'), {
-    basin, textureSource: fakes.textureSource, createReflectionProbe: fakes.createReflectionProbe,
+    basin,
+    textureSource: fakes.textureSource,
+    createReflectionProbe: fakes.createReflectionProbe,
   });
   await plain.load();
   plain.activate(second.context);
@@ -592,13 +658,19 @@ function createPlanarFake(log) {
       updates: [],
       available: true,
       disposed: false,
-      setSize(nextWidth, nextHeight) { this.sizes.push([nextWidth, nextHeight]); },
-      invalidate() { this.invalidations += 1; },
+      setSize(nextWidth, nextHeight) {
+        this.sizes.push([nextWidth, nextHeight]);
+      },
+      invalidate() {
+        this.invalidations += 1;
+      },
       update(input) {
         this.updates.push(input);
         return this.available;
       },
-      dispose() { this.disposed = true; },
+      dispose() {
+        this.disposed = true;
+      },
     };
     log.push(planar);
     return planar;
@@ -678,15 +750,22 @@ test('the underwater view is used on high and medium, and left to the walkthroug
     steps: [],
     calls: 0,
     disposed: false,
-    setShaftSteps(steps) { this.steps.push(steps); },
+    setShaftSteps(steps) {
+      this.steps.push(steps);
+    },
     render() {
       this.calls += 1;
       return true;
     },
-    dispose() { this.disposed = true; },
+    dispose() {
+      this.disposed = true;
+    },
   };
   const water = new RealisticWaterPresentation(tierProfile('high'), {
-    basin, textureSource, createReflectionProbe, createUnderwaterView: () => view,
+    basin,
+    textureSource,
+    createReflectionProbe,
+    createUnderwaterView: () => view,
   });
   assert.equal(water.handlesUnderwaterView, false, 'not before the realistic water is on screen');
   assert.equal(water.renderUnderwaterView({}, graph.scene, new THREE.PerspectiveCamera()), false);

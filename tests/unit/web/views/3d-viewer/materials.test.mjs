@@ -15,11 +15,7 @@ const vite = await createServer({
   server: { middlewareMode: true, hmr: false },
 });
 const [
-  {
-    EnhancedPbrMaterialRegistry,
-    EnhancedSurfaceDetailAdapter,
-    ENHANCED_QUALITY_PROFILES,
-  },
+  { EnhancedPbrMaterialRegistry, EnhancedSurfaceDetailAdapter, ENHANCED_QUALITY_PROFILES },
   { createViewerScene },
   { BaselineVisualAssetAdapter },
   { createGlossyFilmMaterial, patchGlossyFilmFragmentShader, GLOSSY_FILM_PROGRAM_KEY },
@@ -67,7 +63,10 @@ test('enhanced PBR registry shares semantic material and texture instances with 
     assert.equal(new Set(registry.semanticIds).size, registry.semanticIds.length);
     assert.equal(calls.length, 8);
     assert.equal(new Set(calls.map(({ id }) => id)).size, calls.length);
-    assert.equal(calls.every(({ url }) => !/^https?:\/\//i.test(url)), true);
+    assert.equal(
+      calls.every(({ url }) => !/^https?:\/\//i.test(url)),
+      true,
+    );
 
     for (const id of [
       'exposed-concrete-l1',
@@ -197,11 +196,18 @@ test('glossy film material patches the standard shader and refuses an unknown on
     assert.match(shader.fragmentShader, /totalDiffuse \* diffuseColor\.a \+ totalSpecular/);
     assert.match(shader.fragmentShader, /#ifdef USE_ENVMAP\s+float filmCos/);
     // 色調映射、色彩空間、霧與預乘照 three.js 的標準順序留在後面。
-    const order = ['filmAlpha', '#include <tonemapping_fragment>', '#include <colorspace_fragment>',
-      '#include <fog_fragment>', '#include <premultiplied_alpha_fragment>']
-      .map((token) => shader.fragmentShader.lastIndexOf(token));
+    const order = [
+      'filmAlpha',
+      '#include <tonemapping_fragment>',
+      '#include <colorspace_fragment>',
+      '#include <fog_fragment>',
+      '#include <premultiplied_alpha_fragment>',
+    ].map((token) => shader.fragmentShader.lastIndexOf(token));
     assert.ok(order.every((index) => index >= 0));
-    assert.deepEqual(order, [...order].sort((a, b) => a - b));
+    assert.deepEqual(
+      order,
+      [...order].sort((a, b) => a - b),
+    );
 
     assert.throws(() => patchGlossyFilmFragmentShader('void main() {}'), /opaque_fragment/);
   } finally {
@@ -282,26 +288,42 @@ test('surface details add only disposable visual edges and leave walkthrough dat
     const visualEdges = [];
     graph.siteRoot.traverse((object) => {
       if (object instanceof THREE.Mesh) afterMeshes.push(object.uuid);
-      if (object.userData.visualOnly && object instanceof THREE.LineSegments) visualEdges.push(object);
+      if (object.userData.visualOnly && object instanceof THREE.LineSegments)
+        visualEdges.push(object);
     });
 
     assert.ok(details.detailCount > 0);
     assert.equal(visualEdges.length, details.detailCount);
-    assert.equal(visualEdges.every(({ userData }) => userData.collisionExcluded === true), true);
+    assert.equal(
+      visualEdges.every(({ userData }) => userData.collisionExcluded === true),
+      true,
+    );
     assert.deepEqual(afterMeshes, beforeMeshes);
-    assert.deepEqual(graph.selectables.map(({ entityId }) => entityId), selectableIds);
+    assert.deepEqual(
+      graph.selectables.map(({ entityId }) => entityId),
+      selectableIds,
+    );
     assert.ok(beforeBounds.min.distanceTo(afterBounds.min) < 1e-9);
     assert.ok(beforeBounds.max.distanceTo(afterBounds.max) < 1e-9);
     assert.equal(JSON.stringify(adaptWalkthroughSource(viewerModel)), sourceJson);
 
     details.setQuality(ENHANCED_QUALITY_PROFILES.low);
-    assert.equal(visualEdges.every(({ visible }) => visible === false), true);
+    assert.equal(
+      visualEdges.every(({ visible }) => visible === false),
+      true,
+    );
     details.setQuality(ENHANCED_QUALITY_PROFILES.high);
-    assert.equal(visualEdges.every(({ visible }) => visible === true), true);
+    assert.equal(
+      visualEdges.every(({ visible }) => visible === true),
+      true,
+    );
     details.dispose();
     details.dispose();
     assert.equal(details.detailCount, 0);
-    assert.equal(visualEdges.every(({ parent }) => parent === null), true);
+    assert.equal(
+      visualEdges.every(({ parent }) => parent === null),
+      true,
+    );
   } finally {
     details.dispose();
     registry.dispose();

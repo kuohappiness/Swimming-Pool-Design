@@ -7,9 +7,21 @@ import vertexShader from './shaders/underwater-motes.vert.glsl?raw';
  * 一次繪製呼叫；只在水下畫面裡出現（由 `UnderwaterView` 控制顯示）。
  */
 const SHARED_UNIFORM_NAMES = Object.freeze([
-  'uPoolMin', 'uPoolMax', 'uWaterLevel', 'uShallowBottom', 'uDeepBottom', 'uTime',
-  'uSunDirection', 'uSunColor', 'uSkyColor', 'uAbsorption', 'uCaustics', 'uCausticLayers',
-  'uSunShadowMap', 'uSunShadowMatrix', 'uSunShadow',
+  'uPoolMin',
+  'uPoolMax',
+  'uWaterLevel',
+  'uShallowBottom',
+  'uDeepBottom',
+  'uTime',
+  'uSunDirection',
+  'uSunColor',
+  'uSkyColor',
+  'uAbsorption',
+  'uCaustics',
+  'uCausticLayers',
+  'uSunShadowMap',
+  'uSunShadowMatrix',
+  'uSunShadow',
 ] as const);
 
 export const UNDERWATER_MOTES_NAME = 'realistic:underwater-motes';

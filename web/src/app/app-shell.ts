@@ -40,13 +40,17 @@ export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
   const subnavigation = activeGroup
     ? `
         <nav class="site-subnavigation" aria-label="${activeGroup.label}">
-          ${viewsInGroup(activeGroup.id).map((view) => `
+          ${viewsInGroup(activeGroup.id)
+            .map(
+              (view) => `
             <a
               href="${hrefForView(view.id)}"
               data-site-subnav="${view.id}"
               ${view.id === activeView ? 'aria-current="page"' : ''}
             >${view.label}</a>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </nav>`
     : '';
   host.innerHTML = `
@@ -71,12 +75,13 @@ export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
           <span>選單</span>
         </button>
         <nav id="site-navigation" class="site-navigation" aria-label="主要章節" popover>
-          ${navigationItems().map((item) => {
-            // A group is not a page: inside it the group link is marked as the current section.
-            const current = item.group
-              ? item.group === activeGroup?.id && 'aria-current="true"'
-              : item.viewId === activeView && 'aria-current="page"';
-            return `
+          ${navigationItems()
+            .map((item) => {
+              // A group is not a page: inside it the group link is marked as the current section.
+              const current = item.group
+                ? item.group === activeGroup?.id && 'aria-current="true"'
+                : item.viewId === activeView && 'aria-current="page"';
+              return `
             <a
               href="${hrefForView(item.viewId)}"
               data-site-nav="${item.id}"
@@ -84,7 +89,8 @@ export function mountAppShell(host: HTMLElement, activeView: ViewId): AppShell {
               ${current || ''}
             >${item.label}</a>
           `;
-          }).join('')}
+            })
+            .join('')}
         </nav>${subnavigation}
       </header>
       <main id="view-content" class="site-view site-view--${activeView}" tabindex="-1">

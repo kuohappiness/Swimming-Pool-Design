@@ -21,8 +21,18 @@ const {
   summarizeBenchmarkRun,
 } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/performance/tier-selection.ts');
 
-const benchmark = (medianMilliseconds) => ({ frames: 60, medianMilliseconds, p95Milliseconds: medianMilliseconds * 1.2 });
-const base = { requested: null, stored: null, softwareRenderer: false, deviceClass: 'desktop', benchmark: null };
+const benchmark = (medianMilliseconds) => ({
+  frames: 60,
+  medianMilliseconds,
+  p95Milliseconds: medianMilliseconds * 1.2,
+});
+const base = {
+  requested: null,
+  stored: null,
+  softwareRenderer: false,
+  deviceClass: 'desktop',
+  benchmark: null,
+};
 
 test('tier IDs parse case-insensitively and keep the old low link working', () => {
   assert.equal(parseRealismTierId('ultra'), 'ultra');
@@ -37,11 +47,29 @@ test('tier IDs parse case-insensitively and keep the old low link working', () =
 test('benchmark summary drops warm-up frames and needs ten valid samples', () => {
   assert.equal(summarizeBenchmark([90, 80, 70, 60, 50, 8, 8, 8]), null);
   const summary = summarizeBenchmark([
-    90, 80, 70, 60, 50,
-    8, 9, 10, 11, 12, 13, 14, 15, 16, 40, Number.NaN, 0,
+    90,
+    80,
+    70,
+    60,
+    50,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    40,
+    Number.NaN,
+    0,
   ]);
   assert.deepEqual(summary, { frames: 10, medianMilliseconds: 12.5, p95Milliseconds: 40 });
-  assert.equal(summarizeBenchmark([4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24], 0).medianMilliseconds, 14);
+  assert.equal(
+    summarizeBenchmark([4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24], 0).medianMilliseconds,
+    14,
+  );
 });
 
 test('benchmark picks the highest tier whose estimated cost leaves 20% headroom', () => {
@@ -66,7 +94,13 @@ test('automatic selection on mobile never goes above medium', () => {
 
 test('selection order is URL, manual choice, software renderer, benchmark, default', () => {
   assert.deepEqual(
-    selectRealismTier({ ...base, requested: 'ultra', stored: 'saver', softwareRenderer: true, benchmark: benchmark(80) }),
+    selectRealismTier({
+      ...base,
+      requested: 'ultra',
+      stored: 'saver',
+      softwareRenderer: true,
+      benchmark: benchmark(80),
+    }),
     { tier: 'ultra', source: 'url' },
   );
   assert.deepEqual(
@@ -77,15 +111,24 @@ test('selection order is URL, manual choice, software renderer, benchmark, defau
     selectRealismTier({ ...base, softwareRenderer: true, benchmark: benchmark(2) }),
     { tier: 'saver', source: 'software-renderer' },
   );
-  assert.deepEqual(selectRealismTier({ ...base, benchmark: benchmark(6) }), { tier: 'high', source: 'benchmark' });
+  assert.deepEqual(selectRealismTier({ ...base, benchmark: benchmark(6) }), {
+    tier: 'high',
+    source: 'benchmark',
+  });
   assert.deepEqual(selectRealismTier(base), { tier: 'high', source: 'default' });
-  assert.deepEqual(selectRealismTier({ ...base, deviceClass: 'mobile' }), { tier: 'medium', source: 'default' });
+  assert.deepEqual(selectRealismTier({ ...base, deviceClass: 'mobile' }), {
+    tier: 'medium',
+    source: 'default',
+  });
 });
 
 test('a benchmark cut short by the time limit still reports how slow the device is', () => {
   // Finished normally: the usual rule applies (five warm-up frames, ten samples).
   assert.equal(summarizeBenchmarkRun([40, 30, 8, 8, 8, 8, 8, 8], false), null);
-  const full = summarizeBenchmarkRun([90, 60, 30, 20, 12, ...Array.from({ length: 15 }, () => 8)], false);
+  const full = summarizeBenchmarkRun(
+    [90, 60, 30, 20, 12, ...Array.from({ length: 15 }, () => 8)],
+    false,
+  );
   assert.equal(full.medianMilliseconds, 8);
   assert.equal(full.frames, 15);
 

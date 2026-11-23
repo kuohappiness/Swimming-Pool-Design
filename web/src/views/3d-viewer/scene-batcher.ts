@@ -43,7 +43,9 @@ export function renderCategoryOf(mesh: THREE.Mesh): RenderCategory {
     const explicit = current.userData.renderCategory;
     if (explicit !== undefined) {
       if (!isRenderCategory(explicit)) {
-        throw new TypeError(`Unknown render category on ${current.name || current.type}: ${String(explicit)}`);
+        throw new TypeError(
+          `Unknown render category on ${current.name || current.type}: ${String(explicit)}`,
+        );
       }
       return explicit;
     }
@@ -146,7 +148,9 @@ function normalisedGeometry(mesh: THREE.Mesh, toScope: THREE.Matrix4) {
 }
 
 function attributeSignature(mesh: THREE.Mesh) {
-  const names = Object.keys(mesh.geometry.attributes).filter((name) => KEPT_ATTRIBUTES.includes(name));
+  const names = Object.keys(mesh.geometry.attributes).filter((name) =>
+    KEPT_ATTRIBUTES.includes(name),
+  );
   if (!names.includes('normal')) names.push('normal');
   return names.sort().join(',');
 }
@@ -162,7 +166,8 @@ function lineSegmentGeometry(line: THREE.Line, toScope: THREE.Matrix4) {
     for (let i = 0; i + 1 < vertexCount; i += 2) pairs.push(vertexAt(i), vertexAt(i + 1));
   } else {
     for (let i = 0; i + 1 < vertexCount; i += 1) pairs.push(vertexAt(i), vertexAt(i + 1));
-    if (line instanceof THREE.LineLoop && vertexCount > 2) pairs.push(vertexAt(vertexCount - 1), vertexAt(0));
+    if (line instanceof THREE.LineLoop && vertexCount > 2)
+      pairs.push(vertexAt(vertexCount - 1), vertexAt(0));
   }
   const vertex = new THREE.Vector3();
   const positions = new Float32Array(pairs.length * 3);
@@ -182,7 +187,10 @@ function lineSegmentGeometry(line: THREE.Line, toScope: THREE.Matrix4) {
  * so picking still resolves to the original model entity. Lines, sprites,
  * helpers and excluded objects are left as they are.
  */
-export function batchStaticMeshes(root: THREE.Object3D, options: StaticBatchOptions): StaticBatchReport {
+export function batchStaticMeshes(
+  root: THREE.Object3D,
+  options: StaticBatchOptions,
+): StaticBatchReport {
   root.updateMatrixWorld(true);
   const toggleUnits = new Set(options.toggleUnits);
   toggleUnits.add(root);
@@ -195,7 +203,11 @@ export function batchStaticMeshes(root: THREE.Object3D, options: StaticBatchOpti
   const geometryUsers = new Map<THREE.BufferGeometry, number>();
   let sourceMeshes = 0;
 
-  const containerFor = (unit: THREE.Object3D, level: VisualDetailLevel, castVisualShadow: boolean) => {
+  const containerFor = (
+    unit: THREE.Object3D,
+    level: VisualDetailLevel,
+    castVisualShadow: boolean,
+  ) => {
     const key = `${unit.uuid}|${level}|${castVisualShadow}`;
     let container = detailContainers.get(key);
     if (!container) {
@@ -228,23 +240,23 @@ export function batchStaticMeshes(root: THREE.Object3D, options: StaticBatchOpti
   for (const mesh of candidates) {
     const isLine = mesh instanceof THREE.Line;
     if (
-      mesh instanceof THREE.InstancedMesh
-      || mesh instanceof THREE.SkinnedMesh
-      || Array.isArray(mesh.material)
-      || mesh.children.length > 0
-      || toggleUnits.has(mesh)
-      || mesh.userData.batchExclude === true
-      || ANIMATED_NAME_PREFIXES.some((prefix) => mesh.name.startsWith(prefix))
-      || Object.keys(mesh.geometry.morphAttributes).length > 0
-      || mesh.geometry.drawRange.count !== Infinity
-      || !mesh.geometry.getAttribute('position')
+      mesh instanceof THREE.InstancedMesh ||
+      mesh instanceof THREE.SkinnedMesh ||
+      Array.isArray(mesh.material) ||
+      mesh.children.length > 0 ||
+      toggleUnits.has(mesh) ||
+      mesh.userData.batchExclude === true ||
+      ANIMATED_NAME_PREFIXES.some((prefix) => mesh.name.startsWith(prefix)) ||
+      Object.keys(mesh.geometry.morphAttributes).length > 0 ||
+      mesh.geometry.drawRange.count !== Infinity ||
+      !mesh.geometry.getAttribute('position') ||
       // Dashed lines need per-line distances; vertex-coloured lines are helpers.
-      || (isLine && (
-        mesh.material instanceof THREE.LineDashedMaterial
-        || (mesh.material as THREE.Material).vertexColors
-        || !(mesh.parent instanceof THREE.Group || mesh.parent instanceof THREE.Scene)
-      ))
-    ) continue;
+      (isLine &&
+        (mesh.material instanceof THREE.LineDashedMaterial ||
+          (mesh.material as THREE.Material).vertexColors ||
+          !(mesh.parent instanceof THREE.Group || mesh.parent instanceof THREE.Scene)))
+    )
+      continue;
 
     let unit: THREE.Object3D | null = null;
     let detailRank = -1;
@@ -292,7 +304,14 @@ export function batchStaticMeshes(root: THREE.Object3D, options: StaticBatchOpti
     ].join('|');
     let group = groups.get(key);
     if (!group) {
-      group = { kind: isLine ? 'line' : 'mesh', parent, material, category, template: mesh, entries: [] };
+      group = {
+        kind: isLine ? 'line' : 'mesh',
+        parent,
+        material,
+        category,
+        template: mesh,
+        entries: [],
+      };
       groups.set(key, group);
     }
     group.entries.push({ object: mesh, owner });
@@ -311,23 +330,28 @@ export function batchStaticMeshes(root: THREE.Object3D, options: StaticBatchOpti
     const verticesPerElement = group.kind === 'mesh' ? 3 : 2;
     for (const { object, owner } of group.entries) {
       toScope.multiplyMatrices(inverseParent, object.matrixWorld);
-      const geometry = object instanceof THREE.Line
-        ? lineSegmentGeometry(object, toScope)
-        : normalisedGeometry(object, toScope);
+      const geometry =
+        object instanceof THREE.Line
+          ? lineSegmentGeometry(object, toScope)
+          : normalisedGeometry(object, toScope);
       geometries.push(geometry);
       const elements = geometry.getAttribute('position').count / verticesPerElement;
       for (let element = 0; element < elements; element += 1) faceOwners.push(owner);
     }
     const merged = mergeGeometries(geometries, false);
     for (const geometry of geometries) geometry.dispose();
-    if (!merged) throw new TypeError(`Static batch could not merge ${group.material.name || group.material.type}.`);
+    if (!merged)
+      throw new TypeError(
+        `Static batch could not merge ${group.material.name || group.material.type}.`,
+      );
     merged.computeBoundingBox();
     merged.computeBoundingSphere();
 
     const { template } = group;
-    const batch = group.kind === 'mesh'
-      ? new THREE.Mesh(merged, group.material)
-      : new THREE.LineSegments(merged, group.material);
+    const batch =
+      group.kind === 'mesh'
+        ? new THREE.Mesh(merged, group.material)
+        : new THREE.LineSegments(merged, group.material);
     batch.name = `batch:${group.parent.name || group.parent.type}:${group.material.name || group.material.type}`;
     batch.castShadow = template.castShadow;
     batch.receiveShadow = template.receiveShadow;

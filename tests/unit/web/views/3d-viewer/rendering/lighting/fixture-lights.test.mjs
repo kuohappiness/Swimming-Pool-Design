@@ -15,16 +15,26 @@ const vite = await createServer({
 test.after(async () => vite.close());
 
 const THREE = await vite.ssrLoadModule('three');
-const lights = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/fixture-lights.ts');
+const lights = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/fixture-lights.ts',
+);
 const layoutModule = await vite.ssrLoadModule('/src/views/3d-viewer/fixture-layout.ts');
-const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+const { computeSunLighting } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
+);
 const { createViewerScene } = await vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts');
-const { createBaselineSceneRenderingDependencies } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts');
-const { POOL_BASIN_UNIFORM_NAMES } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/water/pool-basin-material.ts');
+const { createBaselineSceneRenderingDependencies } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/index.ts',
+);
+const { POOL_BASIN_UNIFORM_NAMES } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/water/pool-basin-material.ts',
+);
 const { getViewerPoolBasinShape } = await vite.ssrLoadModule('/src/views/3d-viewer/pool-state.ts');
 
 const sourceModel = JSON.parse(readFileSync(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
-const registry = JSON.parse(readFileSync(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'));
+const registry = JSON.parse(
+  readFileSync(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'),
+);
 const viewerModel = buildViewerModel(sourceModel, registry);
 const layout = layoutModule.getViewerFixtureLayout(viewerModel);
 const site = sourceModel.referenceSystem.siteLocation;
@@ -32,8 +42,13 @@ const at = (time, weather = 'clear') => {
   const [hour, minute] = time.split(':').map(Number);
   return computeSunLighting({
     moment: { year: 2026, month: 12, day: 21, minutes: hour * 60 + minute },
-    location: { latitude: site.latitude.value, longitude: site.longitude.value, utcOffsetHours: site.utcOffsetHours },
-    positiveXAxisBearingFromTrueNorth: viewerModel.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+    location: {
+      latitude: site.latitude.value,
+      longitude: site.longitude.value,
+      utcOffsetHours: site.utcOffsetHours,
+    },
+    positiveXAxisBearingFromTrueNorth:
+      viewerModel.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
     weather,
   });
 };
@@ -43,11 +58,12 @@ function createGraph() {
   return createViewerScene(viewerModel, { materials, visualAssets });
 }
 
-const instancePositions = (mesh) => Array.from({ length: mesh.count }, (_, index) => {
-  const matrix = new THREE.Matrix4();
-  mesh.getMatrixAt(index, matrix);
-  return new THREE.Vector3().setFromMatrixPosition(matrix).toArray();
-});
+const instancePositions = (mesh) =>
+  Array.from({ length: mesh.count }, (_, index) => {
+    const matrix = new THREE.Matrix4();
+    mesh.getMatrixAt(index, matrix);
+    return new THREE.Vector3().setFromMatrixPosition(matrix).toArray();
+  });
 
 test('the drawn fixtures and the lighting share one layout', () => {
   const graph = createGraph();
@@ -59,9 +75,14 @@ test('the drawn fixtures and the lighting share one layout', () => {
   const same = (mesh, zone) => {
     const drawn = instancePositions(mesh);
     assert.equal(drawn.length, zone.fixtures.length);
-    drawn.forEach((position, index) => position.forEach((value, axis) => {
-      assert.ok(Math.abs(value - zone.fixtures[index].position[axis]) < 1e-5, `${zone.id} #${index}`);
-    }));
+    drawn.forEach((position, index) =>
+      position.forEach((value, axis) => {
+        assert.ok(
+          Math.abs(value - zone.fixtures[index].position[axis]) < 1e-5,
+          `${zone.id} #${index}`,
+        );
+      }),
+    );
   };
   same(hallMesh, hall);
   same(l2Mesh, l2);
@@ -70,7 +91,10 @@ test('the drawn fixtures and the lighting share one layout', () => {
     assert.ok(graph.scene.getObjectByName(zone.anchorName), zone.anchorName);
     for (const { position } of zone.fixtures) {
       for (let axis = 0; axis < 3; axis += 1) {
-        assert.ok(position[axis] >= zone.inner.min[axis] && position[axis] <= zone.inner.max[axis], `${zone.id} ${position}`);
+        assert.ok(
+          position[axis] >= zone.inner.min[axis] && position[axis] <= zone.inner.max[axis],
+          `${zone.id} ${position}`,
+        );
       }
     }
   }
@@ -104,8 +128,11 @@ test('fixtures switch on for overcast, rain and the evening, and stay off on a c
   // 換算比例：白天是日光的比例，夜裡是夜景的放大，中間依日光在對數上連續變化。
   assert.ok(Math.abs(lights.fixtureLuxScale(at('12:00')) - lights.DAY_LUX_SCALE) < 1e-12);
   assert.ok(Math.abs(lights.fixtureLuxScale(at('22:00')) - lights.NIGHT_LUX_SCALE) < 1e-12);
-  const evening = ['16:30', '17:00', '17:20', '17:40', '18:00'].map((time) => lights.fixtureLuxScale(at(time)));
-  for (let index = 1; index < evening.length; index += 1) assert.ok(evening[index] >= evening[index - 1]);
+  const evening = ['16:30', '17:00', '17:20', '17:40', '18:00'].map((time) =>
+    lights.fixtureLuxScale(at(time)),
+  );
+  for (let index = 1; index < evening.length; index += 1)
+    assert.ok(evening[index] >= evening[index - 1]);
 });
 
 test('the hall and the changing floor average about 300 lux', () => {
@@ -118,17 +145,25 @@ test('the hall and the changing floor average about 300 lux', () => {
 test('fewer lights on lower tiers keep the same total flux and centre', () => {
   const [hall] = layout.zones;
   const total = (fixtures) => fixtures.reduce((sum, fixture) => sum + fixture.lumens, 0);
-  const centre = (fixtures) => [0, 1, 2].map((axis) => fixtures.reduce(
-    (sum, fixture) => sum + fixture.position[axis] * fixture.lumens, 0,
-  ) / total(fixtures));
+  const centre = (fixtures) =>
+    [0, 1, 2].map(
+      (axis) =>
+        fixtures.reduce((sum, fixture) => sum + fixture.position[axis] * fixture.lumens, 0) /
+        total(fixtures),
+    );
   for (const maximum of [12, 6, 3, 1]) {
     const merged = lights.aggregateFixtures(hall.fixtures, maximum);
     assert.equal(merged.length, Math.min(maximum, hall.fixtures.length));
     assert.ok(Math.abs(total(merged) - total(hall.fixtures)) < 1e-6);
-    centre(merged).forEach((value, axis) => assert.ok(Math.abs(value - centre(hall.fixtures)[axis]) < 1e-9));
+    centre(merged).forEach((value, axis) =>
+      assert.ok(Math.abs(value - centre(hall.fixtures)[axis]) < 1e-9),
+    );
   }
   for (const light of lights.aggregateFixtures(layout.poolLights, 4)) {
-    assert.ok(Math.abs(Math.hypot(...light.aim) - 1) < 1e-9 && Math.abs(light.aim[1]) < 1e-12, 'merged lights still aim sideways');
+    assert.ok(
+      Math.abs(Math.hypot(...light.aim) - 1) < 1e-9 && Math.abs(light.aim[1]) < 1e-12,
+      'merged lights still aim sideways',
+    );
   }
   assert.throws(() => lights.aggregateFixtures(hall.fixtures, 0), /positive integer/);
 });
@@ -137,13 +172,29 @@ test('the lights add diffuse light after three.js’s own lights and before its 
   const uniforms = lights.createFixtureLightUniforms();
   const material = new THREE.MeshStandardMaterial();
   assert.equal(lights.installFixtureLights(material, uniforms), true);
-  assert.equal(lights.installFixtureLights(material, uniforms), true, 'installing twice is a no-op');
-  const shader = { fragmentShader: THREE.ShaderLib.standard.fragmentShader, vertexShader: '', uniforms: {} };
+  assert.equal(
+    lights.installFixtureLights(material, uniforms),
+    true,
+    'installing twice is a no-op',
+  );
+  const shader = {
+    fragmentShader: THREE.ShaderLib.standard.fragmentShader,
+    vertexShader: '',
+    uniforms: {},
+  };
   material.onBeforeCompile(shader, null);
   const source = shader.fragmentShader;
-  const apply = source.indexOf('for ( int zone = 0; zone < min( uFixtureZoneCount, FIXTURE_ZONE_SLOTS ); zone ++ )');
-  assert.ok(source.indexOf('float fixtureZoneReach(') > 0 && source.indexOf('float fixtureZoneReach(') < apply);
-  assert.ok(source.indexOf('#include <lights_fragment_begin>') < apply, 'irradiance already exists');
+  const apply = source.indexOf(
+    'for ( int zone = 0; zone < min( uFixtureZoneCount, FIXTURE_ZONE_SLOTS ); zone ++ )',
+  );
+  assert.ok(
+    source.indexOf('float fixtureZoneReach(') > 0 &&
+      source.indexOf('float fixtureZoneReach(') < apply,
+  );
+  assert.ok(
+    source.indexOf('#include <lights_fragment_begin>') < apply,
+    'irradiance already exists',
+  );
   assert.ok(apply < source.indexOf('#include <lights_fragment_maps>'));
   // 只加漫射：燈的高光來自池廳探針照出的發光面，這裡不再算一次。
   const block = source.slice(source.lastIndexOf('#if', apply), source.indexOf('#endif', apply));
@@ -167,7 +218,11 @@ test('a material can be compiled without the fixture lights and keeps the shared
   const material = new THREE.MeshStandardMaterial();
   assert.equal(lights.installFixtureLights(material, uniforms, program), true);
   const compile = () => {
-    const shader = { fragmentShader: THREE.ShaderLib.standard.fragmentShader, vertexShader: '', uniforms: {} };
+    const shader = {
+      fragmentShader: THREE.ShaderLib.standard.fragmentShader,
+      vertexShader: '',
+      uniforms: {},
+    };
     material.onBeforeCompile(shader, null);
     return shader;
   };
@@ -187,7 +242,11 @@ test('at night the fixtures light their zones in world space; by day they are of
   const fixtures = new lights.FixtureLights(layout, graph.scene, graph.siteRoot);
   fixtures.install(graph.scene);
   const emitter = graph.scene.getObjectByName(layoutModule.POOL_HALL_FIXTURE_MESH_NAME);
-  assert.equal(emitter.material.userData.fixtureLights, undefined, 'the fixture faces do not light themselves');
+  assert.equal(
+    emitter.material.userData.fixtureLights,
+    undefined,
+    'the fixture faces do not light themselves',
+  );
 
   fixtures.setLighting(at('19:30'));
   const { uniforms } = fixtures;
@@ -207,9 +266,13 @@ test('at night the fixtures light their zones in world space; by day they are of
   const water = lights.readSceneFixtureLights(graph.scene);
   assert.ok(water);
   // 水裡只用池廳（不含 2F）地面的平均照度，乘燈色與入水穿透率。
-  const ceilingLux = lights.averageFloorIlluminance(layout.zones[0]) * lights.fixtureLuxScale(at('19:30')) * 0.97;
+  const ceilingLux =
+    lights.averageFloorIlluminance(layout.zones[0]) * lights.fixtureLuxScale(at('19:30')) * 0.97;
   water.ceilingIrradiance.toArray().forEach((value, channel) => {
-    assert.ok(Math.abs(value - ceilingLux * lights.CEILING_FIXTURE_COLOR[channel]) < 1e-9, `channel ${channel}`);
+    assert.ok(
+      Math.abs(value - ceilingLux * lights.CEILING_FIXTURE_COLOR[channel]) < 1e-9,
+      `channel ${channel}`,
+    );
   });
   assert.equal(water.pool.length, layout.poolLights.length);
   assert.ok(water.lensLuminance > 0 && water.waterIrradiance.r > 0);
@@ -240,7 +303,10 @@ test('at night the fixtures light their zones in world space; by day they are of
   assert.equal(uniforms.uFixtureZoneRange.value[0].y, 0);
   assert.equal(uniforms.uFixtureZoneRange.value[1].y, 12);
   assert.equal(lights.readSceneFixtureLights(graph.scene).pool.length, 0);
-  assert.deepEqual(lights.readSceneFixtureLights(graph.scene).ceilingIrradiance.toArray(), [0, 0, 0]);
+  assert.deepEqual(
+    lights.readSceneFixtureLights(graph.scene).ceilingIrradiance.toArray(),
+    [0, 0, 0],
+  );
   graph.scene.getObjectByName(layoutModule.POOL_HALL_DETAILS_NAME).visible = true;
 
   // 中畫質每區 6 盞、總光量不變。
@@ -263,7 +329,8 @@ test('on the saver tier the fixture lights are compiled only while they light th
   });
   const installed = [...shared];
   assert.ok(installed.length > 10);
-  const keys = () => new Set(installed.map((material) => material.customProgramCacheKey().endsWith(':off')));
+  const keys = () =>
+    new Set(installed.map((material) => material.customProgramCacheKey().endsWith(':off')));
   const versions = () => installed.map((material) => material.version);
 
   // 其他級一直編著：開關燈不必重編。
@@ -285,14 +352,20 @@ test('on the saver tier the fixture lights are compiled only while they light th
   assert.equal(lights.readSceneFixtureLights(graph.scene).pool.length, 0);
   assert.equal(lights.readSceneFixtureLights(graph.scene).lensLuminance, 0);
   fixtures.setLighting(at('12:00'));
-  assert.ok(versions().every((version, index) => version === before[index] + 1), 'no change, no recompile');
+  assert.ok(
+    versions().every((version, index) => version === before[index] + 1),
+    'no change, no recompile',
+  );
   fixtures.setLighting(at('19:30'));
   assert.deepEqual(keys(), new Set([false]));
   assert.ok(versions().every((version, index) => version === before[index] + 2));
 });
 
 test('the water shader declares the same slots and shares the light uniforms', () => {
-  const chunk = readFileSync(resolve(repoRoot, 'web/src/views/3d-viewer/rendering/water/shaders/pool-basin.glsl'), 'utf8');
+  const chunk = readFileSync(
+    resolve(repoRoot, 'web/src/views/3d-viewer/rendering/water/shaders/pool-basin.glsl'),
+    'utf8',
+  );
   assert.match(chunk, new RegExp(`#define POOL_LIGHT_SLOTS ${lights.POOL_LIGHT_SLOTS}\\b`));
   for (const name of lights.WATER_LIGHT_UNIFORM_NAMES) {
     assert.ok(POOL_BASIN_UNIFORM_NAMES.includes(name), name);
@@ -312,29 +385,41 @@ test('the water shader declares the same slots and shares the light uniforms', (
   const uniforms = lights.createWaterLightUniforms();
   const position = siteRoot.localToWorld(new THREE.Vector3(10, -0.3, 4));
   const aim = new THREE.Vector3(0, 0, 1).transformDirection(siteRoot.matrixWorld);
-  lights.writeWaterLightUniforms(uniforms, {
-    ceilingIrradiance: new THREE.Color(0.4, 0.35, 0.3),
-    pool: [{ position, aim, intensity: 1.2 }],
-    poolColor: new THREE.Color(0.9, 1, 1),
-    lensLuminance: 26,
-    lensRadius: 0.14,
-    waterIrradiance: new THREE.Color(0.3, 0.3, 0.3),
-  }, toLocal);
+  lights.writeWaterLightUniforms(
+    uniforms,
+    {
+      ceilingIrradiance: new THREE.Color(0.4, 0.35, 0.3),
+      pool: [{ position, aim, intensity: 1.2 }],
+      poolColor: new THREE.Color(0.9, 1, 1),
+      lensLuminance: 26,
+      lensRadius: 0.14,
+      waterIrradiance: new THREE.Color(0.3, 0.3, 0.3),
+    },
+    toLocal,
+  );
   assert.deepEqual(uniforms.uWaterCeilingIrradiance.value.toArray(), [0.4, 0.35, 0.3]);
-  assert.ok(new THREE.Vector3().copy(uniforms.uPoolLights.value[0]).distanceTo(new THREE.Vector3(10, -0.3, 4)) < 1e-9);
+  assert.ok(
+    new THREE.Vector3()
+      .copy(uniforms.uPoolLights.value[0])
+      .distanceTo(new THREE.Vector3(10, -0.3, 4)) < 1e-9,
+  );
   assert.ok(uniforms.uPoolLightAims.value[0].distanceTo(new THREE.Vector3(0, 0, 1)) < 1e-9);
   assert.deepEqual(uniforms.uPoolLightLens.value.toArray(), [26, 0.14]);
   assert.equal(uniforms.uPoolLightCount.value, 1);
   assert.equal(uniforms.uPoolGlowCount.value, 1);
   // 白天燈開著：透鏡亮，但光照不到東西，水中光暈的迴圈不跑。
-  lights.writeWaterLightUniforms(uniforms, {
-    ceilingIrradiance: new THREE.Color(0, 0, 0),
-    pool: [{ position, aim, intensity: 0 }],
-    poolColor: new THREE.Color(0.9, 1, 1),
-    lensLuminance: 26,
-    lensRadius: 0.14,
-    waterIrradiance: new THREE.Color(0, 0, 0),
-  }, toLocal);
+  lights.writeWaterLightUniforms(
+    uniforms,
+    {
+      ceilingIrradiance: new THREE.Color(0, 0, 0),
+      pool: [{ position, aim, intensity: 0 }],
+      poolColor: new THREE.Color(0.9, 1, 1),
+      lensLuminance: 26,
+      lensRadius: 0.14,
+      waterIrradiance: new THREE.Color(0, 0, 0),
+    },
+    toLocal,
+  );
   assert.equal(uniforms.uPoolLightCount.value, 1);
   assert.equal(uniforms.uPoolGlowCount.value, 0);
   lights.writeWaterLightUniforms(uniforms, null, toLocal);
@@ -343,6 +428,12 @@ test('the water shader declares the same slots and shares the light uniforms', (
   assert.equal(uniforms.uPoolGlowCount.value, 0);
   assert.equal(uniforms.uPoolLightLens.value.x, 0);
   // 水的燈光迴圈次數都由 uniform 決定（燈沒開時是 0，軟體繪圖才不會白算）。
-  assert.match(chunk, /for \(int index = 0; index < min\(uPoolLightCount, POOL_LIGHT_SLOTS\); index\+\+\)/);
-  assert.match(chunk, /for \(int index = 0; index < min\(uPoolGlowCount, POOL_LIGHT_SLOTS\); index\+\+\)/);
+  assert.match(
+    chunk,
+    /for \(int index = 0; index < min\(uPoolLightCount, POOL_LIGHT_SLOTS\); index\+\+\)/,
+  );
+  assert.match(
+    chunk,
+    /for \(int index = 0; index < min\(uPoolGlowCount, POOL_LIGHT_SLOTS\); index\+\+\)/,
+  );
 });

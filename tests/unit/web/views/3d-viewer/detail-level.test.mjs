@@ -10,11 +10,8 @@ const vite = await createServer({
   optimizeDeps: { noDiscovery: true },
   server: { middlewareMode: true, hmr: false },
 });
-const [
-  { EnhancedDetailLevelAdapter, getEnhancedQualityProfile, markVisualDetail },
-] = await Promise.all([
-  vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts'),
-]);
+const [{ EnhancedDetailLevelAdapter, getEnhancedQualityProfile, markVisualDetail }] =
+  await Promise.all([vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts')]);
 test.after(async () => vite.close());
 
 function createContext() {
@@ -48,14 +45,7 @@ function createContext() {
 }
 
 test('quality-controlled details preserve essential silhouettes and degrade monotonically', () => {
-  const {
-    context,
-    essential,
-    essentialMesh,
-    translucentMesh,
-    reduced,
-    full,
-  } = createContext();
+  const { context, essential, essentialMesh, translucentMesh, reduced, full } = createContext();
   const adapter = new EnhancedDetailLevelAdapter(getEnhancedQualityProfile('high'));
   adapter.attach(context);
   adapter.attach(context);

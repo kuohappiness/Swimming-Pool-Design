@@ -14,9 +14,12 @@ const MINIMUM_PLAUSIBLE_INTERVAL = 2;
 
 export function estimateDisplayIntervalMilliseconds(intervals: readonly number[]): number | null {
   const samples = intervals
-    .filter((value) => Number.isFinite(value)
-      && value >= MINIMUM_PLAUSIBLE_INTERVAL
-      && value <= MAXIMUM_PLAUSIBLE_INTERVAL)
+    .filter(
+      (value) =>
+        Number.isFinite(value) &&
+        value >= MINIMUM_PLAUSIBLE_INTERVAL &&
+        value <= MAXIMUM_PLAUSIBLE_INTERVAL,
+    )
     .sort((left, right) => left - right);
   if (samples.length < DISPLAY_INTERVAL_MINIMUM_SAMPLES) return null;
   return samples[Math.floor((samples.length - 1) * LOW_PERCENTILE)];

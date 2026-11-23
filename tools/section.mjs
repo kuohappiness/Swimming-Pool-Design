@@ -28,7 +28,8 @@ export function fencedLines(lines) {
 
 /** 標題的純文字：拿掉結尾的 #、連結只留文字、反引號與強調符號拿掉。 */
 export function plainTitle(raw) {
-  return raw.replace(/\s+#+\s*$/, '')
+  return raw
+    .replace(/\s+#+\s*$/, '')
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/[`*_]/g, '')
     .trim();
@@ -42,7 +43,8 @@ export function headings(text) {
   lines.forEach((line, index) => {
     if (code[index]) return;
     const match = /^ {0,3}(#{1,6})(?:[ \t]+(.*))?$/.exec(line);
-    if (match) found.push({ level: match[1].length, title: plainTitle(match[2] ?? ''), line: index + 1 });
+    if (match)
+      found.push({ level: match[1].length, title: plainTitle(match[2] ?? ''), line: index + 1 });
   });
   let total = lines.length;
   if (lines.at(-1) === '') total -= 1;
@@ -59,7 +61,8 @@ export function findSection(text, query) {
   const all = headings(text);
   const want = plainTitle(query).toLowerCase();
   const exact = all.filter((heading) => heading.title.toLowerCase() === want);
-  const hits = exact.length > 0 ? exact : all.filter((heading) => heading.title.toLowerCase().includes(want));
+  const hits =
+    exact.length > 0 ? exact : all.filter((heading) => heading.title.toLowerCase().includes(want));
   return hits.length === 1 ? { section: hits[0] } : { candidates: hits.length > 0 ? hits : all };
 }
 
@@ -78,7 +81,8 @@ export function findRows(text, id) {
   return rows;
 }
 
-const listLine = (heading) => `${String(heading.line).padStart(5)}  ${'#'.repeat(heading.level)} ${heading.title}（${heading.chars} 字）`;
+const listLine = (heading) =>
+  `${String(heading.line).padStart(5)}  ${'#'.repeat(heading.level)} ${heading.title}（${heading.chars} 字）`;
 
 function main() {
   const [file, ...rest] = process.argv.slice(2);
@@ -106,8 +110,14 @@ function main() {
     console.log(`${file}:${line}-${end}\n${lines.join('\n')}`);
     return;
   }
-  const partial = found.candidates.some((heading) => heading.title.toLowerCase().includes(plainTitle(query).toLowerCase()));
-  console.error(partial ? `「${query}」對到好幾個標題，寫完整一點：` : `沒有包含「${query}」的標題，全部的標題：`);
+  const partial = found.candidates.some((heading) =>
+    heading.title.toLowerCase().includes(plainTitle(query).toLowerCase()),
+  );
+  console.error(
+    partial
+      ? `「${query}」對到好幾個標題，寫完整一點：`
+      : `沒有包含「${query}」的標題，全部的標題：`,
+  );
   console.error(found.candidates.map(listLine).join('\n'));
   process.exit(1);
 }

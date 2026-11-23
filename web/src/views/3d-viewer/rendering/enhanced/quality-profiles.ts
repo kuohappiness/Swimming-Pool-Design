@@ -16,57 +16,58 @@ export interface EnhancedQualityProfile extends RenderQualityProfile {
   readonly surfaceDetail: 'full' | 'reduced' | 'essential';
 }
 
-export const ENHANCED_QUALITY_PROFILES: Readonly<Record<RenderQualityTier, EnhancedQualityProfile>> =
-  Object.freeze({
-    high: Object.freeze({
-      id: 'high',
-      pixelRatioCap: 2,
-      shadows: true,
-      shadowMapSize: 2048,
-      textureTier: 'high',
-      ambientOcclusion: false,
-      enhancedWater: true,
-      postProcessing: false,
-      assetBudgetBytes: 24 * MEBIBYTE,
-      minimumAverageFps: 50,
-      p95FrameTimeRecord: true,
-      anisotropyCap: 8,
-      environmentResolution: 512,
-      surfaceDetail: 'full',
-    }),
-    medium: Object.freeze({
-      id: 'medium',
-      pixelRatioCap: 1.5,
-      shadows: true,
-      shadowMapSize: 1024,
-      textureTier: 'medium',
-      ambientOcclusion: false,
-      enhancedWater: true,
-      postProcessing: false,
-      assetBudgetBytes: 12 * MEBIBYTE,
-      minimumAverageFps: 40,
-      p95FrameTimeRecord: true,
-      anisotropyCap: 4,
-      environmentResolution: 256,
-      surfaceDetail: 'reduced',
-    }),
-    low: Object.freeze({
-      id: 'low',
-      pixelRatioCap: 1,
-      shadows: false,
-      shadowMapSize: 0,
-      textureTier: 'low',
-      ambientOcclusion: false,
-      enhancedWater: false,
-      postProcessing: false,
-      assetBudgetBytes: 6 * MEBIBYTE,
-      minimumAverageFps: 30,
-      p95FrameTimeRecord: true,
-      anisotropyCap: 1,
-      environmentResolution: 0,
-      surfaceDetail: 'essential',
-    }),
-  });
+export const ENHANCED_QUALITY_PROFILES: Readonly<
+  Record<RenderQualityTier, EnhancedQualityProfile>
+> = Object.freeze({
+  high: Object.freeze({
+    id: 'high',
+    pixelRatioCap: 2,
+    shadows: true,
+    shadowMapSize: 2048,
+    textureTier: 'high',
+    ambientOcclusion: false,
+    enhancedWater: true,
+    postProcessing: false,
+    assetBudgetBytes: 24 * MEBIBYTE,
+    minimumAverageFps: 50,
+    p95FrameTimeRecord: true,
+    anisotropyCap: 8,
+    environmentResolution: 512,
+    surfaceDetail: 'full',
+  }),
+  medium: Object.freeze({
+    id: 'medium',
+    pixelRatioCap: 1.5,
+    shadows: true,
+    shadowMapSize: 1024,
+    textureTier: 'medium',
+    ambientOcclusion: false,
+    enhancedWater: true,
+    postProcessing: false,
+    assetBudgetBytes: 12 * MEBIBYTE,
+    minimumAverageFps: 40,
+    p95FrameTimeRecord: true,
+    anisotropyCap: 4,
+    environmentResolution: 256,
+    surfaceDetail: 'reduced',
+  }),
+  low: Object.freeze({
+    id: 'low',
+    pixelRatioCap: 1,
+    shadows: false,
+    shadowMapSize: 0,
+    textureTier: 'low',
+    ambientOcclusion: false,
+    enhancedWater: false,
+    postProcessing: false,
+    assetBudgetBytes: 6 * MEBIBYTE,
+    minimumAverageFps: 30,
+    p95FrameTimeRecord: true,
+    anisotropyCap: 1,
+    environmentResolution: 0,
+    surfaceDetail: 'essential',
+  }),
+});
 
 export function assertEnhancedQualityProfiles(
   profiles: Readonly<Record<RenderQualityTier, EnhancedQualityProfile>> = ENHANCED_QUALITY_PROFILES,
@@ -95,8 +96,8 @@ export function assertEnhancedQualityProfiles(
   }
 
   if (
-    profiles.high.assetBudgetBytes < profiles.medium.assetBudgetBytes
-    || profiles.medium.assetBudgetBytes < profiles.low.assetBudgetBytes
+    profiles.high.assetBudgetBytes < profiles.medium.assetBudgetBytes ||
+    profiles.medium.assetBudgetBytes < profiles.low.assetBudgetBytes
   ) {
     throw new TypeError('Enhanced quality asset budgets must descend from high to low.');
   }

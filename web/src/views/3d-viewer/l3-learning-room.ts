@@ -75,7 +75,13 @@ export function arrivalContactOnEndWall(l3: L3Geometry): [number, number] {
 }
 
 /** 隔間玻璃的外形：從鏡牆（下緣在樓板邊、上緣隨外傾往外）到端牆內側，挖掉維修門。 */
-function partitionGlassShape(left: number, leftTop: number, right: number, height: number, door: [number, number]) {
+function partitionGlassShape(
+  left: number,
+  leftTop: number,
+  right: number,
+  height: number,
+  door: [number, number],
+) {
   const shape = new THREE.Shape();
   shape.moveTo(left, 0);
   shape.lineTo(door[0], 0);
@@ -102,12 +108,16 @@ export interface L3LearningRoomParts {
   readonly furniture: THREE.Group;
 }
 
-export function createL3LearningRoom(model: ViewerModel, materials: MaterialRegistry): L3LearningRoomParts {
+export function createL3LearningRoom(
+  model: ViewerModel,
+  materials: MaterialRegistry,
+): L3LearningRoomParts {
   const l3 = model.geometry.l3;
   const height = l3.volumeHeight.value;
   const halfLength = l3.length / 2;
   const halfWidth = l3.width / 2;
-  const lean = Math.tan(THREE.MathUtils.degToRad(l3.mirror.leanFromVertical.value)) * l3.mirror.height.value;
+  const lean =
+    Math.tan(THREE.MathUtils.degToRad(l3.mirror.leanFromVertical.value)) * l3.mirror.height.value;
   const endWallInside = halfLength - END_WALL_THICKNESS;
   const sideWallInside = halfWidth - SIDE_WALL_THICKNESS;
 
@@ -141,9 +151,8 @@ export function createL3LearningRoom(model: ViewerModel, materials: MaterialRegi
   partition.add(pane);
 
   // 框與豎框佔隔間的整個厚度；鏡牆那一端的框跟著鏡牆外傾。
-  const rail = (from: number, to: number, y: number) => box(
-    [to - from, FRAME_WIDTH, partitionDepth], [(from + to) / 2, y, partitionZ], frame,
-  );
+  const rail = (from: number, to: number, y: number) =>
+    box([to - from, FRAME_WIDTH, partitionDepth], [(from + to) / 2, y, partitionZ], frame);
   partition.add(
     rail(left, door[0], FRAME_WIDTH / 2),
     rail(door[1], endWallInside, FRAME_WIDTH / 2),
@@ -151,7 +160,11 @@ export function createL3LearningRoom(model: ViewerModel, materials: MaterialRegi
     rail(door[0], door[1], DOOR_HEIGHT + FRAME_WIDTH / 2),
   );
   const slantLength = Math.hypot(lean, height);
-  const slant = box([FRAME_WIDTH, slantLength, partitionDepth], [left - lean / 2, height / 2, partitionZ], frame);
+  const slant = box(
+    [FRAME_WIDTH, slantLength, partitionDepth],
+    [left - lean / 2, height / 2, partitionZ],
+    frame,
+  );
   slant.rotation.z = Math.atan2(lean, height);
   partition.add(slant);
   for (let x = left + MULLION_SPACING; x < door[0] - 0.5; x += MULLION_SPACING) {
@@ -161,13 +174,21 @@ export function createL3LearningRoom(model: ViewerModel, materials: MaterialRegi
     partition.add(box([FRAME_WIDTH, height, partitionDepth], [x, height / 2, partitionZ], frame));
   }
   const doorWidth = door[1] - door[0];
-  const doorLeaf = box([doorWidth - FRAME_WIDTH, DOOR_HEIGHT, 0.045], [(door[0] + door[1]) / 2, DOOR_HEIGHT / 2, partitionZ], doorMaterial);
+  const doorLeaf = box(
+    [doorWidth - FRAME_WIDTH, DOOR_HEIGHT, 0.045],
+    [(door[0] + door[1]) / 2, DOOR_HEIGHT / 2, partitionZ],
+    doorMaterial,
+  );
   doorLeaf.name = `${l3.glassPartition.entityId}:MAINTENANCE-DOOR`;
   partition.add(doorLeaf);
   // 門鎖在教室那一側（z 較小的一側），和框同一種材質，不多一次繪製。
   partition.add(box([0.05, 0.16, 0.04], [door[0] + 0.12, 1.05, partitionZ - 0.045], frame));
 
-  const zone = (bounds: { x1: number; x2: number; y1: number; y2: number }, material: THREE.Material, inset: [number, number]) => {
+  const zone = (
+    bounds: { x1: number; x2: number; y1: number; y2: number },
+    material: THREE.Material,
+    inset: [number, number],
+  ) => {
     const local = l3LocalBounds(l3, bounds);
     const z1 = Math.max(local.z1, -sideWallInside) + inset[0];
     const z2 = Math.min(local.z2, sideWallInside) - inset[1];
@@ -177,9 +198,15 @@ export function createL3LearningRoom(model: ViewerModel, materials: MaterialRegi
     mesh.castShadow = false;
     return mesh;
   };
-  const learningZone = zone(l3.learningRoom.bounds, materials.get('program-zone'), [0, partitionDepth / 2]);
+  const learningZone = zone(l3.learningRoom.bounds, materials.get('program-zone'), [
+    0,
+    partitionDepth / 2,
+  ]);
   learningZone.name = `${l3.learningRoom.entityId}:FLOOR`;
-  const equipmentZone = zone(l3.equipmentZone.bounds, materials.get('equipment-zone'), [partitionDepth / 2, 0]);
+  const equipmentZone = zone(l3.equipmentZone.bounds, materials.get('equipment-zone'), [
+    partitionDepth / 2,
+    0,
+  ]);
   equipmentZone.name = `${l3.equipmentZone.entityId}:FLOOR`;
 
   const room = l3LocalBounds(l3, l3.learningRoom.bounds);
@@ -194,7 +221,10 @@ export function createL3LearningRoom(model: ViewerModel, materials: MaterialRegi
   for (const offset of [-0.86, 0.86]) {
     const screen = box([0.06, 0.94, 1.66], [screenX, 1.47, roomCentreZ + offset], screenMaterial);
     screen.name = `${l3.learningRoom.entityId}:CAMERA-SCREEN`;
-    fixtures.add(screen, box([0.05, 1.94, 0.06], [screenX - 0.06, 0.97, roomCentreZ + offset], frame));
+    fixtures.add(
+      screen,
+      box([0.05, 1.94, 0.06], [screenX - 0.06, 0.97, roomCentreZ + offset], frame),
+    );
   }
   // 能源看板：玻璃隔間這一側、面向教室，掛在兩道豎框之間。
   const dashboardX = left + MULLION_SPACING * 4.5;
@@ -204,10 +234,18 @@ export function createL3LearningRoom(model: ViewerModel, materials: MaterialRegi
   // 從到達翼進教室的門：穿過端牆，兩面都看得到。
   const [contactZ1, contactZ2] = arrivalContactOnEndWall(l3);
   const entryZ = (contactZ1 + contactZ2) / 2;
-  if (!(contactZ2 - contactZ1 >= ENTRY_DOOR_WIDTH && entryZ - ENTRY_DOOR_WIDTH / 2 >= roomZ1 && entryZ + ENTRY_DOOR_WIDTH / 2 <= roomZ2)) {
+  if (!(
+    contactZ2 - contactZ1 >= ENTRY_DOOR_WIDTH &&
+    entryZ - ENTRY_DOOR_WIDTH / 2 >= roomZ1 &&
+    entryZ + ENTRY_DOOR_WIDTH / 2 <= roomZ2
+  )) {
     throw new TypeError('3F 到達翼要從教室那一段端牆進入（DEC-173）。');
   }
-  const entry = box([END_WALL_THICKNESS + 0.04, DOOR_HEIGHT, ENTRY_DOOR_WIDTH], [halfLength - END_WALL_THICKNESS / 2, DOOR_HEIGHT / 2, entryZ], doorMaterial);
+  const entry = box(
+    [END_WALL_THICKNESS + 0.04, DOOR_HEIGHT, ENTRY_DOOR_WIDTH],
+    [halfLength - END_WALL_THICKNESS / 2, DOOR_HEIGHT / 2, entryZ],
+    doorMaterial,
+  );
   entry.name = `${l3.learningRoom.entityId}:ENTRY-DOOR`;
   fixtures.add(entry);
 
@@ -221,22 +259,41 @@ export function createL3LearningRoom(model: ViewerModel, materials: MaterialRegi
   ]);
   const teacherDesk: [number, number, number, number] = [screenX + 1.4, roomZ1 + 0.75, 0.7, 1.4];
   tables.push(teacherDesk);
-  const seats: Array<[number, number]> = rows.flatMap((x) => [-1, -0.5, 0, 0.5, 1].map((step) => [x + 0.6, roomCentreZ + step] as [number, number]));
+  const seats: Array<[number, number]> = rows.flatMap((x) =>
+    [-1, -0.5, 0, 0.5, 1].map((step) => [x + 0.6, roomCentreZ + step] as [number, number]),
+  );
   seats.push([teacherDesk[0] + 0.6, teacherDesk[1]]);
   const matrix = new THREE.Matrix4();
-  const tableTops = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 0.03, 1), materials.get('interior-fixture'), tables.length);
+  const tableTops = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(1, 0.03, 1),
+    materials.get('interior-fixture'),
+    tables.length,
+  );
   tableTops.name = `visual-only:L3-learning-room-tables:${tables.length}`;
-  const tableLegs = new THREE.InstancedMesh(new THREE.BoxGeometry(0.04, 0.72, 0.04), frame, tables.length * 4);
+  const tableLegs = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(0.04, 0.72, 0.04),
+    frame,
+    tables.length * 4,
+  );
   tableLegs.name = `visual-only:L3-learning-room-table-legs:${tables.length * 4}`;
   tables.forEach(([x, z, depth, width], index) => {
     matrix.makeScale(depth, 1, width).setPosition(x, 0.735, z);
     tableTops.setMatrixAt(index, matrix);
-    [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([sx, sz], corner) => {
+    [
+      [-1, -1],
+      [-1, 1],
+      [1, -1],
+      [1, 1],
+    ].forEach(([sx, sz], corner) => {
       matrix.makeTranslation(x + sx * (depth / 2 - 0.05), 0.36, z + sz * (width / 2 - 0.05));
       tableLegs.setMatrixAt(index * 4 + corner, matrix);
     });
   });
-  const stools = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.17, 0.15, 0.46, 14).translate(0, 0.23, 0), materials.get('locker'), seats.length);
+  const stools = new THREE.InstancedMesh(
+    new THREE.CylinderGeometry(0.17, 0.15, 0.46, 14).translate(0, 0.23, 0),
+    materials.get('locker'),
+    seats.length,
+  );
   stools.name = `visual-only:L3-learning-room-stools:${seats.length}`;
   seats.forEach(([x, z], index) => {
     matrix.makeTranslation(x, 0, z);

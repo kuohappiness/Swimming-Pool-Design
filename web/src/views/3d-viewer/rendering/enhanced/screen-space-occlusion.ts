@@ -51,7 +51,7 @@ export const CONTACT_SHADOWS = Object.freeze({
 });
 
 /** 接在 GTAO 著色器的 main 之前：用它的深度與位置函式。 */
-const CONTACT_SHADOW_GLSL = /* glsl */`
+const CONTACT_SHADOW_GLSL = /* glsl */ `
 uniform vec3 uTowardSun;  // 鏡頭座標，朝太陽（或月亮）的單位向量
 uniform vec3 uContact;    // x：找多遠；y：擋住的東西算多厚；z：開始淡出的距離
 
@@ -81,7 +81,9 @@ const MAIN = 'void main() {';
 function occlusionFragmentShader(): string {
   const source = GTAOShader.fragmentShader;
   if (!source.includes(MAIN) || !source.includes('getSceneUvAndDepth')) {
-    throw new TypeError('The three.js GTAO shader no longer has the functions the contact shadows use.');
+    throw new TypeError(
+      'The three.js GTAO shader no longer has the functions the contact shadows use.',
+    );
   }
   return source.replace(MAIN, `${CONTACT_SHADOW_GLSL}\n${MAIN}`);
 }
@@ -117,7 +119,10 @@ export class ScreenSpaceOcclusion {
   private disposed = false;
 
   constructor() {
-    this.occlusionTarget = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, depthBuffer: false });
+    this.occlusionTarget = new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.HalfFloatType,
+      depthBuffer: false,
+    });
     this.occlusionTarget.texture.name = 'realistic:screen-space-occlusion';
     this.denoisedTarget = this.occlusionTarget.clone();
     this.denoisedTarget.texture.name = 'realistic:screen-space-occlusion-denoised';
@@ -166,7 +171,11 @@ export class ScreenSpaceOcclusion {
         NORMAL_VECTOR_TYPE: 0,
         DEPTH_VALUE_SOURCE: 0,
         SAMPLES: denoise.samples,
-        SAMPLE_VECTORS: generatePdSamplePointInitializer(denoise.samples, denoise.rings, denoise.radiusExponent),
+        SAMPLE_VECTORS: generatePdSamplePointInitializer(
+          denoise.samples,
+          denoise.rings,
+          denoise.radiusExponent,
+        ),
         // 只降噪環境遮蔽（r），接觸陰影（g）照原樣保留。
         SAMPLE_LUMINANCE: 'a.r',
         FRAGMENT_OUTPUT: 'vec4(denoised.r, texel.g, 0.0, 1.0)',

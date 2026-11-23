@@ -6,6 +6,9 @@ export function markExternalLinks(container: HTMLElement, scope: string): void {
   for (const link of container.querySelectorAll<HTMLAnchorElement>(`${scope} a[href^="http"]`)) {
     link.target = '_blank';
     link.rel = 'noopener';
-    link.insertAdjacentHTML('beforeend', '<span class="site-visually-hidden">（另開新視窗）</span>');
+    link.insertAdjacentHTML(
+      'beforeend',
+      '<span class="site-visually-hidden">（另開新視窗）</span>',
+    );
   }
 }

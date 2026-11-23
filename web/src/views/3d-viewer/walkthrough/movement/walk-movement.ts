@@ -1,13 +1,5 @@
-import type {
-  MovementStrategy,
-  PlayerState,
-  PlayerVector,
-} from '../player-controller.js';
-import type {
-  MovementIntent,
-  SpawnDescriptor,
-  WalkthroughConfig,
-} from '../types.js';
+import type { MovementStrategy, PlayerState, PlayerVector } from '../player-controller.js';
+import type { MovementIntent, SpawnDescriptor, WalkthroughConfig } from '../types.js';
 import type { CollisionWorld } from '../collision/collision-world.js';
 import type { SafeSpawnRegistry } from '../collision/safe-spawn-registry.js';
 
@@ -30,11 +22,7 @@ export class WalkMovement implements MovementStrategy {
   private readonly safeSpawns: SafeSpawnRegistry;
   private readonly config: WalkthroughConfig;
 
-  constructor(
-    world: CollisionWorld,
-    safeSpawns: SafeSpawnRegistry,
-    config: WalkthroughConfig,
-  ) {
+  constructor(world: CollisionWorld, safeSpawns: SafeSpawnRegistry, config: WalkthroughConfig) {
     this.world = world;
     this.safeSpawns = safeSpawns;
     this.config = config;
@@ -42,7 +30,8 @@ export class WalkMovement implements MovementStrategy {
 
   teleportToSpawn(state: PlayerState, id: SpawnDescriptor['id']) {
     const spawn = this.safeSpawns.get(id);
-    if (!this.world.isCapsuleClear(spawn.position) || !this.world.isSupported(spawn.position)) return false;
+    if (!this.world.isCapsuleClear(spawn.position) || !this.world.isSupported(spawn.position))
+      return false;
     state.movementMode = 'teleporting';
     state.position = { ...spawn.position };
     state.grounded = true;
@@ -63,16 +52,16 @@ export class WalkMovement implements MovementStrategy {
   }
 
   step(state: PlayerState, intent: MovementIntent, deltaSeconds: number) {
-    if (!finiteVector(state.position)
-      || !finiteVector(state.velocity)
-      || state.position.y < this.config.recovery.minimumWorldElevation) {
+    if (
+      !finiteVector(state.position) ||
+      !finiteVector(state.velocity) ||
+      state.position.y < this.config.recovery.minimumWorldElevation
+    ) {
       this.recoverToNearest(state);
       return;
     }
 
-    const speed = intent.fast
-      ? this.config.player.fastWalkSpeed
-      : this.config.player.walkSpeed;
+    const speed = intent.fast ? this.config.player.fastWalkSpeed : this.config.player.walkSpeed;
     const cosine = Math.cos(state.yaw);
     const sine = Math.sin(state.yaw);
     const desiredX = (intent.moveX * cosine + intent.moveZ * sine) * speed;
@@ -109,7 +98,10 @@ export class WalkMovement implements MovementStrategy {
     state.velocity.y -= this.config.physics.gravity * deltaSeconds;
     const predictedEye = state.position.y + state.velocity.y * deltaSeconds;
     const predictedFoot = predictedEye - this.config.player.eyeHeight;
-    const landing = this.world.getGroundHeight(state.position, Math.max(currentFoot, predictedFoot) + EPSILON);
+    const landing = this.world.getGroundHeight(
+      state.position,
+      Math.max(currentFoot, predictedFoot) + EPSILON,
+    );
     if (landing !== null && predictedFoot <= landing && state.velocity.y <= 0) {
       state.position.y = landing + this.config.player.eyeHeight;
       state.velocity.y = 0;

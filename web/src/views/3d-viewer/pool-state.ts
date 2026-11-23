@@ -101,14 +101,16 @@ export function getPoolLadderTreads(model: ViewerPoolBasinSource): readonly Pool
   const treads: PoolLadderTread[] = [];
   for (const z of [minZ + POOL_LADDER.sideInset, minZ + pool.width.value - POOL_LADDER.sideInset]) {
     for (let step = 0; step < POOL_LADDER.treadCount; step += 1) {
-      treads.push(Object.freeze({
-        centre: Object.freeze([
-          centreX,
-          waterSurfaceElevation - POOL_LADDER.firstTreadDepth - step * POOL_LADDER.treadSpacing,
-          z,
-        ] as const),
-        size: POOL_LADDER.treadSize,
-      }));
+      treads.push(
+        Object.freeze({
+          centre: Object.freeze([
+            centreX,
+            waterSurfaceElevation - POOL_LADDER.firstTreadDepth - step * POOL_LADDER.treadSpacing,
+            z,
+          ] as const),
+          size: POOL_LADDER.treadSize,
+        }),
+      );
     }
   }
   return Object.freeze(treads);
@@ -135,19 +137,24 @@ export function getPoolLadderRails(model: ViewerPoolBasinSource): readonly PoolL
   }
   const { waterSurfaceElevation } = getViewerPoolPresentation(model);
   const bottom = pool.deckElevation.value - POOL_LADDER.railBottomBelowDeck;
-  const submergedBottom = waterSurfaceElevation - POOL_LADDER.firstTreadDepth
-    - (POOL_LADDER.treadCount - 1) * POOL_LADDER.treadSpacing - POOL_LADDER.railBelowLastTread;
+  const submergedBottom =
+    waterSurfaceElevation -
+    POOL_LADDER.firstTreadDepth -
+    (POOL_LADDER.treadCount - 1) * POOL_LADDER.treadSpacing -
+    POOL_LADDER.railBelowLastTread;
   const rails: PoolLadderRail[] = [];
   for (const z of [minZ + POOL_LADDER.sideInset, minZ + pool.width.value - POOL_LADDER.sideInset]) {
     for (const offset of POOL_LADDER.railOffsets) {
-      rails.push(Object.freeze({
-        x: minX + offset,
-        z,
-        bottom,
-        top: bottom + POOL_LADDER.railLength,
-        submergedBottom,
-        radius: POOL_LADDER.railRadius,
-      }));
+      rails.push(
+        Object.freeze({
+          x: minX + offset,
+          z,
+          bottom,
+          top: bottom + POOL_LADDER.railLength,
+          submergedBottom,
+          radius: POOL_LADDER.railRadius,
+        }),
+      );
     }
   }
   return Object.freeze(rails);
@@ -207,7 +214,9 @@ export function getViewerPoolBasinShape(model: ViewerPoolBasinSource): PoolBasin
     laneLineInset: POOL_FLOOR_LANE_LINE_INSET,
     submergedBoxes: Object.freeze([
       ...getPoolLadderTreads(model).map(treadToSubmergedBox),
-      ...getPoolLadderRails(model).map((rail) => railToSubmergedBox(rail, presentation.waterSurfaceElevation)),
+      ...getPoolLadderRails(model).map((rail) =>
+        railToSubmergedBox(rail, presentation.waterSurfaceElevation),
+      ),
     ]),
   });
 }

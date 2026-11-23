@@ -459,7 +459,6 @@
     line-height: 1.35;
   }
 
-
   .control {
     display: block;
     padding: 12px;
@@ -722,8 +721,10 @@
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     background:
-      linear-gradient(to left, var(--site-paper-raised) 40%, transparent) right / 2.5rem 100% no-repeat local,
-      radial-gradient(farthest-side at 100% 50%, rgb(30 41 42 / 22%), transparent) right / 1rem 100% no-repeat scroll;
+      linear-gradient(to left, var(--site-paper-raised) 40%, transparent) right / 2.5rem 100%
+        no-repeat local,
+      radial-gradient(farthest-side at 100% 50%, rgb(30 41 42 / 22%), transparent) right / 1rem 100%
+        no-repeat scroll;
   }
 
   .table-scroll th:first-child,
@@ -1105,7 +1106,6 @@
     .solar-study-view.wrap {
       padding-inline: 14px;
     }
-
 
     .research-conclusion-metrics {
       grid-template-columns: 1fr 1fr;

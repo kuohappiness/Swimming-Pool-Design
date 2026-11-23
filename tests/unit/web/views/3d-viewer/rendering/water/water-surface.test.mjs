@@ -47,9 +47,16 @@ test('basin shape must be finite, have a positive footprint and keep lane lines 
   assert.throws(() => assertPoolBasinShape({ ...basin, deepBottom: 0.3 }), /below the water level/);
   assert.throws(() => assertPoolBasinShape({ ...basin, laneLineZ: [3.9] }), /inside the basin/);
   assert.throws(() => assertPoolBasinShape({ ...basin, laneLineWidth: 0 }), /positive width/);
-  assert.throws(() => assertPoolBasinShape({ ...basin, laneLineInset: -0.1 }), /non-negative inset/);
   assert.throws(
-    () => assertPoolBasinShape({ ...basin, laneLineZ: Array.from({ length: 9 }, (_, index) => 5 + index * 0.5) }),
+    () => assertPoolBasinShape({ ...basin, laneLineInset: -0.1 }),
+    /non-negative inset/,
+  );
+  assert.throws(
+    () =>
+      assertPoolBasinShape({
+        ...basin,
+        laneLineZ: Array.from({ length: 9 }, (_, index) => 5 + index * 0.5),
+      }),
     /at most 8 lane lines/,
   );
 });
@@ -72,7 +79,9 @@ test('surface grid meets the pool walls exactly and stays within the mobile tria
     maxZ = Math.max(maxZ, position.getZ(index));
   }
   assert.deepEqual([minX, maxX, minZ, maxZ], [3, 28, 4, 12.5]);
-  assert.ok(geometry.boundingBox.min.y < basin.waterLevel && geometry.boundingBox.max.y > basin.waterLevel);
+  assert.ok(
+    geometry.boundingBox.min.y < basin.waterLevel && geometry.boundingBox.max.y > basin.waterLevel,
+  );
   assert.ok(geometry.boundingSphere.radius > 12);
 
   assert.equal(createWaterSurfaceGeometry(basin, 100).getIndex().count, 6, 'at least one cell');
@@ -83,7 +92,14 @@ test('material inlines the shared basin shader and keeps tone mapping, colour sp
   const material = createWaterSurfaceMaterial(options());
   assert.equal(material.name, 'realistic:water-surface');
   assert.doesNotMatch(material.fragmentShader, /\/\/ #include pool-basin/);
-  for (const symbol of ['intersectBasin', 'shadePoolBasin', 'poolCaustic', 'applyWaterColumn', 'mirrorBounceMask', 'mirrorBounceInWater']) {
+  for (const symbol of [
+    'intersectBasin',
+    'shadePoolBasin',
+    'poolCaustic',
+    'applyWaterColumn',
+    'mirrorBounceMask',
+    'mirrorBounceInWater',
+  ]) {
     assert.match(material.fragmentShader, new RegExp(`\\b${symbol}\\(`));
   }
   assert.doesNotMatch(material.fragmentShader, /\/\/ #include mirror-bounce/);
@@ -125,21 +141,35 @@ test('uniforms come from the basin shape and textures are passed through, not cl
   assert.equal(uniforms.uDeepBottom.value, -1.28);
   assert.equal(uniforms.uLaneLineZ.value.length, MAXIMUM_LANE_LINES);
   assert.deepEqual(uniforms.uLaneLineZ.value.slice(0, 3), [4.25, 5.75, 8.25]);
-  assert.ok(uniforms.uLaneLineZ.value.slice(3).every((z) => z > 1e5), 'unused lane lines sit far outside the pool');
+  assert.ok(
+    uniforms.uLaneLineZ.value.slice(3).every((z) => z > 1e5),
+    'unused lane lines sit far outside the pool',
+  );
 
   assert.equal(uniforms.uWaves.value.length, 4);
   for (const [index, wave] of CALM_POOL_WAVES.entries()) {
     const uniform = uniforms.uWaves.value[index];
-    assert.ok(Math.abs(Math.hypot(uniform.x, uniform.y) - 1) < 1e-9, 'wave direction is a unit vector');
+    assert.ok(
+      Math.abs(Math.hypot(uniform.x, uniform.y) - 1) < 1e-9,
+      'wave direction is a unit vector',
+    );
     assert.equal(uniform.z, wave.wavelength);
     assert.equal(uniform.w, wave.amplitude);
     assert.ok(wave.amplitude <= 0.01, 'an indoor pool stays calm');
   }
-  const single = createWaterSurfaceMaterial(options({ waves: [{ directionDegrees: 90, wavelength: 2, amplitude: 0.01 }] }));
+  const single = createWaterSurfaceMaterial(
+    options({ waves: [{ directionDegrees: 90, wavelength: 2, amplitude: 0.01 }] }),
+  );
   assert.equal(single.uniforms.uWaves.value[1].w, 0, 'missing waves have zero amplitude');
-  assert.throws(() => createWaterSurfaceMaterial(options({ waves: Array(5).fill(CALM_POOL_WAVES[0]) })), RangeError);
   assert.throws(
-    () => createWaterSurfaceMaterial(options({ waves: [{ directionDegrees: 0, wavelength: 0, amplitude: 0.01 }] })),
+    () => createWaterSurfaceMaterial(options({ waves: Array(5).fill(CALM_POOL_WAVES[0]) })),
+    RangeError,
+  );
+  assert.throws(
+    () =>
+      createWaterSurfaceMaterial(
+        options({ waves: [{ directionDegrees: 0, wavelength: 0, amplitude: 0.01 }] }),
+      ),
     RangeError,
   );
 });
@@ -186,7 +216,11 @@ test('per-frame update only writes uniforms, in the mirrored and rotated site fr
       skyColor: new THREE.Color(0.7, 0.8, 1),
     });
   }
-  assert.deepEqual(versions(), before, 'no texture upload, material rebuild or geometry upload per frame');
+  assert.deepEqual(
+    versions(),
+    before,
+    'no texture upload, material rebuild or geometry upload per frame',
+  );
 
   const { uniforms } = water.mesh.material;
   assert.equal(uniforms.uTime.value, 3);
@@ -197,7 +231,13 @@ test('per-frame update only writes uniforms, in the mirrored and rotated site fr
   assert.ok(backToWorld.distanceTo(worldSun) < 1e-9, 'reflection lookups use world directions');
 
   water.dispose();
-  water.update({ timeSeconds: 9, camera, sunDirection: worldSun, sunColor: new THREE.Color(), skyColor: new THREE.Color() });
+  water.update({
+    timeSeconds: 9,
+    camera,
+    sunDirection: worldSun,
+    sunColor: new THREE.Color(),
+    skyColor: new THREE.Color(),
+  });
   assert.equal(uniforms.uTime.value, 3, 'a disposed surface ignores updates');
 });
 
@@ -205,7 +245,9 @@ test('the mirror wall’s reflected light reaches the water in the water mesh’
   const { mirrorWallFromViewerModel, mirrorBounceToWorld, computeMirrorBounce } =
     await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/mirror-bounce.ts');
   const { buildViewerModel } = await import('../../../../../../../core/viewer/viewer-data.mjs');
-  const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+  const { computeSunLighting } = await vite.ssrLoadModule(
+    '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
+  );
   const { readFile } = await import('node:fs/promises');
   const [sourceModel, registry] = await Promise.all([
     readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
@@ -215,7 +257,11 @@ test('the mirror wall’s reflected light reaches the water in the water mesh’
   const site = sourceModel.referenceSystem.siteLocation;
   const lighting = computeSunLighting({
     moment: { year: 2026, month: 12, day: 21, minutes: 9 * 60 + 30 },
-    location: { latitude: site.latitude.value, longitude: site.longitude.value, utcOffsetHours: site.utcOffsetHours },
+    location: {
+      latitude: site.latitude.value,
+      longitude: site.longitude.value,
+      utcOffsetHours: site.utcOffsetHours,
+    },
     positiveXAxisBearingFromTrueNorth: wall.positiveXAxisBearingFromTrueNorth,
     weather: 'clear',
   });
@@ -240,7 +286,10 @@ test('the mirror wall’s reflected light reaches the water in the water mesh’
   assert.equal(uniforms.uMirrorBounceColor.value.w, 1);
   // 水面網格直接掛在 SITE 根節點下：物件座標就是 SITE 的 (x, 高程, y)。
   const corner = computeMirrorBounce(lighting, wall).corners[0];
-  assert.ok(uniforms.uMirrorBounceOrigin.value.distanceTo(new THREE.Vector3(corner.x, corner.z, corner.y)) < 1e-9);
+  assert.ok(
+    uniforms.uMirrorBounceOrigin.value.distanceTo(new THREE.Vector3(corner.x, corner.z, corner.y)) <
+      1e-9,
+  );
   assert.ok(uniforms.uMirrorBounceDirection.value.y < -0.5, 'travels down onto the water');
   water.update(frame);
   assert.equal(uniforms.uMirrorBounceColor.value.w, 0, 'no bounce given, none drawn');
@@ -260,7 +309,11 @@ test('the water asks the sun shadow map whether a point is lit, and always has a
   assert.equal(fallback.isDepthTexture, true);
   assert.equal(fallback.compareFunction, THREE.LessEqualCompare);
   assert.ok(fallback.version > 0, 'the fallback is uploaded, not left as an empty texture');
-  assert.deepEqual(uniforms.uSunShadow.value.toArray(), [0, 0, 0], 'no shadow map: everything is lit');
+  assert.deepEqual(
+    uniforms.uSunShadow.value.toArray(),
+    [0, 0, 0],
+    'no shadow map: everything is lit',
+  );
 
   const siteRoot = new THREE.Group();
   siteRoot.scale.set(1, 1, -1);
@@ -286,8 +339,14 @@ test('the water asks the sun shadow map whether a point is lit, and always has a
   // 矩陣把水面自己的座標直接換到陰影貼圖的座標：先到世界，再進陰影相機。
   const local = new THREE.Vector3(10, 0.22, 6);
   const expected = local.clone().applyMatrix4(water.mesh.matrixWorld).applyMatrix4(matrix);
-  assert.ok(local.clone().applyMatrix4(uniforms.uSunShadowMatrix.value).distanceTo(expected) < 1e-9);
-  assert.notEqual(uniforms.uSunShadowMatrix.value, matrix, 'the light\'s own matrix is not overwritten');
+  assert.ok(
+    local.clone().applyMatrix4(uniforms.uSunShadowMatrix.value).distanceTo(expected) < 1e-9,
+  );
+  assert.notEqual(
+    uniforms.uSunShadowMatrix.value,
+    matrix,
+    "the light's own matrix is not overwritten",
+  );
 
   // 陰影關掉（省電級、夜裡沒有主光）時回到全亮，並換回自己的深度貼圖。
   water.update(frame(null));
@@ -297,9 +356,13 @@ test('the water asks the sun shadow map whether a point is lit, and always has a
   assert.equal(uniforms.uSunShadowMap.value, fallback);
 
   let disposed = 0;
-  fallback.addEventListener('dispose', () => { disposed += 1; });
+  fallback.addEventListener('dispose', () => {
+    disposed += 1;
+  });
   let mapDisposed = 0;
-  map.addEventListener('dispose', () => { mapDisposed += 1; });
+  map.addEventListener('dispose', () => {
+    mapDisposed += 1;
+  });
   water.dispose();
   assert.equal(disposed, 1);
   assert.equal(mapDisposed, 0, 'the light owns its shadow map');
@@ -312,7 +375,11 @@ test('lane line size and colour reach the shader from the basin shape', () => {
   assert.equal(material.uniforms.uLaneLineInset.value, basin.laneLineInset);
   assert.deepEqual(material.uniforms.uLaneLineZ.value.slice(0, 3), [...basin.laneLineZ]);
   assert.ok(material.uniforms.uLaneLineColor.value.equals(laneLineColor));
-  assert.notEqual(material.uniforms.uLaneLineColor.value, laneLineColor, 'the caller keeps its own colour object');
+  assert.notEqual(
+    material.uniforms.uLaneLineColor.value,
+    laneLineColor,
+    'the caller keeps its own colour object',
+  );
   material.dispose();
 });
 

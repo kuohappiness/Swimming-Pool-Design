@@ -42,7 +42,12 @@ const CLOUD_COVER: Readonly<Record<Weather, number>> = Object.freeze({
 });
 
 /** 臺中市區常見的晴天：有一點霾，天空不是高山上那種深藍。 */
-const CLEAR_SKY = Object.freeze({ turbidity: 2.8, rayleigh: 2.2, mieCoefficient: 0.004, mieDirectionalG: 0.8 });
+const CLEAR_SKY = Object.freeze({
+  turbidity: 2.8,
+  rayleigh: 2.2,
+  mieCoefficient: 0.004,
+  mieDirectionalG: 0.8,
+});
 /** 晴空模型的輸出換成場景亮度的倍率：讓晴天正午的天空平均亮度和天光（半球光）的照度相稱。 */
 export const ATMOSPHERE_SCALE = 0.5;
 const SUN_DISC_GAIN = 28;
@@ -58,16 +63,27 @@ const smoothstep = (edge0: number, edge1: number, value: number) => {
   return t * t * (3 - 2 * t);
 };
 const scale = (color: LinearColor, factor: number): LinearColor => [
-  color[0] * factor, color[1] * factor, color[2] * factor,
+  color[0] * factor,
+  color[1] * factor,
+  color[2] * factor,
 ];
-const add = (a: LinearColor, b: LinearColor): LinearColor => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const multiply = (a: LinearColor, b: LinearColor): LinearColor => [a[0] * b[0], a[1] * b[1], a[2] * b[2]];
+const add = (a: LinearColor, b: LinearColor): LinearColor => [
+  a[0] + b[0],
+  a[1] + b[1],
+  a[2] + b[2],
+];
+const multiply = (a: LinearColor, b: LinearColor): LinearColor => [
+  a[0] * b[0],
+  a[1] * b[1],
+  a[2] * b[2],
+];
 const fract = (value: number) => value - Math.floor(value);
 
 export function deriveSkyParameters(lighting: SunLighting): SkyParameters {
   const { daylight, night } = lighting.factors;
   const cloudCover = CLOUD_COVER[lighting.weather];
-  if (cloudCover === undefined) throw new TypeError(`Weather is unknown: ${String(lighting.weather)}`);
+  if (cloudCover === undefined)
+    throw new TypeError(`Weather is unknown: ${String(lighting.weather)}`);
 
   // 一片均勻亮度 L 的天空給地面的照度是 πL；所以照度除以 π 就是「看起來」的亮度。
   const skyRadiance = scale(lighting.sky.color, lighting.sky.intensity / Math.PI);
@@ -75,7 +91,8 @@ export function deriveSkyParameters(lighting: SunLighting): SkyParameters {
   const sunUp = lighting.key.source === 'sun';
 
   // 曙暮光只補太陽在地平線下的那一段；太陽還在地平線上時，日出日落的顏色由散射模型自己算出來。
-  const twilight = smoothstep(-9, -3, lighting.altitude) * (1 - smoothstep(-2, 2.5, lighting.altitude));
+  const twilight =
+    smoothstep(-9, -3, lighting.altitude) * (1 - smoothstep(-2, 2.5, lighting.altitude));
   const minutes = lighting.moment.minutes;
   const daySeed = fract(dayOfYear(lighting.moment) * 0.137);
 

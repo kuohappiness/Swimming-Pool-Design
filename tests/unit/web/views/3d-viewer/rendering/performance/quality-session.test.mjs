@@ -28,7 +28,11 @@ const { ENHANCED_QUALITY_PROFILES } = await vite.ssrLoadModule(
 
 const SLOW = { intervalP95Milliseconds: 25, workP95Milliseconds: 22 };
 const CAPPED = { intervalP95Milliseconds: 33.4, workP95Milliseconds: 3 };
-const benchmark = (medianMilliseconds) => ({ frames: 15, medianMilliseconds, p95Milliseconds: medianMilliseconds * 1.2 });
+const benchmark = (medianMilliseconds) => ({
+  frames: 15,
+  medianMilliseconds,
+  p95Milliseconds: medianMilliseconds * 1.2,
+});
 
 /** Feeds one observation every 0.25 s and collects what the target reports. */
 function drive(target, clock, seconds, frame) {
@@ -58,11 +62,23 @@ function createHost(benchmarkResult = null) {
     log,
     published: [],
     benchmarks: 0,
-    applyTier(tier, shed) { log.push(shed.length ? `tier:${tier.id}:${shed.join('+')}` : `tier:${tier.id}`); },
-    applyResolution() { log.push('resolution'); },
-    runBenchmark() { this.benchmarks += 1; log.push('benchmark'); return benchmarkResult; },
-    publish(snapshot) { this.published.push(snapshot); },
-    announce(message) { log.push(`announce:${message}`); },
+    applyTier(tier, shed) {
+      log.push(shed.length ? `tier:${tier.id}:${shed.join('+')}` : `tier:${tier.id}`);
+    },
+    applyResolution() {
+      log.push('resolution');
+    },
+    runBenchmark() {
+      this.benchmarks += 1;
+      log.push('benchmark');
+      return benchmarkResult;
+    },
+    publish(snapshot) {
+      this.published.push(snapshot);
+    },
+    announce(message) {
+      log.push(`announce:${message}`);
+    },
   };
 }
 
@@ -81,11 +97,18 @@ test('display interval comes from the low end of the load-time frame gaps', () =
   assert.equal(estimateDisplayIntervalMilliseconds(sixty), 16.7);
   // Background-tab gaps and timer noise are ignored; too few samples give no answer.
   assert.equal(
-    estimateDisplayIntervalMilliseconds([...Array.from({ length: 25 }, () => 20), 4000, 0.3, Number.NaN]),
+    estimateDisplayIntervalMilliseconds([
+      ...Array.from({ length: 25 }, () => 20),
+      4000,
+      0.3,
+      Number.NaN,
+    ]),
     20,
   );
   assert.equal(
-    estimateDisplayIntervalMilliseconds(Array.from({ length: DISPLAY_INTERVAL_MINIMUM_SAMPLES - 1 }, () => 16.7)),
+    estimateDisplayIntervalMilliseconds(
+      Array.from({ length: DISPLAY_INTERVAL_MINIMUM_SAMPLES - 1 }, () => 16.7),
+    ),
     null,
   );
 });
@@ -95,7 +118,12 @@ test('a realism tier overrides only what the pipeline profile already exposes', 
   const high = renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.high, REALISM_TIERS.high);
   const saver = renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.low, REALISM_TIERS.saver);
   assert.deepEqual(
-    [ultra, high, saver].map(({ id, pixelRatioCap, shadows, shadowMapSize }) => ({ id, pixelRatioCap, shadows, shadowMapSize })),
+    [ultra, high, saver].map(({ id, pixelRatioCap, shadows, shadowMapSize }) => ({
+      id,
+      pixelRatioCap,
+      shadows,
+      shadowMapSize,
+    })),
     [
       { id: 'high', pixelRatioCap: 2, shadows: true, shadowMapSize: 2048 },
       { id: 'high', pixelRatioCap: 1.5, shadows: true, shadowMapSize: 2048 },
@@ -110,12 +138,14 @@ test('a realism tier overrides only what the pipeline profile already exposes', 
     [0.5, 0.5, 0],
   );
   assert.equal(
-    renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.medium, REALISM_TIERS.medium).waterReflectionScale,
+    renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.medium, REALISM_TIERS.medium)
+      .waterReflectionScale,
     0,
   );
   assert.equal(
-    renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.high, REALISM_TIERS.high, ['water-reflection-resolution'])
-      .waterReflectionScale,
+    renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.high, REALISM_TIERS.high, [
+      'water-reflection-resolution',
+    ]).waterReflectionScale,
     0.25,
   );
   assert.throws(
@@ -125,9 +155,15 @@ test('a realism tier overrides only what the pipeline profile already exposes', 
   // Frame effects (TASK-152 step 6): the two upper tiers post-process, medium and saver draw
   // straight to the screen. Shedding bloom or ambient occlusion keeps the post-processing itself,
   // so the exposure does not jump when the governor steps in.
-  const medium = renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.medium, REALISM_TIERS.medium);
+  const medium = renderQualityProfileForTier(
+    ENHANCED_QUALITY_PROFILES.medium,
+    REALISM_TIERS.medium,
+  );
   const frameEffects = ({ postProcessing, exposureAdaptation, bloom, ambientOcclusion }) => ({
-    postProcessing, exposureAdaptation, bloom, ambientOcclusion,
+    postProcessing,
+    exposureAdaptation,
+    bloom,
+    ambientOcclusion,
   });
   assert.deepEqual([ultra, high, medium, saver].map(frameEffects), [
     { postProcessing: true, exposureAdaptation: true, bloom: true, ambientOcclusion: true },
@@ -136,11 +172,12 @@ test('a realism tier overrides only what the pipeline profile already exposes', 
     { postProcessing: false, exposureAdaptation: false, bloom: false, ambientOcclusion: false },
   ]);
   assert.deepEqual(
-    frameEffects(renderQualityProfileForTier(
-      ENHANCED_QUALITY_PROFILES.high,
-      REALISM_TIERS.ultra,
-      ['bloom', 'ambient-occlusion'],
-    )),
+    frameEffects(
+      renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.high, REALISM_TIERS.ultra, [
+        'bloom',
+        'ambient-occlusion',
+      ]),
+    ),
     { postProcessing: true, exposureAdaptation: true, bloom: false, ambientOcclusion: false },
   );
 
@@ -160,29 +197,38 @@ test('controller lowers the tier by itself and never raises it again', () => {
   });
   const clock = { time: 0 };
   const events = drive(controller, clock, 40, SLOW);
-  assert.deepEqual(events.map(({ kind, state }) => [kind, state.tier, state.resolutionScale]), [
-    ['resolution', 'high', 0.9],
-    ['resolution', 'high', 0.8],
-    ['resolution', 'high', 0.7],
-    ['tier', 'medium', 1],
-    ['resolution', 'medium', 0.9],
-    ['resolution', 'medium', 0.8],
-    ['resolution', 'medium', 0.7],
-    ['tier', 'saver', 1],
-    ['resolution', 'saver', 0.9],
-    ['resolution', 'saver', 0.8],
-    ['resolution', 'saver', 0.7],
-  ]);
+  assert.deepEqual(
+    events.map(({ kind, state }) => [kind, state.tier, state.resolutionScale]),
+    [
+      ['resolution', 'high', 0.9],
+      ['resolution', 'high', 0.8],
+      ['resolution', 'high', 0.7],
+      ['tier', 'medium', 1],
+      ['resolution', 'medium', 0.9],
+      ['resolution', 'medium', 0.8],
+      ['resolution', 'medium', 0.7],
+      ['tier', 'saver', 1],
+      ['resolution', 'saver', 0.9],
+      ['resolution', 'saver', 0.8],
+      ['resolution', 'saver', 0.7],
+    ],
+  );
   assert.equal(events[3].reason, 'frame-rate');
   assert.equal(controller.state.source, 'frame-rate');
 
   // Plenty of headroom brings the resolution back, but the tier stays where it is.
-  const recovered = drive(controller, clock, 60, { intervalP95Milliseconds: 16.8, workP95Milliseconds: 3 });
-  assert.deepEqual(recovered.map(({ kind, state }) => [kind, state.tier]), [
-    ['resolution', 'saver'],
-    ['resolution', 'saver'],
-    ['resolution', 'saver'],
-  ]);
+  const recovered = drive(controller, clock, 60, {
+    intervalP95Milliseconds: 16.8,
+    workP95Milliseconds: 3,
+  });
+  assert.deepEqual(
+    recovered.map(({ kind, state }) => [kind, state.tier]),
+    [
+      ['resolution', 'saver'],
+      ['resolution', 'saver'],
+      ['resolution', 'saver'],
+    ],
+  );
   assert.deepEqual(controller.state, {
     tier: 'saver',
     source: 'frame-rate',
@@ -201,16 +247,19 @@ test('controller undoes an automatic lowering that turns out to be a display lim
   });
   const clock = { time: 0 };
   const events = drive(controller, clock, 40, CAPPED);
-  assert.deepEqual(events.map(({ kind, state, reason }) => [kind, state.tier, reason ?? null]), [
-    ['resolution', 'medium', null],
-    ['resolution', 'medium', null],
-    ['resolution', 'medium', null],
-    ['tier', 'saver', 'frame-rate'],
-    ['resolution', 'saver', null],
-    ['resolution', 'saver', null],
-    ['resolution', 'saver', null],
-    ['tier', 'medium', 'display-limited'],
-  ]);
+  assert.deepEqual(
+    events.map(({ kind, state, reason }) => [kind, state.tier, reason ?? null]),
+    [
+      ['resolution', 'medium', null],
+      ['resolution', 'medium', null],
+      ['resolution', 'medium', null],
+      ['tier', 'saver', 'frame-rate'],
+      ['resolution', 'saver', null],
+      ['resolution', 'saver', null],
+      ['resolution', 'saver', null],
+      ['tier', 'medium', 'display-limited'],
+    ],
+  );
   assert.deepEqual(controller.state, {
     tier: 'medium',
     source: 'manual',
@@ -232,8 +281,14 @@ test('controller does nothing automatic when adaptation is off, and rejects unkn
   assert.equal(controller.select({ tier: 'high', source: 'manual' }), null);
   assert.equal(controller.state.source, 'manual');
   const event = controller.select({ tier: 'ultra', source: 'manual' });
-  assert.deepEqual([event.kind, event.previous, event.state.tier, event.reason], ['tier', 'high', 'ultra', 'selected']);
-  assert.throws(() => controller.select({ tier: 'extreme', source: 'manual' }), /Unknown realism tier/);
+  assert.deepEqual(
+    [event.kind, event.previous, event.state.tier, event.reason],
+    ['tier', 'high', 'ultra', 'selected'],
+  );
+  assert.throws(
+    () => controller.select({ tier: 'extreme', source: 'manual' }),
+    /Unknown realism tier/,
+  );
 });
 
 test('session honours the link, then the stored choice, then the software renderer', () => {
@@ -244,7 +299,9 @@ test('session honours the link, then the stored choice, then the software render
   linked.start(host);
   assert.deepEqual(host.log, []);
   assert.deepEqual(
-    (({ tier, source, choice, description }) => ({ tier, source, choice, description }))(host.published[0]),
+    (({ tier, source, choice, description }) => ({ tier, source, choice, description }))(
+      host.published[0],
+    ),
     { tier: 'saver', source: 'url', choice: 'saver', description: '目前：省電（由網址指定）' },
   );
 
@@ -314,7 +371,13 @@ test('menu choices are applied, remembered, and auto measures only when it has t
   // Back to automatic: nothing was measured yet, so measure at the reference tier first.
   host.log.length = 0;
   session.choose('auto');
-  assert.deepEqual(host.log, ['tier:medium', 'resolution', 'benchmark', 'tier:saver', 'resolution']);
+  assert.deepEqual(host.log, [
+    'tier:medium',
+    'resolution',
+    'benchmark',
+    'tier:saver',
+    'resolution',
+  ]);
   assert.equal(storage.values.has(QUALITY_STORAGE_KEY), false);
   assert.deepEqual(
     [host.published.at(-1).choice, host.published.at(-1).tier, host.published.at(-1).source],
@@ -328,9 +391,10 @@ test('menu choices are applied, remembered, and auto measures only when it has t
   assert.deepEqual(host.log, ['tier:saver', 'resolution']);
   assert.equal(host.benchmarks, 1);
 
-  assert.deepEqual(QUALITY_CHOICES.map(({ value, label }) => `${value}:${label}`), [
-    'auto:自動', 'ultra:極致', 'high:高', 'medium:中', 'saver:省電',
-  ]);
+  assert.deepEqual(
+    QUALITY_CHOICES.map(({ value, label }) => `${value}:${label}`),
+    ['auto:自動', 'ultra:極致', 'high:高', 'medium:中', 'saver:省電'],
+  );
 });
 
 test('session applies the governor and tells the user when the tier changes', () => {
@@ -340,7 +404,17 @@ test('session applies the governor and tells the user when the tier changes', ()
   // Observations before start are ignored.
   session.observe({ timeSeconds: 0, samples: 120, ...SLOW });
   session.start(host);
-  drive({ observe: (observation) => { session.observe(observation); return null; } }, clock, 14, SLOW);
+  drive(
+    {
+      observe: (observation) => {
+        session.observe(observation);
+        return null;
+      },
+    },
+    clock,
+    14,
+    SLOW,
+  );
   assert.deepEqual(host.log, [
     'resolution',
     'resolution',
@@ -357,9 +431,15 @@ test('session applies the governor and tells the user when the tier changes', ()
 
 test('a storage that throws never breaks the page', () => {
   const broken = {
-    getItem() { throw new Error('denied'); },
-    setItem() { throw new Error('denied'); },
-    removeItem() { throw new Error('denied'); },
+    getItem() {
+      throw new Error('denied');
+    },
+    setItem() {
+      throw new Error('denied');
+    },
+    removeItem() {
+      throw new Error('denied');
+    },
   };
   const session = new QualitySession(sessionOptions({ storage: broken, softwareRenderer: true }));
   const host = createHost();

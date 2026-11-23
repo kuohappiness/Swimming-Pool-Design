@@ -39,7 +39,7 @@
 
 .about-topic h3,
 .about-term dt {
-  margin: 0 0 .35rem;
+  margin: 0 0 0.35rem;
   color: var(--site-ink);
   font-size: var(--site-text-md);
   font-weight: 700;
@@ -47,7 +47,7 @@
 }
 
 .about-topic h3 {
-  padding-top: .75rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--site-line);
 }
 
@@ -83,7 +83,7 @@
   gap: 1rem;
   align-items: center;
   min-height: 56px;
-  padding: .5rem 0;
+  padding: 0.5rem 0;
   color: var(--site-ink);
   font-size: var(--site-text-md);
   font-weight: 700;
@@ -98,17 +98,17 @@
 
 .about-question summary::after {
   justify-self: end;
-  width: .6rem;
-  height: .6rem;
+  width: 0.6rem;
+  height: 0.6rem;
   border-right: 2px solid var(--site-terracotta);
   border-bottom: 2px solid var(--site-terracotta);
-  transform: translateY(-.15rem) rotate(45deg);
-  transition: transform .18s ease;
-  content: "";
+  transform: translateY(-0.15rem) rotate(45deg);
+  transition: transform 0.18s ease;
+  content: '';
 }
 
 .about-question[open] summary::after {
-  transform: translateY(.15rem) rotate(-135deg);
+  transform: translateY(0.15rem) rotate(-135deg);
 }
 
 .about-answer {
@@ -119,7 +119,7 @@
 .about-downloads {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .75rem;
+  gap: 0.75rem;
   margin: 1.5rem 0 0;
   padding: 0;
   list-style: none;
@@ -127,9 +127,9 @@
 
 .about-downloads a {
   display: grid;
-  gap: .2rem;
+  gap: 0.2rem;
   min-height: 72px;
-  padding: .9rem 1rem;
+  padding: 0.9rem 1rem;
   color: var(--site-ink);
   border: 1px solid var(--site-line);
   border-radius: var(--site-radius);
@@ -149,7 +149,7 @@
   color: var(--site-ink);
   font-family: var(--site-mono);
   font-size: var(--site-text-xs);
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   overflow-wrap: anywhere;
 }
 
@@ -157,7 +157,7 @@
   margin-top: 1.25rem;
   font-family: var(--site-mono);
   font-size: var(--site-text-xs);
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 @media (max-width: 900px) {

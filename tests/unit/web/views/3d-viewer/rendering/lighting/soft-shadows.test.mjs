@@ -40,7 +40,11 @@ test('the distance-softening filter replaces only the PCF getShadow of the insta
   }
   const braces = (text) => occurrences(text, '{') - occurrences(text, '}');
   assert.equal(braces(chunk), braces(original), 'braces stay balanced');
-  assert.equal(occurrences(chunk, '#if'), occurrences(chunk, '#endif'), 'preprocessor blocks stay balanced');
+  assert.equal(
+    occurrences(chunk, '#if'),
+    occurrences(chunk, '#endif'),
+    'preprocessor blocks stay balanced',
+  );
 
   // 探測深度是「公尺 ÷ 陰影相機的深度範圍」。
   for (const metres of SOFT_SHADOW_PROBE_METRES) {
@@ -54,16 +58,31 @@ test('the distance-softening filter replaces only the PCF getShadow of the insta
 });
 
 test('an unfamiliar shader chunk is left alone instead of being patched blindly', () => {
-  assert.equal(createSoftShadowChunk('float somethingElse() { return 1.0; }', { depthRangeMetres: 60 }), null);
-  const original = THREE.ShaderChunk[CHUNK];
-  assert.equal(createSoftShadowChunk(`${original}\n${original}`, { depthRangeMetres: 60 }), null, 'ambiguous match');
   assert.equal(
-    createSoftShadowChunk(original.replaceAll('vogelDiskSample', 'otherSample'), { depthRangeMetres: 60 }),
+    createSoftShadowChunk('float somethingElse() { return 1.0; }', { depthRangeMetres: 60 }),
+    null,
+  );
+  const original = THREE.ShaderChunk[CHUNK];
+  assert.equal(
+    createSoftShadowChunk(`${original}\n${original}`, { depthRangeMetres: 60 }),
+    null,
+    'ambiguous match',
+  );
+  assert.equal(
+    createSoftShadowChunk(original.replaceAll('vogelDiskSample', 'otherSample'), {
+      depthRangeMetres: 60,
+    }),
     null,
     'helpers the replacement relies on are missing',
   );
-  assert.throws(() => createSoftShadowChunk(original, { depthRangeMetres: 0 }), /positive shadow camera depth range/);
-  assert.throws(() => createSoftShadowChunk(original, { depthRangeMetres: Number.NaN }), /positive/);
+  assert.throws(
+    () => createSoftShadowChunk(original, { depthRangeMetres: 0 }),
+    /positive shadow camera depth range/,
+  );
+  assert.throws(
+    () => createSoftShadowChunk(original, { depthRangeMetres: Number.NaN }),
+    /positive/,
+  );
 });
 
 test('installing is shared between viewers and the last one to leave restores three.js', () => {
@@ -100,8 +119,16 @@ test('installing is shared between viewers and the last one to leave restores th
 });
 
 test('shadow.radius carries either a fixed radius or the penumbra growth per metre', () => {
-  const input = { angularRadius: 0.4 * Math.PI / 180, coverageMetres: 60, mapSize: 2048, distanceSoftening: true };
-  assert.equal(shadowFilterRadius({ ...input, distanceSoftening: false }), PLAIN_SHADOW_RADIUS_TEXELS);
+  const input = {
+    angularRadius: (0.4 * Math.PI) / 180,
+    coverageMetres: 60,
+    mapSize: 2048,
+    distanceSoftening: true,
+  };
+  assert.equal(
+    shadowFilterRadius({ ...input, distanceSoftening: false }),
+    PLAIN_SHADOW_RADIUS_TEXELS,
+  );
   assert.ok(PLAIN_SHADOW_RADIUS_TEXELS > 0);
 
   const clear = shadowFilterRadius(input);
@@ -111,14 +138,19 @@ test('shadow.radius carries either a fixed radius or the penumbra growth per met
   // 晴天：10 公尺高的屋簷落到地上，半影半徑約 7 公分，貼地的欄杆腳不到 1 公分。
   assert.ok(-clear * (60 / 2048) * 10 > 0.05 && -clear * (60 / 2048) * 10 < 0.1);
 
-  const overcast = shadowFilterRadius({ ...input, angularRadius: 3 * Math.PI / 180 });
+  const overcast = shadowFilterRadius({ ...input, angularRadius: (3 * Math.PI) / 180 });
   assert.ok(overcast < clear * 5, 'a clouded sun is a much larger source');
   // 陰影貼圖越粗，同樣的半影佔的格數越少。
   assert.ok(Math.abs(shadowFilterRadius({ ...input, mapSize: 1024 }) - clear / 2) < 1e-12);
   // 點光源也不會變成 0：0 會被當成固定半徑 0。
   assert.ok(shadowFilterRadius({ ...input, angularRadius: 0 }) < 0);
 
-  for (const broken of [{ coverageMetres: 0 }, { mapSize: 0 }, { angularRadius: -1 }, { angularRadius: Number.NaN }]) {
+  for (const broken of [
+    { coverageMetres: 0 },
+    { mapSize: 0 },
+    { angularRadius: -1 },
+    { angularRadius: Number.NaN },
+  ]) {
     assert.throws(() => shadowFilterRadius({ ...input, ...broken }), /positive coverage/);
   }
 });

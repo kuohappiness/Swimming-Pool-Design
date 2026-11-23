@@ -20,16 +20,17 @@ const study = activeSolarStudyGeometry(model);
 const bearing = model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth;
 const RADIANS = Math.PI / 180;
 
-const mirrorAt = (planRotation, leanFromVertical = study.mirrorLeanFromVertical) => deriveMirrorGeometry({
-  startX: study.startX,
-  width: study.width,
-  pivot: { x: study.pivotX, y: study.pivotY },
-  planRotation,
-  leanFromVertical,
-  height: study.mirrorHeight,
-  baseElevation: study.baseElevation,
-  positiveXAxisBearingFromTrueNorth: bearing,
-});
+const mirrorAt = (planRotation, leanFromVertical = study.mirrorLeanFromVertical) =>
+  deriveMirrorGeometry({
+    startX: study.startX,
+    width: study.width,
+    pivot: { x: study.pivotX, y: study.pivotY },
+    planRotation,
+    leanFromVertical,
+    height: study.mirrorHeight,
+    baseElevation: study.baseElevation,
+    positiveXAxisBearingFromTrueNorth: bearing,
+  });
 
 const close = (actual, expected, tolerance, label) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} ≠ ${expected}`);
@@ -41,7 +42,10 @@ function independentCorners(planRotation, leanFromVertical) {
   const unit = (azimuth) => ({ e: Math.sin(azimuth * RADIANS), n: Math.cos(azimuth * RADIANS) });
   const siteX = unit(bearing);
   const siteY = unit(bearing - 90);
-  const toEastNorth = ({ x, y }) => ({ e: x * siteX.e + y * siteY.e, n: x * siteX.n + y * siteY.n });
+  const toEastNorth = ({ x, y }) => ({
+    e: x * siteX.e + y * siteY.e,
+    n: x * siteX.n + y * siteY.n,
+  });
   const toSite = ({ e, n }) => ({ x: e * siteX.e + n * siteX.n, y: e * siteY.e + n * siteY.n });
   const pivot = toEastNorth({ x: study.pivotX, y: study.pivotY });
   const r = planRotation * RADIANS;
@@ -49,7 +53,10 @@ function independentCorners(planRotation, leanFromVertical) {
     const p = toEastNorth(point);
     const e = p.e - pivot.e;
     const n = p.n - pivot.n;
-    return toSite({ e: pivot.e + e * Math.cos(r) + n * Math.sin(r), n: pivot.n - e * Math.sin(r) + n * Math.cos(r) });
+    return toSite({
+      e: pivot.e + e * Math.cos(r) + n * Math.sin(r),
+      n: pivot.n - e * Math.sin(r) + n * Math.cos(r),
+    });
   };
   const lower = [turn({ x: study.startX, y: 0 }), turn({ x: study.startX, y: study.width })];
   const normal = toSite(unit(bearing + 180 + planRotation));
@@ -65,8 +72,18 @@ test('mirror corners match an independent compass-frame formula at any angle', (
       const expected = independentCorners(planRotation, lean);
       for (const edge of ['lower', 'upper']) {
         mirror[edge].forEach((corner, index) => {
-          close(corner.x, expected[edge][index].x, 1e-9, `${edge}[${index}].x at ${planRotation}°/${lean}°`);
-          close(corner.y, expected[edge][index].y, 1e-9, `${edge}[${index}].y at ${planRotation}°/${lean}°`);
+          close(
+            corner.x,
+            expected[edge][index].x,
+            1e-9,
+            `${edge}[${index}].x at ${planRotation}°/${lean}°`,
+          );
+          close(
+            corner.y,
+            expected[edge][index].y,
+            1e-9,
+            `${edge}[${index}].y at ${planRotation}°/${lean}°`,
+          );
         });
       }
       close(mirror.normal.x, expected.normal.x, 1e-12, 'normal.x');
@@ -90,16 +107,24 @@ test('mirror invariants hold for any rotation and lean', () => {
       close(corner.y - lower[index].y, normal.y * lean, 1e-9, 'top leans out along the normal');
       close(corner.z - lower[index].z, study.mirrorHeight, 1e-12, 'mirror height');
     });
-    const unrotated = [{ x: study.startX, y: 0 }, { x: study.startX, y: study.width }];
-    lower.forEach((corner, index) => close(
-      Math.hypot(corner.x - pivot.x, corner.y - pivot.y),
-      Math.hypot(unrotated[index].x - pivot.x, unrotated[index].y - pivot.y),
-      1e-9,
-      'rotation keeps distance to the pivot',
-    ));
+    const unrotated = [
+      { x: study.startX, y: 0 },
+      { x: study.startX, y: study.width },
+    ];
+    lower.forEach((corner, index) =>
+      close(
+        Math.hypot(corner.x - pivot.x, corner.y - pivot.y),
+        Math.hypot(unrotated[index].x - pivot.x, unrotated[index].y - pivot.y),
+        1e-9,
+        'rotation keeps distance to the pivot',
+      ),
+    );
   }
   const level = mirrorAt(0, 0);
-  assert.deepEqual(level.lower.map(({ x }) => x), [study.startX, study.startX]);
+  assert.deepEqual(
+    level.lower.map(({ x }) => x),
+    [study.startX, study.startX],
+  );
   close(level.normal.x, -1, 1e-12, 'unrotated mirror faces SITE −X');
   close(level.normal.y, 0, 1e-12, 'unrotated mirror faces SITE −X');
 });
@@ -117,8 +142,18 @@ test('handedness guard: clockwise L3 rotation and compass conversion keep their 
   assert.ok(turned.lower[0].y > level.lower[0].y, 'clockwise rotation raises Y at the Y0 end');
   assert.ok(turned.lower[1].x > level.lower[1].x, 'clockwise rotation raises X at the far end');
   const active = mirrorAt(study.planRotation);
-  close(active.normalAzimuth, deriveMirrorNormalAzimuth(model.referenceSystem, study.planRotation), 1e-9, 'normal azimuth');
-  close(azimuthFromSiteVector(active.normal, bearing), active.normalAzimuth, 1e-9, 'normal vector matches its azimuth');
+  close(
+    active.normalAzimuth,
+    deriveMirrorNormalAzimuth(model.referenceSystem, study.planRotation),
+    1e-9,
+    'normal azimuth',
+  );
+  close(
+    azimuthFromSiteVector(active.normal, bearing),
+    active.normalAzimuth,
+    1e-9,
+    'normal vector matches its azimuth',
+  );
 });
 
 test('snapshot for the GEO-0.8.2 angles (+25.5° plan, +23.0° lean, pivot X35)', () => {
@@ -127,7 +162,13 @@ test('snapshot for the GEO-0.8.2 angles (+25.5° plan, +23.0° lean, pivot X35)'
   assert.equal(study.pivotX, 35);
   const round = ({ x, y, z }) => [Number(x.toFixed(6)), Number(y.toFixed(6)), Number(z.toFixed(2))];
   const mirror = mirrorAt(study.planRotation);
-  assert.deepEqual(mirror.lower.map(round), [[26.678538, 3.240616, 6.88], [32.490438, 15.425517, 6.88]]);
-  assert.deepEqual(mirror.upper.map(round), [[25.299289, 3.898484, 10.48], [31.111189, 16.083385, 10.48]]);
+  assert.deepEqual(mirror.lower.map(round), [
+    [26.678538, 3.240616, 6.88],
+    [32.490438, 15.425517, 6.88],
+  ]);
+  assert.deepEqual(mirror.upper.map(round), [
+    [25.299289, 3.898484, 10.48],
+    [31.111189, 16.083385, 10.48],
+  ]);
   assert.equal(mirror.normalAzimuth, 152.5);
 });

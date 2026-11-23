@@ -54,17 +54,26 @@ test('phase-one building detail roots cover envelope, pool hall, and L2 interior
     assert.ok(graph.siteRoot.getObjectByName('visual-only:POOL-HALL-ceiling-lights:12'));
     assert.ok(graph.siteRoot.getObjectByName('visual-only:L2-shower-heads:30'));
     assert.ok(graph.siteRoot.getObjectByName('visual-only:L2-shower-drains:30'));
-    assert.equal(Array.from({ length: 10 }, (_, index) =>
-      graph.siteRoot.getObjectByName(`visual-only:POOL-01-caustic:${index + 1}`))
-      .every(Boolean), true);
-    assert.equal(marked(poolHall, 'essential').every(({ visible }) => visible), true);
-    assert.equal([
-      ...marked(architecture, 'reduced'),
-      ...marked(poolHall, 'reduced'),
-      ...marked(poolHall, 'full'),
-      ...marked(l2Interior, 'reduced'),
-      ...marked(l2Interior, 'full'),
-    ].every(({ visible }) => !visible), true);
+    assert.equal(
+      Array.from({ length: 10 }, (_, index) =>
+        graph.siteRoot.getObjectByName(`visual-only:POOL-01-caustic:${index + 1}`),
+      ).every(Boolean),
+      true,
+    );
+    assert.equal(
+      marked(poolHall, 'essential').every(({ visible }) => visible),
+      true,
+    );
+    assert.equal(
+      [
+        ...marked(architecture, 'reduced'),
+        ...marked(poolHall, 'reduced'),
+        ...marked(poolHall, 'full'),
+        ...marked(l2Interior, 'reduced'),
+        ...marked(l2Interior, 'full'),
+      ].every(({ visible }) => !visible),
+      true,
+    );
   } finally {
     rendering.materials.dispose();
     rendering.visualAssets.dispose();
@@ -83,26 +92,35 @@ test('building detail tiers degrade without altering canonical movement data or 
     const architecture = graph.siteRoot.getObjectByName('ARCHITECTURAL-DETAILS-PHASE-1');
     const poolHall = graph.siteRoot.getObjectByName('POOL-HALL-DETAILS-PHASE-1');
     const l2Interior = graph.siteRoot.getObjectByName('L2-INTERIOR-DETAILS-PHASE-1');
-    assert.equal([
-      ...marked(architecture, 'reduced'),
-      ...marked(architecture, 'full'),
-      ...marked(poolHall, 'essential'),
-      ...marked(poolHall, 'reduced'),
-      ...marked(poolHall, 'full'),
-      ...marked(l2Interior, 'reduced'),
-      ...marked(l2Interior, 'full'),
-    ].every(({ visible }) => visible), true);
+    assert.equal(
+      [
+        ...marked(architecture, 'reduced'),
+        ...marked(architecture, 'full'),
+        ...marked(poolHall, 'essential'),
+        ...marked(poolHall, 'reduced'),
+        ...marked(poolHall, 'full'),
+        ...marked(l2Interior, 'reduced'),
+        ...marked(l2Interior, 'full'),
+      ].every(({ visible }) => visible),
+      true,
+    );
 
     adapter.setQuality(getEnhancedQualityProfile('low'));
-    assert.equal(marked(poolHall, 'essential').every(({ visible }) => visible), true);
-    assert.equal([
-      ...marked(architecture, 'reduced'),
-      ...marked(architecture, 'full'),
-      ...marked(poolHall, 'reduced'),
-      ...marked(poolHall, 'full'),
-      ...marked(l2Interior, 'reduced'),
-      ...marked(l2Interior, 'full'),
-    ].every(({ visible }) => !visible), true);
+    assert.equal(
+      marked(poolHall, 'essential').every(({ visible }) => visible),
+      true,
+    );
+    assert.equal(
+      [
+        ...marked(architecture, 'reduced'),
+        ...marked(architecture, 'full'),
+        ...marked(poolHall, 'reduced'),
+        ...marked(poolHall, 'full'),
+        ...marked(l2Interior, 'reduced'),
+        ...marked(l2Interior, 'full'),
+      ].every(({ visible }) => !visible),
+      true,
+    );
     assert.equal(JSON.stringify(adaptWalkthroughSource(viewerModel)), collisionBefore);
     assert.equal(graph.water.surface.userData.waterStateSource, 'walkthrough-main-pool-water');
   } finally {

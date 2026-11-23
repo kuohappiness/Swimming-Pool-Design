@@ -77,7 +77,10 @@ test('tone mapping profiles cover only the existing scene environments with ACES
     assert.equal(profile.outputColorSpace, THREE.SRGBColorSpace);
     assert.ok(profile.exposure > 0.7 && profile.exposure < 1);
   }
-  assert.equal(getToneMappingProfile('rain').exposure < getToneMappingProfile('day').exposure, true);
+  assert.equal(
+    getToneMappingProfile('rain').exposure < getToneMappingProfile('day').exposure,
+    true,
+  );
   assert.throws(() => getToneMappingProfile('second-day'), /unknown/);
 });
 
@@ -156,7 +159,9 @@ test('optional environment failure keeps the enhanced scene operational with a d
 });
 
 test('computed sun lighting overrides the fixed scene moods and survives scene and quality changes', async () => {
-  const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+  const { computeSunLighting } = await vite.ssrLoadModule(
+    '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
+  );
   const winterMorning = computeSunLighting({
     moment: { year: 2026, month: 12, day: 21, minutes: 570 },
     location: { latitude: 24.14434, longitude: 120.67341, utcOffsetHours: 8 },
@@ -178,7 +183,7 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
     moonDirection: new THREE.Vector3(-0.5, 0.74, -0.45),
     keyColor: [1, 0.82, 0.6],
     keyIntensity: 2.4,
-    keyAngularRadius: 0.4 * Math.PI / 180,
+    keyAngularRadius: (0.4 * Math.PI) / 180,
     skyColor: [0.8, 0.9, 1],
     groundColor: [0.2, 0.17, 0.12],
     skyIntensity: 1.2,
@@ -189,12 +194,16 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
     shadowFocus: { centre: new THREE.Vector3(1, 5, -2), radius: 30 },
     ...overrides,
   });
-  const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} ≈ ${expected}`);
+  const close = (actual, expected) =>
+    assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} ≈ ${expected}`);
   try {
     effect.apply('day', target);
     const fixedEnvironmentIntensity = target.scene.environmentIntensity;
     effect.applyLighting(lighting(), target);
-    assert.deepEqual(target.lights.sun.color.toArray().map((value) => Number(value.toFixed(6))), [1, 0.82, 0.6]);
+    assert.deepEqual(
+      target.lights.sun.color.toArray().map((value) => Number(value.toFixed(6))),
+      [1, 0.82, 0.6],
+    );
     assert.equal(target.lights.sun.intensity, 2.4);
     assert.deepEqual(target.lights.sun.target.position.toArray(), [1, 5, -2]);
     close(target.lights.sun.position.distanceTo(target.lights.sun.target.position), 60);
@@ -219,15 +228,15 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
     // 陰天光源變大、影子更柔；中畫質維持固定半徑。
     assert.equal(target.lights.sun.shadow.radius, 1.5);
     effect.setSoftShadows(true);
-    close(target.lights.sun.shadow.radius, -Math.tan(0.4 * Math.PI / 180) / (60 / 2048));
-    effect.applyLighting(lighting({ keyAngularRadius: 3 * Math.PI / 180 }), target);
-    close(target.lights.sun.shadow.radius, -Math.tan(3 * Math.PI / 180) / (60 / 2048));
+    close(target.lights.sun.shadow.radius, -Math.tan((0.4 * Math.PI) / 180) / (60 / 2048));
+    effect.applyLighting(lighting({ keyAngularRadius: (3 * Math.PI) / 180 }), target);
+    close(target.lights.sun.shadow.radius, -Math.tan((3 * Math.PI) / 180) / (60 / 2048));
     effect.setQuality(ENHANCED_QUALITY_PROFILES.medium);
     assert.equal(target.lights.sun.shadow.radius, 1.5);
     close(target.lights.ambient.intensity, 1.2 * (1 - 0.46));
     effect.setQuality(ENHANCED_QUALITY_PROFILES.high);
     effect.applyLighting(lighting(), target);
-    close(target.lights.sun.shadow.radius, -Math.tan(0.4 * Math.PI / 180) / (60 / 2048));
+    close(target.lights.sun.shadow.radius, -Math.tan((0.4 * Math.PI) / 180) / (60 / 2048));
 
     // 換場景會先寫入固定的環境，再蓋回算出來的光；霧始終是同一個物件。
     const fog = target.scene.fog;
@@ -248,7 +257,10 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
     // 潛到水裡時漫遊會暫時換上水下的霧；時刻改變不可以把它換掉，浮出來之後接回的霧已是新的顏色。
     const underwater = new THREE.FogExp2(0x2f8f9a, 0.2);
     target.scene.fog = underwater;
-    effect.applyLighting(lighting({ horizon: [0.1, 0.2, 0.3], fog: { near: 40, far: 100 } }), target);
+    effect.applyLighting(
+      lighting({ horizon: [0.1, 0.2, 0.3], fog: { near: 40, far: 100 } }),
+      target,
+    );
     assert.equal(target.scene.fog, underwater);
     close(fog.color.r, 0.1);
     assert.deepEqual([fog.near, fog.far], [40, 100]);
@@ -262,17 +274,26 @@ test('computed sun lighting overrides the fixed scene moods and survives scene a
 });
 
 test('reflections and indirect light come from the sky once it settles, and never on the saver tier', async () => {
-  const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
-  const { toSceneLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/scene-lighting.ts');
+  const { computeSunLighting } = await vite.ssrLoadModule(
+    '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
+  );
+  const { toSceneLighting } = await vite.ssrLoadModule(
+    '/src/views/3d-viewer/rendering/lighting/scene-lighting.ts',
+  );
   const siteRoot = new THREE.Group();
   siteRoot.scale.set(1, 1, -1);
   siteRoot.updateMatrixWorld(true);
-  const lightingAt = (minutes, weather = 'clear') => toSceneLighting(computeSunLighting({
-    moment: { year: 2026, month: 12, day: 21, minutes },
-    location: { latitude: 24.14434, longitude: 120.67341, utcOffsetHours: 8 },
-    positiveXAxisBearingFromTrueNorth: 307,
-    weather,
-  }), siteRoot, { centre: new THREE.Vector3(), radius: 30 });
+  const lightingAt = (minutes, weather = 'clear') =>
+    toSceneLighting(
+      computeSunLighting({
+        moment: { year: 2026, month: 12, day: 21, minutes },
+        location: { latitude: 24.14434, longitude: 120.67341, utcOffsetHours: 8 },
+        positiveXAxisBearingFromTrueNorth: 307,
+        weather,
+      }),
+      siteRoot,
+      { centre: new THREE.Vector3(), radius: 30 },
+    );
 
   const fixtures = environmentFixtures();
   const skyMaps = [];
@@ -296,7 +317,8 @@ test('reflections and indirect light come from the sky once it settles, and neve
     mapFactory: fixtures.mapFactory,
   });
   const target = environmentTarget();
-  const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} ≈ ${expected}`);
+  const close = (actual, expected) =>
+    assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} ≈ ${expected}`);
   try {
     effect.apply('day', target);
     const base = target.scene.environmentIntensity;
@@ -328,7 +350,7 @@ test('reflections and indirect light come from the sky once it settles, and neve
     effect.applyLighting(dusk, target);
     assert.equal(target.scene.children.filter((child) => child.name === 'SKY-DOME').length, 1);
     assert.equal(target.scene.environment, skyMaps[0]);
-    close(target.scene.environmentIntensity, base * dusk.skyIntensity / morning.skyIntensity);
+    close(target.scene.environmentIntensity, (base * dusk.skyIntensity) / morning.skyIntensity);
     assert.ok(target.scene.environmentIntensity < base);
     assert.equal(effect.refreshEnvironment(), true);
     assert.equal(target.scene.environment, skyMaps[1]);
@@ -379,10 +401,18 @@ function rendererFixture() {
     outputColorSpace: null,
     toneMapping: null,
     toneMappingExposure: null,
-    setPixelRatio(value) { calls.push(['pixelRatio', value]); },
-    setSize(width, height, updateStyle) { calls.push(['size', width, height, updateStyle]); },
-    render(scene, camera) { calls.push(['render', scene, camera]); },
-    resetState() { calls.push(['reset']); },
+    setPixelRatio(value) {
+      calls.push(['pixelRatio', value]);
+    },
+    setSize(width, height, updateStyle) {
+      calls.push(['size', width, height, updateStyle]);
+    },
+    render(scene, camera) {
+      calls.push(['render', scene, camera]);
+    },
+    resetState() {
+      calls.push(['reset']);
+    },
   };
 }
 
@@ -421,7 +451,10 @@ test('medium and low frame pipelines render directly without changing interactio
   assert.equal(renderer.shadowMap.enabled, false);
   assert.equal(pipeline.usesAmbientOcclusion, false);
   pipeline.restore();
-  assert.equal(renderer.calls.some(([name]) => name === 'reset'), true);
+  assert.equal(
+    renderer.calls.some(([name]) => name === 'reset'),
+    true,
+  );
   assert.deepEqual(camera.position.toArray(), before.camera);
   assert.equal(layer.visible, before.layer);
   assert.deepEqual(state, before.state);
@@ -461,7 +494,11 @@ test('a scene renderer can take a frame over, and the pipeline draws when it dec
   });
   pipeline.render(scene, camera);
   assert.deepEqual(taken, [[scene, camera]]);
-  assert.equal(renderer.calls.some(([name]) => name === 'render'), false, 'the frame is not drawn twice');
+  assert.equal(
+    renderer.calls.some(([name]) => name === 'render'),
+    false,
+    'the frame is not drawn twice',
+  );
   takeOver = false;
   pipeline.render(scene, camera);
   assert.deepEqual(renderer.calls.at(-1), ['render', scene, camera]);

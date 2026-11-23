@@ -51,11 +51,7 @@ const collisionWorld = new CollisionWorld(
   graph.siteRoot.matrixWorld,
   WALKTHROUGH_CONFIG,
 );
-const safeSpawns = new SafeSpawnRegistry(
-  walkthroughSource,
-  collisionWorld,
-  WALKTHROUGH_CONFIG,
-);
+const safeSpawns = new SafeSpawnRegistry(walkthroughSource, collisionWorld, WALKTHROUGH_CONFIG);
 const water = new WaterVolume(
   walkthroughSource.waterVolumes[0],
   walkthroughSource.poolShells[0],
@@ -83,15 +79,14 @@ function worldYawForSiteDirection(from, to) {
   return Math.atan2(-(end.x - start.x), -(end.z - start.z));
 }
 
-function createSwimmingController(siteX, siteElevation, siteZ, movementMode = 'swimming-underwater') {
+function createSwimmingController(
+  siteX,
+  siteElevation,
+  siteZ,
+  movementMode = 'swimming-underwater',
+) {
   const walking = new WalkMovement(collisionWorld, safeSpawns, WALKTHROUGH_CONFIG);
-  const swimming = new SwimMovement(
-    walking,
-    collisionWorld,
-    water,
-    safeSpawns,
-    WALKTHROUGH_CONFIG,
-  );
+  const swimming = new SwimMovement(walking, collisionWorld, water, safeSpawns, WALKTHROUGH_CONFIG);
   const controller = new PlayerController(WALKTHROUGH_CONFIG, swimming);
   controller.setPose(siteToWorld(siteX, siteElevation, siteZ));
   controller.state.movementMode = movementMode;
@@ -118,10 +113,10 @@ test('rendered water, simulation waterline, sloped bottom, and collision support
 
   const shallow = siteToWorld(3, 0, 8);
   const deep = siteToWorld(28, 0, 8);
-  assert.ok(Math.abs(water.bottomWorldElevation(shallow) - (-0.98)) < 1e-9);
-  assert.ok(Math.abs(water.bottomWorldElevation(deep) - (-1.28)) < 1e-9);
-  assert.ok(Math.abs(collisionWorld.getGroundHeight(shallow, 0) - (-0.98)) < 1e-9);
-  assert.ok(Math.abs(collisionWorld.getGroundHeight(deep, 0) - (-1.28)) < 1e-9);
+  assert.ok(Math.abs(water.bottomWorldElevation(shallow) - -0.98) < 1e-9);
+  assert.ok(Math.abs(water.bottomWorldElevation(deep) - -1.28) < 1e-9);
+  assert.ok(Math.abs(collisionWorld.getGroundHeight(shallow, 0) - -0.98) < 1e-9);
+  assert.ok(Math.abs(collisionWorld.getGroundHeight(deep, 0) - -1.28) < 1e-9);
 });
 
 test('waterline hysteresis avoids surface jitter and supports deliberate dive and ascent', () => {
@@ -140,10 +135,7 @@ test('waterline hysteresis avoids surface jitter and supports deliberate dive an
 });
 
 test('underwater movement is fixed-step stable and clamps pool walls and sloped bottom', () => {
-  const positiveX = worldYawForSiteDirection(
-    { x: 20, y: 0, z: 8 },
-    { x: 21, y: 0, z: 8 },
-  );
+  const positiveX = worldYawForSiteDirection({ x: 20, y: 0, z: 8 }, { x: 21, y: 0, z: 8 });
   const swimForward = { ...stationaryIntent, moveZ: -1 };
   const run = (fps) => {
     const { controller } = createSwimmingController(20, -0.3, 8);
@@ -189,7 +181,10 @@ test('assisted climb and poolside recovery return to clear supported deck positi
 
 test('semantic area registry jumps only through validated safe spawns', () => {
   const areas = new SafeSpawnAreaRegistry(safeSpawns);
-  assert.deepEqual(areas.areas.map(({ id }) => id), safeSpawns.ids);
+  assert.deepEqual(
+    areas.areas.map(({ id }) => id),
+    safeSpawns.ids,
+  );
   const { controller } = createSwimmingController(15, -0.25, 8);
   for (const area of areas.areas) {
     const activated = areas.activate(controller.state, area.id);

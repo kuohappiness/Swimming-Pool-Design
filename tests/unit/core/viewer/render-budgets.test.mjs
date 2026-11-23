@@ -15,9 +15,17 @@ const MEBIBYTE = 1024 * 1024;
 test('render budgets carry the agreed hard limits for the four tiers', () => {
   assert.deepEqual(REALISM_TIER_IDS, ['ultra', 'high', 'medium', 'saver']);
   assert.equal(assertRenderBudgets(), RENDER_BUDGETS);
-  assert.deepEqual(RENDER_BUDGETS.ultra, { drawCalls: 500, triangles: 800_000, downloadBytes: 40 * MEBIBYTE });
+  assert.deepEqual(RENDER_BUDGETS.ultra, {
+    drawCalls: 500,
+    triangles: 800_000,
+    downloadBytes: 40 * MEBIBYTE,
+  });
   assert.equal(RENDER_BUDGETS.high.downloadBytes, 20 * MEBIBYTE);
-  assert.deepEqual(RENDER_BUDGETS.medium, { drawCalls: 200, triangles: 250_000, downloadBytes: 8 * MEBIBYTE });
+  assert.deepEqual(RENDER_BUDGETS.medium, {
+    drawCalls: 200,
+    triangles: 250_000,
+    downloadBytes: 8 * MEBIBYTE,
+  });
   assert.equal(RENDER_BUDGETS.saver.downloadBytes, 4 * MEBIBYTE);
   assert.equal(Object.isFrozen(RENDER_BUDGETS) && Object.isFrozen(RENDER_BUDGETS.medium), true);
   assert.equal(isRealismTierId('saver'), true);
@@ -26,27 +34,32 @@ test('render budgets carry the agreed hard limits for the four tiers', () => {
 
 test('render budgets must not grow toward lower tiers', () => {
   assert.throws(
-    () => assertRenderBudgets({
-      ...RENDER_BUDGETS,
-      saver: { ...RENDER_BUDGETS.saver, drawCalls: RENDER_BUDGETS.medium.drawCalls + 1 },
-    }),
+    () =>
+      assertRenderBudgets({
+        ...RENDER_BUDGETS,
+        saver: { ...RENDER_BUDGETS.saver, drawCalls: RENDER_BUDGETS.medium.drawCalls + 1 },
+      }),
     /must not grow/,
   );
   assert.throws(
-    () => assertRenderBudgets({ ...RENDER_BUDGETS, high: { ...RENDER_BUDGETS.high, triangles: 0 } }),
+    () =>
+      assertRenderBudgets({ ...RENDER_BUDGETS, high: { ...RENDER_BUDGETS.high, triangles: 0 } }),
     /positive integer/,
   );
 });
 
 test('asset check accepts registered kinds within the size limits', () => {
-  assert.deepEqual(findAssetBudgetErrors([
-    { path: 'README.md', byteSize: 1_500 },
-    { path: 'materials/concrete/base-color.ktx2', byteSize: ASSET_FILE_LIMITS.textureBytes },
-    { path: 'materials/water-normal.svg', byteSize: 670 },
-    { path: 'models/people/swimmer-01.glb', byteSize: ASSET_FILE_LIMITS.modelBytes },
-    { path: 'lightmaps/bake-registry.json', byteSize: 2_048 },
-    { path: 'audio/pool-hall.ogg', byteSize: 400_000 },
-  ]), []);
+  assert.deepEqual(
+    findAssetBudgetErrors([
+      { path: 'README.md', byteSize: 1_500 },
+      { path: 'materials/concrete/base-color.ktx2', byteSize: ASSET_FILE_LIMITS.textureBytes },
+      { path: 'materials/water-normal.svg', byteSize: 670 },
+      { path: 'models/people/swimmer-01.glb', byteSize: ASSET_FILE_LIMITS.modelBytes },
+      { path: 'lightmaps/bake-registry.json', byteSize: 2_048 },
+      { path: 'audio/pool-hall.ogg', byteSize: 400_000 },
+    ]),
+    [],
+  );
 });
 
 test('asset check rejects oversized files, raw originals and bad names', () => {

@@ -21,7 +21,7 @@ async function listFiles(directory, prefix) {
   const files = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = `${prefix}/${entry.name}`;
-    if (entry.isDirectory()) files.push(...await listFiles(resolve(directory, entry.name), path));
+    if (entry.isDirectory()) files.push(...(await listFiles(resolve(directory, entry.name), path)));
     else files.push(path);
   }
   return files;
@@ -50,13 +50,31 @@ test('manifest entries are frozen and converted textures carry their conversion 
 });
 
 test('values that JSON cannot type-check are validated at load', () => {
-  assert.throws(() => assertVisualAssetManifest([{ ...sample, kind: 'video' }]), /kind, requirement or loading priority/);
-  assert.throws(() => assertVisualAssetManifest([{ ...sample, requirement: 'maybe' }]), /kind, requirement or loading priority/);
-  assert.throws(() => assertVisualAssetManifest([{ ...sample, loadingPriority: 'now' }]), /kind, requirement or loading priority/);
-  assert.throws(() => assertVisualAssetManifest([{ ...ktx2, conversion: undefined }]), /conversion record/);
-  assert.throws(() => assertVisualAssetManifest([{ ...sample, conversion: ktx2.conversion }]), /conversion record/);
   assert.throws(
-    () => assertVisualAssetManifest([{ ...ktx2, conversion: { ...ktx2.conversion, sourceSha256: 'abc' } }]),
+    () => assertVisualAssetManifest([{ ...sample, kind: 'video' }]),
+    /kind, requirement or loading priority/,
+  );
+  assert.throws(
+    () => assertVisualAssetManifest([{ ...sample, requirement: 'maybe' }]),
+    /kind, requirement or loading priority/,
+  );
+  assert.throws(
+    () => assertVisualAssetManifest([{ ...sample, loadingPriority: 'now' }]),
+    /kind, requirement or loading priority/,
+  );
+  assert.throws(
+    () => assertVisualAssetManifest([{ ...ktx2, conversion: undefined }]),
+    /conversion record/,
+  );
+  assert.throws(
+    () => assertVisualAssetManifest([{ ...sample, conversion: ktx2.conversion }]),
+    /conversion record/,
+  );
+  assert.throws(
+    () =>
+      assertVisualAssetManifest([
+        { ...ktx2, conversion: { ...ktx2.conversion, sourceSha256: 'abc' } },
+      ]),
     /conversion source hash/,
   );
 });

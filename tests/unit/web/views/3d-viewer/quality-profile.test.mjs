@@ -11,21 +11,14 @@ const vite = await createServer({
   optimizeDeps: { noDiscovery: true },
   server: { middlewareMode: true, hmr: false },
 });
-const [
-  qualityModule,
-  manifestModule,
-  performanceModule,
-] = await Promise.all([
+const [qualityModule, manifestModule, performanceModule] = await Promise.all([
   vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/quality-profiles.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/asset-manifest.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/performance-profile.ts'),
 ]);
 test.after(async () => vite.close());
 
-const {
-  ENHANCED_QUALITY_PROFILES,
-  assertEnhancedQualityProfiles,
-} = qualityModule;
+const { ENHANCED_QUALITY_PROFILES, assertEnhancedQualityProfiles } = qualityModule;
 const { getVisualAssetByteSize } = manifestModule;
 const { adaptRenderQualityProfile } = performanceModule;
 
@@ -75,10 +68,7 @@ test('quality adaptation changes visual cost only and leaves semantic state unto
 });
 
 test('viewer publishes deterministic GPU diagnostics and restores only rendering state', async () => {
-  const source = await readFile(
-    resolve(repoRoot, 'web/src/views/3d-viewer/main.ts'),
-    'utf8',
-  );
+  const source = await readFile(resolve(repoRoot, 'web/src/views/3d-viewer/main.ts'), 'utf8');
   assert.match(source, /renderer\.info\.autoReset = false/);
   assert.match(source, /await renderer\.compileAsync\(graph\.scene, camera\)/);
   assert.match(source, /dataset\.shaderCompileMs/);
@@ -89,8 +79,5 @@ test('viewer publishes deterministic GPU diagnostics and restores only rendering
   assert.match(source, /swiftshader\|software\|llvmpipe/i);
   // 軟體繪圖一律從省電級啟動：判斷在 QualitySession，main 只把偵測結果交給它（DEC-190）。
   assert.match(source, /new QualitySession\(\{[\s\S]*?softwareRenderer,/);
-  assert.match(
-    source,
-    /webglcontextrestored[\s\S]*rendering\.framePipeline\.restore\(\)/,
-  );
+  assert.match(source, /webglcontextrestored[\s\S]*rendering\.framePipeline\.restore\(\)/);
 });
