@@ -1200,8 +1200,9 @@ export function createViewerScene(
   const stair2 = model.geometry.l2.stairToL3;
   const stair2Group = new THREE.Group();
   const stair2Width = stair2.bounds.y2 - stair2.bounds.y1;
-  const addStair2Flight = (baseX: number, baseElevation: number) => {
-    for (let index = 0; index < stair2.treadsPerRun; index += 1) {
+  const [stair2FirstRun, stair2SecondRun] = stair2.flightRuns;
+  const addStair2Flight = (baseX: number, baseElevation: number, treads: number) => {
+    for (let index = 0; index < treads; index += 1) {
       const treadElevation = baseElevation + stair2.riserHeight * (index + 1);
       stair2Group.add(
         box(
@@ -1217,11 +1218,11 @@ export function createViewerScene(
       );
     }
   };
-  addStair2Flight(stair2.bounds.x1, stair2.lowerElevation);
-  const stair2SecondStart = stair2.bounds.x1 + stair2.flightRun + stair2.midLandingLength;
-  addStair2Flight(stair2SecondStart, stair2.midLandingElevation);
+  addStair2Flight(stair2.bounds.x1, stair2.lowerElevation, stair2.treadsPerRun[0]);
+  const stair2SecondStart = stair2.bounds.x1 + stair2FirstRun + stair2.midLandingLength;
+  addStair2Flight(stair2SecondStart, stair2.midLandingElevation, stair2.treadsPerRun[1]);
   stair2Group.add(
-    box([stair2.midLandingLength, 0.16, stair2Width], [stair2.bounds.x1 + stair2.flightRun + stair2.midLandingLength / 2, stair2.midLandingElevation - 0.08, stair2.bounds.y1 + stair2Width / 2], dark),
+    box([stair2.midLandingLength, 0.16, stair2Width], [stair2.bounds.x1 + stair2FirstRun + stair2.midLandingLength / 2, stair2.midLandingElevation - 0.08, stair2.bounds.y1 + stair2Width / 2], dark),
     box([stair2.upperLandingLength, 0.16, stair2Width], [stair2.bounds.x2 - stair2.upperLandingLength / 2, stair2.upperElevation - 0.08, stair2.bounds.y1 + stair2Width / 2], dark),
   );
   const stair2StringerZs = [
@@ -1232,19 +1233,19 @@ export function createViewerScene(
     stair2Group.add(
       beamBetween(
         new THREE.Vector3(stair2.bounds.x1 + 0.1, stair2.lowerElevation - 0.1, z),
-        new THREE.Vector3(stair2.bounds.x1 + stair2.flightRun - 0.1, stair2.midLandingElevation - 0.1, z),
+        new THREE.Vector3(stair2.bounds.x1 + stair2FirstRun - 0.1, stair2.midLandingElevation - 0.1, z),
         0.2,
         0.12,
         dark,
       ),
       box([stair2.midLandingLength, 0.2, 0.12], [
-        stair2.bounds.x1 + stair2.flightRun + stair2.midLandingLength / 2,
+        stair2.bounds.x1 + stair2FirstRun + stair2.midLandingLength / 2,
         stair2.midLandingElevation - 0.18,
         z,
       ], dark),
       beamBetween(
         new THREE.Vector3(stair2SecondStart + 0.1, stair2.midLandingElevation - 0.1, z),
-        new THREE.Vector3(stair2.bounds.x2 - stair2.upperLandingLength - 0.1, stair2.upperElevation - 0.1, z),
+        new THREE.Vector3(stair2SecondStart + stair2SecondRun - 0.1, stair2.upperElevation - 0.1, z),
         0.2,
         0.12,
         dark,

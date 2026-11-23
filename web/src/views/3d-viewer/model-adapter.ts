@@ -268,9 +268,9 @@ export interface ViewerModel {
       stairToL3: {
         entityId: 'ST-02'; coordinateSystemId: 'SITE-XY'; bounds: SiteBounds;
         lowerElevation: number; upperElevation: number; totalRise: number; clearWidth: number;
-        axis: '+x'; lowerStartX: number; riserCount: number; runs: 2; risersPerRun: number;
-        treadsPerRun: number; riserHeight: number; treadDepth: number; runLengthPerFlight: number;
-        flightRun: number; midLandingLength: number; upperLandingLength: number;
+        axis: '+x'; lowerStartX: number; riserCount: number; runs: 2; risersPerRun: [number, number];
+        treadsPerRun: [number, number]; riserHeight: number; treadDepth: number; runLengths: [number, number];
+        flightRuns: [number, number]; midLandingLength: number; upperLandingLength: number;
         midLandingElevation: number; totalPlanLength: number; yBandLocked: [number, number];
         upperConnection: string; designIntent: 'suspended-floating-stair'; treadConstruction: string;
         stringerStrategy: string; stringerCount: 2; midLandingSupport: string; underStairEnclosure: false;

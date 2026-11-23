@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { deriveStairFlights, deriveStairNosings } from '../../../../core/geometry/stair-geometry.mjs';
 
 // 合規對照（TASK-121、DEC-160）：docs/analysis/compliance.md 的模型值與狀態必須和模型算出來的一致。
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -31,7 +32,10 @@ const checks = {
   'CMP-06': { value: (g) => g.l2.stairToL3.riserHeight, format: metres },
   'CMP-07': { value: (g) => g.l2.stairToL3.treadDepth, format: metres },
   'CMP-08': { value: (g) => g.l2.stairToL3.clearWidth, format: metres },
-  'CMP-09': { value: (g) => g.l2.stairToL3.risersPerRun * g.l2.stairToL3.riserHeight, format: metres },
+  'CMP-09': {
+    value: (g) => Math.max(...deriveStairFlights(g.l2.stairToL3).flights.map(({ z1, z2 }) => z2 - z1)),
+    format: metres,
+  },
   'CMP-10': {
     value: (g) => g.l2.stairToL3.midLandingLength,
     format: metres,
@@ -52,6 +56,15 @@ const checks = {
     format: (labels) => (labels.length ? labels.join('、') : '未建模'),
   },
   'CMP-18': { value: (g) => g.l1.pool.teachingPlatform.topWaterDepth, format: (depth) => `${depth} m` },
+  // 樓梯口以外的踏面外緣到 2F 天花板底的最小淨高；樓梯口內上方沒有樓板。
+  'CMP-19': {
+    value: (g) => {
+      const underside = g.l2.ceiling.elevation - g.l2.ceiling.thickness;
+      const covered = deriveStairNosings(g.l2.stairToL3).filter(({ x }) => x < g.l3.stairOpening.bounds.x1);
+      return Math.min(...covered.map(({ z }) => underside - z));
+    },
+    format: metres,
+  },
 };
 
 function parseLimit(cell) {

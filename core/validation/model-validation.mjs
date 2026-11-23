@@ -3,6 +3,12 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { geometryEntities, resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active-geometry.mjs';
 import { deriveSiteOrientation } from '../geometry/site-orientation.mjs';
+import {
+  boundsOverlapArea,
+  deriveStairFlights,
+  firstHeadroomShortfallX,
+  rotatedBoundsPolygon,
+} from '../geometry/stair-geometry.mjs';
 
 const TOLERANCE = 0.002;
 const closeTo = (actual, expected, tolerance = TOLERANCE) => Number.isFinite(actual)
@@ -146,6 +152,7 @@ export function validateModel(model) {
     'Z-L3-LEARN-01': { x1: 29, x2: 41, y1: 0, y2: 5.5 },
     'Z-L3-MEP-01': { x1: 29, x2: 41, y1: 5.5, y2: 13.5 },
     'W-L3-GLASS-01': { x1: 29, x2: 41, y1: 5.43, y2: 5.57 },
+    'OP-L3-ST-02-01': { x1: 34.85, x2: 39.5, y1: 0.5, y2: 2 },
     'Z-WC-POOL-M-01': { x1: 31, x2: 35.5, y1: 0, y2: 3.5 },
     'Z-WC-POOL-F-01': { x1: 31, x2: 35.5, y1: 3.5, y2: 7.5 },
     'Z-WC-PLAY-M-01': { x1: 35.5, x2: 39, y1: 0, y2: 3.5 },
@@ -337,7 +344,12 @@ export function validateModel(model) {
   check(errors, showerZones.every(({ showerCubicles }) => showerCubicles.every(({ planBounds }) => !positiveOverlap(planBounds, active.l2.stairZone.bounds))), 'L2 shower cubicles must not overlap the independent ST-02 zone.');
   check(errors, showerZones.every(({ supportFixtures }) => supportFixtures?.fixtures?.toilets === 1 && supportFixtures?.fixtures?.washbasins === 2 && supportFixtures.toiletCubicles?.length === 1 && supportFixtures.washbasins?.length === 2), 'Each L2 changing room must provide one WC and two washbasins.');
   check(errors, active.l2.stairToL3.lowerStartX === 32.5 && active.l2.stairToL3.axis === '+x' && JSON.stringify(active.l2.stairToL3.yBandLocked) === JSON.stringify([0.5, 2]), 'ST-02 must start at X32.5 and remain horizontal in Y0.5–2 while ascending +X.');
-  check(errors, active.l2.stairToL3.riserCount === 22 && active.l2.stairToL3.treadsPerRun === 10 && closeTo(active.l2.stairToL3.upperElevation, 6.88), 'ST-02 must use the 22-riser two-flight concept and reach L3 +6.88 m.');
+  const stair2 = active.l2.stairToL3;
+  const stair2Flights = deriveStairFlights(stair2);
+  check(errors, stair2.riserCount === 23 && JSON.stringify(stair2.risersPerRun) === JSON.stringify([12, 11]) && JSON.stringify(stair2.treadsPerRun) === JSON.stringify(stair2Flights.flights.map(({ treads }) => treads)), 'ST-02 must use 23 risers in flights of 12 and 11 (DEC-174).');
+  check(errors, stair2.riserHeight <= 0.16 && stair2.treadDepth >= 0.26 && closeTo(stair2.riserCount * stair2.riserHeight, stair2.totalRise), 'ST-02 risers must stay at or below 0.16 m and treads at or above 0.26 m (Building Technical Regulations art. 33, first column).');
+  check(errors, stair2.runLengths?.length === 2 && stair2Flights.flights.every(({ run }, index) => closeTo(stair2.runLengths[index], run)) && closeTo(stair2.midLandingElevation, stair2Flights.midLanding.elevation), 'ST-02 run lengths and mid-landing elevation must follow from its riser counts.');
+  check(errors, closeTo(stair2Flights.upperElevation, 6.88) && closeTo(stair2Flights.topX + stair2.upperLandingLength, stair2.bounds.x2) && closeTo(stair2.midLandingLength, 1.5) && closeTo(stair2.upperLandingLength, 1.5), 'ST-02 must keep both 1.50 m landings and reach L3 +6.88 m at X41.');
   check(errors, active.l2.stairToL3.designIntent === 'suspended-floating-stair' && active.l2.stairToL3.stringerCount === 2 && active.l2.stairToL3.underStairEnclosure === false, 'ST-02 must be a suspended floating stair with two continuous stringers and an open underside.');
   check(errors, active.l2.stairToL3.underStairLandscape?.planterCount === 3 && active.l2.stairToL3.underStairLandscape?.containers === 'removable-lightweight-planters' && active.l2.stairToL3.underStairLandscape?.deepSoil === false && active.l2.stairToL3.underStairLandscape?.waterFeature === false, 'ST-02 under-stair landscape must use three removable lightweight planters without deep soil or water features.');
   check(errors, closeTo(active.l3.planRotation, 25.5), 'L3 plan rotation must be +25.5°.');
@@ -357,6 +369,17 @@ export function validateModel(model) {
   check(errors, l3Program?.wholeClassUse === false && JSON.stringify(l3Program?.userGroups) === JSON.stringify(['teachers', 'booked-small-student-groups', 'maintenance-staff']), 'L3 must be limited to teachers, booked small groups and maintenance staff, not whole classes (DEC-173).');
   check(errors, l3Program?.mirrorOpenings === false && l3Program?.poolViewing === 'pool-and-underwater-cameras-to-room-screens' && active.l3.mirror.materialIntent === 'original-mirror', 'L3 pool viewing must use cameras; the mirror wall stays a full mirror without openings or reflective glass (DEC-173).');
   const learningRoom = active.l3.learningRoom;
+  const stairOpening = active.l3.stairOpening;
+  const slabUnderside = active.l2.ceiling.elevation - active.l2.ceiling.thickness;
+  const headroomShortfallX = firstHeadroomShortfallX(stair2, slabUnderside, stairOpening?.requiredHeadroom ?? Number.NaN);
+  check(errors, stairOpening?.stairEntityId === stair2.entityId && closeTo(stairOpening?.requiredHeadroom, 1.9) && headroomShortfallX !== null && stairOpening.bounds.x1 <= headroomShortfallX + TOLERANCE, 'The ST-02 stair opening must start where headroom to the slab underside drops below 1.90 m (art. 35).');
+  check(errors, closeTo(stairOpening?.bounds.x2, stair2Flights.topX) && closeTo(stairOpening?.bounds.y1, stair2.bounds.y1) && closeTo(stairOpening?.bounds.y2, stair2.bounds.y2) && closeTo(stairOpening?.area, (stairOpening.bounds.x2 - stairOpening.bounds.x1) * (stairOpening.bounds.y2 - stairOpening.bounds.y1)), 'The ST-02 stair opening must run to the top of the stair across its full width.');
+  check(errors, JSON.stringify(stairOpening?.cutsEntityIds) === JSON.stringify([active.l2.ceiling.entityId, active.l3.floorPlate.entityId, active.l3.arrivalWing.entityId]) && stairOpening?.edgeProtection === 'guardrail-on-learning-room-edges', 'The ST-02 stair opening must cut the L2 ceiling, the L3 plate and the arrival wing, with guardrails on the learning room edges.');
+  const learningRoomPolygon = rotatedBoundsPolygon(learningRoom.bounds, active.l3.planPivot, active.l3.planRotation);
+  const roomOverlap = boundsOverlapArea(stairOpening.bounds, learningRoomPolygon);
+  const wingOverlap = boundsOverlapArea(stairOpening.bounds, active.l3.arrivalWing.polygon);
+  check(errors, closeTo(stairOpening.learningRoomOverlapArea, roomOverlap) && closeTo(learningRoom.stairOpeningOverlapArea, roomOverlap) && closeTo(learningRoom.netArea, learningRoom.area - roomOverlap), 'The L3 learning room net area must deduct the part of the ST-02 stair opening inside it.');
+  check(errors, closeTo(stairOpening.arrivalWingOverlapArea, wingOverlap) && closeTo(active.l3.arrivalWing.walkableArea, active.l3.arrivalWing.area - wingOverlap), 'The L3 arrival wing walkable area must deduct the part of the ST-02 stair opening inside it.');
   const equipmentZone = active.l3.equipmentZone;
   const glassPartition = active.l3.glassPartition;
   check(errors, closeTo(learningRoom?.area, 66) && closeTo(learningRoom?.rotation, active.l3.planRotation) && learningRoom?.entryFrom === active.l3.arrivalWing.entityId, 'The L3 learning room must cover 66 m² on the arrival side and rotate with L3.');

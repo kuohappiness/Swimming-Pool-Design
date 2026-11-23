@@ -29,7 +29,7 @@ function stairHeight(proxy: Extract<GroundCollisionProxy, { kind: 'stair' }>, lo
   const distance = localX - stair.bounds.x1;
   const firstFlightEnd = stair.flightRun;
   const landingEnd = firstFlightEnd + stair.midLandingLength;
-  const secondFlightEnd = landingEnd + stair.flightRun;
+  const secondFlightEnd = landingEnd + stair.secondFlightRun;
   if (distance <= firstFlightEnd) {
     return stair.lowerElevation
       + (stair.midLandingElevation - stair.lowerElevation) * Math.max(0, distance / stair.flightRun);
@@ -38,7 +38,7 @@ function stairHeight(proxy: Extract<GroundCollisionProxy, { kind: 'stair' }>, lo
   if (distance <= secondFlightEnd) {
     return stair.midLandingElevation
       + (stair.upperElevation - stair.midLandingElevation)
-      * ((distance - landingEnd) / stair.flightRun);
+      * ((distance - landingEnd) / stair.secondFlightRun);
   }
   return stair.upperElevation;
 }
