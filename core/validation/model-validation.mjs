@@ -1,6 +1,3 @@
-import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import {
   geometryEntities,
   resolveActiveGeometry,
@@ -1235,28 +1232,5 @@ export function validateModel(model) {
     boundedEntities.size >= Object.keys(requiredBounds).length,
     'Active geometry entity index is incomplete.',
   );
-  return errors;
-}
-
-export async function validateSourceFiles(model, repoRoot) {
-  const errors = [];
-  for (const source of model.sources ?? []) {
-    if (!source.path || !source.sha256) {
-      errors.push(`${source.id} must declare path and sha256.`);
-      continue;
-    }
-    try {
-      const bytes = await readFile(resolve(repoRoot, source.path));
-      const actualHash = createHash('sha256').update(bytes).digest('hex').toUpperCase();
-      if (actualHash !== source.sha256.toUpperCase())
-        errors.push(`${source.id} SHA-256 does not match ${source.path}.`);
-      if (Number.isFinite(source.byteSize) && source.byteSize !== bytes.byteLength)
-        errors.push(`${source.id} byteSize does not match ${source.path}.`);
-    } catch (error) {
-      errors.push(
-        `${source.id} cannot be read at ${source.path}: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
   return errors;
 }
