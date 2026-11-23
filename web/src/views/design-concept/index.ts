@@ -50,10 +50,10 @@ const planRotation = activeGeometry.solar.planRotation.value;
 const viewDescription = getViewDefinition('design-concept').description;
 const originTitle = '一切，從紙上的第一筆開始';
 const chapterMeta = [
-  { sceneId: 'light', number: '01', title: '向光而轉', sideTitle: '向光', caption: '讓建築回應季節與太陽。', motif: 'sun' },
-  { sceneId: 'rain', number: '02', title: '向雨而生', sideTitle: '向雨', caption: '讓雨水成為建築可見的循環。', motif: 'water' },
-  { sceneId: 'people', number: '03', title: '向人而開', sideTitle: '向人', caption: '讓光線串聯視線、動線與彼此。', motif: 'people' },
-  { sceneId: 'time', number: '04', title: '向時間延續', sideTitle: '向時間', caption: '讓回憶延續，新舊並存。', motif: 'time' },
+  { sceneId: 'light', number: '01', title: '向光而轉', caption: '讓建築回應季節與太陽。', motif: 'sun' },
+  { sceneId: 'rain', number: '02', title: '向雨而生', caption: '讓雨水成為建築可見的循環。', motif: 'water' },
+  { sceneId: 'people', number: '03', title: '向人而開', caption: '讓光線串聯視線、動線與彼此。', motif: 'people' },
+  { sceneId: 'time', number: '04', title: '向時間延續', caption: '讓回憶延續，新舊並存。', motif: 'time' },
 ] as const;
 const surveyImages: OriginImage[] = [
   {
@@ -130,17 +130,21 @@ const sketchImages: OriginImage[] = [
     caption: '最初設計的剖面圖，我們可以在不同的高度相遇囉！',
     alt: '手繪剖面圖，標示玻璃屋頂、鏡牆、泳池、雨水回收與服務空間',
   },
-  {
-    sourceId: 'SRC-CONCEPT-020',
-    smallUrl: early3dSmall,
-    largeUrl: early3dLarge,
-    width: 1920,
-    height: 1352,
-    label: 'SKETCH 05',
-    caption: '哥哥一起幫我把平面圖轉成立體圖，我第一次看見游泳池的立體結構。',
-    alt: '早期手繪三維示意，呈現泳池、入口、服務中心與傾斜屋頂',
-  },
 ];
+/*
+ * 首頁主視覺（TASK-173）：在 3D 串輸出建築整體的固定視角靜態圖之前，先用早期手繪立體圖頂替。
+ * 這張圖原本是手稿圖廊的最後一張，移到主視覺後圖廊不再重複。
+ */
+const heroImage: OriginImage = {
+  sourceId: 'SRC-CONCEPT-020',
+  smallUrl: early3dSmall,
+  largeUrl: early3dLarge,
+  width: 1920,
+  height: 1352,
+  label: 'SKETCH 05',
+  caption: '哥哥一起幫我把平面圖轉成立體圖，我第一次看見游泳池的立體結構。',
+  alt: '早期手繪三維示意，呈現泳池、入口、服務中心與傾斜屋頂',
+};
 
 function scene(id: string): ConceptScene {
   const found = content.scenes.find((item) => item.id === id);
@@ -157,7 +161,7 @@ function accessibleDrawing(): string {
     );
 }
 
-function splitOverview(html: string): { heroHtml: string; originHtml: string } {
+function splitOverview(html: string): { heroHtml: string; introHtml: string; originHtml: string } {
   const template = document.createElement('template');
   template.innerHTML = html;
   const heading = [...template.content.querySelectorAll('h2')]
@@ -170,13 +174,67 @@ function splitOverview(html: string): { heroHtml: string; originHtml: string } {
     origin.append(node);
     node = next;
   }
+  // 首區只留 H1、標語與引言；第二個 H2 起的說明另成一段，放在主視覺之後。
+  const introHeading = template.content.querySelectorAll('h2')[1];
+  if (!introHeading) throw new TypeError('Concept content is missing the overview introduction.');
+  const intro = document.createElement('div');
+  let introNode: ChildNode | null = introHeading;
+  while (introNode) {
+    const next: ChildNode | null = introNode.nextSibling;
+    intro.append(introNode);
+    introNode = next;
+  }
   return {
     heroHtml: template.innerHTML,
+    introHtml: intro.innerHTML,
     originHtml: origin.innerHTML.replace(
       `<h2>${originTitle}</h2>`,
       '<h2>從 紙上的<br>第一筆開始</h2>',
     ),
   };
+}
+
+/** 章節的編號與標題合成一個 H2（內容原本的第一個 H2）。 */
+function chapterWithTitle(html: string, id: string, number: string): string {
+  const titled = html.replace(
+    /^\s*<h2>(.*?)<\/h2>/,
+    `<h2 id="${id}" class="concept-chapter-title"><span class="concept-chapter-number">${number}</span>$1</h2>`,
+  );
+  if (titled === html) throw new TypeError(`Concept chapter ${id} does not start with its title.`);
+  return titled;
+}
+
+/** 設計細節：每個 H3 與其後的內文收成一張卡片；含清單的長項目跨滿整列。 */
+function detailCards(html: string): string {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  const cards: HTMLElement[] = [];
+  for (const node of [...template.content.childNodes]) {
+    if (node instanceof HTMLHeadingElement && node.tagName === 'H3') {
+      const card = document.createElement('article');
+      card.className = 'concept-detail-card';
+      cards.push(card);
+    }
+    const current = cards.at(-1);
+    if (current) current.append(node);
+    else if (node.textContent?.trim()) throw new TypeError('Concept detail content must start with an H3.');
+  }
+  for (const card of cards) {
+    if (card.querySelector('ul, ol')) card.classList.add('concept-detail-card--wide');
+  }
+  return cards.map((card) => card.outerHTML).join('');
+}
+
+function planFigure(): string {
+  return `
+    <figure class="concept-chapter-figure concept-plan-figure">
+      <div class="concept-drawing-window">${accessibleDrawing()}</div>
+      <figcaption>
+        <span>L3 PLAN</span>
+        <span>水平旋轉 ${planRotation >= 0 ? '+' : ''}${planRotation.toFixed(1)}°</span>
+      </figcaption>
+    </figure>
+  `;
 }
 
 function originFigure(image: OriginImage, collection: 'survey' | 'sketch'): string {
@@ -218,14 +276,30 @@ export function mount(container: HTMLElement): MountedView {
         <p class="site-section-description">${viewDescription}</p>
         <div class="concept-overview">${overviewSections.heroHtml}</div>
       </div>
-      <figure class="concept-hero-figure">
-        <div class="concept-drawing-window">${accessibleDrawing()}</div>
+      <figure class="concept-hero-figure" data-source-id="${heroImage.sourceId}">
+        <picture class="concept-hero-media">
+          <source
+            srcset="${heroImage.smallUrl} 960w, ${heroImage.largeUrl} 1920w"
+            sizes="(max-width: 900px) calc(100vw - 40px), 58vw"
+          >
+          <img
+            src="${heroImage.largeUrl}"
+            width="${heroImage.width}"
+            height="${heroImage.height}"
+            alt="${heroImage.alt}"
+            fetchpriority="high"
+            decoding="async"
+          >
+        </picture>
         <figcaption>
-          <span>L3 PLAN</span>
-          <span>水平旋轉 ${planRotation >= 0 ? '+' : ''}${planRotation.toFixed(1)}°</span>
+          <span>${heroImage.label}</span>
+          <p>${heroImage.caption}</p>
         </figcaption>
       </figure>
     </article>
+    <section class="concept-intro" aria-label="設計從保留開始">
+      <div class="concept-intro-copy">${overviewSections.introHtml}</div>
+    </section>
     <section id="concept-origin" class="concept-origin" aria-labelledby="concept-origin-title">
       <header class="concept-origin-heading">
         <p class="site-kicker concept-origin-kicker">
@@ -271,7 +345,7 @@ export function mount(container: HTMLElement): MountedView {
       `).join('')}
     </nav>
     <div class="concept-chapters">
-      ${chapterMeta.map((chapter, index) => {
+      ${chapterMeta.map((chapter) => {
         const contentScene = scene(chapter.sceneId);
         let chapterHtml = contentScene.html;
         let detailHtml = '';
@@ -293,36 +367,30 @@ export function mount(container: HTMLElement): MountedView {
             );
           chapterHtml = chapterHtml.slice(0, detailIndex);
         }
+        const titleId = `concept-${chapter.sceneId}-title`;
         return `
           <section
             id="concept-${chapter.sceneId}"
-            class="concept-chapter concept-chapter--${chapter.motif} ${index % 2 ? 'concept-chapter--reverse' : ''}"
-            aria-labelledby="concept-${chapter.sceneId}-title"
+            class="concept-chapter concept-chapter--${chapter.motif}"
+            aria-labelledby="${titleId}"
           >
-            <header class="concept-chapter-heading">
-              <span>${chapter.number}</span>
-              <h2 id="concept-${chapter.sceneId}-title" aria-label="${chapter.title}">
-                <span class="concept-side-title--desktop">${chapter.sideTitle}</span>
-                <span class="concept-side-title--mobile" aria-hidden="true">${chapter.title}</span>
-              </h2>
-            </header>
-            <div class="concept-chapter-copy">${chapterHtml}</div>
-            <div class="concept-motif" aria-hidden="true">
-              <span></span><span></span><span></span><span></span>
-            </div>
+            <div class="concept-chapter-copy">${chapterWithTitle(chapterHtml, titleId, chapter.number)}</div>
+            ${chapter.sceneId === 'light' ? planFigure() : `
+              <div class="concept-motif" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+              </div>
+            `}
           </section>
           ${detailHtml ? `
             <section class="concept-detail-section" aria-labelledby="concept-detail-heading">
-              <header class="concept-chapter-heading concept-detail-side-heading">
-                <h2 id="concept-detail-heading">設計細節</h2>
-              </header>
-              <div class="concept-chapter-copy">${detailHtml}</div>
+              <h2 id="concept-detail-heading" class="concept-section-title">設計細節</h2>
+              <div class="concept-detail-grid">${detailCards(detailHtml)}</div>
             </section>
             <section class="concept-conclusion-section" aria-labelledby="concept-conclusion-heading">
-              <header class="concept-chapter-heading concept-conclusion-side-heading">
-                <h2 id="concept-conclusion-heading">結語</h2>
-              </header>
-              <div class="concept-chapter-copy">${conclusionHtml}</div>
+              <div class="concept-chapter-copy">
+                <h2 id="concept-conclusion-heading" class="concept-section-title">結語</h2>
+                ${conclusionHtml}
+              </div>
             </section>
           ` : ''}
         `;

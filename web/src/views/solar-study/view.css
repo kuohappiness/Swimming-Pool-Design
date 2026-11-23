@@ -12,7 +12,7 @@
   --water: var(--site-data-water);
   --fixed: var(--site-data-fixed);
   --upper: var(--site-data-rotating);
-  --soft: #eaf1f1;
+  --soft: color-mix(in srgb, var(--site-water) 8%, var(--site-white));
 
   button,
   input {
@@ -34,9 +34,9 @@
 
   .pill {
     padding: 8px 12px;
-    border: 1px solid #c4d3d6;
+    border: 1px solid var(--site-line);
     border-radius: 999px;
-    background: #e5edef;
+    background: color-mix(in srgb, var(--site-water) 8%, var(--site-paper-raised));
     font-family: var(--site-mono);
     font-size: var(--site-text-sm);
     font-weight: var(--site-weight-bold);
@@ -52,7 +52,7 @@
   .panel {
     min-width: 0;
     padding: 20px;
-    border: 1px solid #d7d0c4;
+    border: 1px solid var(--site-line);
     border-radius: 16px;
     background: var(--panel);
     box-shadow: 0 8px 24px rgba(30, 48, 55, 0.06);
@@ -74,9 +74,9 @@
     display: block;
     width: 100%;
     height: auto;
-    border: 1px solid #e3ddd2;
+    border: 1px solid var(--site-line);
     border-radius: 12px;
-    background: #fbfaf5;
+    background: var(--site-paper-raised);
   }
 
   svg text {
@@ -296,7 +296,7 @@
   }
 
   .section-bg {
-    fill: #fbfaf5;
+    fill: var(--site-paper-raised);
   }
 
   .water-section {
@@ -356,7 +356,7 @@
 
   .ray-label {
     fill: var(--winter);
-    stroke: #fbfaf5;
+    stroke: var(--site-paper-raised);
     stroke-width: 4;
     paint-order: stroke;
     stroke-linejoin: round;
@@ -385,14 +385,15 @@
   }
 
   .live-preview {
+    display: none;
     grid-column: 1 / -1;
     position: sticky;
     top: calc(env(safe-area-inset-top, 0px) + 6px);
     z-index: 20;
     padding: 9px;
-    border: 1px solid #b8c9cc;
+    border: 1px solid var(--site-line);
     border-radius: 12px;
-    background: rgba(255, 253, 248, 0.97);
+    background: color-mix(in srgb, var(--site-white) 97%, transparent);
     box-shadow: 0 10px 28px rgba(35, 61, 69, 0.18);
     backdrop-filter: blur(10px);
   }
@@ -418,7 +419,7 @@
     min-width: 58px;
     min-height: 38px;
     padding: 5px 10px;
-    border: 1px solid #a9bec3;
+    border: 1px solid var(--site-line-strong);
     border-radius: 8px;
     background: white;
     color: var(--muted);
@@ -432,34 +433,6 @@
     color: white;
   }
 
-  .desktop-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 7px;
-  }
-
-  .desktop-preview-grid figure {
-    min-width: 0;
-    margin: 0;
-  }
-
-  .desktop-preview-grid figcaption {
-    margin-bottom: 4px;
-    color: var(--muted);
-    font-size: var(--site-text-xs);
-    font-weight: 800;
-  }
-
-  .desktop-preview-viewport {
-    height: clamp(160px, 14vw, 210px);
-    overflow: hidden;
-    border: 1px solid #d9d4c9;
-    border-radius: 9px;
-    background: #fbfaf5;
-  }
-
-  .desktop-preview-viewport svg,
   .mobile-preview-viewport svg {
     width: 100%;
     height: 100%;
@@ -473,9 +446,9 @@
     height: clamp(178px, 25vh, 210px);
     margin-top: 7px;
     overflow: hidden;
-    border: 1px solid #d9d4c9;
+    border: 1px solid var(--site-line);
     border-radius: 9px;
-    background: #fbfaf5;
+    background: var(--site-paper-raised);
   }
 
   .live-preview > small {
@@ -486,9 +459,6 @@
     line-height: 1.35;
   }
 
-  .mobile-preview-help {
-    display: none !important;
-  }
 
   .control {
     display: block;
@@ -583,7 +553,7 @@
   .year-input-row input {
     min-height: 36px;
     padding: 6px 8px;
-    border: 1px solid #aec3c7;
+    border: 1px solid var(--site-line-strong);
     border-radius: 7px;
     background: white;
   }
@@ -600,7 +570,7 @@
   }
 
   .year-input-row button:disabled {
-    border-color: #b8c6c8;
+    border-color: var(--site-line);
     color: var(--muted);
     cursor: default;
   }
@@ -649,8 +619,8 @@
     display: block;
     margin-top: 8px;
     color: var(--muted);
-    font-size: var(--site-text-xs);
-    line-height: 1.4;
+    font-size: var(--site-text-sm);
+    line-height: 1.5;
   }
 
   .time-scope {
@@ -673,7 +643,7 @@
 
   .metric {
     padding: 9px;
-    border: 1px solid #ded8cc;
+    border: 1px solid var(--site-line);
     border-radius: 9px;
     background: white;
   }
@@ -696,9 +666,9 @@
     gap: 14px;
     margin-top: 12px;
     padding: 12px 14px;
-    border: 1px solid #c6d8cc;
+    border: 1px solid color-mix(in srgb, var(--site-data-fixed) 30%, var(--site-line));
     border-radius: 10px;
-    background: #edf4ef;
+    background: color-mix(in srgb, var(--site-data-fixed) 10%, var(--site-white));
   }
 
   .result strong {
@@ -713,8 +683,8 @@
   }
 
   .result.is-warn {
-    border-color: #ecc8b0;
-    background: #fff1e8;
+    border-color: color-mix(in srgb, var(--site-terracotta) 35%, var(--site-line));
+    background: color-mix(in srgb, var(--site-terracotta) 8%, var(--site-white));
   }
 
   .season-table-panel {
@@ -723,7 +693,7 @@
 
   .table-notes-toggle {
     margin: 12px 0 0;
-    border-block: 1px solid #d7d1c6;
+    border-block: 1px solid var(--site-line);
   }
 
   .table-notes-toggle summary {
@@ -744,8 +714,25 @@
     line-height: 1.65;
   }
 
+  /*
+   * 表格比畫面寬時可左右捲動：首欄固定，右緣（捲過後也包括左緣）出現陰影提示還有欄位；
+   * 捲動區可用 Tab 聚焦，再用方向鍵捲動。
+   */
   .table-scroll {
     overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    background:
+      linear-gradient(to left, var(--site-paper-raised) 40%, transparent) right / 2.5rem 100% no-repeat local,
+      radial-gradient(farthest-side at 100% 50%, rgb(30 41 42 / 22%), transparent) right / 1rem 100% no-repeat scroll;
+  }
+
+  .table-scroll th:first-child,
+  .table-scroll td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--site-paper-raised);
+    box-shadow: 1px 0 0 var(--site-line);
   }
 
   table {
@@ -758,7 +745,7 @@
   th,
   td {
     padding: 9px;
-    border-bottom: 1px solid #e3ded4;
+    border-bottom: 1px solid var(--site-line);
     text-align: right;
   }
 
@@ -774,7 +761,7 @@
 
   td.is-below-horizon {
     color: var(--site-terracotta);
-    background: #fff6f3;
+    background: color-mix(in srgb, var(--site-terracotta) 6%, var(--site-white));
   }
 
   @media (max-width: 920px) {
@@ -791,22 +778,16 @@
     }
   }
 
-  @media (max-width: 640px) {
-    .desktop-preview-grid,
-    .desktop-preview-help {
-      display: none !important;
+  /* 窄於 1000px 時兩張圖會捲出畫面，控制器上方放一張可切換平面、剖面的預覽。 */
+  @media (max-width: 999px) {
+    .live-preview,
+    .mobile-preview-viewport,
+    .live-preview > small {
+      display: block;
     }
 
     .mobile-preview-tabs {
       display: flex;
-    }
-
-    .mobile-preview-viewport {
-      display: block;
-    }
-
-    .mobile-preview-help {
-      display: block !important;
     }
   }
 
@@ -1125,20 +1106,6 @@
       padding-inline: 14px;
     }
 
-    .solar-study-view .stage {
-      display: block;
-    }
-
-    .solar-study-view .stage > .panel + .panel {
-      margin-top: 1rem;
-    }
-
-    .solar-study-view .live-preview {
-      top: calc(var(--site-header-height) + 8px);
-      border-color: var(--site-line);
-      border-radius: var(--site-radius);
-      box-shadow: none;
-    }
 
     .research-conclusion-metrics {
       grid-template-columns: 1fr 1fr;
@@ -1190,6 +1157,94 @@
 
     .research-conclusion-metrics > div:nth-child(3) {
       border-bottom: 1px solid var(--site-line);
+    }
+  }
+
+  /*
+   * 研究模型的版面（TASK-173）：平面圖與剖面圖同一欄，控制器、讀值與診斷另一欄。
+   * 寬螢幕時圖欄固定在畫面內，調任何滑桿時兩張圖都看得到；窄螢幕時依序排列。
+   */
+  .stage-notes {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .stage-notes .sub {
+    margin: 0;
+  }
+
+  .stage-notes strong {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--site-ink);
+  }
+
+  @media (max-width: 999px) {
+    .solar-study-view .stage {
+      display: block;
+    }
+
+    .solar-study-view .live-preview {
+      top: calc(var(--site-header-height) + 8px);
+      border-color: var(--site-line);
+      border-radius: var(--site-radius);
+      box-shadow: none;
+    }
+
+    .stage-figures .panel + .panel,
+    .solar-study-view .stage-controls {
+      margin-top: 1rem;
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .solar-study-view .stage {
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      align-items: start;
+    }
+
+    .stage-figures {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .stage-controls .controls {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 1000px) and (min-height: 640px) {
+    .stage-figures {
+      position: sticky;
+      top: calc(var(--site-header-height) + 1rem);
+      grid-template-rows: minmax(0, 1.2fr) minmax(0, 1fr);
+      height: calc(100dvh - var(--site-header-height) - 2rem);
+    }
+
+    .stage-figures .panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 1rem 1.25rem;
+    }
+
+    .stage-figures .panel > h2 {
+      flex: none;
+      margin: 0 0 0.5rem;
+      font-size: var(--site-text-md);
+    }
+
+    .stage-figures svg {
+      flex: 1 1 0;
+      min-height: 0;
+    }
+
+    .stage-figures .legend {
+      flex: none;
+      gap: 0.25rem 0.9rem;
+      margin-top: 0.5rem;
+      font-size: var(--site-text-xs);
     }
   }
 }

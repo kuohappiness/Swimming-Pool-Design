@@ -61,7 +61,7 @@
       <section class="stage" aria-label="平面與剖面互動研究">
         <article class="panel">
           <h2>平面：L3 旋轉改變鏡牆法線方位</h2>
-          <p class="sub">- 藍色短邊是面向泳池的鏡牆。<br>- 平面虛線只顯示向下 3D 反射光的水平投影，不代表光線穿透鏡牆；完整下射角請與右側剖面一起閱讀。</p>
+          <p class="sub">- 藍色短邊是面向泳池的鏡牆。<br>- 平面虛線只顯示向下 3D 反射光的水平投影，不代表光線穿透鏡牆；完整下射角請與剖面一起閱讀。</p>
           <svg id="plan" viewBox="0 0 560 470" role="img" aria-labelledby="plan-title plan-desc">
             <title id="plan-title">基地平面、太陽方位與三樓水平旋轉示意</title>
             <desc id="plan-desc">固定的一、二樓服務中心上方，有一個水平旋轉的三樓服務中心與面池鏡牆。羅盤顯示目前日期 7 點至 18 點的太陽路徑，以及在鏡牆代表性入射點彙交的法線、入射光與向下三維反射光的水平投影；鏡牆遮住光線並在兩側留有短間隙，表示光線沒有穿透牆體。</desc>
@@ -123,7 +123,7 @@
 
         <article class="panel">
           <h2>剖面：外傾角改變反射下射角</h2>
-          <p class="sub">此剖面沿鏡牆法線切取，因此水平旋轉本身在右圖不會看起來旋轉；它的作用會反映在最下方的 3D 方位讀值。反射光固定採與入射光同色的虛線；未落在池面時仍維持完整對比、末端箭頭與文字標示。</p>
+          <p class="sub">此剖面沿鏡牆法線切取，因此水平旋轉本身在剖面圖不會看起來旋轉；它的作用會反映在 3D 方位讀值。反射光固定採與入射光同色的虛線；未落在池面時仍維持完整對比、末端箭頭與文字標示。</p>
           <svg id="section" viewBox="0 0 720 430" role="img" aria-labelledby="section-title section-desc">
             <title id="section-title">三樓鏡牆反射日光的建築剖面示意</title>
             <desc id="section-desc">日光射向三樓外傾承載牆上的共面鏡面，再反射到一樓泳池水面或避開泳池。</desc>
@@ -161,18 +161,7 @@
                   <button id="previewSection" type="button" aria-pressed="false">剖面</button>
                 </div>
               </div>
-              <div class="desktop-preview-grid" aria-label="桌面版平面與剖面即時預覽">
-                <figure>
-                  <figcaption>平面</figcaption>
-                  <div id="desktopPlanPreviewViewport" class="desktop-preview-viewport" aria-hidden="true"></div>
-                </figure>
-                <figure>
-                  <figcaption>剖面</figcaption>
-                  <div id="desktopSectionPreviewViewport" class="desktop-preview-viewport" aria-hidden="true"></div>
-                </figure>
-              </div>
               <div id="mobilePreviewViewport" class="mobile-preview-viewport" aria-hidden="true"></div>
-              <small class="desktop-preview-help">左側平面與右側剖面會隨所有控制器同步更新。</small>
               <small class="mobile-preview-help">可手動切換平面與剖面；調整年份、日期、時間與角度時，會保留目前檢視。</small>
             </div>
             <div class="control control-year">
@@ -255,7 +244,7 @@
 
       <section class="panel season-table-panel">
         <h2>冬至與夏至代表時刻</h2>
-        <div class="table-scroll">
+        <div class="table-scroll" tabindex="0" role="region" aria-label="冬至與夏至代表時刻表，可左右捲動">
           <table>
             <thead>
               <tr id="solar-table-head"></tr>

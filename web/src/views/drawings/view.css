@@ -144,14 +144,91 @@
     line-height: 1.55;
   }
 
-  .drawing-scroll {
-    overflow: auto;
-    background: #dedbd3;
+  /*
+   * 圖面檢視器（TASK-173）：檢視框固定圖紙原本的比例，裡面的圖紙用 transform 平移縮放（pan-zoom.ts）。
+   * 倍率 1 時手指上下滑仍捲動頁面；放大後拖曳改為平移圖紙。
+   */
+  .drawing-viewport {
+    position: relative;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--site-line) 55%, var(--site-paper));
+    touch-action: pan-y;
+  }
+
+  .drawing-viewport.is-zoomed {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .drawing-viewport.is-zoomed:active {
+    cursor: grabbing;
+  }
+
+  .drawing-viewport:focus-visible {
+    outline-offset: calc(var(--site-focus-width) * -2);
   }
 
   .drawing-wrap {
-    min-width: 850px;
     line-height: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+
+  .drawing-help {
+    margin: 0;
+    padding: 8px 14px;
+    color: var(--site-muted);
+    border-top: 1px solid var(--site-line);
+    font-size: var(--site-text-xs);
+  }
+
+  .zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .zoom-controls button[data-zoom="in"],
+  .zoom-controls button[data-zoom="out"] {
+    min-width: 44px;
+    font-size: var(--site-text-md);
+    font-weight: var(--site-weight-bold);
+  }
+
+  .zoom-controls button:disabled {
+    color: var(--site-muted);
+    border-color: var(--site-line);
+    cursor: default;
+  }
+
+  .zoom-controls button[aria-pressed="true"] {
+    color: var(--site-white);
+    border-color: var(--site-water);
+    background: var(--site-water);
+  }
+
+  #zoom-level {
+    min-width: 3.5em;
+    color: var(--site-ink);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  /* 全畫面：工具列在上，圖紙用滿其餘空間並保持比例。 */
+  .sheet-stage:fullscreen {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sheet-stage:fullscreen .drawing-viewport {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .sheet-stage:fullscreen .drawing-wrap,
+  .sheet-stage:fullscreen .drawing {
+    width: 100%;
+    height: 100%;
   }
 
   .drawing {
@@ -249,6 +326,7 @@
     }
 
     .sheet-toolbar {
+      flex-wrap: wrap;
       align-items: flex-start;
     }
 
@@ -262,19 +340,8 @@
     }
 
     .toolbar-actions {
+      flex-wrap: wrap;
       gap: 7px;
-    }
-
-    .drawing-scroll {
-      max-width: 100vw;
-    }
-
-    .drawing-wrap {
-      min-width: 860px;
-    }
-
-    .sheet-stage.fit-sheet .drawing-wrap {
-      min-width: 0;
     }
 
     .drawing-trust-line {
@@ -296,8 +363,8 @@
       box-shadow: none;
     }
 
-    .drawing-wrap {
-      min-width: 0;
+    .drawing-help {
+      display: none;
     }
 
     /* 圖紙本身有圖名，列印時省去頁面首區，讓圖紙與頁尾收在同一張 A4 橫向紙上。 */

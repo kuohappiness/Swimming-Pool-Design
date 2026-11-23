@@ -307,20 +307,37 @@ try {
   await concept.goto(origin, { waitUntil: 'networkidle' });
   await waitForView(concept, 'design-concept');
   assert.equal(await concept.locator('.concept-chapter').count(), 4);
+  // 首頁（TASK-173）：每章只有一個 H2，編號在標題裡；設計細節與結語各一個 H2。
   assert.deepEqual(
-    await concept.locator('.concept-chapter-heading h2').evaluateAll((headings) =>
-      headings.map((heading) => heading.getAttribute('aria-label') ?? heading.textContent?.trim()),
+    await concept.locator('.concept-chapters h2').evaluateAll((headings) =>
+      headings.map((heading) => heading.textContent?.trim()),
     ),
-    ['向光而轉', '向雨而生', '向人而開', '向時間延續', '設計細節', '結語'],
+    ['01向光而轉', '02向雨而生', '03向人而開', '04向時間延續', '設計細節', '結語'],
   );
+  for (const sceneId of ['light', 'rain', 'people', 'time']) {
+    assert.equal(await concept.locator(`#concept-${sceneId} h2`).count(), 1);
+    assert.equal(
+      await concept.locator(`#concept-${sceneId}`).getAttribute('aria-labelledby'),
+      `concept-${sceneId}-title`,
+    );
+  }
+  assert.equal(await concept.locator('.concept-hero-figure[data-source-id="SRC-CONCEPT-020"] img').count(), 1);
+  assert.equal(await concept.locator('.concept-intro h2').innerText(), '設計從保留開始');
+  assert.equal(await concept.locator('#concept-light .concept-plan-figure svg.concept-drawing').count(), 1);
+  assert.equal(await concept.locator('.concept-detail-card').count(), 11);
   assert.deepEqual(
-    await concept.locator('.concept-side-title--desktop').evaluateAll((titles) =>
-      titles.filter((title) => getComputedStyle(title).display !== 'none').map((title) => title.textContent),
-    ),
-    ['向光', '向雨', '向人', '向時間'],
+    await concept.locator('.concept-detail-grid').evaluate((grid) => {
+      const cards = [...grid.children];
+      return {
+        columns: getComputedStyle(grid).gridTemplateColumns.split(' ').length,
+        wide: cards.filter((card) => card.classList.contains('concept-detail-card--wide'))
+          .map((card) => card.querySelector('h3')?.textContent),
+      };
+    }),
+    { columns: 2, wide: ['尚未完成的專業檢核'] },
   );
   assert.match(await concept.locator('.concept-overview').innerText(), /不是替舊游泳池換上一張新的臉/);
-  assert.equal(await concept.locator('.concept-origin-figure').count(), 8);
+  assert.equal(await concept.locator('.concept-origin-figure').count(), 7);
   assert.deepEqual(
     await concept.locator('.concept-origin-figure').evaluateAll((figures) =>
       figures.map((figure) => figure.getAttribute('data-source-id')),
@@ -333,7 +350,6 @@ try {
       'SRC-CONCEPT-021',
       'SRC-CONCEPT-018',
       'SRC-CONCEPT-019',
-      'SRC-CONCEPT-020',
     ],
   );
   const originFigures = concept.locator('.concept-origin-figure');
@@ -361,17 +377,17 @@ try {
     path: resolve(outputDirectory, 'public-origin-sketches-desktop.png'),
   });
   await concept.setViewportSize({ width: 390, height: 844 });
-  assert.deepEqual(
-    await concept.locator('.concept-side-title--mobile').evaluateAll((titles) =>
-      titles.filter((title) => getComputedStyle(title).display !== 'none').map((title) => title.textContent),
-    ),
-    ['向光而轉', '向雨而生', '向人而開', '向時間延續'],
-  );
   assert.equal(
-    await concept.locator('.concept-chapter-copy > h2:first-child').evaluateAll((titles) =>
-      titles.every((title) => getComputedStyle(title).display === 'none'),
+    await concept.locator('.concept-chapter-title').evaluateAll((titles) =>
+      titles.every((title) => getComputedStyle(title).display !== 'none'),
     ),
     true,
+  );
+  assert.equal(
+    await concept.locator('.concept-detail-grid').evaluate((grid) =>
+      getComputedStyle(grid).gridTemplateColumns.split(' ').length,
+    ),
+    1,
   );
   assert.equal(
     await concept.locator('.concept-index strong').evaluateAll((titles) =>

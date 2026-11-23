@@ -277,9 +277,9 @@ test('Viewer, solar study, and atlas navigation expose current owners and versio
   // DEC-151: the fan and the 8° line are direction references, never a hit verdict.
   assert.doesNotMatch(solarHtml, /命中|照到泳池|代理門檻/);
   assert.match(solarHtml, /id="reflected"[^>]*aria-label="反射光"/);
-  assert.match(solarHtml, /id="desktopPlanPreviewViewport"/);
-  assert.match(solarHtml, /id="desktopSectionPreviewViewport"/);
-  assert.match(solarHtml, /桌面版平面與剖面即時預覽/);
+  // TASK-173: desktop keeps the two real charts in view, so only the narrow-screen preview remains.
+  assert.doesNotMatch(solarHtml, /desktop(Plan|Section)PreviewViewport/);
+  assert.match(solarHtml, /id="mobilePreviewViewport"/);
   assert.match(solarHtml, /鏡牆法線方位/);
   assert.match(solarHtml, /方向診斷可選 07:00–18:00/);
   assert.match(viewerHtml, /data-orientation-cue/);
