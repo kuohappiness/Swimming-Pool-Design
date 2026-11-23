@@ -10,20 +10,20 @@ import { resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active
 import { deriveMirrorGeometry } from '../geometry/mirror-geometry.mjs';
 import { rotateSitePointClockwise } from '../geometry/site-orientation.mjs';
 
-export const SUMMER_DATES = [
+const SUMMER_DATES = [
   [2026, 5, 21],
   [2026, 6, 21],
   [2026, 7, 21],
   [2026, 8, 21],
 ];
-export const WINTER_DATES = [
+const WINTER_DATES = [
   [2026, 11, 21],
   [2026, 12, 21],
   [2027, 1, 21],
   [2027, 2, 21],
 ];
-export const WARM_SEASON_START = [2026, 5, 1];
-export const WARM_SEASON_END = [2026, 9, 30];
+const WARM_SEASON_START = [2026, 5, 1];
+const WARM_SEASON_END = [2026, 9, 30];
 
 const HORIZONTAL_CANDIDATES = [0, 4.5, 9.5, 10, 12];
 const MIRROR_CANDIDATES = [7.5, 8, 8.5, 9, 9.5];
@@ -281,7 +281,7 @@ export function evaluateHorizontalScan(model, options = {}) {
   };
 }
 
-export function evaluateMirrorEnvelope(model, options = {}) {
+function evaluateMirrorEnvelope(model, options = {}) {
   const study = activeSolarStudyGeometry(model);
   const canonicalPlanRotation = finite(study.planRotation, 'activeSolarStudyGeometry.planRotation');
   const nominalLean = finite(options.nominalLean ?? study.mirrorLeanFromVertical, 'nominalLean');
@@ -351,7 +351,7 @@ export function evaluateContinuousWarmSeason(model, options = {}) {
   };
 }
 
-export function evaluateContinuousWarmSeasonEnvelope(model, options = {}) {
+function evaluateContinuousWarmSeasonEnvelope(model, options = {}) {
   const study = activeSolarStudyGeometry(model);
   const canonicalPlanRotation = finite(study.planRotation, 'activeSolarStudyGeometry.planRotation');
   const nominalLean = finite(options.nominalLean ?? study.mirrorLeanFromVertical, 'nominalLean');
@@ -504,9 +504,7 @@ export function buildReflectingVolumeCorners(model, input) {
   ];
 }
 
-export const buildL2VolumeCorners = buildReflectingVolumeCorners;
-
-export function evaluatePoolSurfaceScenario(model, options = {}) {
+function evaluatePoolSurfaceScenario(model, options = {}) {
   const study = activeSolarStudyGeometry(model);
   const planRotation = finite(options.planRotation ?? study.planRotation, 'planRotation');
   const mirrorLeanFromVertical = finite(

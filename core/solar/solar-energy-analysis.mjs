@@ -12,7 +12,7 @@ import {
 import { activeSolarStudyGeometry, buildReflectingVolumeCorners } from './solar-angle-analysis.mjs';
 import { resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active-geometry.mjs';
 
-export const WARM_MONTHS = new Set([5, 6, 7, 8, 9]);
+const WARM_MONTHS = new Set([5, 6, 7, 8, 9]);
 const EPSILON = 1e-9;
 
 const finite = (value, label) => {

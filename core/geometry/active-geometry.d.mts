@@ -17,9 +17,7 @@ export interface ActiveGeometry {
   coordinateSystemId: 'SITE-XY';
   [key: string]: unknown;
 }
-export const SITE_COORDINATE_SYSTEM_ID: 'SITE-XY';
 export const THREE_SITE_ADAPTER_ID: 'SITE-XYZ-TO-THREE-RH';
-export function normalizeBounds(bounds: SiteBounds, label?: string): SiteBounds;
 export function resolveActiveGeometry(model: unknown): ActiveGeometry;
 export function geometryEntities(activeGeometry: ActiveGeometry): Map<string, GeometryEntity>;
 export function resolveGeometryEntity(
@@ -27,4 +25,3 @@ export function resolveGeometryEntity(
   entityId: string,
 ): GeometryEntity;
 export function sitePointToThree(point: [number, number, number]): [number, number, number];
-export function boundsEqual(first: SiteBounds, second: SiteBounds, tolerance?: number): boolean;

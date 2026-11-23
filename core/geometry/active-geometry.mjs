@@ -1,4 +1,4 @@
-export const SITE_COORDINATE_SYSTEM_ID = 'SITE-XY';
+const SITE_COORDINATE_SYSTEM_ID = 'SITE-XY';
 export const THREE_SITE_ADAPTER_ID = 'SITE-XYZ-TO-THREE-RH';
 
 const finite = (value, label) => {
@@ -6,7 +6,7 @@ const finite = (value, label) => {
   return value;
 };
 
-export function normalizeBounds(bounds, label = 'bounds') {
+function normalizeBounds(bounds, label = 'bounds') {
   if (!bounds || typeof bounds !== 'object') throw new TypeError(`${label} must be an object.`);
   const normalized = {
     x1: finite(bounds.x1, `${label}.x1`),
@@ -126,10 +126,4 @@ export function sitePointToThree(point) {
   // Three.js uses Y-up. Negating SITE Y preserves a right-handed frame:
   // SITE +X -> Three +X, SITE +Y -> Three -Z, SITE +Z -> Three +Y.
   return [x, z, -y];
-}
-
-export function boundsEqual(first, second, tolerance = 1e-9) {
-  const a = normalizeBounds(first, 'firstBounds');
-  const b = normalizeBounds(second, 'secondBounds');
-  return ['x1', 'x2', 'y1', 'y2'].every((key) => Math.abs(a[key] - b[key]) <= tolerance);
 }
