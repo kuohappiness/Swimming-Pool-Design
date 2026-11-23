@@ -239,7 +239,8 @@ export function assertFixtureLayout(layout: FixtureLayout): FixtureLayout {
 // 一般構件（three.js 標準與物理材質）
 
 export interface FixtureLightUniforms {
-  readonly uFixtureActive: THREE.IUniform<number>;
+  /** 要算的區數：燈沒開、或燈光照在構件上的強度為 0 時是 0（著色器的迴圈一次都不跑）。 */
+  readonly uFixtureZoneCount: THREE.IUniform<number>;
   readonly uFixtureColor: THREE.IUniform<THREE.Color>;
   /** 世界座標的燈位，w 是光強度（場景單位）。 */
   readonly uFixtureLights: THREE.IUniform<THREE.Vector4[]>;
@@ -259,7 +260,7 @@ const filled = <T>(count: number, create: () => T) => Array.from({ length: count
 
 export function createFixtureLightUniforms(): FixtureLightUniforms {
   return {
-    uFixtureActive: { value: 0 },
+    uFixtureZoneCount: { value: 0 },
     uFixtureColor: { value: new THREE.Color(0, 0, 0) },
     uFixtureLights: { value: filled(FIXTURE_LIGHT_SLOTS, () => new THREE.Vector4()) },
     uFixtureWorldToSite: { value: new THREE.Matrix4() },
@@ -275,7 +276,7 @@ export function createFixtureLightUniforms(): FixtureLightUniforms {
 export const FIXTURE_LIGHTS_GLSL = /* glsl */`
 #define FIXTURE_ZONE_SLOTS ${FIXTURE_ZONE_SLOTS}
 #define FIXTURE_LIGHT_SLOTS ${FIXTURE_LIGHT_SLOTS}
-uniform float uFixtureActive;
+uniform int uFixtureZoneCount;
 uniform vec3 uFixtureColor;
 uniform vec4 uFixtureLights[ FIXTURE_LIGHT_SLOTS ];
 uniform mat4 uFixtureWorldToSite;
@@ -303,42 +304,55 @@ const COMMON = '#include <common>';
  * 間接漫射照度（和環境遮蔽一起作用）。燈的高光不在這裡算：池廳裡的構件反射池廳探針，探針拍得到
  * 發亮的燈具（`rendering/enhanced/hall-reflection.ts`），再算一次高光就重複了。
  * 位置與範圍在世界座標判斷，所以倒影與探針畫面也正確。補光朝下的面拿到最多。
+ *
+ * 全部的計算都在次數由 uniform 決定的迴圈裡：燈沒開時次數是 0，顯示卡整段跳過。軟體繪圖（沒有
+ * 顯示卡的電腦、瀏覽器測試）不一樣，程式碼在就要花時間，所以省電級在燈沒照到構件時不編這一段
+ *（見 `FixtureLightProgram`）。
  */
 const FIXTURE_LIGHTS_APPLY = /* glsl */`
 #if defined( RE_IndirectDiffuse )
-	if ( uFixtureActive > 0.0 ) {
+	for ( int zone = 0; zone < min( uFixtureZoneCount, FIXTURE_ZONE_SLOTS ); zone ++ ) {
 		vec3 fixtureWorld = ( vec4( geometryPosition - viewMatrix[ 3 ].xyz, 0.0 ) * viewMatrix ).xyz;
-		vec3 fixtureSite = ( uFixtureWorldToSite * vec4( fixtureWorld, 1.0 ) ).xyz;
 		vec3 fixtureNormalWorld = inverseTransformDirection( geometryNormal, viewMatrix );
-		for ( int zone = 0; zone < FIXTURE_ZONE_SLOTS; zone ++ ) {
-			int fixtureCount = int( uFixtureZoneRange[ zone ].y );
-			if ( fixtureCount <= 0 ) continue;
-			float reach = fixtureZoneReach( zone, fixtureSite );
-			if ( reach <= 0.0 ) continue;
-			int firstFixture = int( uFixtureZoneRange[ zone ].x );
-			float fixtureIrradiance = 0.0;
-			for ( int index = 0; index < FIXTURE_LIGHT_SLOTS; index ++ ) {
-				if ( index >= fixtureCount ) break;
-				vec4 fixture = uFixtureLights[ firstFixture + index ];
-				vec3 toFixture = fixture.xyz - fixtureWorld;
-				float distanceSquared = max( dot( toFixture, toFixture ), 0.09 );
-				vec3 towardFixture = toFixture * inversesqrt( distanceSquared );
-				// 燈具朝下：離開正下方越遠越暗，燈具上方完全照不到。
-				fixtureIrradiance += fixture.w * max( towardFixture.y, 0.0 )
-					* max( dot( fixtureNormalWorld, towardFixture ), 0.0 ) / distanceSquared;
-			}
-			irradiance += uFixtureColor * ( fixtureIrradiance * reach )
-				+ uFixtureZoneFill[ zone ] * reach * ( 0.35 + 0.65 * ( 0.5 - 0.5 * fixtureNormalWorld.y ) );
+		float reach = fixtureZoneReach( zone, ( uFixtureWorldToSite * vec4( fixtureWorld, 1.0 ) ).xyz );
+		int firstFixture = int( uFixtureZoneRange[ zone ].x );
+		int endFixture = min( firstFixture + int( uFixtureZoneRange[ zone ].y ), FIXTURE_LIGHT_SLOTS );
+		if ( reach <= 0.0 ) endFixture = firstFixture;
+		float fixtureIrradiance = 0.0;
+		for ( int index = firstFixture; index < endFixture; index ++ ) {
+			vec4 fixture = uFixtureLights[ index ];
+			vec3 toFixture = fixture.xyz - fixtureWorld;
+			float distanceSquared = max( dot( toFixture, toFixture ), 0.09 );
+			vec3 towardFixture = toFixture * inversesqrt( distanceSquared );
+			// 燈具朝下：離開正下方越遠越暗，燈具上方完全照不到。
+			fixtureIrradiance += fixture.w * max( towardFixture.y, 0.0 )
+				* max( dot( fixtureNormalWorld, towardFixture ), 0.0 ) / distanceSquared;
 		}
+		irradiance += ( uFixtureColor * fixtureIrradiance
+			+ uFixtureZoneFill[ zone ] * ( 0.35 + 0.65 * ( 0.5 - 0.5 * fixtureNormalWorld.y ) ) ) * reach;
 	}
 #endif
 `;
 
 /**
+ * 材質的著色器要不要編進燈具照明。改了值要讓裝過的材質重編（`material.needsUpdate`）；
+ * three.js 每個材質留著編過的版本，切回來不必再編。
+ */
+export interface FixtureLightProgram {
+  readonly compiled: boolean;
+}
+
+const ALWAYS_COMPILED: FixtureLightProgram = Object.freeze({ compiled: true });
+
+/**
  * 把燈具照明裝進一個 three.js 內建的受光材質（標準、物理）。uniform 是共用的同一組物件、
  * 世界座標，只在光線或圖層改變時更新。回傳 false 代表這不是會受光的標準材質，不裝。
  */
-export function installFixtureLights(material: THREE.Material, uniforms: FixtureLightUniforms): boolean {
+export function installFixtureLights(
+  material: THREE.Material,
+  uniforms: FixtureLightUniforms,
+  program: FixtureLightProgram = ALWAYS_COMPILED,
+): boolean {
   if ((material as THREE.MeshStandardMaterial).isMeshStandardMaterial !== true) return false;
   if (material.userData.fixtureLights === uniforms) return true;
   const previous = material.onBeforeCompile;
@@ -346,13 +360,15 @@ export function installFixtureLights(material: THREE.Material, uniforms: Fixture
   material.onBeforeCompile = function onBeforeCompile(shader, renderer) {
     previous.call(this, shader, renderer);
     if (!shader.fragmentShader.includes(LIGHTS_MAPS) || !shader.fragmentShader.includes(COMMON)) return;
+    // 兩個版本都帶 uniform：three.js 切回已編過的版本時沿用最後一次編譯的 uniform 清單。
     Object.assign(shader.uniforms, uniforms);
+    if (!program.compiled) return;
     shader.fragmentShader = shader.fragmentShader
       .replace(COMMON, `${COMMON}\n${FIXTURE_LIGHTS_GLSL}`)
       .replace(LIGHTS_MAPS, `${FIXTURE_LIGHTS_APPLY}\n${LIGHTS_MAPS}`);
   };
   material.customProgramCacheKey = function customProgramCacheKey() {
-    return `${previousKey.call(this)}|fixture-lights`;
+    return `${previousKey.call(this)}|fixture-lights${program.compiled ? '' : ':off'}`;
   };
   material.userData.fixtureLights = uniforms;
   material.needsUpdate = true;
@@ -400,6 +416,8 @@ export function readSceneFixtureLights(scene: THREE.Scene | null | undefined): W
 export interface WaterLightUniforms {
   readonly uWaterCeilingIrradiance: THREE.IUniform<THREE.Color>;
   readonly uPoolLightCount: THREE.IUniform<number>;
+  /** 照得到東西的水下燈盞數（水中光暈用）：白天燈光照在構件上的強度為 0 時是 0。 */
+  readonly uPoolGlowCount: THREE.IUniform<number>;
   readonly uPoolLights: THREE.IUniform<THREE.Vector4[]>;
   readonly uPoolLightAims: THREE.IUniform<THREE.Vector3[]>;
   readonly uPoolLightColor: THREE.IUniform<THREE.Color>;
@@ -410,7 +428,7 @@ export interface WaterLightUniforms {
 
 export const WATER_LIGHT_UNIFORM_NAMES = Object.freeze([
   'uWaterCeilingIrradiance',
-  'uPoolLightCount', 'uPoolLights', 'uPoolLightAims', 'uPoolLightColor', 'uPoolLightLens',
+  'uPoolLightCount', 'uPoolGlowCount', 'uPoolLights', 'uPoolLightAims', 'uPoolLightColor', 'uPoolLightLens',
   'uWaterLightIrradiance',
 ] as const satisfies readonly (keyof WaterLightUniforms)[]);
 
@@ -418,6 +436,7 @@ export function createWaterLightUniforms(): WaterLightUniforms {
   return {
     uWaterCeilingIrradiance: { value: new THREE.Color(0, 0, 0) },
     uPoolLightCount: { value: 0 },
+    uPoolGlowCount: { value: 0 },
     uPoolLights: { value: filled(POOL_LIGHT_SLOTS, () => new THREE.Vector4()) },
     uPoolLightAims: { value: filled(POOL_LIGHT_SLOTS, () => new THREE.Vector3(0, 0, 1)) },
     uPoolLightColor: { value: new THREE.Color(0, 0, 0) },
@@ -446,6 +465,7 @@ export function writeWaterLightUniforms(
   if (!lights) {
     uniforms.uWaterCeilingIrradiance.value.setRGB(0, 0, 0);
     uniforms.uPoolLightCount.value = 0;
+    uniforms.uPoolGlowCount.value = 0;
     uniforms.uPoolLightLens.value.x = 0;
     uniforms.uWaterLightIrradiance.value.setRGB(0, 0, 0);
     return;
@@ -458,6 +478,7 @@ export function writeWaterLightUniforms(
     uniforms.uPoolLightAims.value[index]!.copy(light.aim).transformDirection(toSpace);
   });
   uniforms.uPoolLightCount.value = pool.length;
+  uniforms.uPoolGlowCount.value = pool.some((light) => light.intensity > 0) ? pool.length : 0;
   uniforms.uPoolLightColor.value.copy(lights.poolColor);
   uniforms.uPoolLightLens.value.set(lights.lensLuminance, lights.lensRadius);
   uniforms.uWaterLightIrradiance.value.copy(lights.waterIrradiance);
@@ -473,6 +494,7 @@ export type FixtureState = 'on' | 'off';
  */
 export class FixtureLights {
   readonly uniforms: FixtureLightUniforms = createFixtureLightUniforms();
+  private readonly program = { compiled: true };
   private readonly layout: FixtureLayout;
   private lighting: SunLighting | null = null;
   private tier: FixtureQualityTier = 'high';
@@ -494,7 +516,9 @@ export class FixtureLights {
     root.traverse((object) => {
       if (!(object as THREE.Mesh).isMesh || emitters.has(object.name)) return;
       const { material } = object as THREE.Mesh;
-      for (const entry of Array.isArray(material) ? material : [material]) installFixtureLights(entry, this.uniforms);
+      for (const entry of Array.isArray(material) ? material : [material]) {
+        installFixtureLights(entry, this.uniforms, this.program);
+      }
     });
     this.sync();
   }
@@ -570,10 +594,27 @@ export class FixtureLights {
     for (let index = this.layout.zones.length; index < FIXTURE_ZONE_SLOTS; index += 1) {
       uniforms.uFixtureZoneRange.value[index]!.set(0, 0);
     }
-    uniforms.uFixtureActive.value = on && slot > 0 && this.surfaceStrength > 0 ? 1 : 0;
+    uniforms.uFixtureZoneCount.value = on && slot > 0 && this.surfaceStrength > 0 ? this.layout.zones.length : 0;
+    // 省電級（繪圖管線 low，軟體繪圖一律用這一級）燈沒照到構件時不編燈具照明；其他級一直編著，開關燈不必重編。
+    this.setCompiled(this.tier !== 'low' || uniforms.uFixtureZoneCount.value > 0);
 
     this.updateEmitters(on, scale);
     this.publishWater(on, scale, waterLux);
+  }
+
+  /** 著色器 `compiled` 改變時，讓場景裡裝過燈光的材質重編。 */
+  private setCompiled(compiled: boolean): void {
+    if (this.program.compiled === compiled) return;
+    this.program.compiled = compiled;
+    const installed = new Set<THREE.Material>();
+    this.scene.traverse((object) => {
+      const { material } = object as THREE.Mesh;
+      if (!material) return;
+      for (const entry of Array.isArray(material) ? material : [material]) {
+        if (entry.userData.fixtureLights === this.uniforms) installed.add(entry);
+      }
+    });
+    for (const material of installed) material.needsUpdate = true;
   }
 
   private updateEmitters(on: boolean, scale: number): void {
@@ -590,7 +631,9 @@ export class FixtureLights {
   }
 
   private publishWater(on: boolean, scale: number, ceilingWaterLux: number): void {
-    const poolVisible = on && this.layout.poolLights.length > 0 && this.objectVisible(this.layout.poolLightAnchorName);
+    // 白天燈光照不到構件時，水下燈只剩透鏡發亮；省電級（含軟體繪圖）連透鏡也不算，省下水裡的迴圈。
+    const poolVisible = on && (this.surfaceStrength > 0 || this.tier !== 'low')
+      && this.layout.poolLights.length > 0 && this.objectVisible(this.layout.poolLightAnchorName);
     if (!on) {
       publishSceneFixtureLights(this.scene, null);
       return;

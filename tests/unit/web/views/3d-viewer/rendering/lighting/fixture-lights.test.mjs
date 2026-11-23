@@ -141,21 +141,44 @@ test('the lights add diffuse light after three.js’s own lights and before its 
   const shader = { fragmentShader: THREE.ShaderLib.standard.fragmentShader, vertexShader: '', uniforms: {} };
   material.onBeforeCompile(shader, null);
   const source = shader.fragmentShader;
-  const apply = source.indexOf('if ( uFixtureActive > 0.0 )');
+  const apply = source.indexOf('for ( int zone = 0; zone < min( uFixtureZoneCount, FIXTURE_ZONE_SLOTS ); zone ++ )');
   assert.ok(source.indexOf('float fixtureZoneReach(') > 0 && source.indexOf('float fixtureZoneReach(') < apply);
   assert.ok(source.indexOf('#include <lights_fragment_begin>') < apply, 'irradiance already exists');
   assert.ok(apply < source.indexOf('#include <lights_fragment_maps>'));
   // 只加漫射：燈的高光來自池廳探針照出的發光面，這裡不再算一次。
   const block = source.slice(source.lastIndexOf('#if', apply), source.indexOf('#endif', apply));
   assert.match(block, /^#if defined\( RE_IndirectDiffuse \)/);
-  assert.match(block, /irradiance \+= uFixtureColor \* \( fixtureIrradiance \* reach \)/);
+  assert.match(block, /irradiance \+= \( uFixtureColor \* fixtureIrradiance/);
   assert.doesNotMatch(block, /RE_Direct/);
+  // 燈沒開時迴圈一次都不跑：軟體繪圖會把 if 兩邊都算，所以計算不能放在迴圈外面。
+  const beforeLoop = block.slice(0, block.indexOf('for ( int zone'));
+  assert.doesNotMatch(beforeLoop, /fixture|irradiance \+=/);
   assert.equal(shader.uniforms.uFixtureLights, uniforms.uFixtureLights, 'shared, not copied');
   assert.ok(material.customProgramCacheKey().endsWith('|fixture-lights'));
   // three.js 的光照片段仍宣告了注入要用的變數，間接漫射也仍由 irradiance 算出。
   assert.match(THREE.ShaderChunk.lights_fragment_begin, /vec3 irradiance = /);
   assert.match(THREE.ShaderChunk.lights_fragment_end, /RE_IndirectDiffuse\( irradiance,/);
   assert.equal(lights.installFixtureLights(new THREE.MeshBasicMaterial(), uniforms), false);
+});
+
+test('a material can be compiled without the fixture lights and keeps the shared uniforms', () => {
+  const uniforms = lights.createFixtureLightUniforms();
+  const program = { compiled: false };
+  const material = new THREE.MeshStandardMaterial();
+  assert.equal(lights.installFixtureLights(material, uniforms, program), true);
+  const compile = () => {
+    const shader = { fragmentShader: THREE.ShaderLib.standard.fragmentShader, vertexShader: '', uniforms: {} };
+    material.onBeforeCompile(shader, null);
+    return shader;
+  };
+  const off = compile();
+  assert.doesNotMatch(off.fragmentShader, /fixture/i);
+  // three.js 切回已編過的版本時沿用最後一次的 uniform 清單，所以不編的版本也要帶著。
+  assert.equal(off.uniforms.uFixtureLights, uniforms.uFixtureLights);
+  assert.ok(material.customProgramCacheKey().endsWith('|fixture-lights:off'));
+  program.compiled = true;
+  assert.match(compile().fragmentShader, /uFixtureZoneCount/);
+  assert.ok(material.customProgramCacheKey().endsWith('|fixture-lights'));
 });
 
 test('at night the fixtures light their zones in world space; by day they are off', () => {
@@ -170,7 +193,7 @@ test('at night the fixtures light their zones in world space; by day they are of
   const { uniforms } = fixtures;
   assert.equal(fixtures.state, 'on');
   assert.equal(fixtures.surfaceLighting, 1);
-  assert.equal(uniforms.uFixtureActive.value, 1);
+  assert.equal(uniforms.uFixtureZoneCount.value, 2);
   const [hallRange, l2Range] = uniforms.uFixtureZoneRange.value;
   assert.deepEqual(hallRange.toArray(), [0, 12]);
   assert.deepEqual(l2Range.toArray(), [12, 12]);
@@ -195,13 +218,18 @@ test('at night the fixtures light their zones in world space; by day they are of
   fixtures.setLighting(at('12:00', 'overcast'));
   assert.equal(fixtures.state, 'on');
   assert.equal(fixtures.surfaceLighting, 0);
-  assert.equal(uniforms.uFixtureActive.value, 0);
+  assert.equal(uniforms.uFixtureZoneCount.value, 0);
   assert.ok(emitter.material.emissiveIntensity > 0.2 && emitter.material.emissiveIntensity < 2);
+  // 水下燈也只剩透鏡發亮。
+  const daytimeWater = lights.readSceneFixtureLights(graph.scene);
+  assert.equal(daytimeWater.pool.length, layout.poolLights.length);
+  assert.ok(daytimeWater.pool.every((light) => light.intensity === 0));
+  assert.ok(daytimeWater.lensLuminance > 0);
 
   // 晴天白天關燈。
   fixtures.setLighting(at('12:00'));
   assert.equal(fixtures.state, 'off');
-  assert.equal(uniforms.uFixtureActive.value, 0);
+  assert.equal(uniforms.uFixtureZoneCount.value, 0);
   assert.equal(emitter.material.emissiveIntensity, 0);
   assert.equal(lights.readSceneFixtureLights(graph.scene), null);
 
@@ -220,6 +248,47 @@ test('at night the fixtures light their zones in world space; by day they are of
   assert.equal(uniforms.uFixtureZoneRange.value[0].y, 6);
   assert.equal(lights.readSceneFixtureLights(graph.scene).pool.length, 6);
   assert.throws(() => fixtures.setQuality('ultra'), /Unknown fixture quality tier/);
+});
+
+test('on the saver tier the fixture lights are compiled only while they light the scene', () => {
+  const graph = createGraph();
+  graph.siteRoot.updateMatrixWorld(true);
+  const fixtures = new lights.FixtureLights(layout, graph.scene, graph.siteRoot);
+  fixtures.install(graph.scene);
+  const shared = new Set();
+  graph.scene.traverse((object) => {
+    for (const entry of [object.material ?? []].flat()) {
+      if (entry.userData.fixtureLights === fixtures.uniforms) shared.add(entry);
+    }
+  });
+  const installed = [...shared];
+  assert.ok(installed.length > 10);
+  const keys = () => new Set(installed.map((material) => material.customProgramCacheKey().endsWith(':off')));
+  const versions = () => installed.map((material) => material.version);
+
+  // 其他級一直編著：開關燈不必重編。
+  fixtures.setQuality('medium');
+  fixtures.setLighting(at('12:00'));
+  assert.deepEqual(keys(), new Set([false]));
+  let before = versions();
+  fixtures.setLighting(at('19:30'));
+  assert.deepEqual(versions(), before, 'switching the lights on does not recompile');
+
+  // 省電級（繪圖管線 low，含軟體繪圖）：燈沒照到構件時不編，照到時才編，兩次切換各讓材質重編一次。
+  fixtures.setQuality('low');
+  assert.deepEqual(keys(), new Set([false]));
+  before = versions();
+  fixtures.setLighting(at('12:00', 'overcast'));
+  assert.deepEqual(keys(), new Set([true]));
+  assert.ok(versions().every((version, index) => version === before[index] + 1));
+  // 省電級白天連水下燈的透鏡也不算。
+  assert.equal(lights.readSceneFixtureLights(graph.scene).pool.length, 0);
+  assert.equal(lights.readSceneFixtureLights(graph.scene).lensLuminance, 0);
+  fixtures.setLighting(at('12:00'));
+  assert.ok(versions().every((version, index) => version === before[index] + 1), 'no change, no recompile');
+  fixtures.setLighting(at('19:30'));
+  assert.deepEqual(keys(), new Set([false]));
+  assert.ok(versions().every((version, index) => version === before[index] + 2));
 });
 
 test('the water shader declares the same slots and shares the light uniforms', () => {
@@ -255,8 +324,25 @@ test('the water shader declares the same slots and shares the light uniforms', (
   assert.ok(new THREE.Vector3().copy(uniforms.uPoolLights.value[0]).distanceTo(new THREE.Vector3(10, -0.3, 4)) < 1e-9);
   assert.ok(uniforms.uPoolLightAims.value[0].distanceTo(new THREE.Vector3(0, 0, 1)) < 1e-9);
   assert.deepEqual(uniforms.uPoolLightLens.value.toArray(), [26, 0.14]);
+  assert.equal(uniforms.uPoolLightCount.value, 1);
+  assert.equal(uniforms.uPoolGlowCount.value, 1);
+  // 白天燈開著：透鏡亮，但光照不到東西，水中光暈的迴圈不跑。
+  lights.writeWaterLightUniforms(uniforms, {
+    ceilingIrradiance: new THREE.Color(0, 0, 0),
+    pool: [{ position, aim, intensity: 0 }],
+    poolColor: new THREE.Color(0.9, 1, 1),
+    lensLuminance: 26,
+    lensRadius: 0.14,
+    waterIrradiance: new THREE.Color(0, 0, 0),
+  }, toLocal);
+  assert.equal(uniforms.uPoolLightCount.value, 1);
+  assert.equal(uniforms.uPoolGlowCount.value, 0);
   lights.writeWaterLightUniforms(uniforms, null, toLocal);
   assert.deepEqual(uniforms.uWaterCeilingIrradiance.value.toArray(), [0, 0, 0]);
   assert.equal(uniforms.uPoolLightCount.value, 0);
+  assert.equal(uniforms.uPoolGlowCount.value, 0);
   assert.equal(uniforms.uPoolLightLens.value.x, 0);
+  // 水的燈光迴圈次數都由 uniform 決定（燈沒開時是 0，軟體繪圖才不會白算）。
+  assert.match(chunk, /for \(int index = 0; index < min\(uPoolLightCount, POOL_LIGHT_SLOTS\); index\+\+\)/);
+  assert.match(chunk, /for \(int index = 0; index < min\(uPoolGlowCount, POOL_LIGHT_SLOTS\); index\+\+\)/);
 });

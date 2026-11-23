@@ -43,7 +43,8 @@ uniform vec3 uSunShadow;
 // 陣列大小與 fixture-lights.ts 的 POOL_LIGHT_SLOTS 相同（單元測試比對）。
 #define POOL_LIGHT_SLOTS 12
 uniform vec3 uWaterCeilingIrradiance;               // 天花燈照在水面的平均照度（已乘燈色與入水穿透率）
-uniform int uPoolLightCount;
+uniform int uPoolLightCount;                        // 水下燈盞數（透鏡亮著就算）
+uniform int uPoolGlowCount;                         // 照得到東西的盞數：白天燈光遠比日光弱時是 0
 uniform vec4 uPoolLights[POOL_LIGHT_SLOTS];         // 水下燈：位置（池壁面上），w 是光強度
 uniform vec3 uPoolLightAims[POOL_LIGHT_SLOTS];      // 水下燈朝向池內的單位向量
 uniform vec3 uPoolLightColor;
@@ -277,12 +278,11 @@ vec3 ceilingFixturesInWater(float depth, vec3 normal) {
 
 // 水下燈照在池底、池壁一點的照度（未乘反照率）。燈裝在池壁上朝池內打光，沿途被水吸收。
 // 同一個迴圈也算透鏡：這一點落在透鏡裡的程度（0 到 1）由 lens 傳回，透鏡直接發光。
+// 燈的計算都放在次數由 uniform 決定的迴圈裡：軟體繪圖會把 if 兩邊都算，次數為 0 才真的省下。
 vec3 poolLightsOnBasin(vec3 position, vec3 normal, out float lens) {
   lens = 0.0;
   vec3 total = vec3(0.0);
-  if (uPoolLightCount <= 0) return total;
-  for (int index = 0; index < POOL_LIGHT_SLOTS; index++) {
-    if (index >= uPoolLightCount) break;
+  for (int index = 0; index < min(uPoolLightCount, POOL_LIGHT_SLOTS); index++) {
     vec4 light = uPoolLights[index];
     vec3 toLight = light.xyz - position;
     float squared = dot(toLight, toLight);
@@ -300,10 +300,8 @@ vec3 poolLightsOnBasin(vec3 position, vec3 normal, out float lens) {
 // ∫ dt / (h² + t²) = atan(t / h) / h，h 是燈到視線的最近距離；吸收用最近點估計。
 const float POOL_LIGHT_SCATTERING = 0.05;   // 池水的散射係數（每公尺），清澈但有微粒的池水
 vec3 poolLightGlow(vec3 origin, vec3 direction, float distance) {
-  if (uPoolLightCount <= 0 || uPoolLights[0].w <= 0.0) return vec3(0.0);
   vec3 glow = vec3(0.0);
-  for (int index = 0; index < POOL_LIGHT_SLOTS; index++) {
-    if (index >= uPoolLightCount) break;
+  for (int index = 0; index < min(uPoolGlowCount, POOL_LIGHT_SLOTS); index++) {
     vec4 light = uPoolLights[index];
     vec3 toLight = light.xyz - origin;
     float along = dot(toLight, direction);
