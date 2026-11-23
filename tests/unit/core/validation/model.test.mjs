@@ -228,7 +228,7 @@ test('L2 Review A provides 30 inclusive 1.2 m showers, support fixtures, corrido
   assert.equal(l2.stairToL3.underStairLandscape.planterCount, 3);
 });
 
-test('L3 keeps future flexibility and adds a complete roof with dense PV and ground-level outdoor ESS strategy', () => {
+test('L3 holds the DEC-173 learning room and adds a complete roof with dense PV and ground-level outdoor ESS strategy', () => {
   const l3 = resolveActiveGeometry(model).l3;
   assert.equal(l3.planRotation, 25.5);
   assert.deepEqual(l3.planPivot, { x: 35, y: 6.75, strategy: 'floor-plate-centroid-and-fixed-core-proxy', status: 'working' });
@@ -239,9 +239,16 @@ test('L3 keeps future flexibility and adds a complete roof with dense PV and gro
   assert.equal(l3.landscapeTerrace.studentsAllowed, false);
   assert.equal(l3.landscapeTerrace.visitorsAllowed, false);
   assert.equal(l3.landscapeTerrace.primaryEgress, false);
-  assert.equal(l3.programStrategy.teacherObservationRoom, 'future-flexibility-only');
-  assert.equal(l3.programStrategy.environmentalEducationDisplay, 'future-flexibility-only');
+  assert.equal(l3.programStrategy.teacherObservationRoom, 'built-in-l3-learning-room');
+  assert.equal(l3.programStrategy.environmentalEducationDisplay, 'glass-partition-equipment-view-and-energy-dashboard');
+  assert.equal(l3.programStrategy.wholeClassUse, false);
+  assert.equal(l3.programStrategy.mirrorOpenings, false);
   assert.equal(l3.programStrategy.dryMaintenanceStorage, 'under-consideration-not-built');
+  assert.deepEqual(l3.learningRoom.bounds, { x1: 29, x2: 41, y1: 0, y2: 5.5 });
+  assert.deepEqual(l3.equipmentZone.bounds, { x1: 29, x2: 41, y1: 5.5, y2: 13.5 });
+  assert.equal(l3.learningRoom.area + l3.equipmentZone.area, l3.orthogonalExtension.mainRotatedPlateArea);
+  assert.equal(l3.learningRoom.entryFrom, l3.arrivalWing.entityId);
+  assert.deepEqual(l3.glassPartition.separates, [l3.learningRoom.entityId, l3.equipmentZone.entityId]);
   assert.deepEqual(l3.roof.bounds, { x1: 27.472, x2: 41, y1: 0, y2: 13.5 });
   assert.equal(l3.roof.area, 182.628);
   assert.equal(l3.roof.continuous, true);
@@ -255,6 +262,23 @@ test('L3 keeps future flexibility and adds a complete roof with dense PV and gro
   assert.equal(l3.pvRoofReserve.capacityStatus, 'deferred');
   assert.equal(l3.energyStorageStrategy.preferredLocation, 'ground-level-independent-outdoor-enclosure');
   assert.equal(l3.energyStorageStrategy.batteryObjectsOnGeneralL3Interior, false);
+});
+
+test('L3 program validation rejects whole-class use, mirror openings and an uneven split (DEC-173)', () => {
+  const mutate = (change) => {
+    const copy = structuredClone(model);
+    change(resolveActiveGeometry(copy));
+    return validateModel(copy).join('\n');
+  };
+  assert.equal(mutate(() => {}), '');
+  assert.match(mutate((g) => { g.l3.programStrategy.wholeClassUse = true; }), /not whole classes/);
+  assert.match(mutate((g) => { g.l3.programStrategy.mirrorOpenings = true; }), /without openings or reflective glass/);
+  assert.match(mutate((g) => { g.l3.mirror.materialIntent = 'reflective-glass'; }), /without openings or reflective glass/);
+  assert.match(mutate((g) => { g.l3.learningRoom.area = 80; }), /66 m²/);
+  assert.match(mutate((g) => { g.l3.learningRoom.entryFrom = 'Z-L3-MEP-01'; }), /arrival side/);
+  assert.match(mutate((g) => { g.l3.equipmentZone.access = 'open'; }), /maintenance-only/);
+  assert.match(mutate((g) => { g.l3.glassPartition.maintenanceDoor = 'open'; }), /locked maintenance door/);
+  assert.match(mutate((g) => { g.l3.glassPartition.bounds.y1 = 5.3; }), /W-L3-GLASS-01 bounds/);
 });
 
 test('ST-01 scheme E connects the +0.30 m deck directly to L2', () => {

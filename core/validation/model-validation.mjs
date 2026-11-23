@@ -143,6 +143,9 @@ export function validateModel(model) {
     'L3-EXT-01': { x1: 38.428, x2: 41, y1: 0, y2: 5.392 },
     'Z-L3-ARRIVAL-01': { x1: 38.666, x2: 41, y1: 0.5, y2: 2 },
     'Z-L3-TERRACE-01': { x1: 38.428, x2: 41, y1: 0, y2: 5.392 },
+    'Z-L3-LEARN-01': { x1: 29, x2: 41, y1: 0, y2: 5.5 },
+    'Z-L3-MEP-01': { x1: 29, x2: 41, y1: 5.5, y2: 13.5 },
+    'W-L3-GLASS-01': { x1: 29, x2: 41, y1: 5.43, y2: 5.57 },
     'Z-WC-POOL-M-01': { x1: 31, x2: 35.5, y1: 0, y2: 3.5 },
     'Z-WC-POOL-F-01': { x1: 31, x2: 35.5, y1: 3.5, y2: 7.5 },
     'Z-WC-PLAY-M-01': { x1: 35.5, x2: 39, y1: 0, y2: 3.5 },
@@ -349,7 +352,17 @@ export function validateModel(model) {
   check(errors, closeTo(active.l3.pvRoofReserve?.area, 169.364) && closeTo(active.l3.pvRoofReserve?.roofArea, 182.628) && closeTo(active.l3.pvRoofReserve?.coveragePercent, 92.74) && closeTo(active.l3.pvRoofReserve?.perimeterSetback, 0.25) && active.l3.pvRoofReserve?.moduleLayoutStatus === 'working-dense-concept-layout' && active.l3.pvRoofReserve?.capacityStatus === 'deferred', 'L3 PV must densely cover the complete roof after a 0.25 m perimeter setback without committing capacity.');
   check(errors, active.l3.pvRoofReserve?.rotation === active.l3.planRotation && active.l3.pvRoofReserve?.excludedSupports?.includes('existing-glass-pool-roof'), 'The dense PV array must rotate with the L3 roof and remain separate from the glass pool roof.');
   check(errors, active.l3.energyStorageStrategy?.preferredLocation === 'ground-level-independent-outdoor-enclosure' && active.l3.energyStorageStrategy?.batteryObjectsOnGeneralL3Interior === false && active.l3.energyStorageStrategy?.fireApproval === false, 'Energy storage must prefer a ground-level independent outdoor enclosure and prohibit batteries in general L3 interior space.');
-  check(errors, active.l3.programStrategy?.teacherObservationRoom === 'future-flexibility-only' && active.l3.programStrategy?.environmentalEducationDisplay === 'future-flexibility-only' && active.l3.programStrategy?.dryMaintenanceStorage === 'under-consideration-not-built', 'L3 must preserve future program flexibility without building observation, education, or dry-storage rooms now.');
+  const l3Program = active.l3.programStrategy;
+  check(errors, l3Program?.teacherObservationRoom === 'built-in-l3-learning-room' && l3Program?.environmentalEducationDisplay === 'glass-partition-equipment-view-and-energy-dashboard' && l3Program?.dryMaintenanceStorage === 'under-consideration-not-built', 'L3 must hold the DEC-173 observation and environmental education room without building dry storage.');
+  check(errors, l3Program?.wholeClassUse === false && JSON.stringify(l3Program?.userGroups) === JSON.stringify(['teachers', 'booked-small-student-groups', 'maintenance-staff']), 'L3 must be limited to teachers, booked small groups and maintenance staff, not whole classes (DEC-173).');
+  check(errors, l3Program?.mirrorOpenings === false && l3Program?.poolViewing === 'pool-and-underwater-cameras-to-room-screens' && active.l3.mirror.materialIntent === 'original-mirror', 'L3 pool viewing must use cameras; the mirror wall stays a full mirror without openings or reflective glass (DEC-173).');
+  const learningRoom = active.l3.learningRoom;
+  const equipmentZone = active.l3.equipmentZone;
+  const glassPartition = active.l3.glassPartition;
+  check(errors, closeTo(learningRoom?.area, 66) && closeTo(learningRoom?.rotation, active.l3.planRotation) && learningRoom?.entryFrom === active.l3.arrivalWing.entityId, 'The L3 learning room must cover 66 m² on the arrival side and rotate with L3.');
+  check(errors, closeTo(equipmentZone?.area, 96) && closeTo(equipmentZone?.rotation, active.l3.planRotation) && equipmentZone?.access === 'maintenance-staff-via-locked-door', 'The L3 equipment zone must cover 96 m², rotate with L3 and stay maintenance-only.');
+  check(errors, closeTo(glassPartition?.rotation, active.l3.planRotation) && JSON.stringify(glassPartition?.separates) === JSON.stringify([learningRoom?.entityId, equipmentZone?.entityId]) && glassPartition?.maintenanceDoor === 'locked', 'An acoustic glass partition with a locked maintenance door must separate the L3 learning room from the equipment zone.');
+  check(errors, closeTo(learningRoom?.area + equipmentZone?.area, active.l3.orthogonalExtension.mainRotatedPlateArea), 'L3 learning room and equipment zone must exactly divide the 162 m² rotated plate.');
   check(errors, closeTo(active.roof.pitch, 5) && closeTo(active.roof.lowElevation, 4) && closeTo(active.roof.highElevation, 6.537), 'The fixed glass roof must remain 29 m at 5° from +4.00 to +6.537 m.');
 
   check(errors, closeTo(active.solar.planRotation.value, active.l3.planRotation), 'Solar and L3 plan rotations must share one value.');

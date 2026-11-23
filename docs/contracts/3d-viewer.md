@@ -9,10 +9,10 @@
 
 Viewer 只接受：
 
-- `web/src/generated/viewer-model.json`：由 active `GEO-0.10.0` 產生。
+- `web/src/generated/viewer-model.json`：由 active `GEO-0.11.0` 產生。
 - `web/src/generated/concept-content.json`：由公開理念 Markdown 與 `{{active:...}}` token 產生。
 
-兩者必須有相同 `modelVersion=0.10.0` 與 `modelHash`。viewer model 另須包含 `schemaVersion=1.5.0`、`activeGeometryRevisionId=GEO-0.10.0`、`geometryRevision=0.10.0`、`coordinateSystemId=SITE-XY`、唯一 `referenceSystem.siteOrientation`、`referenceSystem.siteLocation`（校址經緯度與時區，3D 太陽位置的輸入）及每個 bounded entity 的 canonical `entityBounds`。不得輸出第二份 world bearing 或 `northArrowPlanDirection`。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
+兩者必須有相同 `modelVersion=0.11.0` 與 `modelHash`。viewer model 另須包含 `schemaVersion=1.5.0`、`activeGeometryRevisionId=GEO-0.11.0`、`geometryRevision=0.11.0`、`coordinateSystemId=SITE-XY`、唯一 `referenceSystem.siteOrientation`、`referenceSystem.siteLocation`（校址經緯度與時區，3D 太陽位置的輸入）及每個 bounded entity 的 canonical `entityBounds`。不得輸出第二份 world bearing 或 `northArrowPlanDirection`。L2 `splitAxisY` 必須存在、為有限數值、等於男女更衣淋浴區共用邊界 Y8，且不得與 Y0 玻璃或 Y2.5 樓梯分隔牆重疊；任何一項不符都必須直接失敗，不得回退為 Y0。hash、token、scene ID、geometry revision 或有限幾何不符時同樣直接失敗，不顯示 fallback 幾何。
 
 `model/analysis-registry.json` 的 solar `inputHash` 只涵蓋校址／方位、池體、L3 旋轉與支點、鏡牆角度／高度、固定屋頂接收面、能量假設及氣象來源。這些分析輸入不符時才顯示 `stale`；立面材質、非接收面屋頂、天花或隔牆等非日照輸入改版，不要求重算。只有分析輸入改變並完成 solar 重算與既有回歸測試後才可更新為 `current`。
 
