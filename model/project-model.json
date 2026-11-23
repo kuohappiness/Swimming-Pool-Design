@@ -1218,6 +1218,7 @@
     { "id": "SRC-CONCEPT-020", "path": "source-materials/concepts/hand-sketches/SRC-CONCEPT-020_early-3d-concept-sketch.jpeg", "kind": "hand-sketch", "pixelSize": [1993, 2830], "byteSize": 505764, "sha256": "14D424520AD7B9AB927C5697487F7840D2D7413A5C690A3A415E7A2004FF3390" },
     { "id": "SRC-CONCEPT-021", "path": "source-materials/concepts/hand-sketches/SRC-CONCEPT-021_solar-reflection-sketch.jpeg", "kind": "hand-sketch", "pixelSize": [1777, 2525], "byteSize": 292292, "sha256": "505C257CE77913BF996A5C005FDBE4014679B27B5C180A2D085676F88971C109" },
     { "id": "SRC-CONCEPT-022", "path": "source-materials/concepts/hand-sketches/SRC-CONCEPT-022_solar-study-sketch.jpeg", "kind": "hand-sketch", "pixelSize": [2772, 1934], "byteSize": 369294, "sha256": "4E9A9BA11CCB56F29FD326CF97A92141AB8A157E30877E69D8B8047AFD3C62AF" },
-    { "id": "SRC-CONCEPT-023", "path": "source-materials/concepts/hand-sketches/SRC-CONCEPT-023_stair-concept-reference.png", "kind": "reference-screenshot", "pixelSize": [237, 512], "byteSize": 257988, "sha256": "AD631A35040FEE34D88008B7459918F8B160406FA444CF80C9B4DA68607B9D83" }
+    { "id": "SRC-CONCEPT-023", "path": "source-materials/concepts/hand-sketches/SRC-CONCEPT-023_stair-concept-reference.png", "kind": "reference-screenshot", "pixelSize": [237, 512], "byteSize": 257988, "sha256": "AD631A35040FEE34D88008B7459918F8B160406FA444CF80C9B4DA68607B9D83" },
+    { "id": "SRC-DATA-001", "path": "source-materials/data/SRC-DATA-001_cwa-taichung-climate-normals-1991-2020.json", "kind": "climate-normals", "byteSize": 2028, "recordCount": 12, "sha256": "DF08EC5BB086DC1AE787981F443AD6AF6E80C91F94CD01DB6CC53AC8BDA5540F" }
   ]
 }

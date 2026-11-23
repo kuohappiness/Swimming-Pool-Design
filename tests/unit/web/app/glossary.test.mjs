@@ -29,7 +29,7 @@ function glossaryRows() {
 
 test('glossary lists every registered view with its label and eyebrow, in route order', () => {
   const registry = routeRegistry();
-  assert.equal(registry.length, 6);
+  assert.equal(registry.length, 7);
   assert.deepEqual(
     glossaryRows().map(({ id, label, eyebrow }) => ({ id, label, eyebrow })),
     registry,
