@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { WATER_LIGHT_UNIFORM_NAMES } from '../lighting/fixture-lights';
 import { MIRROR_BOUNCE_GLSL } from '../lighting/mirror-bounce';
 import poolBasinChunk from './shaders/pool-basin.glsl?raw';
 import fragmentSource from './shaders/pool-basin.frag.glsl?raw';
@@ -18,6 +19,7 @@ export const POOL_BASIN_UNIFORM_NAMES = Object.freeze([
   'uSunShadowMap', 'uSunShadowMatrix', 'uSunShadow',
   'uMirrorBounceColor', 'uMirrorBounceDirection', 'uMirrorBounceOrigin',
   'uMirrorBounceEdgeU', 'uMirrorBounceEdgeV', 'uMirrorBounceSoftness',
+  ...WATER_LIGHT_UNIFORM_NAMES,
 ] as const);
 
 const POOL_BASIN_MARKER = '// #include pool-basin';

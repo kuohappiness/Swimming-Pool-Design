@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import {
+  getL2CeilingFixtureCentres,
+  L2_FIXTURE_MESH_NAME,
+  L2_INTERIOR_DETAILS_NAME,
+} from './fixture-layout';
 import type { ViewerModel } from './model-adapter';
 import type { MaterialRegistry } from './rendering/contracts';
 import { markVisualDetail } from './rendering/visual-detail';
@@ -21,7 +26,7 @@ function detailGroup(name: string, level: 'reduced' | 'full') {
 
 export function createL2InteriorDetails(model: ViewerModel, materials: MaterialRegistry) {
   const root = new THREE.Group();
-  root.name = 'L2-INTERIOR-DETAILS-PHASE-1';
+  root.name = L2_INTERIOR_DETAILS_NAME;
   root.userData = {
     visualOnly: true,
     collisionExcluded: true,
@@ -131,17 +136,15 @@ export function createL2InteriorDetails(model: ViewerModel, materials: MaterialR
     }
   }
 
+  // 天花燈的位置與燈光計算共用 fixture-layout.ts 的同一份。
+  const lightCentres = getL2CeilingFixtureCentres(model);
   const lightGeometry = new THREE.BoxGeometry(1.05, 0.06, 0.28);
-  const ceilingLights = new THREE.InstancedMesh(lightGeometry, materials.get('interior-light'), 12);
-  ceilingLights.name = 'visual-only:L2-ceiling-lights:12';
-  let lightIndex = 0;
-  for (const x of [33.2, 36.2, 39.2]) {
-    for (const z of [4, 6.4, 9.6, 12]) {
-      matrix.makeTranslation(x, l2.ceiling.elevation - l2.ceiling.thickness - 0.04, z);
-      ceilingLights.setMatrixAt(lightIndex, matrix);
-      lightIndex += 1;
-    }
-  }
+  const ceilingLights = new THREE.InstancedMesh(lightGeometry, materials.get('interior-light'), lightCentres.length);
+  ceilingLights.name = L2_FIXTURE_MESH_NAME;
+  lightCentres.forEach(([x, y, z], index) => {
+    matrix.makeTranslation(x, y, z);
+    ceilingLights.setMatrixAt(index, matrix);
+  });
   reduced.add(ceilingLights);
 
   const ventGeometry = new THREE.BoxGeometry(0.58, 0.055, 0.24);

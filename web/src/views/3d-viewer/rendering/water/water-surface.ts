@@ -6,6 +6,13 @@ import {
   type MirrorBounceUniforms,
   type WorldMirrorBounce,
 } from '../lighting/mirror-bounce';
+import {
+  createWaterLightUniforms,
+  pickWaterLightUniforms,
+  writeWaterLightUniforms,
+  type WaterLightUniforms,
+  type WorldFixtureLights,
+} from '../lighting/fixture-lights';
 import { withPoolBasin } from './pool-basin-material';
 import fragmentSource from './shaders/water-surface.frag.glsl?raw';
 import vertexShader from './shaders/water-surface.vert.glsl?raw';
@@ -139,7 +146,17 @@ export interface WaterFrameState {
   readonly sunShadow?: WaterSunShadow | null;
   /** 鏡牆反射的日光（世界座標）；沒有給或關著時池底只有陽光。 */
   readonly mirrorBounce?: WorldMirrorBounce | null;
+  /** 池館燈具（世界座標）；沒有給或燈沒開時水裡只有日光。 */
+  readonly fixtureLights?: WorldFixtureLights | null;
 }
+
+/**
+ * 水體散射回來的顏色：晴天正午的天光（亮度約 0.886）下是 `WATER_SCATTER_AT_NOON`，
+ * 其餘時候依天光與燈光在水裡的照度等比例變化，夜裡沒開燈的水不會自己發亮。
+ */
+const WATER_SCATTER_AT_NOON = Object.freeze([0.02, 0.09, 0.11] as const);
+const NOON_SKY_LUMINANCE = 0.886;
+const luminanceOf = (color: THREE.Color) => 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b;
 
 /**
  * 沒有陰影貼圖時綁的備用貼圖。著色器裡的陰影取樣器一定要綁一張「深度比較」貼圖，
@@ -355,7 +372,7 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
         },
         // 清水對紅光吸收最強，所以深處偏藍綠。單位：每公尺。
         uAbsorption: { value: new THREE.Vector3(0.38, 0.07, 0.045) },
-        uScatterColor: { value: new THREE.Color(0.02, 0.09, 0.11) },
+        uScatterColor: { value: new THREE.Color(...WATER_SCATTER_AT_NOON) },
         uSunDirection: { value: new THREE.Vector3(0, 1, 0) },
         uSunColor: { value: new THREE.Color(1, 1, 1) },
         uSkyColor: { value: new THREE.Color(1, 1, 1) },
@@ -367,6 +384,8 @@ export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.
   });
   // 鏡牆反射光：池體那一段宣告了這組 uniform，開關（color.w）預設關著。
   Object.assign(material.uniforms, createMirrorBounceUniforms());
+  // 池館燈具：池體那一段宣告了這組 uniform，燈數預設為 0。
+  Object.assign(material.uniforms, createWaterLightUniforms());
   // merge 會複製貼圖物件；貼圖要用原本那一份，所以合併後再指定。
   material.uniforms.uRippleNormal.value = options.rippleNormal;
   material.uniforms.uReflectionCube.value = options.reflectionCube;
@@ -406,6 +425,8 @@ export class WaterSurface {
   private readonly fallbackShadowMap = createFallbackShadowMap();
   /** 鏡牆反射光的 uniform（水面網格的物件座標）；池體材質與水下畫面共用同一組物件。 */
   private readonly mirrorBounce: MirrorBounceUniforms;
+  /** 池館燈具的 uniform（水面網格的物件座標），同樣共用。 */
+  private readonly waterLights: WaterLightUniforms;
   private disposed = false;
 
   /**
@@ -423,6 +444,7 @@ export class WaterSurface {
     this.material = createWaterSurfaceMaterial(options);
     this.material.uniforms.uSunShadowMap.value = this.fallbackShadowMap;
     this.mirrorBounce = pickMirrorBounceUniforms(this.material.uniforms);
+    this.waterLights = pickWaterLightUniforms(this.material.uniforms);
     this.maximumWaveHeight = (options.waves ?? CALM_POOL_WAVES)
       .reduce((sum, wave) => sum + wave.amplitude, 0);
     if (target) {
@@ -502,6 +524,15 @@ export class WaterSurface {
       (uniforms.uSunShadow.value as THREE.Vector3).set(0, 0, 0);
     }
     writeMirrorBounceUniforms(this.mirrorBounce, frame.mirrorBounce ?? null, this.inverseWorld);
+    const fixtureLights = frame.fixtureLights ?? null;
+    writeWaterLightUniforms(this.waterLights, fixtureLights, this.inverseWorld);
+    const light = (luminanceOf(frame.skyColor) + (fixtureLights ? luminanceOf(fixtureLights.waterIrradiance) : 0))
+      / NOON_SKY_LUMINANCE;
+    (uniforms.uScatterColor.value as THREE.Color).setRGB(
+      WATER_SCATTER_AT_NOON[0] * light,
+      WATER_SCATTER_AT_NOON[1] * light,
+      WATER_SCATTER_AT_NOON[2] * light,
+    );
   }
 
   dispose(): void {

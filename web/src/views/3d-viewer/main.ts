@@ -33,6 +33,8 @@ import {
 } from './rendering/lighting/lighting-state';
 import { deriveShadowFocus, toSceneLighting } from './rendering/lighting/scene-lighting';
 import { MirrorBounceLight, mirrorWallFromViewerModel } from './rendering/lighting/mirror-bounce';
+import { FixtureLights } from './rendering/lighting/fixture-lights';
+import { getViewerFixtureLayout } from './fixture-layout';
 import { MIRROR_SURFACE_NAME } from './rendering/contracts';
 import { installSoftShadows } from './rendering/lighting/soft-shadows';
 import { formatSolarMoment } from './rendering/lighting/solar-moment';
@@ -442,9 +444,12 @@ try {
     /** 要好幾個圖層都開著才畫的構件（例如 3F 屋頂）跟著圖層開關更新；診斷值是目前藏起來幾件。 */
     /** 鏡牆圖層開關後，鏡牆反射光跟著有無（在建立反射光之後才換成真的）。 */
     let syncMirrorBounce = () => {};
+    /** 燈具所在的圖層開關後，那一區的燈跟著有無。 */
+    let syncFixtureLights = () => {};
     const applyLayerDependents = () => {
       syncLayerDependents(graph);
       syncMirrorBounce();
+      syncFixtureLights();
       shell.dataset.layerDependentsHidden = String(
         graph.layerDependents.filter(({ object }) => !object.visible).length,
       );
@@ -540,24 +545,39 @@ try {
           graph.siteRoot.getObjectByName(MIRROR_SURFACE_NAME) ?? null,
         )
       : null;
+    // 池館的燈具照明（TASK-152 步驟 5）：陰天、雨天與入夜後開燈；燈具配置是概念示意。
+    const fixtureLights = realSunAvailable
+      ? new FixtureLights(getViewerFixtureLayout(model), graph.scene, graph.siteRoot)
+      : null;
     let lightingDescription = '';
-    /** 反射光落在哪裡公開在 data-mirror-bounce；落在池面時「日照時刻」的說明多一句。 */
+    /**
+     * 「日照時刻」的說明：反射光落在池面、燈具開著時各多一句。
+     * 反射光落在哪裡公開在 data-mirror-bounce，燈具開關在 data-fixture-lights。
+     */
     const publishMirrorBounce = () => {
-      if (!mirrorBounce) return;
-      shell.dataset.mirrorBounce = mirrorBounce.landing;
-      const incidence = mirrorBounce.incidenceAngle;
-      shell.dataset.mirrorIncidence = incidence === null ? '' : incidence.toFixed(2);
+      if (mirrorBounce) {
+        shell.dataset.mirrorBounce = mirrorBounce.landing;
+        const incidence = mirrorBounce.incidenceAngle;
+        shell.dataset.mirrorIncidence = incidence === null ? '' : incidence.toFixed(2);
+      }
+      if (fixtureLights) {
+        shell.dataset.fixtureLights = fixtureLights.state;
+        shell.dataset.fixtureSurfaceLighting = fixtureLights.surfaceLighting.toFixed(2);
+      }
       if (lightingState && lightingControl) {
-        lightingControl.show(
-          lightingState,
-          mirrorBounce.landing === 'pool'
-            ? `${lightingDescription}；鏡牆反射光落在池面（概念示意）`
-            : lightingDescription,
-        );
+        const notes = [
+          ...(mirrorBounce?.landing === 'pool' ? ['鏡牆反射光落在池面（概念示意）'] : []),
+          ...(fixtureLights?.state === 'on' ? ['池館燈具開啟（燈具配置為概念示意）'] : []),
+        ];
+        lightingControl.show(lightingState, [lightingDescription, ...notes].join('；'));
       }
     };
     syncMirrorBounce = () => {
       mirrorBounce?.sync();
+      publishMirrorBounce();
+    };
+    syncFixtureLights = () => {
+      fixtureLights?.sync();
       publishMirrorBounce();
     };
     let lightingState: LightingState | null = null;
@@ -614,6 +634,7 @@ try {
       rendering.environment.applyLighting?.(toSceneLighting(lighting, graph.siteRoot, shadowFocus), graph);
       // 水的著色器自己算反射光照在池底與池壁的部分，從場景讀同一份。
       mirrorBounce?.setLighting(lighting);
+      fixtureLights?.setLighting(lighting);
       requestLightingRefresh(settled);
       shell.dataset.lightingMoment = formatSolarMoment(state.moment);
       shell.dataset.weather = state.weather;
@@ -1005,6 +1026,8 @@ try {
       const capability = getWalkthroughCapabilityProfile(legacyTier, reducedMotion);
       rendering.setQuality(renderQualityProfileForTier(pipelineProfileFor(legacyTier), tier, shed));
       mirrorBounce?.install(graph.scene);
+      fixtureLights?.install(graph.scene);
+      fixtureLights?.setQuality(rendering.quality.id);
       renderer.shadowMap.enabled = rendering.quality.shadows;
       requestShadowRefresh();
       controls.enableDamping = capability.cameraMotion;
@@ -1185,6 +1208,7 @@ try {
         peakDrawCalls = 0;
         shell.dataset.waterReflection = rendering.visualAssets.waterReflection ?? 'none';
         shell.dataset.mirrorReflection = rendering.visualAssets.mirrorReflection ?? 'environment';
+        shell.dataset.hallReflection = rendering.visualAssets.hallReflection ?? 'environment';
         shell.dataset.underwaterView = String(rendering.visualAssets.underwaterViewActive === true);
         shell.dataset.triangles = String(renderer.info.render.triangles);
         shell.dataset.lines = String(renderer.info.render.lines);
