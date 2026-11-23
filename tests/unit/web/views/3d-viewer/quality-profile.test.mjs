@@ -68,6 +68,8 @@ test('quality adaptation changes visual cost only and leaves semantic state unto
     ambientOcclusion: false,
     enhancedWater: false,
     postProcessing: false,
+    bloom: false,
+    exposureAdaptation: false,
   });
   for (const key of Object.keys(semanticState)) assert.equal(key in low, false);
 });

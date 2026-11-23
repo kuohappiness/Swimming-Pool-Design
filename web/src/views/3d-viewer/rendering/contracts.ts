@@ -106,11 +106,23 @@ export interface EnvironmentEffect {
   dispose(): void;
 }
 
+/** 畫面管線目前開著的鏡頭效果（TASK-152 步驟 6），公開在 `data-frame-effects`。 */
+export type FrameEffect =
+  | 'multisample'
+  | 'exposure-adaptation'
+  | 'bloom'
+  | 'ambient-occlusion'
+  | 'contact-shadows';
+
 export interface FrameEffectPipeline {
   readonly id: string;
+  /** 直接畫到畫面時是空的。 */
+  readonly activeEffects: readonly FrameEffect[];
   resize(width: number, height: number, pixelRatio: number): void;
   render(scene: THREE.Scene, camera: THREE.Camera): void;
   setQuality(profile: RenderQualityProfile): void;
+  /** 換場景後呼叫：曝光適應下一格直接用測到的值。沒有曝光適應的管線什麼都不做。 */
+  resetAdaptation(): void;
   restore(): void;
   dispose(): void;
 }

@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { createServer } from 'vite';
@@ -427,17 +426,25 @@ test('medium and low frame pipelines render directly without changing interactio
   assert.equal(layer.visible, before.layer);
   assert.deepEqual(state, before.state);
 
+  // Without float render targets the top tiers draw straight to the screen as well; the frame
+  // effects themselves are tested in rendering/enhanced/frame-effects.test.mjs.
   pipeline.setQuality({
     ...ENHANCED_QUALITY_PROFILES.high,
     ambientOcclusion: true,
+    bloom: true,
+    exposureAdaptation: true,
     postProcessing: true,
   });
   assert.equal(renderer.shadowMap.enabled, true);
-  assert.equal(pipeline.usesAmbientOcclusion, true);
+  assert.equal(pipeline.usesPostProcessing, false);
+  assert.equal(pipeline.usesAmbientOcclusion, false);
+  assert.deepEqual(pipeline.activeEffects, []);
+  pipeline.render(scene, camera);
+  assert.deepEqual(renderer.calls.at(-1), ['render', scene, camera]);
   pipeline.dispose();
   pipeline.dispose();
   pipeline.render(scene, camera);
-  assert.equal(renderer.calls.filter(([name]) => name === 'render').length, 1);
+  assert.equal(renderer.calls.filter(([name]) => name === 'render').length, 2);
 });
 
 test('a scene renderer can take a frame over, and the pipeline draws when it declines', () => {
@@ -463,17 +470,4 @@ test('a scene renderer can take a frame over, and the pipeline draws when it dec
   assert.equal(taken.length, 2);
   assert.equal(renderer.calls.filter(([name]) => name === 'render').length, 2);
   pipeline.dispose();
-});
-
-test('high AO composition ends with OutputPass so the beauty buffer reaches the screen', async () => {
-  const source = await readFile(
-    resolve(repoRoot, 'web/src/views/3d-viewer/rendering/enhanced/frame-effect-pipeline.ts'),
-    'utf8',
-  );
-  assert.match(source, /new OutputPass\(\)/);
-  assert.match(
-    source,
-    /addPass\(this\.renderPass\)[\s\S]*addPass\(this\.ssaoPass\)[\s\S]*addPass\(this\.outputPass\)/,
-  );
-  assert.match(source, /this\.outputPass\?\.dispose\(\)/);
 });
