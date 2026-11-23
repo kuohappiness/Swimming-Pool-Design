@@ -1,0 +1,5 @@
+# git blame 略過的 commit：只改排版、沒有改內容。
+# 本機啟用：git config blame.ignoreRevsFile .git-blame-ignore-revs（GitHub 網頁會自動讀這個檔）。
+
+# TASK-166 全庫 Prettier 排版
+f6e067b55a4262c40c47ab130ed1a724035ea21d
