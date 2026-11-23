@@ -1,4 +1,5 @@
-// DEC-173：3F 以隔音玻璃分成觀課與環境教育室和設備區，三者隨 3F 樓板旋轉。
+// DEC-173：3F 以隔音玻璃分成觀課與環境教育室和設備區，三者隨 3F 樓板旋轉；
+// DEC-174：ST-02 的樓梯口切過教室靠端牆那一角。
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -21,11 +22,13 @@ const [
   { createBaselineSceneRenderingDependencies },
   { adaptViewerData },
   { L3_LEARNING_ROOM_FURNITURE_NAME, arrivalContactOnEndWall },
+  { l3RectWithinStairOpening, siteToL3Plan },
 ] = await Promise.all([
   vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/model-adapter.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/l3-learning-room.ts'),
+  vite.ssrLoadModule('/src/views/3d-viewer/l3-stair-opening.ts'),
 ]);
 
 const l3 = viewerModel.geometry.l3;
@@ -111,37 +114,57 @@ for (const batchStaticGeometry of [false, true]) {
     assert.ok(towardEquipment.indexOf(pane) < towardEquipment.indexOf(tank));
   });
 
-  test(`the room is entered from the arrival wing; the maintenance door matches the 3F plan (batched: ${batchStaticGeometry})`, () => {
+  test(`the room is entered from the arrival wing beside the stair opening; the maintenance door matches the 3F plan (batched: ${batchStaticGeometry})`, () => {
     const { cast, material } = buildScene(batchStaticGeometry);
-    const door = material('opening-marker');
     const concrete = material('exposed-concrete-l3');
-    const [contactZ1, contactZ2] = arrivalContactOnEndWall(l3);
+    // 樓梯口斜斜跨過端牆：那一段下面沒有樓板，牆只留到達翼屋頂以上，門也拿掉了。
+    const endWall = l3RectWithinStairOpening(l3, {
+      x1: halfLength - 0.18,
+      x2: halfLength,
+      z1: -l3.width / 2,
+      z2: l3.width / 2,
+    });
+    const gapZ = endWall.map(([, z]) => z);
+    const [gapZ1, gapZ2] = [Math.min(...gapZ), Math.max(...gapZ)];
     assert.ok(
-      contactZ1 > l3.learningRoom.bounds.y1 - l3.planPivot.y && contactZ2 < partitionZ,
-      'arrival wing meets the learning-room end',
+      gapZ2 - gapZ1 > 1.5,
+      `the opening crosses the end wall over ${(gapZ2 - gapZ1).toFixed(3)} m`,
     );
-    const entryZ = (contactZ1 + contactZ2) / 2;
-    // 從到達翼往教室看：端牆在入口那一段是門，不是清水模（射線先略過到達翼外的欄杆）。
-    const endWall = (z) =>
-      cast([halfLength + 0.5, 1, z], [-1, 0, 0]).find((hit) => hit.point.x < halfLength + 0.05);
-    const entry = endWall(entryZ);
+    const endWallHit = (z, y) =>
+      cast([halfLength + 0.5, y, z], [-1, 0, 0]).find((hit) => hit.point.x < halfLength + 0.05);
+    const middle = (gapZ1 + gapZ2) / 2;
+    const below = endWallHit(middle, 1);
+    assert.ok(below.point.x < halfLength - 0.5, 'no wall and no door where the opening crosses it');
+    assert.notEqual(below.material, material('opening-marker'));
+    const lintel = endWallHit(middle, 3.2);
+    assert.equal(lintel.material, concrete, 'the wall continues above the arrival-wing roof');
+    assert.ok(Math.abs(lintel.point.x - halfLength) < 0.005);
+    // 教室門在模型 entryDoor 那一段端牆的中間（樓梯口外、玻璃隔間前，DEC-175）。
+    const door = material('opening-marker');
+    const [contactZ1, contactZ2] = arrivalContactOnEndWall(l3);
+    assert.ok(contactZ1 >= gapZ2 - 0.1 && contactZ2 <= partitionZ, 'door beside the opening');
+    const entry = endWallHit((contactZ1 + contactZ2) / 2, 1);
     assert.equal(entry.material, door);
     assert.ok(Math.abs(entry.point.x - (halfLength + 0.02)) < 0.005);
-    assert.equal(
-      endWall(contactZ1 - 0.5).material,
-      concrete,
-      'the rest of the end wall stays solid',
-    );
+    for (const z of [gapZ1 - 0.5, contactZ2 + 0.5]) {
+      const solid = endWallHit(z, 1);
+      assert.equal(solid.material, concrete, `the rest of the end wall stays solid (z ${z})`);
+      assert.ok(Math.abs(solid.point.x - halfLength) < 0.005);
+    }
 
-    // 維修門在旋轉前 X39.5～X40.5（3F 平面圖），其餘是玻璃。
+    // 維修門在旋轉前 X39.5～X40.5（3F 平面圖），其餘是玻璃；從樓梯口和玻璃之間的教室地面看過去。
     const [doorX] = local(40, 0);
-    assert.equal(cast([doorX, 1, -3], [0, 0, 1])[0].material, door);
+    const besideGlass = partitionZ - 0.9;
+    assert.equal(cast([doorX, 1, besideGlass], [0, 0, 1])[0].material, door);
     assert.equal(
-      cast([doorX, 2.6, -3], [0, 0, 1])[0].material,
+      cast([doorX, 2.6, besideGlass], [0, 0, 1])[0].material,
       material('safety-glass'),
       'glass above the door',
     );
-    assert.equal(cast([local(38.5, 0)[0], 1, -3], [0, 0, 1])[0].material, material('safety-glass'));
+    assert.equal(
+      cast([local(38.5, 0)[0], 1, besideGlass], [0, 0, 1])[0].material,
+      material('safety-glass'),
+    );
   });
 }
 
@@ -157,6 +180,13 @@ test('the learning-room furniture is movable, visual only, and stays inside the 
     name.startsWith('visual-only:L3-learning-room-stools:'),
   );
   assert.equal(stools.count, 16, 'about half a class (15 seats) and the teacher');
+  // 桌椅都在樓梯口西側，離洞口邊（欄杆）至少 0.6 m。
+  const holeWestX = Math.min(
+    ...[
+      [l3.stairOpening.bounds.x1, l3.stairOpening.bounds.y1],
+      [l3.stairOpening.bounds.x1, l3.stairOpening.bounds.y2],
+    ].map((point) => siteToL3Plan(l3, point)[0]),
+  );
   const box = new THREE.Box3();
   const roomBox = new THREE.Box3(
     new THREE.Vector3(-halfLength, -0.001, l3.learningRoom.bounds.y1 - l3.planPivot.y),
@@ -169,6 +199,7 @@ test('the learning-room furniture is movable, visual only, and stays inside the 
       roomBox.containsBox(box),
       `${mesh.name} stays in the learning room: ${JSON.stringify(box)}`,
     );
+    assert.ok(box.max.x < holeWestX - 0.6, `${mesh.name} keeps clear of the stair opening`);
   }
 });
 
