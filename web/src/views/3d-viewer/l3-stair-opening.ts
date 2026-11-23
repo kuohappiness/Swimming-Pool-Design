@@ -115,10 +115,15 @@ export function l3PlanToSite(l3: L3Geometry, [x, z]: PlanPoint): PlanPoint {
   ];
 }
 
-/** 3F 旋轉群組裡的一個矩形（x1～x2、z1～z2）扣掉樓梯口，回傳群組座標的幾塊凸多邊形。 */
+/**
+ * 3F 旋轉群組裡的一個矩形（x1～x2、z1～z2）扣掉樓梯口，回傳群組座標的幾塊凸多邊形。
+ * margin 把樓梯口每邊放大一點：3F 樓板和 2F 天花疊在同一個高度範圍，切面放大後藏進 2F 天花裡，
+ * 兩個切面才不會重疊閃爍。
+ */
 export function l3RectMinusStairOpening(
   l3: L3Geometry,
   rect: { x1: number; x2: number; z1: number; z2: number },
+  margin = 0,
 ): PlanPoint[][] {
   const corners: PlanPoint[] = [
     [rect.x1, rect.z1],
@@ -126,9 +131,10 @@ export function l3RectMinusStairOpening(
     [rect.x2, rect.z2],
     [rect.x1, rect.z2],
   ];
+  const { x1, x2, y1, y2 } = l3.stairOpening.bounds;
   return subtractBounds(
     corners.map((point) => l3PlanToSite(l3, point)),
-    l3.stairOpening.bounds,
+    { x1: x1 - margin, x2: x2 + margin, y1: y1 - margin, y2: y2 + margin },
   ).map((piece) => piece.map((point) => siteToL3Plan(l3, point)));
 }
 

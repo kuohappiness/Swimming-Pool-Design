@@ -103,6 +103,8 @@ function box(
 
 /** 開口比池體每邊多留這麼寬（公尺），開口的側面就藏在池壁後面，不會和池壁重疊閃爍。 */
 const GROUND_OPENING_MARGIN = 0.05;
+/** 兩個構件的面剛好重疊時，其中一個往裡縮這麼多（公尺），避免畫面閃爍。 */
+const COPLANAR_CLEARANCE = 0.005;
 /** 3F 到達翼的屋頂高度（從 3F 樓板面算起），端牆跨過樓梯口的那一段只留這個高度以上。 */
 const ARRIVAL_ROOF_HEIGHT = 2.85;
 
@@ -1520,10 +1522,16 @@ export function createViewerScene(
     return mesh;
   };
   // DEC-174：旋轉的 3F 樓板在 ST-02 上方開樓梯口（樓梯口是 SITE 矩形，樓板是旋轉的）。
+  // 3F 樓板與 2F 天花在 2F 投影範圍內疊在同一個高度範圍：樓板底面與樓梯口的切面各往天花裡縮一點，
+  // 從 2F 往上看只看到天花，不會兩個面重疊閃爍。
   const l3Slab = staticMesh(
     slabGeometry(
-      l3RectMinusStairOpening(l3Data, { x1: -halfL3X, x2: halfL3X, z1: -halfL3Z, z2: halfL3Z }),
-      -slabThickness,
+      l3RectMinusStairOpening(
+        l3Data,
+        { x1: -halfL3X, x2: halfL3X, z1: -halfL3Z, z2: halfL3Z },
+        COPLANAR_CLEARANCE,
+      ),
+      -slabThickness + COPLANAR_CLEARANCE,
       0,
     ),
     l3Material,
