@@ -386,7 +386,10 @@ test('L2 Review A provides 30 inclusive 1.2 m showers, support fixtures, corrido
   );
   assert.deepEqual(l2.stairToL3.bounds, { x1: 32.5, x2: 41, y1: 0.5, y2: 2 });
   assert.equal(l2.stairToL3.axis, '+x');
-  assert.equal(l2.stairToL3.riserCount, 22);
+  assert.equal(l2.stairToL3.riserCount, 23);
+  assert.deepEqual(l2.stairToL3.risersPerRun, [12, 11]);
+  assert.ok(l2.stairToL3.riserHeight <= 0.16);
+  assert.ok(l2.stairToL3.treadDepth >= 0.26);
   assert.deepEqual(l2.stairToL3.yBandLocked, [0.5, 2]);
   assert.equal(l2.stairToL3.designIntent, 'suspended-floating-stair');
   assert.equal(l2.stairToL3.stringerCount, 2);
@@ -504,6 +507,69 @@ test('L3 program validation rejects whole-class use, mirror openings and an unev
       g.l3.glassPartition.bounds.y1 = 5.3;
     }),
     /W-L3-GLASS-01 bounds/,
+  );
+});
+
+test('ST-02 keeps 23 risers within art. 33 and opens the L3 plate where headroom runs out (DEC-174)', () => {
+  const l3 = resolveActiveGeometry(model).l3;
+  assert.deepEqual(l3.stairOpening.bounds, { x1: 34.85, x2: 39.5, y1: 0.5, y2: 2 });
+  assert.deepEqual(l3.stairOpening.cutsEntityIds, ['CLG-L2-01', 'L3-PLATE-01', 'Z-L3-ARRIVAL-01']);
+  assert.equal(l3.learningRoom.netArea, 59.739);
+  assert.equal(l3.arrivalWing.walkableArea, 2.25);
+  const mutate = (change) => {
+    const copy = structuredClone(model);
+    change(resolveActiveGeometry(copy));
+    return validateModel(copy).join('\n');
+  };
+  assert.match(
+    mutate((g) => {
+      Object.assign(g.l2.stairToL3, {
+        riserCount: 22,
+        risersPerRun: [11, 11],
+        treadsPerRun: [10, 10],
+        riserHeight: 0.162727,
+        treadDepth: 0.275,
+        runLengths: [2.75, 2.75],
+        midLandingElevation: 5.09,
+      });
+    }),
+    /at or below 0\.16 m/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l2.stairToL3.runLengths = [2.75, 2.75];
+    }),
+    /run lengths and mid-landing elevation/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.stairOpening.bounds.x1 = 35.5;
+    }),
+    /headroom to the slab underside/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.stairOpening.bounds.x2 = 38.666;
+    }),
+    /top of the stair/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.learningRoom.netArea = 66;
+    }),
+    /net area must deduct/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.arrivalWing.walkableArea = 2.964;
+    }),
+    /walkable area must deduct/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.stairOpening.edgeProtection = 'none';
+    }),
+    /guardrails on the learning room edges/,
   );
 });
 

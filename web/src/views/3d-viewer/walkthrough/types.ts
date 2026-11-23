@@ -81,6 +81,7 @@ export interface StairRampDescriptor {
   readonly midLandingElevation: number;
   readonly upperElevation: number;
   readonly flightRun: number;
+  readonly secondFlightRun: number;
   readonly midLandingLength: number;
   readonly upperLandingLength: number;
   readonly transform: FixedPlanTransform;

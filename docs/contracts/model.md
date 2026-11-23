@@ -7,9 +7,9 @@
 現行版本契約：
 
 - `schemaVersion = 1.5.0`
-- `modelVersion = designTargetVersion = 0.11.0`
-- `activeGeometryRevisionId = GEO-0.11.0`
-- active revision 的 `id` 必須只出現一次，且其 `id = GEO-${revision}`、幾何 `modelVersion = revision = 0.11.0`；頂層 `modelVersion` 是發布版號，可在不改幾何的展示層 release 高於 active geometry，但不得選取比發布版更新的幾何。
+- `modelVersion = designTargetVersion = 0.12.0`
+- `activeGeometryRevisionId = GEO-0.12.0`
+- active revision 的 `id` 必須只出現一次，且其 `id = GEO-${revision}`、幾何 `modelVersion = revision = 0.12.0`；頂層 `modelVersion` 是發布版號，可在不改幾何的展示層 release 高於 active geometry，但不得選取比發布版更新的幾何。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
 ## 2. SITE-XY
@@ -94,6 +94,7 @@ Viewer 的 `ST-01` 只可攜帶 active canonical `bounds`；`startX`、`originY`
 | `ST-02` | X32.5～X41／Y0.5～Y2.0 |
 | `Z-ST-02-01` | X32.5～X41／Y0～Y2.5 |
 | `Z-ST-02-PLANT-01` | X33.2～X34.6／Y0.72～Y1.78 |
+| `OP-L3-ST-02-01` | X34.85～X39.5／Y0.5～Y2.0；穿過 `CLG-L2-01`、`L3-PLATE-01`、`Z-L3-ARRIVAL-01` |
 | `Z-L1-ENTRY-01` | X0.5～X4.5／Y0～Y2；±0.00 |
 | `RMP-L1-ENTRY-01` | X4.5～X8.1／Y0～Y1.2；1:12 |
 | `STP-L1-ENTRY-01` | X4.5～X5.1／Y1.2～Y2 |
@@ -138,8 +139,8 @@ active `solar` 子樹是現行日照判讀與能量分析的唯一 owner，必�
 - 結構策略 `isolatedColumnsAllowed=false`、`glassCarriesGravityLoad=false`。
 - `ST-01` 是方案 E：2.70＋3.10＋2.70 m、20 級高／18 踏面，從 +0.30 m 在 X29 直接接 L2 +3.30 m。
 - L2 採 Review A：X29～X32 的面池走道在樓梯端形成 X29～X32.5 的 L 形到達區，X29 設觀景窗；男區 X32～X41／Y2.5～Y8、女區 X32～X41／Y8～Y13.5，入口均在 X32 且為 1.00 m 無門片開口。男女各有 15 間含隔間 1.20 × 1.20 m 淋浴模組、1 WC 與 2 洗手槽。走道只設無座懸空站立桌、飲水機與可移除盆栽。
-- L2 Y2.5 清水模分隔牆由 X32 連續至 X41，無門洞；樓梯區不得直接通往男更衣室。L2 天花板須完整覆蓋固定 X29～X41／Y0～Y13.5，不得以旋轉 L3 樓板代替。
-- `ST-02` 由 X32.5 起步，固定於 Y0.5～Y2.0 並朝 +X 上升；採薄踏步、封閉踢面、兩道連續鋼箱梯梁與開放梯下。梯下只設 3 組低矮耐陰可移除盆栽，不得設深土槽、水景、固定灌溉或封閉量體。
+- L2 Y2.5 清水模分隔牆由 X32 連續至 X41，無門洞；樓梯區不得直接通往男更衣室。L2 天花板須完整覆蓋固定 X29～X41／Y0～Y13.5，不得以旋轉 L3 樓板代替；唯一的開口是 ST-02 樓梯口 `OP-L3-ST-02-01`。
+- `ST-02` 由 X32.5 起步，固定於 Y0.5～Y2.0 並朝 +X 上升；採薄踏步、封閉踢面、兩道連續鋼箱梯梁與開放梯下。梯下只設 3 組低矮耐陰可移除盆栽，不得設深土槽、水景、固定灌溉或封閉量體。23 級分兩跑 12＋11（`risersPerRun`、`treadsPerRun`、`runLengths` 為兩個元素的陣列），級高 ≤ 0.16 m、級深 ≥ 0.26 m，兩個平台各 1.50 m；跑長、中平台高程與頂端位置由 `core/geometry/stair-geometry.mjs` 從級數推導並驗證。樓梯口從第一個淨高不足 1.90 m 的踏面外緣起到樓梯頂端，教室與到達翼的 `netArea`／`walkableArea` 扣掉樓梯口落在其中的面積（`DEC-174`）。
 - L2 固定；只有 L3 以 X35／Y6.75 水平旋轉 +25.5°。L3 圖面的樓板、屋頂、鏡牆與 `RF-PV-RES-01` 必須共用同一 transform，不得讓 SVG Y 軸反轉再造成反向旋轉。
 - L3 主旋轉矩形的角度與支點不變；另有固定正交三角擴板、有頂室內到達翼及教師／維修人員專用景觀區。景觀區不得開放學生、訪客、公眾聚集或作主要逃生。
 - 鏡面覆層與 L3 面池承載牆共面，共同外傾 +23.0°；不得畫成垂直牆前的獨立斜板。
