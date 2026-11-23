@@ -52,11 +52,6 @@ export default tseslint.config(
     rules: forbidLayers(['web', 'tools', 'tests'], CORE_LAYER_MESSAGE, [CORE_NO_FILE_ACCESS]),
   },
   {
-    // 現存例外（架構第 4 節）：模型驗證還會自己讀來源檔核對雜湊，之後搬到 tools/。
-    files: ['core/validation/model-validation.mjs'],
-    rules: forbidLayers(['web', 'tools', 'tests'], CORE_LAYER_MESSAGE),
-  },
-  {
     files: ['tools/**/*.mjs'],
     rules: forbidLayers(
       ['web', 'tests'],

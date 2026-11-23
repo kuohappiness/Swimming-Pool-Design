@@ -1,5 +1,9 @@
 // 來源登錄的三方一致（TASK-121）：docs/site-and-sources.md 的來源表、模型 `sources` 與檔案本身。
-// 檔案雜湊與位元組數由 check:model 的 validateSourceFiles 對檔案比；這裡比文件表與模型，兩邊必須逐列一致。
+// 文件表與模型由 validateSourceRegistry 逐列比；模型與檔案本身（雜湊、位元組數）由 validateSourceFiles 比，check:model 執行。
+
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 
 // 有檔案的來源類別都要對上模型；SRC-REG 是法規登錄，沒有檔案也不進模型。
 const sourceRowPattern = /^\|\s*(SRC-(?!REG-)[A-Z]+-\d{3})\s*\|/;
@@ -72,6 +76,30 @@ export function validateSourceRegistry({ text, source, model }) {
   for (const id of modelSources.keys()) {
     if (!rowIds.has(id))
       errors.push(`${source}: model source ${id} is missing from the source table`);
+  }
+  return errors;
+}
+
+/** 模型 `sources` 每一筆的檔案要讀得到，SHA-256 與位元組數要相符（TASK-167 由 core/validation 搬來）。 */
+export async function validateSourceFiles(model, repoRoot) {
+  const errors = [];
+  for (const source of model.sources ?? []) {
+    if (!source.path || !source.sha256) {
+      errors.push(`${source.id} must declare path and sha256.`);
+      continue;
+    }
+    try {
+      const bytes = await readFile(resolve(repoRoot, source.path));
+      const actualHash = createHash('sha256').update(bytes).digest('hex').toUpperCase();
+      if (actualHash !== source.sha256.toUpperCase())
+        errors.push(`${source.id} SHA-256 does not match ${source.path}.`);
+      if (Number.isFinite(source.byteSize) && source.byteSize !== bytes.byteLength)
+        errors.push(`${source.id} byteSize does not match ${source.path}.`);
+    } catch (error) {
+      errors.push(
+        `${source.id} cannot be read at ${source.path}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
   return errors;
 }

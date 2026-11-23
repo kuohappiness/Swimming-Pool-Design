@@ -42,7 +42,7 @@ Swimming-Pool-Design/
 │  │                         build-textures、build-icons；textures/ 放自製貼圖的產生程式，一張一檔
 │  ├─ check/                 check-docs、check-model、check-assets；status-line、workflow-docs（狀態行與 roadmap、backlog 分節）、
 │  │                         stylelint-view-scope（分頁樣式不得外溢的 stylelint 規則）、
-│  │                         source-registry（來源表與模型 sources 一致）、
+│  │                         source-registry（來源表、模型 sources 與檔案雜湊三方一致）、
 │  │                         legacy-status-docs.json（舊格式任務說明的凍結清單）
 │  ├─ analysis/              solar-angle-report、solar-energy-report（印日照分析報告）、solar-optimize
 │  └─ capture/               capture-viewer-quality
@@ -153,7 +153,6 @@ README 只放定位、入口網址、現行版號與導覽表。repo 內的 skil
 
 現存例外：
 
-- `core/validation/model-validation.mjs` 還會自己讀來源檔核對雜湊，ESLint 對它放行；只供 `tools/` 與 `tests/` 使用，不得被 `web/` 引用。
 - `core/viewer/viewer-data.mjs` 用 `node:crypto` 算雜湊，只供 `tools/build/build-content.mjs` 與測試使用，不得被 `web/` 引用。
 
 ## 5. 路由與頁面

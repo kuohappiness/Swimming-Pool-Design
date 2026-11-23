@@ -9,10 +9,8 @@ import {
   sitePointToThree,
 } from '../../../../core/geometry/active-geometry.mjs';
 import { deriveReferenceGeometry } from '../../../../core/geometry/drawing-geometry.mjs';
-import {
-  validateModel,
-  validateSourceFiles,
-} from '../../../../core/validation/model-validation.mjs';
+import { validateModel } from '../../../../core/validation/model-validation.mjs';
+import { validateSourceFiles } from '../../../../tools/check/source-registry.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const readJson = async (path) => JSON.parse(await readFile(resolve(repoRoot, path), 'utf8'));

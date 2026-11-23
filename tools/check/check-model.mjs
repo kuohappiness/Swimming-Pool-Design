@@ -1,7 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { validateModel, validateSourceFiles } from '../../core/validation/model-validation.mjs';
+import { validateModel } from '../../core/validation/model-validation.mjs';
+import { validateSourceFiles } from './source-registry.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
