@@ -459,8 +459,11 @@ export interface ViewerModel {
         boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation';
         rotation: number;
         area: number;
+        netArea: number;
         uses: string[];
         entryFrom: string;
+        /** DEC-175：教室門所在的端牆段（SITE-XY），在到達翼往北延伸的那一段。 */
+        entryDoor: { wallSegment: [[number, number], [number, number]]; wallLength: number };
         screenWall: 'mirror-wall-side';
         energyDashboard: 'glass-partition-side';
         status: string;

@@ -51,15 +51,16 @@ function l3LocalBounds(l3: L3Geometry, bounds: { x1: number; x2: number; y1: num
 }
 
 /**
- * 到達翼貼著 3F 端牆的那一段（旋轉群組座標的 z 範圍）。到達翼不旋轉、3F 樓板旋轉，
- * 兩者只在端牆這一段相接；找不到就是模型改了，教室的入口要重新對。
+ * 教室門所在的端牆段（旋轉群組座標的 z 範圍）。到達翼不旋轉、3F 樓板旋轉，兩者沿端牆相接，
+ * 但靠樓梯的那一段在 ST-02 樓梯口裡；門用模型 `learningRoom.entryDoor` 指定的那一段（DEC-175）。
+ * 不在端牆上就是模型改了，教室的入口要重新對。
  */
 export function arrivalContactOnEndWall(l3: L3Geometry): [number, number] {
   const radians = THREE.MathUtils.degToRad(l3.planRotation.value);
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
   const halfLength = l3.length / 2;
-  const touching = l3.arrivalWing.polygon
+  const touching = l3.learningRoom.entryDoor.wallSegment
     .map(([x, y]) => {
       const dx = x - l3.planPivot.x;
       const dy = y - l3.planPivot.y;
@@ -69,7 +70,7 @@ export function arrivalContactOnEndWall(l3: L3Geometry): [number, number] {
     .filter(({ x }) => Math.abs(x - halfLength) < 0.05)
     .map(({ z }) => z);
   if (touching.length < 2) {
-    throw new TypeError('3F 到達翼必須貼著旋轉後的 3F 端牆，教室才有入口（DEC-173）。');
+    throw new TypeError('3F 教室門必須在旋轉後的 3F 端牆上（DEC-175）。');
   }
   return [Math.min(...touching), Math.max(...touching)];
 }

@@ -138,6 +138,21 @@ test('EN-01 stays passable while solid facade and stair sides resolve a capsule'
   assert.ok(collisionWorld.worldPointToSite(stairResolution.position).z <= 1.65);
 });
 
+test('ST-02 keeps its north side along the flights but opens at the upper landing into the extended arrival wing (DEC-175)', () => {
+  const eye = WALKTHROUGH_CONFIG.player.eyeHeight;
+  const midLanding = collisionWorld.resolveCapsule(siteToWorld(36, 5.17 + eye, 1.95));
+  assert.ok(midLanding.contacts.includes('ST-02-side-y-max'));
+  for (const [x, y] of [
+    [40.2, 2],
+    [40.2, 2.5],
+    [39.75, 2.55],
+  ]) {
+    const point = siteToWorld(x, 6.88 + eye, y);
+    assert.equal(collisionWorld.resolveCapsule(point).contacts.length, 0, `blocked at X${x}/Y${y}`);
+    assert.equal(collisionWorld.isSupported(point), true, `no floor at X${x}/Y${y}`);
+  }
+});
+
 test('ST-01 and ST-02 continuous ramps support smooth bidirectional traversal', () => {
   const positiveX = worldYawForSiteDirection(
     { x: 20.5, y: 0.3, z: 1.25 },
