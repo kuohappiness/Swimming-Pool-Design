@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isMesh } from '../three-guards';
 import type { VisualAssetContext, VisualFrameState, VisualWalkthroughState } from '../contracts';
 import { readSceneMirrorBounce } from '../lighting/mirror-bounce';
 import { readSceneFixtureLights } from '../lighting/fixture-lights';
@@ -192,7 +193,7 @@ export class RealisticWaterPresentation {
     if (this.disposed || this.surface) return;
     if (!this.textures) throw new TypeError('Realistic water textures are not loaded.');
     const target = context.siteRoot.getObjectByName(WATER_SURFACE_NAME);
-    if (!(target instanceof THREE.Mesh)) {
+    if (!isMesh(target)) {
       throw new TypeError(`Realistic water surface is missing: ${WATER_SURFACE_NAME}`);
     }
     this.assertAligned(target);
@@ -357,7 +358,7 @@ export class RealisticWaterPresentation {
 
     if (this.ambient) {
       // 有算出來的天光時用整片天空的照度（半球光只是其中一部分，其餘在環境貼圖裡，水不吃環境貼圖）。
-      const skyIrradiance = this.ambient.userData.skyIrradiance;
+      const skyIrradiance: unknown = this.ambient.userData.skyIrradiance;
       this.skyColor
         .copy(this.ambient.color)
         .multiplyScalar(
@@ -471,7 +472,7 @@ export class RealisticWaterPresentation {
       new THREE.Matrix4().copy(target.matrixWorld).invert(),
     );
     context.siteRoot.traverse((object) => {
-      if (!(object instanceof THREE.Mesh) || object.material !== source) return;
+      if (!isMesh(object) || object.material !== source) return;
       this.basinMeshes.push({ mesh: object, original: object.material });
       object.material = material;
     });

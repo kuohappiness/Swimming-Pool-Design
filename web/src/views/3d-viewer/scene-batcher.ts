@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isLine, isMesh } from './rendering/three-guards';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { VisualDetailLevel } from './rendering/visual-detail';
 
@@ -40,11 +41,11 @@ function materialsOf(mesh: THREE.Mesh) {
 /** Explicit `userData.renderCategory` on the mesh or an ancestor wins; otherwise inferred from the material. */
 export function renderCategoryOf(mesh: THREE.Mesh): RenderCategory {
   for (let current: THREE.Object3D | null = mesh; current; current = current.parent) {
-    const explicit = current.userData.renderCategory;
+    const explicit: unknown = current.userData.renderCategory;
     if (explicit !== undefined) {
       if (!isRenderCategory(explicit)) {
         throw new TypeError(
-          `Unknown render category on ${current.name || current.type}: ${String(explicit)}`,
+          `Unknown render category on ${current.name || current.type}: ${JSON.stringify(explicit)}`,
         );
       }
       return explicit;
@@ -68,7 +69,7 @@ export function renderCategoryOf(mesh: THREE.Mesh): RenderCategory {
 /** Adds the render-category layer to every mesh under `root`, keeping layer 0. */
 export function assignRenderCategoryLayers(root: THREE.Object3D) {
   root.traverse((object) => {
-    if (!(object instanceof THREE.Mesh)) return;
+    if (!isMesh(object)) return;
     const category = renderCategoryOf(object);
     object.userData.renderCategory = category;
     object.layers.enable(RENDER_CATEGORY_LAYERS[category]);
@@ -231,7 +232,7 @@ export function batchStaticMeshes(
   const candidates: Batchable[] = [];
   root.traverse((object) => {
     if (object instanceof THREE.Mesh) sourceMeshes += 1;
-    if (object instanceof THREE.Mesh || object instanceof THREE.Line) {
+    if (isMesh(object) || isLine(object)) {
       geometryUsers.set(object.geometry, (geometryUsers.get(object.geometry) ?? 0) + 1);
       candidates.push(object);
     }
@@ -253,7 +254,7 @@ export function batchStaticMeshes(
       // Dashed lines need per-line distances; vertex-coloured lines are helpers.
       (isLine &&
         (mesh.material instanceof THREE.LineDashedMaterial ||
-          (mesh.material as THREE.Material).vertexColors ||
+          mesh.material.vertexColors ||
           !(mesh.parent instanceof THREE.Group || mesh.parent instanceof THREE.Scene)))
     )
       continue;
@@ -287,8 +288,8 @@ export function batchStaticMeshes(
 
     const level = (Object.keys(DETAIL_RANK) as VisualDetailLevel[])[detailRank];
     const parent = level ? containerFor(unit, level, castVisualShadow) : unit;
-    const material = mesh.material as THREE.Material;
-    const category = isLine ? null : renderCategoryOf(mesh as THREE.Mesh);
+    const material = mesh.material;
+    const category = isLine ? null : renderCategoryOf(mesh);
     const key = [
       isLine ? 'line' : 'mesh',
       parent.uuid,
@@ -300,7 +301,7 @@ export function batchStaticMeshes(
       mesh.frustumCulled,
       mesh.userData.visualOnly === true,
       mesh.userData.collisionExcluded === true,
-      isLine ? 'position' : attributeSignature(mesh as THREE.Mesh),
+      isLine ? 'position' : attributeSignature(mesh),
     ].join('|');
     let group = groups.get(key);
     if (!group) {

@@ -132,7 +132,7 @@ export class FrameGrade {
     uniforms.tOcclusion.value = inputs.occlusion ?? this.whiteTexture;
     uniforms.tAdaptation.value = inputs.adaptation ?? this.whiteTexture;
     uniforms.uExposure.value = inputs.exposure;
-    uniforms.uResolution.value.set(inputs.width, inputs.height);
+    (uniforms.uResolution.value as THREE.Vector2).set(inputs.width, inputs.height);
 
     renderer.setRenderTarget(target);
     this.quad.material = this.material;
@@ -214,7 +214,7 @@ export class FrameGrade {
     const ambient = this.ambient;
     if (ambient?.visible) {
       // 整片天空的照度（半球光只是其中一部分，其餘在環境貼圖裡），和水的著色器相同。
-      const skyIrradiance = ambient.userData.skyIrradiance;
+      const skyIrradiance: unknown = ambient.userData.skyIrradiance;
       this.skyColor
         .copy(ambient.color)
         .multiplyScalar(typeof skyIrradiance === 'number' ? skyIrradiance : ambient.intensity);
@@ -227,9 +227,9 @@ export class FrameGrade {
     uniforms.uFixtureIrradiance.value = fixtures ? luminance(fixtures.ceilingIrradiance) : 0;
 
     this.lightLevel =
-      uniforms.uSkyIrradiance.value +
-      uniforms.uSunIrradiance.value * Math.max(0, this.towardSunWorld.y) +
-      uniforms.uFixtureIrradiance.value;
+      (uniforms.uSkyIrradiance.value as number) +
+      (uniforms.uSunIrradiance.value as number) * Math.max(0, this.towardSunWorld.y) +
+      (uniforms.uFixtureIrradiance.value as number);
     uniforms.uLightLevelLog2.value = Math.log2(Math.max(this.lightLevel, 1e-6));
   }
 }

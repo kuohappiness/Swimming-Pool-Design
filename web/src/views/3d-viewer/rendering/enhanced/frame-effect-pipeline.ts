@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import type { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import type { EnvironmentId } from '../../scenes';
 import type { FrameEffect, FrameEffectPipeline } from '../contracts';
 import {
   assertRenderQualityProfile,
@@ -115,9 +116,10 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
 
   render(scene: THREE.Scene, camera: THREE.Camera) {
     if (this.disposed) return;
-    const environmentId = scene.userData.environmentId ?? 'day';
+    const environmentId = (scene.userData.environmentId as EnvironmentId | undefined) ?? 'day';
     const exposure =
-      scene.userData.toneMappingExposure ?? getToneMappingProfile(environmentId).exposure;
+      (scene.userData.toneMappingExposure as number | undefined) ??
+      getToneMappingProfile(environmentId).exposure;
     this.renderer.toneMappingExposure = exposure;
     if (this.usesPostProcessing) {
       this.renderPostProcessed(scene, camera, exposure);

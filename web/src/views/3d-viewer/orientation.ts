@@ -26,7 +26,7 @@ export function deriveViewerOrientation(
     threeWorldRotationDegrees: orientation.threeWorldRotationDegrees,
     threeWorldRotationRadians: orientation.threeWorldRotationRadians,
     northInSite: orientation.northInSite,
-    northPlanDirection: orientation.northPlanDirection as NorthPlanDirection,
+    northPlanDirection: orientation.northPlanDirection,
   };
 }
 

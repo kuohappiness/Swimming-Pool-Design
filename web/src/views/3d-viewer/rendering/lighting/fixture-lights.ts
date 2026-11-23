@@ -157,8 +157,8 @@ export function aggregateFixtures<T extends LightFixture>(
     let bestDistance = Number.POSITIVE_INFINITY;
     for (let a = 0; a < clusters.length; a += 1) {
       for (let b = a + 1; b < clusters.length; b += 1) {
-        const pa = clusters[a]!.position;
-        const pb = clusters[b]!.position;
+        const pa = clusters[a].position;
+        const pb = clusters[b].position;
         const distance = (pa[0] - pb[0]) ** 2 + (pa[1] - pb[1]) ** 2 + (pa[2] - pb[2]) ** 2;
         if (distance < bestDistance - 1e-9) {
           bestDistance = distance;
@@ -167,18 +167,18 @@ export function aggregateFixtures<T extends LightFixture>(
       }
     }
     const [a, b] = best;
-    const first = clusters[a]!;
-    const second = clusters[b]!;
+    const first = clusters[a];
+    const second = clusters[b];
     const lumens = first.lumens + second.lumens;
     const weight = lumens > 0 ? second.lumens / lumens : 0.5;
     const merged: Cluster = {
       position: [0, 1, 2].map(
-        (axis) => first.position[axis]! + (second.position[axis]! - first.position[axis]!) * weight,
+        (axis) => first.position[axis] + (second.position[axis] - first.position[axis]) * weight,
       ) as [number, number, number],
       lumens,
     };
     if (first.aim && second.aim) {
-      const aim = [0, 1, 2].map((axis) => first.aim![axis]! + second.aim![axis]!) as [
+      const aim = [0, 1, 2].map((axis) => first.aim![axis] + second.aim![axis]) as [
         number,
         number,
         number,
@@ -191,11 +191,11 @@ export function aggregateFixtures<T extends LightFixture>(
   }
   return clusters.map((cluster) =>
     Object.freeze({
-      position: Object.freeze(cluster.position) as Vector3Tuple,
+      position: Object.freeze<Vector3Tuple>(cluster.position),
       lumens: cluster.lumens,
-      ...(cluster.aim ? { aim: Object.freeze(cluster.aim) as Vector3Tuple } : {}),
+      ...(cluster.aim ? { aim: Object.freeze<Vector3Tuple>(cluster.aim) } : {}),
     }),
-  ) as LightFixture[] | PoolLight[];
+  );
 }
 
 /**
@@ -233,9 +233,9 @@ export function assertFixtureLayout(layout: FixtureLayout): FixtureLayout {
       throw new RangeError(`Fixture zone ${zone.id} has no fixtures.`);
     for (let axis = 0; axis < 3; axis += 1) {
       if (!(
-        zone.outer.min[axis]! < zone.inner.min[axis]! &&
-        zone.inner.min[axis]! < zone.inner.max[axis]! &&
-        zone.inner.max[axis]! < zone.outer.max[axis]!
+        zone.outer.min[axis] < zone.inner.min[axis] &&
+        zone.inner.min[axis] < zone.inner.max[axis] &&
+        zone.inner.max[axis] < zone.outer.max[axis]
       )) {
         throw new RangeError(`Fixture zone ${zone.id} boxes must nest with a margin.`);
       }
@@ -441,10 +441,10 @@ export function readSceneFixtureLights(
 ): WorldFixtureLights | null {
   const candidate = scene?.userData[SCENE_KEY] as Partial<WorldFixtureLights> | null | undefined;
   return candidate &&
-    (candidate.ceilingIrradiance as THREE.Color | undefined)?.isColor === true &&
+    candidate.ceilingIrradiance?.isColor === true &&
     Array.isArray(candidate.pool) &&
-    (candidate.poolColor as THREE.Color | undefined)?.isColor === true &&
-    (candidate.waterIrradiance as THREE.Color | undefined)?.isColor === true &&
+    candidate.poolColor?.isColor === true &&
+    candidate.waterIrradiance?.isColor === true &&
     typeof candidate.lensLuminance === 'number' &&
     typeof candidate.lensRadius === 'number'
     ? (candidate as WorldFixtureLights)
@@ -518,10 +518,11 @@ export function writeWaterLightUniforms(
   uniforms.uWaterCeilingIrradiance.value.copy(lights.ceilingIrradiance);
   const pool = lights.pool.slice(0, POOL_LIGHT_SLOTS);
   pool.forEach((light, index) => {
-    uniforms.uPoolLights.value[index]!.set(light.position.x, light.position.y, light.position.z, 1)
+    uniforms.uPoolLights.value[index]
+      .set(light.position.x, light.position.y, light.position.z, 1)
       .applyMatrix4(toSpace)
       .setW(light.intensity);
-    uniforms.uPoolLightAims.value[index]!.copy(light.aim).transformDirection(toSpace);
+    uniforms.uPoolLightAims.value[index].copy(light.aim).transformDirection(toSpace);
   });
   uniforms.uPoolLightCount.value = pool.length;
   uniforms.uPoolGlowCount.value = pool.some((light) => light.intensity > 0) ? pool.length : 0;
@@ -619,14 +620,14 @@ export class FixtureLights {
     let waterLux = 0;
     this.layout.zones.forEach((zone, index) => {
       const visible = on && this.objectVisible(zone.anchorName);
-      const range = uniforms.uFixtureZoneRange.value[index]!;
-      uniforms.uFixtureZoneInnerMin.value[index]!.set(...zone.inner.min);
-      uniforms.uFixtureZoneInnerMax.value[index]!.set(...zone.inner.max);
-      uniforms.uFixtureZoneOuterMin.value[index]!.set(...zone.outer.min);
-      uniforms.uFixtureZoneOuterMax.value[index]!.set(...zone.outer.max);
+      const range = uniforms.uFixtureZoneRange.value[index];
+      uniforms.uFixtureZoneInnerMin.value[index].set(...zone.inner.min);
+      uniforms.uFixtureZoneInnerMax.value[index].set(...zone.inner.max);
+      uniforms.uFixtureZoneOuterMin.value[index].set(...zone.outer.min);
+      uniforms.uFixtureZoneOuterMax.value[index].set(...zone.outer.max);
       if (!visible) {
         range.set(slot, 0);
-        uniforms.uFixtureZoneFill.value[index]!.set(0, 0, 0);
+        uniforms.uFixtureZoneFill.value[index].set(0, 0, 0);
         return;
       }
       const fixtures = aggregateFixtures(
@@ -642,7 +643,7 @@ export class FixtureLights {
           fixture.position[2],
         );
         this.siteRoot.localToWorld(this.world);
-        uniforms.uFixtureLights.value[slot]!.set(
+        uniforms.uFixtureLights.value[slot].set(
           this.world.x,
           this.world.y,
           this.world.z,
@@ -651,7 +652,7 @@ export class FixtureLights {
         slot += 1;
       }
       const fill = averageFloorIlluminance(zone) * scale * FLOOR_REFLECTANCE * this.surfaceStrength;
-      uniforms.uFixtureZoneFill.value[index]!.set(
+      uniforms.uFixtureZoneFill.value[index].set(
         fill * CEILING_FIXTURE_COLOR[0],
         fill * CEILING_FIXTURE_COLOR[1],
         fill * CEILING_FIXTURE_COLOR[2],
@@ -659,7 +660,7 @@ export class FixtureLights {
       if (zone.reachesWater) waterLux += averageFloorIlluminance(zone);
     });
     for (let index = this.layout.zones.length; index < FIXTURE_ZONE_SLOTS; index += 1) {
-      uniforms.uFixtureZoneRange.value[index]!.set(0, 0);
+      uniforms.uFixtureZoneRange.value[index].set(0, 0);
     }
     uniforms.uFixtureZoneCount.value =
       on && slot > 0 && this.surfaceStrength > 0 ? this.layout.zones.length : 0;

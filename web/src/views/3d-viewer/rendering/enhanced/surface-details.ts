@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isMesh } from '../three-guards';
 import type { VisualAssetAdapter, VisualAssetContext } from '../contracts';
 import type { RenderQualityProfile } from '../quality-profile';
 
@@ -54,7 +55,7 @@ export class EnhancedSurfaceDetailAdapter implements VisualAssetAdapter {
     if (this.attached || this.disposed) return;
     this.attached = true;
     context.siteRoot.traverse((object) => {
-      if (!(object instanceof THREE.Mesh) || object.userData.visualOnly) return;
+      if (!isMesh(object) || object.userData.visualOnly) return;
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       const style = materials
         .map(({ name }) => DETAIL_STYLE_BY_MATERIAL.get(name))

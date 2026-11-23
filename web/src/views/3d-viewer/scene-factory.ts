@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isMesh } from './rendering/three-guards';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { DesignStatus, ViewerModel } from './model-adapter';
 import { deriveViewerOrientation } from './orientation';
@@ -2544,7 +2545,7 @@ export function createViewerScene(
   // 透明的東西不擋陽光：玻璃屋頂、玻璃牆、水膜與半透明的分區標示如果投影，
   // 整個池廳都會落在「玻璃的影子」裡。影子只來自框料、牆、樓板這些不透光的構件。
   siteRoot.traverse((object) => {
-    if (!(object instanceof THREE.Mesh) || !object.castShadow) return;
+    if (!isMesh(object) || !object.castShadow) return;
     const meshMaterials = Array.isArray(object.material) ? object.material : [object.material];
     if (meshMaterials.some((material) => material.transparent)) object.castShadow = false;
   });
