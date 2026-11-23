@@ -2,7 +2,7 @@
 
 ## 1. 使用方式
 
-本文件是目前設計數值與空間意圖的權威來源。`model/project-model.json` 的 `activeGeometryRevisionId=GEO-0.10.0` 是唯一現行機器可讀幾何；圖面、分析與 Viewer 均以 `resolveActiveGeometry()` 解析，不由檔名、日期或最大版號猜測最新版。
+本文件是目前設計數值與空間意圖的權威來源。`model/project-model.json` 的 `activeGeometryRevisionId=GEO-0.11.0` 是唯一現行機器可讀幾何；圖面、分析與 Viewer 均以 `resolveActiveGeometry()` 解析，不由檔名、日期或最大版號猜測最新版。
 
 狀態語意：
 
@@ -15,8 +15,8 @@
 
 | 項目 | 現行值 | 狀態 |
 | --- | --- | --- |
-| 模型版本 | `0.10.0` | active |
-| Active revision | `GEO-0.10.0` | active |
+| 模型版本 | `0.11.0` | active |
+| Active revision | `GEO-0.11.0` | active |
 | 對外座標系 | `SITE-XY`；X0～X41、Y0～Y14、圖面 Y 向上 | active canonical |
 | Three.js adapter | SITE X→Three X、SITE Y→Three −Z、SITE Z→Three Y | derived |
 | 本地 +X 真北方位 | 307°；由泳池遠端指向服務核心 | confirmed canonical |
@@ -107,7 +107,11 @@ L1 池畔必須圍繞真實池口，不得以完整地板穿過池體。池體�
 | L3 固定正交三角擴板 | X38.428～X41／Y0～Y5.392；毛面積約 6.935 m²；不旋轉 | working／professional validation |
 | L3 有頂到達翼 | 約 2.964 m²；ST-02 至室內 L3 的有遮蔽通路 | working／professional validation |
 | L3 受控景觀區 | 淨約 3.971 m²；只限教師與維修人員；上鎖／告示；非主要逃生 | working／professional validation |
-| L3 現行功能 | 低使用密度設備／維修；教師觀察、泳姿分析、環境教育只保留未來彈性；乾式維修儲藏列考慮 | confirmed strategy |
+| L3 現行功能 | 設備與維修＋教師觀課、泳姿分析與環境教育；限教師與預約小組（約半班），不作整班教室；乾式維修儲藏列考慮（`DEC-173`） | confirmed program |
+| L3 觀課與環境教育室 `Z-L3-LEARN-01` | 旋轉前 X29～X41／Y0～Y5.5；66 m²；由到達翼進入；鏡牆側螢幕牆、玻璃側能源看板；可移動桌椅，不做固定隔間 | working／professional validation |
+| L3 設備區 `Z-L3-MEP-01` | 旋轉前 X29～X41／Y5.5～Y13.5；96 m²；水塔、除濕／熱回收、熱泵冷凝端、BMS 電控與維修動線；維修人員經上鎖門進出 | working／professional validation |
+| L3 隔音玻璃隔間 `W-L3-GLASS-01` | 旋轉前 Y5.5（Y5.43～Y5.57）；留一樘上鎖維修門；看得到水塔與除濕熱回收設備 | working／professional validation |
+| L3 觀課方式 | 池上與水下攝影機接到室內螢幕；鏡牆整面鏡面，不開窗、不改反射玻璃；直接看泳池在 2F 面池走道；能源看板同步放在 1F 換鞋玄關 | confirmed（`DEC-173`） |
 | 3F 完整屋頂 | 未旋轉座標 X27.472～X41／Y0～Y13.5；底 +10.48 m；約 182.628 m²；隨 L3 旋轉並接到外傾鏡牆上緣 | working／professional validation |
 | 3F 屋頂太陽能排布 | 未旋轉座標 X27.722～X40.75／Y0.25～Y13.25；與 L3／屋頂／鏡牆共用單一 +25.5° transform；周邊退縮 0.25 m；約 169.364 m²／92.74% 概念覆蓋率 | working／professional validation |
 | 儲能策略 | 地面層獨立戶外機櫃優先；3F 一般室內不放電池，只留電力／EMS 介面 | confirmed strategy／professional validation |
@@ -117,6 +121,8 @@ L1 池畔必須圍繞真實池口，不得以完整地板穿過池體。池體�
 | 屋頂至 L3 轉接帶 | 約 0.343 m | working interface |
 
 只有 L3 主矩形做水平旋轉；L1、L2、屋頂與新增三角擴板／到達翼保持 SITE-XY 正交。旋轉主體相對固定 L2 的投影重疊仍為 138.589 m²（85.55%），新增擴板全在 L2 投影內。三角擴板使 L3 概念總面積由 162 m²增至約 168.935 m²；其中到達翼約 2.964 m²、剩餘受控景觀區約 3.971 m²。這些只是平面幾何代理，不是正式質心、剛心或結構容量。
+
+3F 的觀課與環境教育室、設備區與玻璃隔間用旋轉前的樓板座標登錄，與 L3 樓板共用同一 +25.5° transform；兩區面積相加正好是 162 m²的旋轉樓板。教室在到達翼那一側，人不穿過設備；水塔與除濕熱回收留在玻璃後作為教材。3F 有人使用後，人數上限、是否需要電梯與第二座直通樓梯、懸挑角活載、隔音等級與攝影機位置都由 `OPEN-009` 等專業確認；`ST-02` 每級約 16.3 cm，學生使用前要另案改到 16 cm 以下。
 
 23.0° 外傾幅度大：概念光學計算可成立，但構件水平推力、抗震、抗風、撓度、鏡面分格固定、防水、排水、維修、墜落物與眩光均未核定。任何圖面與 HTML 都必須明示「需專業驗證」，不得說成已核定構造。
 

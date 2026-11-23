@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.5.0",
-  "modelVersion": "0.10.0",
-  "revision": "2026-11-22",
-  "activeGeometryRevisionId": "GEO-0.10.0",
-  "designTargetVersion": "0.10.0",
+  "modelVersion": "0.11.0",
+  "revision": "2026-11-23",
+  "activeGeometryRevisionId": "GEO-0.11.0",
+  "designTargetVersion": "0.11.0",
   "project": {
     "name": "國立臺中教育大學附設實驗國民小學游泳池改建概念設計",
     "shortName": "Swimming Pool Design",
@@ -86,6 +86,14 @@
       "id": "GEO-0.10.0",
       "revision": "0.10.0",
       "modelVersion": "0.10.0",
+      "status": "legacy",
+      "coordinateSystemId": "SITE-XY",
+      "historicalRecord": "git d9a5a72 的 model/project-model.json；3F 觀課與環境教育室、設備區與玻璃隔間由 GEO-0.11.0 加入（DEC-172、DEC-173）"
+    },
+    {
+      "id": "GEO-0.11.0",
+      "revision": "0.11.0",
+      "modelVersion": "0.11.0",
       "status": "working",
       "coordinateSystemId": "SITE-XY",
       "site": {
@@ -645,13 +653,58 @@
         "highLevelEquipment": ["water-storage", "dehumidification-heat-recovery", "heat-pump-condenser", "bms-controls"],
         "equipmentPlacementRule": "fixed-core-or-direct-support-lines-only-not-rotating-cantilever-or-mirror-wall",
         "programStrategy": {
-          "currentUse": "low-occupancy-high-level-equipment-and-maintenance",
-          "teacherObservationRoom": "future-flexibility-only",
-          "environmentalEducationDisplay": "future-flexibility-only",
+          "currentUse": "equipment-and-maintenance-with-teacher-observation-and-small-group-environmental-education",
+          "teacherObservationRoom": "built-in-l3-learning-room",
+          "environmentalEducationDisplay": "glass-partition-equipment-view-and-energy-dashboard",
+          "userGroups": ["teachers", "booked-small-student-groups", "maintenance-staff"],
+          "smallGroupSize": "about-half-class-pending-professional-egress-limit",
+          "wholeClassUse": false,
+          "poolViewing": "pool-and-underwater-cameras-to-room-screens",
+          "directPoolViewLocation": "l2-pool-facing-corridor",
+          "mirrorOpenings": false,
+          "groundFloorDashboardZoneId": "Z-L1-ENTRY-01",
           "dryMaintenanceStorage": "under-consideration-not-built",
-          "flexibleAreaProtection": "no-fixed-partitions-heavy-equipment-or-irreversible-services",
+          "flexibleAreaProtection": "movable-furniture-no-fixed-partitions-inside-learning-room",
           "controlledLandscapeTerrace": "retained",
-          "status": "confirmed"
+          "decisionId": "DEC-173",
+          "status": "confirmed-program-working-geometry"
+        },
+        "learningRoom": {
+          "entityId": "Z-L3-LEARN-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 29, "x2": 41, "y1": 0, "y2": 5.5 },
+          "boundsBasis": "unrotated-l3-plate-shares-l3-plan-rotation",
+          "rotation": 25.5,
+          "area": 66,
+          "uses": ["teacher-observation", "swim-analysis", "environmental-education"],
+          "entryFrom": "Z-L3-ARRIVAL-01",
+          "screenWall": "mirror-wall-side",
+          "energyDashboard": "glass-partition-side",
+          "status": "working-requires-professional-validation",
+          "openItemId": "OPEN-009"
+        },
+        "equipmentZone": {
+          "entityId": "Z-L3-MEP-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 29, "x2": 41, "y1": 5.5, "y2": 13.5 },
+          "boundsBasis": "unrotated-l3-plate-shares-l3-plan-rotation",
+          "rotation": 25.5,
+          "area": 96,
+          "access": "maintenance-staff-via-locked-door",
+          "status": "working-requires-professional-validation",
+          "openItemId": "OPEN-009"
+        },
+        "glassPartition": {
+          "entityId": "W-L3-GLASS-01",
+          "coordinateSystemId": "SITE-XY",
+          "bounds": { "x1": 29, "x2": 41, "y1": 5.43, "y2": 5.57 },
+          "boundsBasis": "unrotated-l3-plate-shares-l3-plan-rotation",
+          "rotation": 25.5,
+          "type": "acoustic-glass-partition",
+          "separates": ["Z-L3-LEARN-01", "Z-L3-MEP-01"],
+          "maintenanceDoor": "locked",
+          "status": "working-requires-professional-validation",
+          "openItemId": "OPEN-009"
         },
         "pvRoofReserve": {
           "entityId": "RF-PV-RES-01",
@@ -1110,9 +1163,9 @@
       }
     },
     "l3": {
-      "occupancy": "low",
-      "currentFunctions": ["water-storage", "dehumidification-heat-recovery", "heat-pump-condenser", "bms-controls", "maintenance-circulation", "controlled-landscape-terrace"],
-      "futureFlexibleFunctions": ["teacher-observation", "swim-analysis", "environmental-education"],
+      "occupancy": "teachers-and-booked-small-groups",
+      "currentFunctions": ["water-storage", "dehumidification-heat-recovery", "heat-pump-condenser", "bms-controls", "maintenance-circulation", "controlled-landscape-terrace", "teacher-observation", "swim-analysis", "environmental-education"],
+      "learningRoomEntityId": "Z-L3-LEARN-01",
       "dryMaintenanceStorage": "under-consideration",
       "photovoltaicRoofReserveEntityId": "RF-PV-RES-01",
       "energyStorageStrategyEntityId": "ESS-STRATEGY-01",
@@ -1169,6 +1222,9 @@
     { "id": "L3-EXT-01", "name": "3F 固定正交三角擴板", "type": "floor-plate-extension", "level": "L3", "grid": "X38.428-X41/Y0-Y5.392", "status": "working", "sourceIds": [] },
     { "id": "Z-L3-ARRIVAL-01", "name": "3F 有頂室內到達翼", "type": "circulation-zone", "level": "L3", "grid": "X38.666-X41/Y0.5-Y2", "status": "working", "sourceIds": [] },
     { "id": "Z-L3-TERRACE-01", "name": "教師與維修人員專用景觀陽台", "type": "controlled-terrace", "level": "L3", "grid": "X38.428-X41/Y0-Y5.392", "status": "working", "sourceIds": [] },
+    { "id": "Z-L3-LEARN-01", "name": "3F 觀課與環境教育室", "type": "learning-room", "level": "L3", "grid": "X29-X41/Y0-Y5.5（旋轉前）", "status": "working", "sourceIds": [] },
+    { "id": "Z-L3-MEP-01", "name": "3F 設備區", "type": "equipment-zone", "level": "L3", "grid": "X29-X41/Y5.5-Y13.5（旋轉前）", "status": "working", "sourceIds": [] },
+    { "id": "W-L3-GLASS-01", "name": "3F 隔音玻璃隔間與上鎖維修門", "type": "glass-partition", "level": "L3", "grid": "X29-X41/Y5.5（旋轉前）", "status": "working", "sourceIds": [] },
     { "id": "Z-L2-CORRIDOR-01", "name": "二樓 L 形面池走道", "type": "circulation-zone", "level": "L2", "grid": "X29-X32.5/Y0-Y13.5", "status": "working", "sourceIds": ["SRC-CONCEPT-005"] },
     { "id": "OP-L2-POOL-VIEW-01", "name": "二樓面池觀景窗", "type": "observation-window", "level": "L2", "grid": "X29/Y2.7-Y13", "status": "working", "sourceIds": [] },
     { "id": "OP-L2-CS-M-01", "name": "二樓男更衣室 1 m 無門片入口", "type": "opening", "level": "L2", "grid": "X32/Y6.7-Y7.7", "status": "confirmed", "sourceIds": [] },
@@ -1187,7 +1243,7 @@
     { "id": "SITE", "title": "基地衛星與方位圖", "level": "SITE", "referencedEntityIds": ["O-SITE-01", "SITE-01", "BLDG-01", "CORE-01", "EN-01"] },
     { "id": "L1", "title": "1F 平面圖", "level": "L1", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "EN-01", "F-L1-Y0-01", "Z-L1-WEST-SETBACK-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "Z-WC-POOL-M-01", "Z-WC-POOL-F-01", "Z-WC-PLAY-M-01", "Z-WC-PLAY-F-01", "Z-WTP-01", "Z-CHEM-01", "Z-L1-ENTRY-01", "Z-L1-DRY-01", "Z-L1-RINSE-01", "Z-L1-ACC-01", "Z-L1-STAFF-01"] },
     { "id": "L2", "title": "2F 平面圖", "level": "L2", "referencedEntityIds": ["L2-PLATE-01", "CLG-L2-01", "F-L2-Y0-01", "W-L2-ST-CH-01", "ST-01", "ST-02", "Z-ST-02-01", "Z-ST-02-PLANT-01", "Z-L2-CORRIDOR-01", "OP-L2-POOL-VIEW-01", "OP-L2-CS-M-01", "OP-L2-CS-F-01", "Z-CS-M-01", "Z-CS-F-01"] },
-    { "id": "L3", "title": "3F 平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
+    { "id": "L3", "title": "3F 平面圖", "level": "L3", "referencedEntityIds": ["L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "Z-L3-ARRIVAL-01", "Z-L3-TERRACE-01", "Z-L3-LEARN-01", "Z-L3-MEP-01", "W-L3-GLASS-01", "F-MIR-01", "ST-02", "RF-PV-RES-01", "ESS-STRATEGY-01"] },
     { "id": "SECTION", "title": "縱向剖面圖", "level": "SECTION", "referencedEntityIds": ["BLDG-01", "POOL-01", "ST-01", "ST-02", "Z-ST-02-PLANT-01", "L2-PLATE-01", "CLG-L2-01", "L3-PLATE-01", "RF-L3-01", "L3-EXT-01", "F-MIR-01", "RF-GL-01", "RF-L1-WEST-EAVE-01", "RF-L1-REAR-CANOPY-01", "RW-WEST-01", "RF-PV-RES-01"] }
   ],
   "sources": [
