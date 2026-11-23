@@ -2,6 +2,7 @@ import rawModel from '../../../../model/project-model.json';
 import type { ProjectModel, SheetRender } from '../../shared/types';
 import { escapeHtml } from './geometry';
 import { renderSheets, retiredSheetIds } from './sheets';
+import { attachPanZoom, type PanZoomControls } from './pan-zoom';
 
 const model = rawModel as unknown as ProjectModel;
 const sheets = renderSheets(model);
@@ -12,7 +13,12 @@ const required = <T extends Element>(selector: string): T => {
   return element;
 };
 
+let panZoom: PanZoomControls | null = null;
+
 export function destroyAtlas(): void {
+  panZoom?.destroy();
+  panZoom = null;
+  document.removeEventListener('fullscreenchange', syncFullscreen);
   window.removeEventListener('hashchange', handleHashChange);
   window.removeEventListener('resize', updateSheetTabOverflow);
   tabs.removeEventListener('scroll', updateSheetTabOverflow);
@@ -53,7 +59,13 @@ function sheetMeta(sheet: SheetRender): string {
     </div>
     <div class="toolbar-actions" aria-label="圖層控制">
       ${pvToggle}
-      <button id="fit-sheet" type="button">符合畫面</button>
+      <div class="zoom-controls" role="group" aria-label="縮放">
+        <button type="button" data-zoom="out" aria-label="縮小">−</button>
+        <output id="zoom-level" aria-live="polite">100%</output>
+        <button type="button" data-zoom="in" aria-label="放大">＋</button>
+        <button type="button" data-zoom="fit">符合畫面</button>
+        <button type="button" data-zoom="fullscreen" aria-pressed="false">全畫面</button>
+      </div>
     </div>
   </div>
   <p class="sheet-note">${escapeHtml(note)}</p>`;
@@ -91,12 +103,14 @@ function setActiveSheet(id: string): void {
   const sheet = sheets.find((item) => item.id === id) ?? sheets[0];
   history.replaceState(null, '', `#${sheet.id}`);
   renderTabs();
-  stage.innerHTML = `${sheetMeta(sheet)}<div class="drawing-scroll"><div class="drawing-wrap">${sheet.markup}</div></div>`;
+  panZoom?.destroy();
+  const title = escapeHtml(sheet.title ?? sheet.id);
+  stage.innerHTML = `${sheetMeta(sheet)}
+    <div class="drawing-viewport" tabindex="0" role="group" aria-label="${title}，可平移縮放" aria-describedby="drawing-help">
+      <div class="drawing-wrap">${sheet.markup}</div>
+    </div>
+    <p id="drawing-help" class="drawing-help">拖曳平移；雙指或按住 Ctrl 加滾輪縮放；鍵盤用 ＋、－ 縮放，方向鍵平移，0 回到符合畫面。</p>`;
   bindSheetControls();
-  const scroller = stage.querySelector<HTMLElement>('.drawing-scroll');
-  if (scroller && id === 'REF-201' && window.matchMedia('(max-width: 820px)').matches) {
-    scroller.scrollLeft = scroller.scrollWidth;
-  }
 }
 
 function bindSheetControls(): void {
@@ -104,20 +118,35 @@ function bindSheetControls(): void {
     const visible = (event.currentTarget as HTMLInputElement).checked;
     stage.classList.toggle('hide-pv', !visible);
   });
-  const fitButton = stage.querySelector<HTMLButtonElement>('#fit-sheet');
-  const setFitSheet = (fit: boolean) => {
-    stage.classList.toggle('fit-sheet', fit);
-    fitButton?.setAttribute('aria-pressed', String(fit));
-    if (fitButton) fitButton.textContent = fit ? '原圖尺寸' : '符合畫面';
-    if (fit) {
-      stage.querySelector<HTMLElement>('.drawing-scroll')
-        ?.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
-    }
-  };
-  setFitSheet(window.matchMedia('(max-width: 820px)').matches);
-  fitButton?.addEventListener('click', () => {
-    setFitSheet(!stage.classList.contains('fit-sheet'));
+  const viewport = stage.querySelector<HTMLElement>('.drawing-viewport');
+  const content = stage.querySelector<HTMLElement>('.drawing-wrap');
+  const level = stage.querySelector<HTMLOutputElement>('#zoom-level');
+  if (!viewport || !content || !level) throw new Error('Atlas sheet is missing its viewer.');
+  const zoomButtons = (name: string) => stage.querySelector<HTMLButtonElement>(`[data-zoom="${name}"]`);
+  panZoom = attachPanZoom(viewport, content, ({ scale }) => {
+    level.value = `${Math.round(scale * 100)}%`;
+    const zoomOut = zoomButtons('out');
+    const zoomIn = zoomButtons('in');
+    if (zoomOut) zoomOut.disabled = scale <= 1;
+    if (zoomIn) zoomIn.disabled = scale >= 8;
   });
+  zoomButtons('in')?.addEventListener('click', () => panZoom?.zoomIn());
+  zoomButtons('out')?.addEventListener('click', () => panZoom?.zoomOut());
+  zoomButtons('fit')?.addEventListener('click', () => panZoom?.fit());
+  const fullscreenButton = zoomButtons('fullscreen');
+  if (fullscreenButton && !document.fullscreenEnabled) fullscreenButton.hidden = true;
+  fullscreenButton?.addEventListener('click', () => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void stage.requestFullscreen().then(() => viewport.focus());
+  });
+  syncFullscreen();
+}
+
+/** 全畫面時圖紙用滿螢幕，滾輪直接縮放；按 Esc 離開時回到符合畫面。 */
+function syncFullscreen(): void {
+  const active = document.fullscreenElement === stage;
+  stage.querySelector('[data-zoom="fullscreen"]')?.setAttribute('aria-pressed', String(active));
+  if (!active) panZoom?.fit();
 }
 
 function handleHashChange(): void {
@@ -126,6 +155,7 @@ function handleHashChange(): void {
 }
 
 window.addEventListener('hashchange', handleHashChange);
+document.addEventListener('fullscreenchange', syncFullscreen);
 window.addEventListener('resize', updateSheetTabOverflow);
 tabs.addEventListener('scroll', updateSheetTabOverflow, { passive: true });
 

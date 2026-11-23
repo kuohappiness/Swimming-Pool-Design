@@ -1042,12 +1042,20 @@ try {
     await solarDesktop.locator('#minimumDownwardLabel').textContent(),
     `下射參考 ${expectedActiveGeometry.solar.minimumDownwardAngle.value.toFixed(0)}°`,
   );
-  assert.equal(await solarDesktop.locator('.live-preview').isVisible(), true);
-  assert.equal(await solarDesktop.locator('.desktop-preview-grid').isVisible(), true);
-  assert.equal(await solarDesktop.locator('#desktopPlanPreviewViewport svg').count(), 1);
-  assert.equal(await solarDesktop.locator('#desktopSectionPreviewViewport svg').count(), 1);
-  assert.equal(await solarDesktop.locator('.mobile-preview-tabs').isVisible(), false);
-  assert.equal(await solarDesktop.locator('#mobilePreviewViewport').isVisible(), false);
+  // TASK-173: on wide screens both charts stay pinned beside the controls, so there is no preview copy.
+  assert.equal(await solarDesktop.locator('.live-preview').isVisible(), false);
+  assert.equal(await solarDesktop.locator('#mobilePreviewViewport svg').count(), 0);
+  assert.equal(
+    await solarDesktop.locator('.stage-figures').evaluate((figures) => getComputedStyle(figures).position),
+    'sticky',
+  );
+  // The conclusion comes before the interactive model.
+  assert.equal(
+    await solarDesktop.locator('.research-conclusion').evaluate(
+      (conclusion) => Boolean(conclusion.compareDocumentPosition(document.querySelector('.stage')) & Node.DOCUMENT_POSITION_FOLLOWING),
+    ),
+    true,
+  );
   assert.equal(await solarDesktop.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   await solarDesktop.locator('#date').evaluate((input) => {
     input.value = '7';
@@ -1178,18 +1186,6 @@ try {
   );
   assert.equal(await solarDesktop.locator('#rayLabel').textContent(), '反射光（未落在池面）');
   assert.equal(await solarDesktop.locator('#reflected').getAttribute('aria-label'), '反射光，未落在池面');
-  assert.equal(
-    await solarDesktop.locator('#desktop-preview-section-reflected').getAttribute('data-reflection-state'),
-    'misses-pool',
-  );
-  assert.equal(
-    await solarDesktop.locator('#desktop-preview-section-incoming').getAttribute('stroke'),
-    await solarDesktop.locator('#desktop-preview-section-reflected').getAttribute('stroke'),
-  );
-  assert.equal(
-    await solarDesktop.locator('#desktop-preview-section-reflected').getAttribute('marker-end'),
-    'url(#desktop-preview-section-arrow-reflected)',
-  );
   assert.notEqual(
     await solarDesktop.locator('#selectedSun .selected-reflected-ray').evaluate(
       (line) => getComputedStyle(line).strokeDasharray,
@@ -1228,26 +1224,48 @@ try {
     await solarDesktop.locator('#mirrorAz').innerText(),
     `${deriveMirrorNormalAzimuth(projectModel.referenceSystem, 27).toFixed(1)}°`,
   );
-  assert.equal(
-    await solarDesktop.locator('#desktop-preview-plan-wallNormal').getAttribute('x1'),
-    await solarDesktop.locator('#wallNormal').getAttribute('x1'),
-  );
-  assert.equal(
-    await solarDesktop.locator('#desktop-preview-plan-wallNormal').getAttribute('y1'),
-    await solarDesktop.locator('#wallNormal').getAttribute('y1'),
-  );
   await solarDesktop.screenshot({ path: resolve(outputDirectory, 'solar-study-desktop.png'), fullPage: true });
 
   const solarTablet = await browser.newPage({ viewport: { width: 768, height: 900 }, deviceScaleFactor: 1 });
   trackErrors(solarTablet);
   await solarTablet.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
   assert.equal(await solarTablet.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  // Below 1000px the charts scroll away, so a switchable preview mirrors them above the controls.
   assert.equal(await solarTablet.locator('.live-preview').isVisible(), true);
-  assert.equal(await solarTablet.locator('.desktop-preview-grid').isVisible(), true);
-  assert.equal(await solarTablet.locator('#desktopPlanPreviewViewport svg').count(), 1);
-  assert.equal(await solarTablet.locator('#desktopSectionPreviewViewport svg').count(), 1);
-  assert.equal(await solarTablet.locator('.mobile-preview-tabs').isVisible(), false);
-  assert.equal(await solarTablet.locator('#mobilePreviewViewport').isVisible(), false);
+  assert.equal(await solarTablet.locator('.mobile-preview-tabs').isVisible(), true);
+  assert.equal(await solarTablet.locator('#mobilePreviewViewport').isVisible(), true);
+  for (const [selector, value] of [['#date', '7'], ['#time', '7']]) {
+    await solarTablet.locator(selector).evaluate((input, next) => {
+      input.value = next;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, value);
+  }
+  await solarTablet.locator('#previewSection').click();
+  assert.equal(
+    await solarTablet.locator('#mobile-preview-section-reflected').getAttribute('data-reflection-state'),
+    await solarTablet.locator('#reflected').getAttribute('data-reflection-state'),
+  );
+  assert.equal(
+    await solarTablet.locator('#mobile-preview-section-reflected').getAttribute('marker-end'),
+    'url(#mobile-preview-section-arrow-reflected)',
+  );
+  await solarTablet.locator('#planRotation').evaluate((input) => {
+    input.value = '27';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await solarTablet.locator('#previewPlan').click();
+  for (const attribute of ['x1', 'y1', 'x2', 'y2']) {
+    assert.equal(
+      await solarTablet.locator('#mobile-preview-plan-wallNormal').getAttribute(attribute),
+      await solarTablet.locator('#wallNormal').getAttribute(attribute),
+    );
+  }
+  // The seasonal table scrolls sideways from the keyboard and keeps its first column in view.
+  assert.equal(await solarTablet.locator('.table-scroll').getAttribute('tabindex'), '0');
+  assert.equal(
+    await solarTablet.locator('.table-scroll tbody tr:first-child > :first-child').evaluate((cell) => getComputedStyle(cell).position),
+    'sticky',
+  );
   await solarTablet.screenshot({ path: resolve(outputDirectory, 'solar-study-tablet.png'), fullPage: true });
 
   const solarMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
@@ -1255,9 +1273,6 @@ try {
   await solarMobile.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
   assert.equal(await solarMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   assert.equal(await solarMobile.locator('.live-preview').isVisible(), true);
-  assert.equal(await solarMobile.locator('.desktop-preview-grid').isVisible(), false);
-  assert.equal(await solarMobile.locator('#desktopPlanPreviewViewport svg').count(), 0);
-  assert.equal(await solarMobile.locator('#desktopSectionPreviewViewport svg').count(), 0);
   assert.equal(await solarMobile.locator('.mobile-preview-tabs').isVisible(), true);
   assert.equal(await solarMobile.locator('#mobilePreviewViewport').isVisible(), true);
   await solarMobile.locator('#date').evaluate((input) => {
