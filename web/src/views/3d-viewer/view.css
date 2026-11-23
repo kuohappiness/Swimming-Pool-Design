@@ -21,7 +21,7 @@ body {
 
 .view-intro--viewer {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
   column-gap: 4rem;
   padding-bottom: clamp(3.125rem, 5vw, 5rem);
 }
@@ -37,7 +37,7 @@ body {
   grid-row: 3;
   align-self: start;
   max-width: 34rem;
-  margin-top: .6rem;
+  margin-top: 0.6rem;
   line-height: 1.8;
 }
 
@@ -52,12 +52,12 @@ body {
   grid-row: 4;
   width: max-content;
   max-width: none;
-  margin-top: .85rem;
+  margin-top: 0.85rem;
 }
 
 .site-view--3d-viewer .view-intro--viewer .walkthrough-entry--intro button {
   min-height: 0;
-  padding: .65rem 1.05rem;
+  padding: 0.65rem 1.05rem;
   color: var(--site-ink);
   background: transparent;
   border: 1px solid var(--site-line-strong);
@@ -65,9 +65,9 @@ body {
   border-radius: 2px;
   box-shadow: none;
   backdrop-filter: none;
-  font-size: .86rem;
+  font-size: 0.86rem;
   font-weight: 700;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
 }
 
 .site-view--3d-viewer .view-intro--viewer .walkthrough-entry--intro button:hover {
@@ -82,7 +82,7 @@ body {
 
 .site-view--3d-viewer .viewer-shell {
   grid-template-columns: 250px minmax(420px, 1fr);
-  grid-template-areas: "controls viewport";
+  grid-template-areas: 'controls viewport';
   height: min(760px, calc(100dvh - var(--site-header-height) - 150px));
   min-height: 560px;
   background: #e7e7e1;
@@ -97,7 +97,7 @@ body {
   box-shadow: none;
 }
 
-.site-view--3d-viewer .scene-nav button[data-active="true"]::before {
+.site-view--3d-viewer .scene-nav button[data-active='true']::before {
   box-shadow: none;
 }
 
@@ -130,33 +130,33 @@ body {
 .site-view--3d-viewer .orientation-cue,
 .site-view--3d-viewer .viewport-hint {
   color: #29474c;
-  background: rgba(231, 241, 239, .76);
-  border: 1px solid rgba(47, 90, 94, .18);
+  background: rgba(231, 241, 239, 0.76);
+  border: 1px solid rgba(47, 90, 94, 0.18);
   border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(34, 64, 67, .08);
-  backdrop-filter: blur(10px) saturate(.86);
+  box-shadow: 0 4px 14px rgba(34, 64, 67, 0.08);
+  backdrop-filter: blur(10px) saturate(0.86);
 }
 
 .site-view--3d-viewer .walkthrough-entry button {
   min-height: 36px;
   padding: 6px 11px;
-  border-left: 3px solid rgba(26, 126, 132, .72);
+  border-left: 3px solid rgba(26, 126, 132, 0.72);
   font-weight: 600;
 }
 
 .site-view--3d-viewer .walkthrough-entry button:hover {
   color: #173a3f;
-  background: rgba(221, 238, 235, .9);
-  border-color: rgba(26, 126, 132, .34);
-  border-left-color: rgba(26, 126, 132, .86);
+  background: rgba(221, 238, 235, 0.9);
+  border-color: rgba(26, 126, 132, 0.34);
+  border-left-color: rgba(26, 126, 132, 0.86);
 }
 
 .site-view--3d-viewer .viewport-hint {
   padding: 5px 9px;
-  color: rgba(41, 71, 76, .82);
-  background: rgba(239, 245, 243, .7);
-  border-color: rgba(47, 90, 94, .12);
-  box-shadow: 0 3px 10px rgba(34, 64, 67, .05);
+  color: rgba(41, 71, 76, 0.82);
+  background: rgba(239, 245, 243, 0.7);
+  border-color: rgba(47, 90, 94, 0.12);
+  box-shadow: 0 3px 10px rgba(34, 64, 67, 0.05);
 }
 
 .site-view--3d-viewer .orientation-cue strong {
@@ -204,12 +204,12 @@ body {
   margin-top: 0;
 }
 
-.site-view--3d-viewer .viewer-shell[data-camera-mode="walkthrough"] {
+.site-view--3d-viewer .viewer-shell[data-camera-mode='walkthrough'] {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "viewport";
+  grid-template-areas: 'viewport';
 }
 
-.site-view--3d-viewer .viewer-shell[data-camera-mode="walkthrough"] .viewport-panel {
+.site-view--3d-viewer .viewer-shell[data-camera-mode='walkthrough'] .viewport-panel {
   margin-top: 0;
 }
 
@@ -225,7 +225,7 @@ body {
   .site-view--3d-viewer .viewer-shell {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(470px, 58dvh) auto;
-    grid-template-areas: "viewport" "controls";
+    grid-template-areas: 'viewport' 'controls';
     height: auto;
     min-height: calc(100dvh - var(--site-header-height));
   }
@@ -261,7 +261,7 @@ body {
   color: var(--ink);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .site-view--3d-viewer .light-control output {
@@ -271,7 +271,7 @@ body {
   letter-spacing: 0;
 }
 
-.site-view--3d-viewer .light-control input[type="range"] {
+.site-view--3d-viewer .light-control input[type='range'] {
   display: block;
   width: 100%;
   min-height: 28px;
@@ -285,8 +285,12 @@ body {
   gap: 5px;
 }
 
-.site-view--3d-viewer .light-terms { grid-template-columns: repeat(4, 1fr); }
-.site-view--3d-viewer .light-weather { grid-template-columns: repeat(3, 1fr); }
+.site-view--3d-viewer .light-terms {
+  grid-template-columns: repeat(4, 1fr);
+}
+.site-view--3d-viewer .light-weather {
+  grid-template-columns: repeat(3, 1fr);
+}
 
 .site-view--3d-viewer .light-terms button,
 .site-view--3d-viewer .light-weather button,
@@ -304,8 +308,8 @@ body {
 .site-view--3d-viewer .light-terms button:hover,
 .site-view--3d-viewer .light-weather button:hover,
 .site-view--3d-viewer .light-now:hover,
-.site-view--3d-viewer .light-terms button[data-active="true"],
-.site-view--3d-viewer .light-weather button[data-active="true"] {
+.site-view--3d-viewer .light-terms button[data-active='true'],
+.site-view--3d-viewer .light-weather button[data-active='true'] {
   color: #fff;
   background: #32464c;
   border-color: #32464c;
@@ -319,10 +323,12 @@ body {
   line-height: 1.6;
 }
 
-.site-view--3d-viewer .light-now { width: 100%; }
+.site-view--3d-viewer .light-now {
+  width: 100%;
+}
 
 @media (pointer: coarse) {
-  .site-view--3d-viewer .light-control input[type="range"],
+  .site-view--3d-viewer .light-control input[type='range'],
   .site-view--3d-viewer .light-terms button,
   .site-view--3d-viewer .light-weather button,
   .site-view--3d-viewer .light-now {
@@ -337,7 +343,7 @@ body {
   color: var(--ink);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .site-view--3d-viewer .quality-control select {

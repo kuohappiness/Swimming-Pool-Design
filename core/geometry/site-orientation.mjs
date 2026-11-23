@@ -22,7 +22,7 @@ export function normalizeBearingDegrees(value) {
 }
 
 function normalizeSignedDegrees(value) {
-  return ((value + 180) % 360 + 360) % 360 - 180;
+  return ((((value + 180) % 360) + 360) % 360) - 180;
 }
 
 export function deriveSiteOrientation(referenceSystem) {
@@ -35,8 +35,10 @@ export function deriveSiteOrientation(referenceSystem) {
       throw new TypeError(`Legacy referenceSystem.${legacyKey} is forbidden.`);
     }
   }
-  if (referenceSystem?.worldTransform
-    && 'rotationFromTrueNorth' in referenceSystem.worldTransform) {
+  if (
+    referenceSystem?.worldTransform &&
+    'rotationFromTrueNorth' in referenceSystem.worldTransform
+  ) {
     throw new TypeError('Legacy worldTransform.rotationFromTrueNorth is forbidden.');
   }
   const canonical = referenceSystem?.siteOrientation;
@@ -60,9 +62,7 @@ export function deriveSiteOrientation(referenceSystem) {
   };
   const horizontal = northInSite.x < 0 ? 'left' : 'right';
   const vertical = northInSite.y < 0 ? 'lower' : 'upper';
-  const threeWorldRotationDegrees = normalizeSignedDegrees(
-    90 - positiveXAxisBearingFromTrueNorth,
-  );
+  const threeWorldRotationDegrees = normalizeSignedDegrees(90 - positiveXAxisBearingFromTrueNorth);
 
   return {
     positiveXAxisBearingFromTrueNorth,
@@ -72,9 +72,7 @@ export function deriveSiteOrientation(referenceSystem) {
       positiveXAxisBearingFromTrueNorth,
     ],
     poolFacingAzimuth: negativeXAxisBearingFromTrueNorth,
-    svgRotationFromLocalX: normalizeBearingDegrees(
-      positiveXAxisBearingFromTrueNorth - 90,
-    ),
+    svgRotationFromLocalX: normalizeBearingDegrees(positiveXAxisBearingFromTrueNorth - 90),
     svgNorthArrowRotation: normalizeBearingDegrees(threeWorldRotationDegrees),
     threeWorldRotationDegrees,
     threeWorldRotationRadians: threeWorldRotationDegrees * RADIANS,
@@ -97,16 +95,16 @@ export function deriveMirrorNormalAzimuth(referenceSystem, planRotation) {
 
 /** Horizontal unit vector in SITE-XY for a compass azimuth (degrees clockwise from true north). */
 export function siteVectorFromAzimuth(azimuth, positiveXAxisBearingFromTrueNorth) {
-  const planAngle = (
-    finite(positiveXAxisBearingFromTrueNorth, 'bearing of SITE +X')
-      - finite(azimuth, 'azimuth')
-  ) * RADIANS;
+  const planAngle =
+    (finite(positiveXAxisBearingFromTrueNorth, 'bearing of SITE +X') - finite(azimuth, 'azimuth')) *
+    RADIANS;
   return { x: Math.cos(planAngle), y: Math.sin(planAngle) };
 }
 
 /** Compass azimuth of a horizontal SITE-XY vector. */
 export function azimuthFromSiteVector(vector, positiveXAxisBearingFromTrueNorth) {
-  const planAngle = Math.atan2(finite(vector?.y, 'vector.y'), finite(vector?.x, 'vector.x')) / RADIANS;
+  const planAngle =
+    Math.atan2(finite(vector?.y, 'vector.y'), finite(vector?.x, 'vector.x')) / RADIANS;
   return normalizeBearingDegrees(
     finite(positiveXAxisBearingFromTrueNorth, 'bearing of SITE +X') - planAngle,
   );

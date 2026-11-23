@@ -22,7 +22,11 @@ export const WEATHER_LABELS: Readonly<Record<Weather, string>> = Object.freeze({
 });
 
 export type LinearColor = readonly [number, number, number];
-export interface SiteVector { readonly x: number; readonly y: number; readonly z: number }
+export interface SiteVector {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+}
 
 export interface SunLightingInput {
   readonly moment: SolarMoment;
@@ -92,10 +96,14 @@ const smoothstep = (edge0: number, edge1: number, value: number) => {
 };
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 const mixColor = (a: LinearColor, b: LinearColor, t: number): LinearColor => [
-  mix(a[0], b[0], t), mix(a[1], b[1], t), mix(a[2], b[2], t),
+  mix(a[0], b[0], t),
+  mix(a[1], b[1], t),
+  mix(a[2], b[2], t),
 ];
 const scaleColor = (color: LinearColor, factor: number): LinearColor => [
-  color[0] * factor, color[1] * factor, color[2] * factor,
+  color[0] * factor,
+  color[1] * factor,
+  color[2] * factor,
 ];
 const luminance = (color: LinearColor) => 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2];
 
@@ -151,19 +159,45 @@ export const SKY_NOON_INTENSITY = 1;
 const CLEAR_SOURCE_RADIUS_DEGREES = 0.4;
 
 /** 各種天氣下，直射陽光與天光各剩多少，以及曝光與霧的遠近。 */
-const WEATHER_FACTORS: Readonly<Record<Weather, {
-  readonly sun: number;
-  readonly sky: number;
-  /** 陽光與天光被雲層染成灰白的程度，0 到 1。 */
-  readonly grey: number;
-  /** 主光源看起來的半徑（度）。 */
-  readonly sourceRadiusDegrees: number;
-  readonly exposure: number;
-  readonly fog: { readonly near: number; readonly far: number };
-}>> = Object.freeze({
-  clear: Object.freeze({ sun: 1, sky: 1, grey: 0, sourceRadiusDegrees: CLEAR_SOURCE_RADIUS_DEGREES, exposure: 0.75, fog: Object.freeze({ near: 72, far: 148 }) }),
-  overcast: Object.freeze({ sun: 0.1, sky: 0.95, grey: 0.85, sourceRadiusDegrees: 3, exposure: 1.35, fog: Object.freeze({ near: 62, far: 132 }) }),
-  rain: Object.freeze({ sun: 0.035, sky: 0.6, grey: 1, sourceRadiusDegrees: 4.5, exposure: 1.5, fog: Object.freeze({ near: 48, far: 112 }) }),
+const WEATHER_FACTORS: Readonly<
+  Record<
+    Weather,
+    {
+      readonly sun: number;
+      readonly sky: number;
+      /** 陽光與天光被雲層染成灰白的程度，0 到 1。 */
+      readonly grey: number;
+      /** 主光源看起來的半徑（度）。 */
+      readonly sourceRadiusDegrees: number;
+      readonly exposure: number;
+      readonly fog: { readonly near: number; readonly far: number };
+    }
+  >
+> = Object.freeze({
+  clear: Object.freeze({
+    sun: 1,
+    sky: 1,
+    grey: 0,
+    sourceRadiusDegrees: CLEAR_SOURCE_RADIUS_DEGREES,
+    exposure: 0.75,
+    fog: Object.freeze({ near: 72, far: 148 }),
+  }),
+  overcast: Object.freeze({
+    sun: 0.1,
+    sky: 0.95,
+    grey: 0.85,
+    sourceRadiusDegrees: 3,
+    exposure: 1.35,
+    fog: Object.freeze({ near: 62, far: 132 }),
+  }),
+  rain: Object.freeze({
+    sun: 0.035,
+    sky: 0.6,
+    grey: 1,
+    sourceRadiusDegrees: 4.5,
+    exposure: 1.5,
+    fog: Object.freeze({ near: 48, far: 112 }),
+  }),
 });
 
 /** 太陽在天頂時直射光的顏色：相對於天光略暖的白。 */
@@ -227,49 +261,55 @@ export function computeSunLighting(input: SunLightingInput): SunLighting {
   // 顏色以「太陽在天頂時」為基準：那時是白平衡下略暖的白光，越低越偏橘紅。
   const transmittance = atmosphericTransmittance(altitude);
   const relative: LinearColor = [
-    SUN_ZENITH_TINT[0] * transmittance[0] / ZENITH_TRANSMITTANCE[0],
-    SUN_ZENITH_TINT[1] * transmittance[1] / ZENITH_TRANSMITTANCE[1],
-    SUN_ZENITH_TINT[2] * transmittance[2] / ZENITH_TRANSMITTANCE[2],
+    (SUN_ZENITH_TINT[0] * transmittance[0]) / ZENITH_TRANSMITTANCE[0],
+    (SUN_ZENITH_TINT[1] * transmittance[1]) / ZENITH_TRANSMITTANCE[1],
+    (SUN_ZENITH_TINT[2] * transmittance[2]) / ZENITH_TRANSMITTANCE[2],
   ];
   const peak = Math.max(...relative);
   const sunTint = mixColor(scaleColor(relative, 1 / peak), CLOUD_GREY, weather.grey);
-  const sunIntensity = SUN_ZENITH_INTENSITY
-    * (luminance(transmittance) / ZENITH_LUMINANCE)
-    * sunAbove
-    * weather.sun;
+  const sunIntensity =
+    SUN_ZENITH_INTENSITY * (luminance(transmittance) / ZENITH_LUMINANCE) * sunAbove * weather.sun;
 
   const moonIntensity = MOON_INTENSITY * night * weather.sun;
   const moonDirection = siteDirection(MOON_ALTITUDE, azimuth + 180, bearing);
   const useMoon = sunIntensity <= moonIntensity;
   const key = useMoon
     ? {
-      source: 'moon' as const,
-      direction: moonDirection,
-      color: mixColor(MOON_COLOR, CLOUD_GREY, weather.grey * 0.6),
-      intensity: moonIntensity,
-      angularRadius: weather.sourceRadiusDegrees * RADIANS,
-    }
+        source: 'moon' as const,
+        direction: moonDirection,
+        color: mixColor(MOON_COLOR, CLOUD_GREY, weather.grey * 0.6),
+        intensity: moonIntensity,
+        angularRadius: weather.sourceRadiusDegrees * RADIANS,
+      }
     : {
-      source: 'sun' as const,
-      direction: siteDirection(Math.max(altitude, MINIMUM_KEY_ALTITUDE), azimuth, bearing),
-      color: sunTint,
-      intensity: sunIntensity,
-      angularRadius: weather.sourceRadiusDegrees * RADIANS,
-    };
+        source: 'sun' as const,
+        direction: siteDirection(Math.max(altitude, MINIMUM_KEY_ALTITUDE), azimuth, bearing),
+        color: sunTint,
+        intensity: sunIntensity,
+        angularRadius: weather.sourceRadiusDegrees * RADIANS,
+      };
 
   // 暖色只加一點：背景目前是單一顏色，整片染成橘紅並不像黃昏；真正的天空漸層在天空那一步做。
   const clearSky = mixColor(mixColor(SKY_NIGHT, SKY_DAY, daylight), SKY_DUSK, dusk * 0.35);
-  const skyColor = mixColor(clearSky, scaleColor(CLOUD_GREY, mix(0.35, 1, daylight)), weather.grey * daylight);
+  const skyColor = mixColor(
+    clearSky,
+    scaleColor(CLOUD_GREY, mix(0.35, 1, daylight)),
+    weather.grey * daylight,
+  );
   const skyIntensity = mix(SKY_NIGHT_INTENSITY, SKY_NOON_INTENSITY * weather.sky, daylight);
   // 朝下的面看到的是被照亮的地面：地面收到的天光加上陽光的水平分量，再乘上反射比例。
   // 半球光把這個顏色再乘上天光強度，所以這裡先除回去。
-  const keyOnGround = key.intensity * Math.max(0, key.direction.z) / Math.max(skyIntensity, 1e-3);
+  const keyOnGround = (key.intensity * Math.max(0, key.direction.z)) / Math.max(skyIntensity, 1e-3);
   const groundColor: LinearColor = [
     GROUND_BOUNCE[0] * (skyColor[0] + key.color[0] * keyOnGround),
     GROUND_BOUNCE[1] * (skyColor[1] + key.color[1] * keyOnGround),
     GROUND_BOUNCE[2] * (skyColor[2] + key.color[2] * keyOnGround),
   ];
-  const clearHorizon = mixColor(mixColor(HORIZON_NIGHT, HORIZON_DAY, daylight), HORIZON_DUSK, dusk * 0.35);
+  const clearHorizon = mixColor(
+    mixColor(HORIZON_NIGHT, HORIZON_DAY, daylight),
+    HORIZON_DUSK,
+    dusk * 0.35,
+  );
   const horizon = mixColor(
     clearHorizon,
     scaleColor(CLOUD_GREY, mix(0.04, input.weather === 'rain' ? 0.5 : 0.74, daylight)),

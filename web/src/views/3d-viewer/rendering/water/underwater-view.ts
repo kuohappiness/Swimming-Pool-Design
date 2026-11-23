@@ -41,7 +41,11 @@ const SHAFT_REFERENCE_STEPS = 14;
 const SHARED_UNIFORM_NAMES = Object.freeze([...POOL_BASIN_UNIFORM_NAMES, 'uWaves'] as const);
 /** 近裁面的四個角與中心（裁剪座標），用來判斷鏡頭有沒有碰到水。 */
 const NEAR_PLANE_PROBES: ReadonlyArray<readonly [number, number]> = Object.freeze([
-  [0, 0], [-1, -1], [1, -1], [-1, 1], [1, 1],
+  [0, 0],
+  [-1, -1],
+  [1, -1],
+  [-1, 1],
+  [1, 1],
 ]);
 
 /** 鏡頭的近裁面有沒有任何一角在池水裡。 */
@@ -53,13 +57,19 @@ export function cameraTouchesWater(
   scratch: THREE.Vector3 = new THREE.Vector3(),
 ): boolean {
   for (const [x, y] of NEAR_PLANE_PROBES) {
-    scratch.set(x, y, -1).applyMatrix4(camera.projectionMatrixInverse)
-      .applyMatrix4(camera.matrixWorld).applyMatrix4(worldToBasin);
+    scratch
+      .set(x, y, -1)
+      .applyMatrix4(camera.projectionMatrixInverse)
+      .applyMatrix4(camera.matrixWorld)
+      .applyMatrix4(worldToBasin);
     if (
-      scratch.y < basin.waterLevel + maximumWaveHeight
-      && scratch.x > basin.minX && scratch.x < basin.maxX
-      && scratch.z > basin.minZ && scratch.z < basin.maxZ
-    ) return true;
+      scratch.y < basin.waterLevel + maximumWaveHeight &&
+      scratch.x > basin.minX &&
+      scratch.x < basin.maxX &&
+      scratch.z > basin.minZ &&
+      scratch.z < basin.maxZ
+    )
+      return true;
   }
   return false;
 }
@@ -103,7 +113,10 @@ export class ScreenUnderwaterView implements UnderwaterView {
     });
     // 一個蓋滿畫面的大三角形，比兩個三角形拼的四邊形少一條對角線接縫。
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+    geometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3),
+    );
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
     this.quad = new THREE.Mesh(geometry, this.material);
     this.quad.frustumCulled = false;
@@ -113,12 +126,15 @@ export class ScreenUnderwaterView implements UnderwaterView {
 
   setShaftSteps(steps: number): void {
     if (!Number.isInteger(steps) || steps < 0 || steps > MAXIMUM_SHAFT_STEPS) {
-      throw new RangeError(`Underwater shaft steps must be an integer within [0, ${MAXIMUM_SHAFT_STEPS}].`);
+      throw new RangeError(
+        `Underwater shaft steps must be an integer within [0, ${MAXIMUM_SHAFT_STEPS}].`,
+      );
     }
     this.material.uniforms.uShaftSteps.value = steps;
-    this.material.uniforms.uShaftLod.value = steps > 0
-      ? SHAFT_BASE_LOD + Math.max(0, Math.log2(SHAFT_REFERENCE_STEPS / steps))
-      : SHAFT_BASE_LOD;
+    this.material.uniforms.uShaftLod.value =
+      steps > 0
+        ? SHAFT_BASE_LOD + Math.max(0, Math.log2(SHAFT_REFERENCE_STEPS / steps))
+        : SHAFT_BASE_LOD;
   }
 
   render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): boolean {
@@ -126,7 +142,8 @@ export class ScreenUnderwaterView implements UnderwaterView {
     const { basin, surface, maximumWaveHeight } = this.options;
     camera.updateMatrixWorld();
     this.worldToBasin.copy(surface.matrixWorld).invert();
-    if (!cameraTouchesWater(camera, this.worldToBasin, basin, maximumWaveHeight, this.scratch)) return false;
+    if (!cameraTouchesWater(camera, this.worldToBasin, basin, maximumWaveHeight, this.scratch))
+      return false;
 
     const target = this.ensureTarget(renderer);
     const underwaterOnly = this.options.underwaterOnly ?? [];
@@ -146,7 +163,10 @@ export class ScreenUnderwaterView implements UnderwaterView {
     uniforms.tScene.value = target.texture;
     uniforms.tDepth.value = target.depthTexture;
     (uniforms.uProjectionInverse.value as THREE.Matrix4).copy(camera.projectionMatrixInverse);
-    (uniforms.uViewToBasin.value as THREE.Matrix4).multiplyMatrices(this.worldToBasin, camera.matrixWorld);
+    (uniforms.uViewToBasin.value as THREE.Matrix4).multiplyMatrices(
+      this.worldToBasin,
+      camera.matrixWorld,
+    );
     renderer.render(this.quadScene, this.quadCamera);
     return true;
   }
@@ -166,15 +186,17 @@ export class ScreenUnderwaterView implements UnderwaterView {
     const width = Math.max(1, this.bufferSize.x);
     const height = Math.max(1, this.bufferSize.y);
     if (this.target) {
-      if (this.target.width !== width || this.target.height !== height) this.target.setSize(width, height);
+      if (this.target.width !== width || this.target.height !== height)
+        this.target.setSize(width, height);
       return this.target;
     }
     this.target = new THREE.WebGLRenderTarget(width, height, {
       // 色調映射在最後才做，中間這張要存得下比白色更亮的值。
-      type: renderer.extensions.has('EXT_color_buffer_float')
-        || renderer.extensions.has('EXT_color_buffer_half_float')
-        ? THREE.HalfFloatType
-        : THREE.UnsignedByteType,
+      type:
+        renderer.extensions.has('EXT_color_buffer_float') ||
+        renderer.extensions.has('EXT_color_buffer_half_float')
+          ? THREE.HalfFloatType
+          : THREE.UnsignedByteType,
       minFilter: THREE.LinearFilter,
       magFilter: THREE.LinearFilter,
       generateMipmaps: false,

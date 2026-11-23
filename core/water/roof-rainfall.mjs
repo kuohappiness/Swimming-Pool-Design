@@ -19,18 +19,23 @@ const requirePositive = (value, name) => {
 
 /** Horizontal projection of an axis-aligned roof, in m². */
 export function roofPlanArea(bounds) {
-  const width = requireFinite(bounds?.x2, 'roof bounds x2') - requireFinite(bounds?.x1, 'roof bounds x1');
-  const depth = requireFinite(bounds?.y2, 'roof bounds y2') - requireFinite(bounds?.y1, 'roof bounds y1');
+  const width =
+    requireFinite(bounds?.x2, 'roof bounds x2') - requireFinite(bounds?.x1, 'roof bounds x1');
+  const depth =
+    requireFinite(bounds?.y2, 'roof bounds y2') - requireFinite(bounds?.y1, 'roof bounds y1');
   return requirePositive(width, 'roof width') * requirePositive(depth, 'roof depth');
 }
 
 /** Great-circle distance between two points given in decimal degrees, in km. */
 export function distanceKm(from, to) {
-  const radians = (degrees) => requireFinite(degrees, 'coordinate') * Math.PI / 180;
+  const radians = (degrees) => (requireFinite(degrees, 'coordinate') * Math.PI) / 180;
   const deltaLatitude = radians(to.latitude) - radians(from.latitude);
   const deltaLongitude = radians(to.longitude) - radians(from.longitude);
-  const a = Math.sin(deltaLatitude / 2) ** 2
-    + Math.cos(radians(from.latitude)) * Math.cos(radians(to.latitude)) * Math.sin(deltaLongitude / 2) ** 2;
+  const a =
+    Math.sin(deltaLatitude / 2) ** 2 +
+    Math.cos(radians(from.latitude)) *
+      Math.cos(radians(to.latitude)) *
+      Math.sin(deltaLongitude / 2) ** 2;
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(a));
 }
 
@@ -47,12 +52,17 @@ export function roofRainfall({ roofAreaM2, monthlyMm, annualMm }) {
     if (!(requireFinite(millimetres, `rainfall of month ${index + 1}`) >= 0)) {
       throw new RangeError(`rainfall of month ${index + 1} must not be negative.`);
     }
-    return { month: index + 1, millimetres, volumeM3: millimetres * roofAreaM2 / 1000 };
+    return { month: index + 1, millimetres, volumeM3: (millimetres * roofAreaM2) / 1000 };
   });
   const totalMm = months.reduce((total, { millimetres }) => total + millimetres, 0);
   // The published annual value is the owner; refuse a transcription whose months do not add up to it.
-  if (annualMm !== undefined && Math.abs(totalMm - requireFinite(annualMm, 'annual rainfall')) > 0.5) {
-    throw new RangeError(`monthly rainfall adds up to ${totalMm.toFixed(1)} mm, not the stated ${annualMm} mm.`);
+  if (
+    annualMm !== undefined &&
+    Math.abs(totalMm - requireFinite(annualMm, 'annual rainfall')) > 0.5
+  ) {
+    throw new RangeError(
+      `monthly rainfall adds up to ${totalMm.toFixed(1)} mm, not the stated ${annualMm} mm.`,
+    );
   }
   const annual = annualMm ?? totalMm;
   const warmMm = months
@@ -64,12 +74,12 @@ export function roofRainfall({ roofAreaM2, monthlyMm, annualMm }) {
     roofAreaM2,
     months,
     annualMm: annual,
-    annualVolumeM3: annual * roofAreaM2 / 1000,
+    annualVolumeM3: (annual * roofAreaM2) / 1000,
     warmSeasonMm: warmMm,
-    warmSeasonVolumeM3: warmMm * roofAreaM2 / 1000,
+    warmSeasonVolumeM3: (warmMm * roofAreaM2) / 1000,
     warmSeasonShare: warmMm / totalMm,
     coolSeasonMm: coolMm,
-    coolSeasonVolumeM3: coolMm * roofAreaM2 / 1000,
+    coolSeasonVolumeM3: (coolMm * roofAreaM2) / 1000,
     wettestMonth: byRain.at(-1),
     driestMonth: byRain[0],
   };

@@ -25,7 +25,10 @@ test.after(async () => vite.close());
 test('visual asset manifest resolves to local licensed files with exact hashes and sizes', async () => {
   assert.equal(assertVisualAssetManifest(), VISUAL_ASSET_MANIFEST);
   assert.equal(Object.isFrozen(VISUAL_ASSET_MANIFEST), true);
-  assert.equal(new Set(VISUAL_ASSET_MANIFEST.map(({ id }) => id)).size, VISUAL_ASSET_MANIFEST.length);
+  assert.equal(
+    new Set(VISUAL_ASSET_MANIFEST.map(({ id }) => id)).size,
+    VISUAL_ASSET_MANIFEST.length,
+  );
 
   for (const asset of VISUAL_ASSET_MANIFEST) {
     const absolutePath = resolve(viewerRoot, asset.localPath);
@@ -36,7 +39,11 @@ test('visual asset manifest resolves to local licensed files with exact hashes a
     const bytes = await readFile(absolutePath);
     const metadata = await stat(absolutePath);
     assert.equal(metadata.size, asset.byteSize, `${asset.id} byte size changed`);
-    assert.equal(createHash('sha256').update(bytes).digest('hex'), asset.sha256, `${asset.id} hash changed`);
+    assert.equal(
+      createHash('sha256').update(bytes).digest('hex'),
+      asset.sha256,
+      `${asset.id} hash changed`,
+    );
     assert.match(bytes.toString('utf8'), /SPDX-License-Identifier:\s*CC0-1\.0/);
     assert.doesNotMatch(asset.localPath, /^(?:https?:)?\/\//i);
     assert.doesNotMatch(asset.source, /^(?:https?:)?\/\//i);
@@ -74,7 +81,8 @@ test('quality profiles enforce visual-only descending budgets and mobile fallbac
     'modelVersion',
   ];
   for (const profile of Object.values(ENHANCED_QUALITY_PROFILES)) {
-    for (const key of nonVisualKeys) assert.equal(key in profile, false, `${key} must not be a quality setting`);
+    for (const key of nonVisualKeys)
+      assert.equal(key in profile, false, `${key} must not be a quality setting`);
   }
 });
 

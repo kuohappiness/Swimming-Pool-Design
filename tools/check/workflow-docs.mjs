@@ -48,9 +48,16 @@ function h2Sections(text) {
 function leadTable(text, section) {
   const lines = splitLines(text);
   const code = fencedLines(lines);
-  const sub = headings(text).find((heading) => heading.line > section.line && heading.line <= section.end);
+  const sub = headings(text).find(
+    (heading) => heading.line > section.line && heading.line <= section.end,
+  );
   const stop = sub ? sub.line - 1 : section.end;
-  const cells = (line) => line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim());
+  const cells = (line) =>
+    line
+      .trim()
+      .replace(/^\||\|$/g, '')
+      .split('|')
+      .map((cell) => cell.trim());
   let header;
   const rows = [];
   for (let index = section.line; index < stop; index += 1) {
@@ -83,7 +90,10 @@ export function validateRoadmap({ text, source, resolveEntry }) {
   const sections = h2Sections(text);
   const titles = sections.map((heading) => heading.title);
   if (titles.join('\n') !== ROADMAP_SECTIONS.join('\n')) {
-    add(sections[0]?.line ?? 1, `二級標題要剛好依序是${ROADMAP_SECTIONS.map((title) => `〈${title}〉`).join('、')}，現在是${titles.map((title) => `〈${title}〉`).join('、') || '沒有'}；其他內容降成三級放進這三節`);
+    add(
+      sections[0]?.line ?? 1,
+      `二級標題要剛好依序是${ROADMAP_SECTIONS.map((title) => `〈${title}〉`).join('、')}，現在是${titles.map((title) => `〈${title}〉`).join('、') || '沒有'}；其他內容降成三級放進這三節`,
+    );
     return { errors, entries, taskIds };
   }
   const [board, trigger, done] = sections;
@@ -99,7 +109,8 @@ export function validateRoadmap({ text, source, resolveEntry }) {
       add(row.line, `「入口」要連到 repo 裡有狀態行的文件：${hrefs[0]}`);
       return undefined;
     }
-    if (entries.has(entry.path)) add(row.line, `${entry.path} 已經在〈${entries.get(entry.path)}〉有一列；一份入口只寫一列`);
+    if (entries.has(entry.path))
+      add(row.line, `${entry.path} 已經在〈${entries.get(entry.path)}〉有一列；一份入口只寫一列`);
     entries.set(entry.path, sectionName);
     if (entry.missing) {
       add(row.line, `${entry.path} 標題下第一行沒有狀態行`);
@@ -115,7 +126,10 @@ export function validateRoadmap({ text, source, resolveEntry }) {
   const checkHeader = (table, expected, section) => {
     if (!table) return false;
     if (table.header.join('｜') !== expected.join('｜')) {
-      add(section.line, `〈${section.title}〉的表頭要是「${expected.join('｜')}」，現在是「${table.header.join('｜')}」`);
+      add(
+        section.line,
+        `〈${section.title}〉的表頭要是「${expected.join('｜')}」，現在是「${table.header.join('｜')}」`,
+      );
       return false;
     }
     return true;
@@ -144,7 +158,10 @@ export function validateRoadmap({ text, source, resolveEntry }) {
       }
       const expected = [status.label, status.text, whoCell(status)];
       if ([state, next, who].join('\n') !== expected.join('\n')) {
-        add(row.line, `狀態、下一步、等誰要和 ${entry.path} 的狀態行一致：| ${work} | ${expected.join(' | ')} | ${link} |`);
+        add(
+          row.line,
+          `狀態、下一步、等誰要和 ${entry.path} 的狀態行一致：| ${work} | ${expected.join(' | ')} | ${link} |`,
+        );
       }
     }
   }
@@ -164,7 +181,10 @@ export function validateRoadmap({ text, source, resolveEntry }) {
       const entry = entryOf(row, link, trigger.title);
       if (!entry) continue;
       if (entry.status.state !== '等觸發點') {
-        add(row.line, `${entry.path} 的狀態是「${entry.status.label}」，不是等觸發點；這一列移回〈${entry.status.done ? '已完成' : '現在在哪裡'}〉`);
+        add(
+          row.line,
+          `${entry.path} 的狀態是「${entry.status.label}」，不是等觸發點；這一列移回〈${entry.status.done ? '已完成' : '現在在哪裡'}〉`,
+        );
       } else if (triggerText !== entry.status.text) {
         add(row.line, `「觸發點」要和 ${entry.path} 狀態行的下一步一致：${entry.status.text}`);
       }
@@ -190,9 +210,15 @@ export function validateRoadmap({ text, source, resolveEntry }) {
       const entry = entryOf(row, match[4], done.title);
       if (!entry) continue;
       if (!entry.status.done) {
-        add(row.line, `${entry.path} 還沒結束（${entry.status.label}），這一列移回〈${entry.status.state === '等觸發點' ? '等觸發點' : '現在在哪裡'}〉`);
+        add(
+          row.line,
+          `${entry.path} 還沒結束（${entry.status.label}），這一列移回〈${entry.status.state === '等觸發點' ? '等觸發點' : '現在在哪裡'}〉`,
+        );
       } else if (match[2] !== entry.status.text || match[3] !== entry.status.label) {
-        add(row.line, `完成那一句與狀態值要和 ${entry.path} 的狀態行一致：**${match[1]}**：${entry.status.text}（${entry.status.label}，${match[4]}）`);
+        add(
+          row.line,
+          `完成那一句與狀態值要和 ${entry.path} 的狀態行一致：**${match[1]}**：${entry.status.text}（${entry.status.label}，${match[4]}）`,
+        );
       }
     }
   }
@@ -207,7 +233,10 @@ export function validateBacklog({ text, source }) {
   const sections = h2Sections(text);
   const titles = sections.map((heading) => heading.title);
   if (titles.join('\n') !== BACKLOG_SECTIONS.join('\n')) {
-    add(sections[0]?.line ?? 1, `二級標題要剛好依序是${BACKLOG_SECTIONS.map((title) => `〈${title}〉`).join('、')}，現在是${titles.map((title) => `〈${title}〉`).join('、') || '沒有'}；其他分類降成三級放進這兩節`);
+    add(
+      sections[0]?.line ?? 1,
+      `二級標題要剛好依序是${BACKLOG_SECTIONS.map((title) => `〈${title}〉`).join('、')}，現在是${titles.map((title) => `〈${title}〉`).join('、') || '沒有'}；其他分類降成三級放進這兩節`,
+    );
     return errors;
   }
   const lines = splitLines(text);
@@ -215,11 +244,13 @@ export function validateBacklog({ text, source }) {
   const [pending, moved] = sections;
   const arrow = /^\s*→\s*/;
   for (let index = pending.line; index < pending.end; index += 1) {
-    if (!code[index] && arrow.test(lines[index])) add(index + 1, '轉出的項目搬到〈已轉出〉：〈待處理〉裡不能有「→」');
+    if (!code[index] && arrow.test(lines[index]))
+      add(index + 1, '轉出的項目搬到〈已轉出〉：〈待處理〉裡不能有「→」');
   }
   let item;
   const closeItem = () => {
-    if (item && !item.hasArrow) add(item.line, '〈已轉出〉的每一項下一行要寫「→ [下一站](…)（YYYY-MM-DD）」');
+    if (item && !item.hasArrow)
+      add(item.line, '〈已轉出〉的每一項下一行要寫「→ [下一站](…)（YYYY-MM-DD）」');
   };
   for (let index = moved.line; index < moved.end; index += 1) {
     if (code[index]) continue;

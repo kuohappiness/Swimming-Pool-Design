@@ -33,16 +33,18 @@ export function deriveSolarPlanOrientation(referenceSystem) {
 
 const dayOfYear = (year, month, day) => {
   const date = new Date(Date.UTC(year, month - 1, day));
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
     throw new RangeError('solar date must be valid.');
   }
   const start = Date.UTC(year, 0, 1);
   return Math.floor((date.getTime() - start) / 86_400_000) + 1;
 };
 
-const daysInYear = (year) => (
-  Date.UTC(year + 1, 0, 1) - Date.UTC(year, 0, 1)
-) / 86_400_000;
+const daysInYear = (year) => (Date.UTC(year + 1, 0, 1) - Date.UTC(year, 0, 1)) / 86_400_000;
 
 export function calculateSolarPosition(input) {
   const year = finite(input?.year, 'year');
@@ -56,31 +58,30 @@ export function calculateSolarPosition(input) {
   const utcOffsetHours = finite(input?.utcOffsetHours, 'utcOffsetHours');
 
   if (latitude < -90 || latitude > 90) throw new RangeError('latitude must be within -90..90.');
-  if (longitude < -180 || longitude > 180) throw new RangeError('longitude must be within -180..180.');
+  if (longitude < -180 || longitude > 180)
+    throw new RangeError('longitude must be within -180..180.');
   if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60 || second < 0 || second >= 60) {
     throw new RangeError('solar time must be within a civil day.');
   }
 
   const ordinal = dayOfYear(year, month, day);
   const localHour = hour + minute / 60 + second / 3600;
-  const fractionalYear = (2 * Math.PI / daysInYear(year))
-    * (ordinal - 1 + (localHour - 12) / 24);
-  const equationOfTime = 229.18 * (
-    0.000075
-    + 0.001868 * Math.cos(fractionalYear)
-    - 0.032077 * Math.sin(fractionalYear)
-    - 0.014615 * Math.cos(2 * fractionalYear)
-    - 0.040849 * Math.sin(2 * fractionalYear)
-  );
-  const declination = (
-    0.006918
-    - 0.399912 * Math.cos(fractionalYear)
-    + 0.070257 * Math.sin(fractionalYear)
-    - 0.006758 * Math.cos(2 * fractionalYear)
-    + 0.000907 * Math.sin(2 * fractionalYear)
-    - 0.002697 * Math.cos(3 * fractionalYear)
-    + 0.00148 * Math.sin(3 * fractionalYear)
-  );
+  const fractionalYear = ((2 * Math.PI) / daysInYear(year)) * (ordinal - 1 + (localHour - 12) / 24);
+  const equationOfTime =
+    229.18 *
+    (0.000075 +
+      0.001868 * Math.cos(fractionalYear) -
+      0.032077 * Math.sin(fractionalYear) -
+      0.014615 * Math.cos(2 * fractionalYear) -
+      0.040849 * Math.sin(2 * fractionalYear));
+  const declination =
+    0.006918 -
+    0.399912 * Math.cos(fractionalYear) +
+    0.070257 * Math.sin(fractionalYear) -
+    0.006758 * Math.cos(2 * fractionalYear) +
+    0.000907 * Math.sin(2 * fractionalYear) -
+    0.002697 * Math.cos(3 * fractionalYear) +
+    0.00148 * Math.sin(3 * fractionalYear);
 
   const timeOffset = equationOfTime + 4 * longitude - 60 * utcOffsetHours;
   let trueSolarTime = (localHour * 60 + timeOffset) % 1440;
@@ -91,8 +92,8 @@ export function calculateSolarPosition(input) {
   const latitudeRadians = latitude * RADIANS;
   const hourAngleRadians = hourAngle * RADIANS;
   const cosineZenith = clamp(
-    Math.sin(latitudeRadians) * Math.sin(declination)
-      + Math.cos(latitudeRadians) * Math.cos(declination) * Math.cos(hourAngleRadians),
+    Math.sin(latitudeRadians) * Math.sin(declination) +
+      Math.cos(latitudeRadians) * Math.cos(declination) * Math.cos(hourAngleRadians),
     -1,
     1,
   );
@@ -101,9 +102,11 @@ export function calculateSolarPosition(input) {
   const azimuth = normalizeAzimuth(
     Math.atan2(
       Math.sin(hourAngleRadians),
-      Math.cos(hourAngleRadians) * Math.sin(latitudeRadians)
-        - Math.tan(declination) * Math.cos(latitudeRadians),
-    ) * DEGREES + 180,
+      Math.cos(hourAngleRadians) * Math.sin(latitudeRadians) -
+        Math.tan(declination) * Math.cos(latitudeRadians),
+    ) *
+      DEGREES +
+      180,
   );
 
   return {
@@ -120,7 +123,8 @@ export function reflectSolarRay(input) {
   const wallNormalAzimuth = normalizeAzimuth(input?.wallNormalAzimuth);
   const wallLeanFromVertical = finite(input?.wallLeanFromVertical, 'wallLeanFromVertical');
 
-  if (solarAltitude < -90 || solarAltitude > 90) throw new RangeError('solarAltitude must be within -90..90.');
+  if (solarAltitude < -90 || solarAltitude > 90)
+    throw new RangeError('solarAltitude must be within -90..90.');
   if (wallLeanFromVertical < -89 || wallLeanFromVertical > 89) {
     throw new RangeError('wallLeanFromVertical must be within -89..89.');
   }
@@ -169,10 +173,11 @@ export function evaluatePoolReflection(reflection, target) {
     azimuthDelta,
     planPass,
     sectionPass,
-    hitsPool: reflection?.frontLit === true
-      && reflection?.reflectedFrontSide === true
-      && planPass
-      && sectionPass,
+    hitsPool:
+      reflection?.frontLit === true &&
+      reflection?.reflectedFrontSide === true &&
+      planPass &&
+      sectionPass,
   };
 }
 
@@ -197,10 +202,7 @@ export function reflectionDirectionInLocalCoordinates(
   };
 }
 
-export function solarDirectionInLocalCoordinates(
-  solar,
-  positiveXAxisBearingFromTrueNorth,
-) {
+export function solarDirectionInLocalCoordinates(solar, positiveXAxisBearingFromTrueNorth) {
   const altitude = finite(solar?.altitude, 'solar.altitude') * RADIANS;
   const plan = siteVectorFromAzimuth(
     normalizeAzimuth(solar?.azimuth),
@@ -232,17 +234,14 @@ export function rotatePlanPoint(point, pivot, rotationDegrees) {
   };
 }
 
-const cross2d = (origin, first, second) => (
-  (first.x - origin.x) * (second.y - origin.y)
-    - (first.y - origin.y) * (second.x - origin.x)
-);
+const cross2d = (origin, first, second) =>
+  (first.x - origin.x) * (second.y - origin.y) - (first.y - origin.y) * (second.x - origin.x);
 
-const pointInRectangle = (point, rectangle, epsilon = 1e-9) => (
-  point.x >= rectangle.x1 - epsilon
-    && point.x <= rectangle.x2 + epsilon
-    && point.y >= rectangle.y1 - epsilon
-    && point.y <= rectangle.y2 + epsilon
-);
+const pointInRectangle = (point, rectangle, epsilon = 1e-9) =>
+  point.x >= rectangle.x1 - epsilon &&
+  point.x <= rectangle.x2 + epsilon &&
+  point.y >= rectangle.y1 - epsilon &&
+  point.y <= rectangle.y2 + epsilon;
 
 const pointInConvexPolygon = (point, polygon, epsilon = 1e-9) => {
   let sign = 0;
@@ -256,27 +255,30 @@ const pointInConvexPolygon = (point, polygon, epsilon = 1e-9) => {
   return true;
 };
 
-const onSegment = (point, first, second, epsilon = 1e-9) => (
-  Math.abs(cross2d(first, second, point)) <= epsilon
-    && point.x >= Math.min(first.x, second.x) - epsilon
-    && point.x <= Math.max(first.x, second.x) + epsilon
-    && point.y >= Math.min(first.y, second.y) - epsilon
-    && point.y <= Math.max(first.y, second.y) + epsilon
-);
+const onSegment = (point, first, second, epsilon = 1e-9) =>
+  Math.abs(cross2d(first, second, point)) <= epsilon &&
+  point.x >= Math.min(first.x, second.x) - epsilon &&
+  point.x <= Math.max(first.x, second.x) + epsilon &&
+  point.y >= Math.min(first.y, second.y) - epsilon &&
+  point.y <= Math.max(first.y, second.y) + epsilon;
 
 const segmentsIntersect = (a1, a2, b1, b2, epsilon = 1e-9) => {
   const c1 = cross2d(a1, a2, b1);
   const c2 = cross2d(a1, a2, b2);
   const c3 = cross2d(b1, b2, a1);
   const c4 = cross2d(b1, b2, a2);
-  if (((c1 > epsilon && c2 < -epsilon) || (c1 < -epsilon && c2 > epsilon))
-    && ((c3 > epsilon && c4 < -epsilon) || (c3 < -epsilon && c4 > epsilon))) {
+  if (
+    ((c1 > epsilon && c2 < -epsilon) || (c1 < -epsilon && c2 > epsilon)) &&
+    ((c3 > epsilon && c4 < -epsilon) || (c3 < -epsilon && c4 > epsilon))
+  ) {
     return true;
   }
-  return onSegment(b1, a1, a2, epsilon)
-    || onSegment(b2, a1, a2, epsilon)
-    || onSegment(a1, b1, b2, epsilon)
-    || onSegment(a2, b1, b2, epsilon);
+  return (
+    onSegment(b1, a1, a2, epsilon) ||
+    onSegment(b2, a1, a2, epsilon) ||
+    onSegment(a1, b1, b2, epsilon) ||
+    onSegment(a2, b1, b2, epsilon)
+  );
 };
 
 const signedPolygonArea = (polygon) => {
@@ -311,8 +313,13 @@ const lineIntersection = (subjectStart, subjectEnd, clipStart, clipEnd) => {
 };
 
 export function intersectConvexPolygons(subjectPolygon, clipPolygon) {
-  if (!Array.isArray(subjectPolygon) || !Array.isArray(clipPolygon)
-    || subjectPolygon.length < 3 || clipPolygon.length < 3) return [];
+  if (
+    !Array.isArray(subjectPolygon) ||
+    !Array.isArray(clipPolygon) ||
+    subjectPolygon.length < 3 ||
+    clipPolygon.length < 3
+  )
+    return [];
   let output = subjectPolygon.map((point, index) => ({
     x: finite(point?.x, `subjectPolygon[${index}].x`),
     y: finite(point?.y, `subjectPolygon[${index}].y`),
@@ -395,8 +402,10 @@ export function polygonIntersectsRectangle(polygon, rectangle) {
     y1: finite(rectangle?.y1, 'rectangle.y1'),
     y2: finite(rectangle?.y2, 'rectangle.y2'),
   };
-  if (normalizedRectangle.x2 < normalizedRectangle.x1
-    || normalizedRectangle.y2 < normalizedRectangle.y1) {
+  if (
+    normalizedRectangle.x2 < normalizedRectangle.x1 ||
+    normalizedRectangle.y2 < normalizedRectangle.y1
+  ) {
     throw new RangeError('rectangle maximum bounds must not be less than minimum bounds.');
   }
   const points = polygon.map((point, index) => ({
@@ -433,9 +442,9 @@ export function projectMirrorReflectionFootprint(input) {
     input?.positiveXAxisBearingFromTrueNorth,
   );
   if (
-    input?.reflection?.frontLit !== true
-    || input?.reflection?.reflectedFrontSide !== true
-    || direction.z >= -1e-9
+    input?.reflection?.frontLit !== true ||
+    input?.reflection?.reflectedFrontSide !== true ||
+    direction.z >= -1e-9
   ) {
     return { reachesPoolPlane: false, footprint: [], hitsPool: false };
   }

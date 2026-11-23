@@ -24,12 +24,24 @@ const wallNormalAzimuth = deriveMirrorNormalAzimuth(model.referenceSystem, planR
 
 // The solar study page offers the 1st of every month plus both solstices, 07–18 h.
 const pageDates = [
-  [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [6, 21],
-  [7, 1], [8, 1], [9, 1], [10, 1], [11, 1], [12, 1], [12, 21],
+  [1, 1],
+  [2, 1],
+  [3, 1],
+  [4, 1],
+  [5, 1],
+  [6, 1],
+  [6, 21],
+  [7, 1],
+  [8, 1],
+  [9, 1],
+  [10, 1],
+  [11, 1],
+  [12, 1],
+  [12, 21],
 ];
-const pageMoments = pageDates.flatMap(([month, day]) => (
-  Array.from({ length: 12 }, (_, index) => ({ month, day, hour: 7 + index }))
-));
+const pageMoments = pageDates.flatMap(([month, day]) =>
+  Array.from({ length: 12 }, (_, index) => ({ month, day, hour: 7 + index })),
+);
 
 const reflectionAt = ({ month, day, hour }) => {
   const position = calculateSolarPosition({
@@ -81,6 +93,12 @@ test('page hit verdict agrees with the energy analysis at every selectable momen
 });
 
 test('winter solstice mornings land on the pool, summer solstice noon does not', () => {
-  assert.equal(projectPoolFootprint(model, reflectionAt({ month: 12, day: 21, hour: 10 }).reflection).hitsPool, true);
-  assert.equal(projectPoolFootprint(model, reflectionAt({ month: 6, day: 21, hour: 12 }).reflection).hitsPool, false);
+  assert.equal(
+    projectPoolFootprint(model, reflectionAt({ month: 12, day: 21, hour: 10 }).reflection).hitsPool,
+    true,
+  );
+  assert.equal(
+    projectPoolFootprint(model, reflectionAt({ month: 6, day: 21, hour: 12 }).reflection).hitsPool,
+    false,
+  );
 });

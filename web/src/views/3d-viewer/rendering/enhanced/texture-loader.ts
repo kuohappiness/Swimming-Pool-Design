@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 import type { RenderQualityProfile } from '../quality-profile';
-import {
-  assertVisualAssetManifest,
-  VISUAL_ASSET_MANIFEST,
-} from './asset-manifest';
+import { assertVisualAssetManifest, VISUAL_ASSET_MANIFEST } from './asset-manifest';
 
 export type MaterialTextureAssetId =
   | 'material-concrete-detail-v1'
@@ -121,9 +118,8 @@ export class EnhancedTextureLoader {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(1 / definition.metresPerRepeat, 1 / definition.metresPerRepeat);
-      texture.colorSpace = definition.channel === 'color'
-        ? THREE.SRGBColorSpace
-        : THREE.NoColorSpace;
+      texture.colorSpace =
+        definition.channel === 'color' ? THREE.SRGBColorSpace : THREE.NoColorSpace;
       texture.magFilter = THREE.LinearFilter;
       texture.minFilter = THREE.LinearMipmapLinearFilter;
       texture.generateMipmaps = true;
@@ -168,9 +164,8 @@ export class EnhancedTextureLoader {
   }
 
   private applyQuality(texture: THREE.Texture) {
-    texture.anisotropy = this.quality.textureTier === 'high'
-      ? 8
-      : this.quality.textureTier === 'medium' ? 4 : 1;
+    texture.anisotropy =
+      this.quality.textureTier === 'high' ? 8 : this.quality.textureTier === 'medium' ? 4 : 1;
     texture.needsUpdate = true;
   }
 }

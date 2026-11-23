@@ -91,7 +91,10 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
     // 動態解析度（DEC-190）會把像素比降到 1 以下，所以下限不是 1。
-    this.pixelRatio = Math.min(Math.max(MINIMUM_PIXEL_RATIO, pixelRatio), this.quality.pixelRatioCap);
+    this.pixelRatio = Math.min(
+      Math.max(MINIMUM_PIXEL_RATIO, pixelRatio),
+      this.quality.pixelRatioCap,
+    );
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(this.width, this.height, false);
     this.resizeTargets();
@@ -113,7 +116,8 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
   render(scene: THREE.Scene, camera: THREE.Camera) {
     if (this.disposed) return;
     const environmentId = scene.userData.environmentId ?? 'day';
-    const exposure = scene.userData.toneMappingExposure ?? getToneMappingProfile(environmentId).exposure;
+    const exposure =
+      scene.userData.toneMappingExposure ?? getToneMappingProfile(environmentId).exposure;
     this.renderer.toneMappingExposure = exposure;
     if (this.usesPostProcessing) {
       this.renderPostProcessed(scene, camera, exposure);
@@ -133,7 +137,8 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
       if (!this.usesAmbientOcclusion) this.disposeOcclusion();
       if (!this.usesBloom) this.disposeBloom();
     }
-    if (this.usesExposureAdaptation && !previous.includes('exposure-adaptation')) this.exposure?.reset();
+    if (this.usesExposureAdaptation && !previous.includes('exposure-adaptation'))
+      this.exposure?.reset();
     this.resize(this.width, this.height, this.pixelRatio);
   }
 
@@ -163,7 +168,10 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     const renderer = this.renderer;
     const targets = this.ensureTargets();
     const now = performance.now();
-    const delta = this.lastFrameAt === null ? 0 : Math.min((now - this.lastFrameAt) / 1000, MAXIMUM_FRAME_SECONDS);
+    const delta =
+      this.lastFrameAt === null
+        ? 0
+        : Math.min((now - this.lastFrameAt) / 1000, MAXIMUM_FRAME_SECONDS);
     this.lastFrameAt = now;
     const previousTarget = renderer.getRenderTarget();
 
@@ -188,19 +196,28 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
         this.occlusion = new ScreenSpaceOcclusion();
         this.occlusion.setSize(targets.scene.width, targets.scene.height);
       }
-      occlusion = this.occlusion.render(renderer, targets.scene.depthTexture!, camera, this.grade.towardSun);
+      occlusion = this.occlusion.render(
+        renderer,
+        targets.scene.depthTexture!,
+        camera,
+        this.grade.towardSun,
+      );
     }
-    this.grade.render(renderer, {
-      scene,
-      camera,
-      color: targets.scene.texture,
-      depth: targets.scene.depthTexture,
-      occlusion,
-      adaptation,
-      exposure,
-      width: targets.scene.width,
-      height: targets.scene.height,
-    }, targets.graded);
+    this.grade.render(
+      renderer,
+      {
+        scene,
+        camera,
+        color: targets.scene.texture,
+        depth: targets.scene.depthTexture,
+        occlusion,
+        adaptation,
+        exposure,
+        width: targets.scene.width,
+        height: targets.scene.height,
+      },
+      targets.graded,
+    );
 
     if (this.usesBloom) {
       this.bloom ??= createBloomPass(targets.graded.width, targets.graded.height);
@@ -212,7 +229,13 @@ export class EnhancedFrameEffectPipeline implements FrameEffectPipeline {
     this.output ??= new OutputPass();
     this.output.renderToScreen = previousTarget === null;
     renderer.toneMappingExposure = 1;
-    this.output.render(renderer, previousTarget as THREE.WebGLRenderTarget, targets.graded, delta, false);
+    this.output.render(
+      renderer,
+      previousTarget as THREE.WebGLRenderTarget,
+      targets.graded,
+      delta,
+      false,
+    );
     renderer.toneMappingExposure = exposure;
     renderer.setRenderTarget(previousTarget);
   }

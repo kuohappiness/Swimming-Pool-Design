@@ -76,7 +76,7 @@ export class PlayerController {
   }
 
   private clampPitch(pitch: number) {
-    const limit = this.config.player.maxPitchDegrees * Math.PI / 180;
+    const limit = (this.config.player.maxPitchDegrees * Math.PI) / 180;
     return Math.max(-limit, Math.min(limit, pitch));
   }
 }

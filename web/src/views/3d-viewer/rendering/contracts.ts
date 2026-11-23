@@ -112,11 +112,7 @@ export interface EnvironmentEffect {
 
 /** 畫面管線目前開著的鏡頭效果（TASK-152 步驟 6），公開在 `data-frame-effects`。 */
 export type FrameEffect =
-  | 'multisample'
-  | 'exposure-adaptation'
-  | 'bloom'
-  | 'ambient-occlusion'
-  | 'contact-shadows';
+  'multisample' | 'exposure-adaptation' | 'bloom' | 'ambient-occlusion' | 'contact-shadows';
 
 export interface FrameEffectPipeline {
   readonly id: string;

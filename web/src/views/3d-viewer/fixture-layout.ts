@@ -52,8 +52,9 @@ export function getPoolHallCeilingFixtureCentres(model: ViewerModel): Point[] {
   const roof = model.geometry.roof;
   const centres: Point[] = [];
   for (const x of POOL_HALL_FIXTURE_X) {
-    const roofHeight = roof.lowElevation
-      + (roof.highElevation - roof.lowElevation) * ((x - roof.startX) / roof.planRun);
+    const roofHeight =
+      roof.lowElevation +
+      (roof.highElevation - roof.lowElevation) * ((x - roof.startX) / roof.planRun);
     for (const y of POOL_HALL_FIXTURE_Y) centres.push([x, roofHeight - POOL_HALL_FIXTURE_DROP, y]);
   }
   return centres;
@@ -73,25 +74,34 @@ export function getPoolUnderwaterLights(model: ViewerModel): PoolLight[] {
   const length = basin.maxX - basin.minX;
   const height = basin.waterLevel - POOL_LIGHT_DEPTH;
   const lights: PoolLight[] = [];
-  for (const [z, aim] of [[basin.minZ, 1], [basin.maxZ, -1]] as const) {
+  for (const [z, aim] of [
+    [basin.minZ, 1],
+    [basin.maxZ, -1],
+  ] as const) {
     for (let index = 0; index < POOL_LIGHTS_PER_WALL; index += 1) {
-      const x = basin.minX + (index + 0.5) * length / POOL_LIGHTS_PER_WALL;
-      const covered = platform
-        && x > platform.x1 && x < platform.x2
-        && z >= platform.y1 && z <= platform.y2;
+      const x = basin.minX + ((index + 0.5) * length) / POOL_LIGHTS_PER_WALL;
+      const covered =
+        platform && x > platform.x1 && x < platform.x2 && z >= platform.y1 && z <= platform.y2;
       if (covered) continue;
-      lights.push(Object.freeze({
-        position: Object.freeze([x, height, z]) as readonly [number, number, number],
-        aim: Object.freeze([0, 0, aim]) as readonly [number, number, number],
-        lumens: POOL_LIGHT_LUMENS,
-      }));
+      lights.push(
+        Object.freeze({
+          position: Object.freeze([x, height, z]) as readonly [number, number, number],
+          aim: Object.freeze([0, 0, aim]) as readonly [number, number, number],
+          lumens: POOL_LIGHT_LUMENS,
+        }),
+      );
     }
   }
   return lights;
 }
 
 const fixturesAt = (centres: readonly Point[], lumens: number): LightFixture[] =>
-  centres.map((position) => Object.freeze({ position: Object.freeze(position) as readonly [number, number, number], lumens }));
+  centres.map((position) =>
+    Object.freeze({
+      position: Object.freeze(position) as readonly [number, number, number],
+      lumens,
+    }),
+  );
 
 export function getViewerFixtureLayout(model: ViewerModel): FixtureLayout {
   const hall = getViewerPoolHallShape(model);
@@ -116,7 +126,10 @@ export function getViewerFixtureLayout(model: ViewerModel): FixtureLayout {
   const l2Zone: FixtureZone = {
     id: 'l2',
     fixtures: fixturesAt(getL2CeilingFixtureCentres(model), L2_FIXTURE_LUMENS),
-    inner: { min: [l2.bounds.x1, l2.baseElevation, l2.bounds.y1], max: [l2.bounds.x2, ceiling, l2.bounds.y2] },
+    inner: {
+      min: [l2.bounds.x1, l2.baseElevation, l2.bounds.y1],
+      max: [l2.bounds.x2, ceiling, l2.bounds.y2],
+    },
     outer: {
       min: [l2.bounds.x1 - ZONE_EDGE, l2.baseElevation - ZONE_EDGE, l2.bounds.y1 - ZONE_EDGE],
       max: [l2.bounds.x2 + ZONE_EDGE, ceiling + ZONE_EDGE, l2.bounds.y2 + ZONE_EDGE],

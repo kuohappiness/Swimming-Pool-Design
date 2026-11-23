@@ -40,12 +40,26 @@ function slopedStrip(
   material: THREE.Material,
 ) {
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
-    x0, shallowY, z - width / 2,
-    x0, shallowY, z + width / 2,
-    x1, deepY, z + width / 2,
-    x1, deepY, z - width / 2,
-  ], 3));
+  geometry.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      [
+        x0,
+        shallowY,
+        z - width / 2,
+        x0,
+        shallowY,
+        z + width / 2,
+        x1,
+        deepY,
+        z + width / 2,
+        x1,
+        deepY,
+        z - width / 2,
+      ],
+      3,
+    ),
+  );
   geometry.setIndex([0, 1, 2, 0, 2, 3]);
   geometry.computeVertexNormals();
   return new THREE.Mesh(geometry, material);
@@ -73,7 +87,7 @@ function addOverflowGrating(
   const longSlats = new THREE.InstancedMesh(longSlatGeometry, dark, 104);
   const matrix = new THREE.Matrix4();
   for (let index = 0; index < 52; index += 1) {
-    const x = x0 + (x1 - x0) * index / 51;
+    const x = x0 + ((x1 - x0) * index) / 51;
     matrix.makeTranslation(x, elevation + 0.048, z0 - 0.22);
     longSlats.setMatrixAt(index, matrix);
     matrix.makeTranslation(x, elevation + 0.048, z1 + 0.22);
@@ -82,7 +96,7 @@ function addOverflowGrating(
   const shortSlatGeometry = new THREE.BoxGeometry(0.18, 0.012, 0.025);
   const shortSlats = new THREE.InstancedMesh(shortSlatGeometry, dark, 36);
   for (let index = 0; index < 18; index += 1) {
-    const z = z0 + (z1 - z0) * index / 17;
+    const z = z0 + ((z1 - z0) * index) / 17;
     matrix.makeTranslation(x0 - 0.22, elevation + 0.048, z);
     shortSlats.setMatrixAt(index, matrix);
     matrix.makeTranslation(x1 + 0.22, elevation + 0.048, z);
@@ -112,21 +126,34 @@ export function createPoolHallDetails(model: ViewerModel, materials: MaterialReg
 
   addOverflowGrating(essential, full, x0, x1, z0, z1, deckElevation, materials);
   for (const z of getPoolFloorLaneLineCentres(model)) {
-    essential.add(slopedStrip(
-      x0 + POOL_FLOOR_LANE_LINE_INSET,
-      x1 - POOL_FLOOR_LANE_LINE_INSET,
-      presentation.shallowBottomElevation + 0.012,
-      presentation.deepBottomElevation + 0.012,
-      z,
-      POOL_FLOOR_LANE_LINE_WIDTH,
-      materials.get('sanitary-dark'),
-    ));
+    essential.add(
+      slopedStrip(
+        x0 + POOL_FLOOR_LANE_LINE_INSET,
+        x1 - POOL_FLOOR_LANE_LINE_INSET,
+        presentation.shallowBottomElevation + 0.012,
+        presentation.deepBottomElevation + 0.012,
+        z,
+        POOL_FLOOR_LANE_LINE_WIDTH,
+        materials.get('sanitary-dark'),
+      ),
+    );
   }
 
-  for (const [x, labelWidth] of [[x0 - 0.58, 0.44], [x1 + 0.58, 0.44]]) {
+  for (const [x, labelWidth] of [
+    [x0 - 0.58, 0.44],
+    [x1 + 0.58, 0.44],
+  ]) {
     reduced.add(
-      box([labelWidth, 0.025, 0.34], [x, deckElevation + 0.025, z0 + 0.4], materials.get('signage')),
-      box([labelWidth, 0.025, 0.34], [x, deckElevation + 0.025, z1 - 0.4], materials.get('signage')),
+      box(
+        [labelWidth, 0.025, 0.34],
+        [x, deckElevation + 0.025, z0 + 0.4],
+        materials.get('signage'),
+      ),
+      box(
+        [labelWidth, 0.025, 0.34],
+        [x, deckElevation + 0.025, z1 - 0.4],
+        materials.get('signage'),
+      ),
     );
   }
 
@@ -135,7 +162,7 @@ export function createPoolHallDetails(model: ViewerModel, materials: MaterialReg
   drains.name = 'visual-only:POOL-01-deck-drains:12';
   const matrix = new THREE.Matrix4();
   for (let index = 0; index < 6; index += 1) {
-    const x = x0 + 1.2 + index * (pool.length.value - 2.4) / 5;
+    const x = x0 + 1.2 + (index * (pool.length.value - 2.4)) / 5;
     matrix.makeTranslation(x, deckElevation + 0.014, z0 - 0.72);
     drains.setMatrixAt(index, matrix);
     matrix.makeTranslation(x, deckElevation + 0.014, z1 + 0.72);
@@ -146,7 +173,11 @@ export function createPoolHallDetails(model: ViewerModel, materials: MaterialReg
   // 天花燈的位置與燈光計算共用 fixture-layout.ts 的同一份。
   const lightCentres = getPoolHallCeilingFixtureCentres(model);
   const lightGeometry = new THREE.BoxGeometry(1.25, 0.08, 0.32);
-  const lights = new THREE.InstancedMesh(lightGeometry, materials.get('interior-light'), lightCentres.length);
+  const lights = new THREE.InstancedMesh(
+    lightGeometry,
+    materials.get('interior-light'),
+    lightCentres.length,
+  );
   lights.name = POOL_HALL_FIXTURE_MESH_NAME;
   lightCentres.forEach(([x, y, z], index) => {
     matrix.makeTranslation(x, y, z);
@@ -160,8 +191,9 @@ export function createPoolHallDetails(model: ViewerModel, materials: MaterialReg
   vents.name = 'visual-only:POOL-HALL-vents:6';
   for (let index = 0; index < 6; index += 1) {
     const x = 5 + index * 4.4;
-    const roofHeight = roof.lowElevation
-      + (roof.highElevation - roof.lowElevation) * ((x - roof.startX) / roof.planRun);
+    const roofHeight =
+      roof.lowElevation +
+      (roof.highElevation - roof.lowElevation) * ((x - roof.startX) / roof.planRun);
     matrix.makeTranslation(x, roofHeight - 0.14, 7);
     vents.setMatrixAt(index, matrix);
   }
@@ -177,9 +209,14 @@ export function createPoolHallDetails(model: ViewerModel, materials: MaterialReg
   for (let index = 0; index < 10; index += 1) {
     const fraction = (index + 0.5) / 10;
     const x = x0 + fraction * (x1 - x0);
-    const bottom = presentation.shallowBottomElevation
-      + fraction * (presentation.deepBottomElevation - presentation.shallowBottomElevation);
-    const stripe = box([1.4, 0.012, z1 - z0 - 0.6], [x, bottom + 0.024, (z0 + z1) / 2], causticMaterial);
+    const bottom =
+      presentation.shallowBottomElevation +
+      fraction * (presentation.deepBottomElevation - presentation.shallowBottomElevation);
+    const stripe = box(
+      [1.4, 0.012, z1 - z0 - 0.6],
+      [x, bottom + 0.024, (z0 + z1) / 2],
+      causticMaterial,
+    );
     stripe.name = `visual-only:POOL-01-caustic:${index + 1}`;
     stripe.userData.causticPhase = index / 10;
     full.add(stripe);

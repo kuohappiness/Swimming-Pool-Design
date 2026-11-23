@@ -10,17 +10,35 @@ import {
 
 test('status line accepts the three-field format and the closing forms', () => {
   const open = parseStatus('狀態：實作中｜下一步：補測試｜等誰：Claude');
-  assert.deepEqual(open.status, { label: '實作中', state: '實作中', done: false, text: '補測試', who: ['Claude'] });
+  assert.deepEqual(open.status, {
+    label: '實作中',
+    state: '實作中',
+    done: false,
+    text: '補測試',
+    who: ['Claude'],
+  });
   assert.equal(whoCell(open.status), 'Claude');
 
   const merged = parseStatus('狀態：已合併｜完成：上線｜等誰：—');
   assert.equal(merged.status.done, true);
   assert.equal(whoCell(merged.status), '—');
 
-  assert.equal(parseStatus('狀態：已結案 → [設計](design.md)｜完成：併入設計｜等誰：—').status.state, '已結案');
-  assert.equal(parseStatus('狀態：已結案 → DEC-147｜完成：寫成決定｜等誰：—').status.state, '已結案');
-  assert.equal(parseStatus('狀態：暫停（等場勘）｜下一步：場勘後再排｜等誰：使用者').status.state, '暫停');
-  assert.deepEqual(parseStatus('狀態：待審｜下一步：看截圖｜等誰：使用者、Claude').status.who, ['使用者', 'Claude']);
+  assert.equal(
+    parseStatus('狀態：已結案 → [設計](design.md)｜完成：併入設計｜等誰：—').status.state,
+    '已結案',
+  );
+  assert.equal(
+    parseStatus('狀態：已結案 → DEC-147｜完成：寫成決定｜等誰：—').status.state,
+    '已結案',
+  );
+  assert.equal(
+    parseStatus('狀態：暫停（等場勘）｜下一步：場勘後再排｜等誰：使用者').status.state,
+    '暫停',
+  );
+  assert.deepEqual(parseStatus('狀態：待審｜下一步：看截圖｜等誰：使用者、Claude').status.who, [
+    '使用者',
+    'Claude',
+  ]);
 });
 
 test('status line rejects malformed values with a fix hint', () => {
@@ -42,10 +60,17 @@ test('status line rejects malformed values with a fix hint', () => {
 });
 
 test('entry status reads the first non-empty line under the title', () => {
-  assert.equal(entryStatus('# 任務\n\n狀態：規劃中｜下一步：寫規格｜等誰：Claude\n\n## 目的\n').status.state, '規劃中');
+  assert.equal(
+    entryStatus('# 任務\n\n狀態：規劃中｜下一步：寫規格｜等誰：Claude\n\n## 目的\n').status.state,
+    '規劃中',
+  );
   assert.deepEqual(entryStatus('# 任務\n\n- 日期：2026-07-01\n'), { missing: true });
   assert.match(entryStatus('# 任務\n\n狀態：實作中｜等誰：Claude\n').error, /第 3 行/);
-  assert.equal(entryStatus('```\n# 不是標題\n```\n# 任務\n\n狀態：待審｜下一步：看｜等誰：使用者\n').status.state, '待審');
+  assert.equal(
+    entryStatus('```\n# 不是標題\n```\n# 任務\n\n狀態：待審｜下一步：看｜等誰：使用者\n').status
+      .state,
+    '待審',
+  );
 });
 
 test('dates must exist on the calendar', () => {
@@ -83,12 +108,14 @@ function resolveEntry(href) {
   if (!line) return undefined;
   return { path: href, ...entryStatus(`# 入口\n\n${line}\n`) };
 }
-const check = (parts) => validateRoadmap({ text: roadmap(parts), source: 'docs/roadmap.md', resolveEntry });
+const check = (parts) =>
+  validateRoadmap({ text: roadmap(parts), source: 'docs/roadmap.md', resolveEntry });
 
 test('roadmap rows that copy their entry status pass', () => {
   const result = check({
     board: '| TASK-112 補測試 | 實作中 | 補測試 | Claude | [任務說明](tasks/a.md) |\n',
-    trigger: '| TASK-113 發版後整理 | 發版之後 | [任務說明](tasks/c.md) |\n| 評估工具 | 用過三件 | DEC-147 |\n',
+    trigger:
+      '| TASK-113 發版後整理 | 發版之後 | [任務說明](tasks/c.md) |\n| 評估工具 | 用過三件 | DEC-147 |\n',
     done: '| 2026-11-22 | **TASK-111 上線**：上線（已合併，[入口](tasks/b.md)） |\n',
     extra: '### 舊表\n\n| TASK-001 | 舊任務 | done |\n',
   });
@@ -98,8 +125,13 @@ test('roadmap rows that copy their entry status pass', () => {
 });
 
 test('roadmap catches drift between a row and its entry', () => {
-  const drift = check({ board: '| TASK-112 補測試 | 待審 | 補測試 | Claude | [任務說明](tasks/a.md) |\n' });
-  assert.match(drift.errors.join('\n'), /要和 tasks\/a\.md 的狀態行一致：\| TASK-112 補測試 \| 實作中 \| 補測試 \| Claude \|/);
+  const drift = check({
+    board: '| TASK-112 補測試 | 待審 | 補測試 | Claude | [任務說明](tasks/a.md) |\n',
+  });
+  assert.match(
+    drift.errors.join('\n'),
+    /要和 tasks\/a\.md 的狀態行一致：\| TASK-112 補測試 \| 實作中 \| 補測試 \| Claude \|/,
+  );
 
   const finished = check({ board: '| 上線 | 已合併 | 上線 | — | [任務說明](tasks/b.md) |\n' });
   assert.match(finished.errors.join('\n'), /移到〈已完成〉/);
@@ -107,10 +139,14 @@ test('roadmap catches drift between a row and its entry', () => {
   const waiting = check({ board: '| 整理 | 等觸發點 | 發版之後 | — | [任務說明](tasks/c.md) |\n' });
   assert.match(waiting.errors.join('\n'), /移到〈等觸發點〉/);
 
-  const notDone = check({ done: '| 2026-11-22 | **補測試**：補測試（實作中，[入口](tasks/a.md)） |\n' });
+  const notDone = check({
+    done: '| 2026-11-22 | **補測試**：補測試（實作中，[入口](tasks/a.md)） |\n',
+  });
   assert.match(notDone.errors.join('\n'), /還沒結束/);
 
-  const badDate = check({ done: '| 2026-02-30 | **上線**：上線（已合併，[入口](tasks/b.md)） |\n' });
+  const badDate = check({
+    done: '| 2026-02-30 | **上線**：上線（已合併，[入口](tasks/b.md)） |\n',
+  });
   assert.match(badDate.errors.join('\n'), /真的 YYYY-MM-DD/);
 
   const twice = check({
@@ -119,7 +155,9 @@ test('roadmap catches drift between a row and its entry', () => {
   });
   assert.match(twice.errors.join('\n'), /一份入口只寫一列/);
 
-  const noEntry = check({ board: '| 補測試 | 實作中 | 補測試 | Claude | [任務說明](tasks/missing.md) |\n' });
+  const noEntry = check({
+    board: '| 補測試 | 實作中 | 補測試 | Claude | [任務說明](tasks/missing.md) |\n',
+  });
   assert.match(noEntry.errors.join('\n'), /有狀態行的文件/);
 });
 
@@ -133,18 +171,30 @@ test('roadmap must have exactly the three sections in order', () => {
 });
 
 test('backlog keeps two sections and records where moved items went', () => {
-  const ok = '# 待決事項\n\n## 待處理\n\n### 尚待精化\n\n- OPEN-001：問題\n\n## 已轉出\n\n- OPEN-002：舊問題\n  → [決策](decisions.md)（2026-11-22）\n';
+  const ok =
+    '# 待決事項\n\n## 待處理\n\n### 尚待精化\n\n- OPEN-001：問題\n\n## 已轉出\n\n- OPEN-002：舊問題\n  → [決策](decisions.md)（2026-11-22）\n';
   assert.deepEqual(validateBacklog({ text: ok, source: 'docs/backlog.md' }), []);
 
   const wrongSections = '# 待決事項\n\n## 1. 尚待精化\n';
-  assert.match(validateBacklog({ text: wrongSections, source: 'docs/backlog.md' })[0], /〈待處理〉、〈已轉出〉/);
+  assert.match(
+    validateBacklog({ text: wrongSections, source: 'docs/backlog.md' })[0],
+    /〈待處理〉、〈已轉出〉/,
+  );
 
-  const arrowInPending = '# 待決事項\n\n## 待處理\n\n- OPEN-001：問題\n  → [決策](decisions.md)（2026-11-22）\n\n## 已轉出\n';
-  assert.match(validateBacklog({ text: arrowInPending, source: 'docs/backlog.md' })[0], /〈待處理〉裡不能有「→」/);
+  const arrowInPending =
+    '# 待決事項\n\n## 待處理\n\n- OPEN-001：問題\n  → [決策](decisions.md)（2026-11-22）\n\n## 已轉出\n';
+  assert.match(
+    validateBacklog({ text: arrowInPending, source: 'docs/backlog.md' })[0],
+    /〈待處理〉裡不能有「→」/,
+  );
 
   const missingArrow = '# 待決事項\n\n## 待處理\n\n## 已轉出\n\n- OPEN-002：舊問題\n';
-  assert.match(validateBacklog({ text: missingArrow, source: 'docs/backlog.md' })[0], /下一行要寫「→/);
+  assert.match(
+    validateBacklog({ text: missingArrow, source: 'docs/backlog.md' })[0],
+    /下一行要寫「→/,
+  );
 
-  const badDate = '# 待決事項\n\n## 待處理\n\n## 已轉出\n\n- OPEN-002：舊問題\n  → [決策](decisions.md)（2026-13-01）\n';
+  const badDate =
+    '# 待決事項\n\n## 待處理\n\n## 已轉出\n\n- OPEN-002：舊問題\n  → [決策](decisions.md)（2026-13-01）\n';
   assert.match(validateBacklog({ text: badDate, source: 'docs/backlog.md' })[0], /不是真的日期/);
 });

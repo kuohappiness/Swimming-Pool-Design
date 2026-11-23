@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 import type { PlayerVector } from '../player-controller.js';
-import type {
-  PoolShellDescriptor,
-  WaterVolumeDescriptor,
-} from '../types.js';
+import type { PoolShellDescriptor, WaterVolumeDescriptor } from '../types.js';
 
 export interface WaterlineState {
   readonly horizontal: boolean;
@@ -25,8 +22,10 @@ export class WaterVolume {
     poolShell: PoolShellDescriptor,
     siteToWorld: THREE.Matrix4,
   ) {
-    if (descriptor.entityId !== poolShell.entityId
-      || descriptor.surfaceElevation !== poolShell.waterSurfaceElevation) {
+    if (
+      descriptor.entityId !== poolShell.entityId ||
+      descriptor.surfaceElevation !== poolShell.waterSurfaceElevation
+    ) {
       throw new TypeError('Water volume and pool shell must share one entity and water surface.');
     }
     this.id = descriptor.id;
@@ -37,14 +36,16 @@ export class WaterVolume {
   }
 
   worldPointToSite(position: PlayerVector): PlayerVector {
-    const site = new THREE.Vector3(position.x, position.y, position.z)
-      .applyMatrix4(this.worldToSite);
+    const site = new THREE.Vector3(position.x, position.y, position.z).applyMatrix4(
+      this.worldToSite,
+    );
     return { x: site.x, y: site.y, z: site.z };
   }
 
   sitePointToWorld(position: PlayerVector): PlayerVector {
-    const world = new THREE.Vector3(position.x, position.y, position.z)
-      .applyMatrix4(this.siteToWorld);
+    const world = new THREE.Vector3(position.x, position.y, position.z).applyMatrix4(
+      this.siteToWorld,
+    );
     return { x: world.x, y: world.y, z: world.z };
   }
 
@@ -57,13 +58,18 @@ export class WaterVolume {
   }
 
   depthAtSiteX(siteX: number) {
-    const ratio = Math.max(0, Math.min(
-      1,
-      (siteX - this.descriptor.shallowEndX)
-        / (this.descriptor.deepEndX - this.descriptor.shallowEndX),
-    ));
-    return this.descriptor.shallowDepth
-      + (this.descriptor.deepDepth - this.descriptor.shallowDepth) * ratio;
+    const ratio = Math.max(
+      0,
+      Math.min(
+        1,
+        (siteX - this.descriptor.shallowEndX) /
+          (this.descriptor.deepEndX - this.descriptor.shallowEndX),
+      ),
+    );
+    return (
+      this.descriptor.shallowDepth +
+      (this.descriptor.deepDepth - this.descriptor.shallowDepth) * ratio
+    );
   }
 
   bottomWorldElevation(position: PlayerVector) {
@@ -77,25 +83,24 @@ export class WaterVolume {
 
   containsHorizontal(position: PlayerVector, inset = 0) {
     const site = this.worldPointToSite(position);
-    return site.x >= this.descriptor.bounds.x1 + inset
-      && site.x <= this.descriptor.bounds.x2 - inset
-      && site.z >= this.descriptor.bounds.y1 + inset
-      && site.z <= this.descriptor.bounds.y2 - inset;
+    return (
+      site.x >= this.descriptor.bounds.x1 + inset &&
+      site.x <= this.descriptor.bounds.x2 - inset &&
+      site.z >= this.descriptor.bounds.y1 + inset &&
+      site.z <= this.descriptor.bounds.y2 - inset
+    );
   }
 
-  stateAt(
-    position: PlayerVector,
-    eyeHeight: number,
-    hysteresis: number,
-  ): WaterlineState {
+  stateAt(position: PlayerVector, eyeHeight: number, hysteresis: number): WaterlineState {
     const horizontal = this.containsHorizontal(position);
     const bottomElevation = this.bottomWorldElevation(position);
     const bodyCentre = position.y - eyeHeight * 0.5;
     return {
       horizontal,
-      bodySubmerged: horizontal
-        && bodyCentre <= this.surfaceWorldElevation - hysteresis
-        && position.y >= bottomElevation,
+      bodySubmerged:
+        horizontal &&
+        bodyCentre <= this.surfaceWorldElevation - hysteresis &&
+        position.y >= bottomElevation,
       eyeSubmerged: horizontal && position.y <= this.surfaceWorldElevation - hysteresis,
       surfaceElevation: this.surfaceWorldElevation,
       bottomElevation,

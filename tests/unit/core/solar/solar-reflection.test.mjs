@@ -42,14 +42,30 @@ test('solar plan orientation derives from the canonical SITE-XY orientation', ()
 
 test('Taiwan summer-noon solar position is finite and above the horizon', () => {
   const solar = calculateSolarPosition({
-    year: 2026, month: 6, day: 21, hour: 12, minute: 0,
-    latitude: 24.145, longitude: 120.683, utcOffsetHours: 8,
+    year: 2026,
+    month: 6,
+    day: 21,
+    hour: 12,
+    minute: 0,
+    latitude: 24.145,
+    longitude: 120.683,
+    utcOffsetHours: 8,
   });
   assert.ok(solar.altitude > 80 && solar.altitude < 90);
   assert.ok(solar.azimuth >= 0 && solar.azimuth < 360);
-  assert.throws(() => calculateSolarPosition({
-    year: 2026, month: 2, day: 30, hour: 12, latitude: 24, longitude: 120, utcOffsetHours: 8,
-  }), /solar date must be valid/);
+  assert.throws(
+    () =>
+      calculateSolarPosition({
+        year: 2026,
+        month: 2,
+        day: 30,
+        hour: 12,
+        latitude: 24,
+        longitude: 120,
+        utcOffsetHours: 8,
+      }),
+    /solar date must be valid/,
+  );
 });
 
 test('solar position stays within the published NREL SPA benchmark tolerance', () => {
@@ -66,7 +82,7 @@ test('solar position stays within the published NREL SPA benchmark tolerance', (
     longitude: -105.1786,
     utcOffsetHours: -7,
   });
-  assert.ok(Math.abs((90 - solar.altitude) - 50.11162) <= 0.4);
+  assert.ok(Math.abs(90 - solar.altitude - 50.11162) <= 0.4);
   assert.ok(Math.abs(solar.azimuth - 194.34024) <= 0.2);
 });
 
@@ -147,8 +163,18 @@ test('plan rotation preserves distance to the pivot', () => {
 });
 
 test('convex clipping returns the exact overlap area', () => {
-  const squareA = [{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 4 }, { x: 0, y: 4 }];
-  const squareB = [{ x: 2, y: 2 }, { x: 6, y: 2 }, { x: 6, y: 6 }, { x: 2, y: 6 }];
+  const squareA = [
+    { x: 0, y: 0 },
+    { x: 4, y: 0 },
+    { x: 4, y: 4 },
+    { x: 0, y: 4 },
+  ];
+  const squareB = [
+    { x: 2, y: 2 },
+    { x: 6, y: 2 },
+    { x: 6, y: 6 },
+    { x: 2, y: 6 },
+  ];
   assert.equal(polygonArea(squareA), 16);
   assert.equal(polygonArea(intersectConvexPolygons(squareA, squareB)), 4);
   assert.equal(polygonIntersectsRectangle(squareA, { x1: 3, x2: 5, y1: 3, y2: 5 }), true);

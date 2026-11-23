@@ -10,7 +10,19 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..')
 // 瀏覽器把連續空白顯示成一個空格；原稿換行只是排版，比對文字前先照瀏覽器的方式合併。
 const collapseHtmlWhitespace = (html) => html.replace(/\s+/g, ' ');
 
-const [modelText, registryText, markdown, manifestText, generatedModelText, generatedContentText, sceneFactorySource, baselineMaterialsSource, interactionsSource, viewerHtml, solarHtml] = await Promise.all([
+const [
+  modelText,
+  registryText,
+  markdown,
+  manifestText,
+  generatedModelText,
+  generatedContentText,
+  sceneFactorySource,
+  baselineMaterialsSource,
+  interactionsSource,
+  viewerHtml,
+  solarHtml,
+] = await Promise.all([
   readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
   readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'),
   readFile(resolve(repoRoot, 'content/design-concept.md'), 'utf8'),
@@ -18,10 +30,17 @@ const [modelText, registryText, markdown, manifestText, generatedModelText, gene
   readFile(resolve(repoRoot, 'web/src/generated/viewer-model.json'), 'utf8'),
   readFile(resolve(repoRoot, 'web/src/generated/concept-content.json'), 'utf8'),
   readFile(resolve(repoRoot, 'web/src/views/3d-viewer/scene-factory.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/rendering/baseline-material-registry.ts'), 'utf8'),
+  readFile(
+    resolve(repoRoot, 'web/src/views/3d-viewer/rendering/baseline-material-registry.ts'),
+    'utf8',
+  ),
   readFile(resolve(repoRoot, 'web/src/views/3d-viewer/interactions.ts'), 'utf8'),
-  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/template.html'), 'utf8').then(collapseHtmlWhitespace),
-  readFile(resolve(repoRoot, 'web/src/views/solar-study/template.html'), 'utf8').then(collapseHtmlWhitespace),
+  readFile(resolve(repoRoot, 'web/src/views/3d-viewer/template.html'), 'utf8').then(
+    collapseHtmlWhitespace,
+  ),
+  readFile(resolve(repoRoot, 'web/src/views/solar-study/template.html'), 'utf8').then(
+    collapseHtmlWhitespace,
+  ),
 ]);
 const sourceModel = JSON.parse(modelText);
 const registry = JSON.parse(registryText);
@@ -50,15 +69,9 @@ test('Viewer package derives all major geometry from the active revision', () =>
     viewer.referenceSystem.siteOrientation,
     sourceModel.referenceSystem.siteOrientation,
   );
-  assert.equal(
-    viewer.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
-    307,
-  );
+  assert.equal(viewer.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth, 307);
   // The 3D page computes the sun from the same site location as the solar study.
-  assert.deepEqual(
-    viewer.referenceSystem.siteLocation,
-    sourceModel.referenceSystem.siteLocation,
-  );
+  assert.deepEqual(viewer.referenceSystem.siteLocation, sourceModel.referenceSystem.siteLocation);
   assert.equal('worldTransform' in viewer.referenceSystem, false);
   assert.equal('northArrowPlanDirection' in viewer.referenceSystem, false);
   assert.equal('originY' in viewer.geometry.stair, false);
@@ -68,24 +81,55 @@ test('Viewer package derives all major geometry from the active revision', () =>
   assert.equal(viewer.geometry.stair.stringerCount, 2);
   assert.equal(viewer.geometry.stair.underStairEnclosure, false);
   assert.equal(viewer.geometry.l1.toiletEntrances.length, 4);
-  assert.ok(viewer.geometry.l1.toiletEntrances.every(({ clearWidth, doorLeaf }) => clearWidth === 1 && doorLeaf === false));
+  assert.ok(
+    viewer.geometry.l1.toiletEntrances.every(
+      ({ clearWidth, doorLeaf }) => clearWidth === 1 && doorLeaf === false,
+    ),
+  );
   assert.equal(viewer.geometry.l1.zones.poolFemaleToilet.layout.washbasinWall, 'y7.5');
-  assert.ok(Object.values(viewer.geometry.l1.zones).filter(({ layout }) => layout).every(({ privacyScreen, layout }) => privacyScreen === false && layout.privacyScreen === undefined));
+  assert.ok(
+    Object.values(viewer.geometry.l1.zones)
+      .filter(({ layout }) => layout)
+      .every(
+        ({ privacyScreen, layout }) =>
+          privacyScreen === false && layout.privacyScreen === undefined,
+      ),
+  );
   assert.equal(viewer.geometry.l2.zones.maleChangingShower.showerCubicles.length, 15);
   assert.equal(viewer.geometry.l2.zones.femaleChangingShower.showerCubicles.length, 15);
   assert.deepEqual(viewer.geometry.l2.zones.maleChangingShower.showerModuleSize, [1.2, 1.2]);
-  assert.deepEqual(viewer.geometry.l2.zones.maleChangingShower.supportFixtures.fixtures, { toilets: 1, washbasins: 2 });
+  assert.deepEqual(viewer.geometry.l2.zones.maleChangingShower.supportFixtures.fixtures, {
+    toilets: 1,
+    washbasins: 2,
+  });
   assert.equal(viewer.geometry.l2.circulationZone.area, 41.75);
-  assert.equal(viewer.geometry.l1.y0ExteriorFacade.materialIntent, 'segmented-safety-glass-and-fair-faced-concrete');
+  assert.equal(
+    viewer.geometry.l1.y0ExteriorFacade.materialIntent,
+    'segmented-safety-glass-and-fair-faced-concrete',
+  );
   assert.equal(viewer.geometry.l1.y0ExteriorFacade.mainEntranceEntityId, 'EN-01');
   assert.deepEqual(viewer.geometry.l1.mainEntranceBounds, { x1: 1, x2: 3, y1: 0, y2: 0.2 });
   assert.deepEqual(viewer.geometry.l1.westSetbackBounds, { x1: 0, x2: 0.5, y1: 0, y2: 14 });
-  assert.deepEqual(viewer.geometry.l1.rearGlassCanopy.bounds, { x1: 31, x2: 39, y1: 13.5, y2: 14.5 });
+  assert.deepEqual(viewer.geometry.l1.rearGlassCanopy.bounds, {
+    x1: 31,
+    x2: 39,
+    y1: 13.5,
+    y2: 14.5,
+  });
   assert.equal(viewer.geometry.l2.y0ExteriorFacade.materialIntent, 'full-width-safety-glass');
-  assert.equal(viewer.geometry.l2.y0ExteriorFacade.viewerMaterialSystem, 'shared-safety-glass-facade');
+  assert.equal(
+    viewer.geometry.l2.y0ExteriorFacade.viewerMaterialSystem,
+    'shared-safety-glass-facade',
+  );
   assert.equal(viewer.geometry.l2.splitAxisY, 8);
-  assert.equal(viewer.geometry.l2.splitAxisY, viewer.geometry.l2.zones.maleChangingShower.bounds.y2);
-  assert.equal(viewer.geometry.l2.splitAxisY, viewer.geometry.l2.zones.femaleChangingShower.bounds.y1);
+  assert.equal(
+    viewer.geometry.l2.splitAxisY,
+    viewer.geometry.l2.zones.maleChangingShower.bounds.y2,
+  );
+  assert.equal(
+    viewer.geometry.l2.splitAxisY,
+    viewer.geometry.l2.zones.femaleChangingShower.bounds.y1,
+  );
   assert.equal(viewer.viewerPresentation.selectionOutline, 'none');
   assert.deepEqual(viewer.geometry.l2.stairChangingDivider.spanX, [32, 41]);
   assert.deepEqual(viewer.geometry.l2.stairChangingDivider.openings, []);
@@ -119,26 +163,38 @@ test('Viewer package derives all major geometry from the active revision', () =>
   assert.equal(l1Cubicles.filter(({ fixtureType }) => fixtureType === 'seated').length, 4);
   assert.equal(l1Cubicles.filter(({ fixtureType }) => fixtureType === 'squat').length, 4);
   assert.deepEqual(
-    viewer.geometry.l1.zones.poolMaleToilet.layout.toiletCubicles.map(({ fixtureType }) => fixtureType),
+    viewer.geometry.l1.zones.poolMaleToilet.layout.toiletCubicles.map(
+      ({ fixtureType }) => fixtureType,
+    ),
     ['seated', 'squat'],
   );
   assert.deepEqual(
-    viewer.geometry.l1.zones.poolFemaleToilet.layout.toiletCubicles.map(({ fixtureType }) => fixtureType),
+    viewer.geometry.l1.zones.poolFemaleToilet.layout.toiletCubicles.map(
+      ({ fixtureType }) => fixtureType,
+    ),
     ['seated', 'squat', 'squat'],
   );
   assert.deepEqual(
-    viewer.geometry.l1.zones.playgroundMaleToilet.layout.toiletCubicles.map(({ fixtureType }) => fixtureType),
+    viewer.geometry.l1.zones.playgroundMaleToilet.layout.toiletCubicles.map(
+      ({ fixtureType }) => fixtureType,
+    ),
     ['seated'],
   );
   assert.deepEqual(
-    viewer.geometry.l1.zones.playgroundFemaleToilet.layout.toiletCubicles.map(({ fixtureType }) => fixtureType),
+    viewer.geometry.l1.zones.playgroundFemaleToilet.layout.toiletCubicles.map(
+      ({ fixtureType }) => fixtureType,
+    ),
     ['squat', 'seated'],
   );
-  assert.ok(l1Cubicles.every(({ fixtureCenter, planBounds }) =>
-    fixtureCenter[0] > planBounds.x1
-    && fixtureCenter[0] < planBounds.x2
-    && fixtureCenter[1] > planBounds.y1
-    && fixtureCenter[1] < planBounds.y2));
+  assert.ok(
+    l1Cubicles.every(
+      ({ fixtureCenter, planBounds }) =>
+        fixtureCenter[0] > planBounds.x1 &&
+        fixtureCenter[0] < planBounds.x2 &&
+        fixtureCenter[1] > planBounds.y1 &&
+        fixtureCenter[1] < planBounds.y2,
+    ),
+  );
   assert.equal(viewer.viewerPresentation.occupancyAppearance, 'newly-completed-in-use');
   assert.equal(viewer.viewerPresentation.campusEnvironmentPhase, 'deferred');
   assert.equal(viewer.geometry.l1.serviceWingStyle.materialIntent, 'fair-faced-exposed-concrete');
@@ -149,37 +205,56 @@ test('Viewer package derives all major geometry from the active revision', () =>
 test('only a solar-input mutation marks registered analysis stale', () => {
   const baseline = buildViewerModel(clone(), registry);
   const nonSolarChange = clone();
-  const nonSolarActive = nonSolarChange.geometryRevisions.find(({ id }) => id === nonSolarChange.activeGeometryRevisionId);
+  const nonSolarActive = nonSolarChange.geometryRevisions.find(
+    ({ id }) => id === nonSolarChange.activeGeometryRevisionId,
+  );
   nonSolarActive.l2.ceiling.thickness = 0.25;
   const nonSolarViewer = buildViewerModel(nonSolarChange, registry);
   assert.notEqual(nonSolarViewer.modelHash, baseline.modelHash);
   assert.equal(nonSolarViewer.analysis.solar.status, 'current');
 
   const solarChange = clone();
-  const solarActive = solarChange.geometryRevisions.find(({ id }) => id === solarChange.activeGeometryRevisionId);
+  const solarActive = solarChange.geometryRevisions.find(
+    ({ id }) => id === solarChange.activeGeometryRevisionId,
+  );
   solarActive.solar.mirrorLeanFromVertical.value = 22.9;
   const solarViewer = buildViewerModel(solarChange, registry);
-  assert.notEqual(solarViewer.analysis.solar.currentAnalysisInputHash, baseline.analysis.solar.currentAnalysisInputHash);
+  assert.notEqual(
+    solarViewer.analysis.solar.currentAnalysisInputHash,
+    baseline.analysis.solar.currentAnalysisInputHash,
+  );
   assert.equal(solarViewer.analysis.solar.status, 'stale');
 
   const methodChange = clone();
-  const methodActive = methodChange.geometryRevisions.find(({ id }) => id === methodChange.activeGeometryRevisionId);
+  const methodActive = methodChange.geometryRevisions.find(
+    ({ id }) => id === methodChange.activeGeometryRevisionId,
+  );
   methodActive.solar.analysisMethodRevision = 'SOLAR-METHOD-1.0.1';
   const methodViewer = buildViewerModel(methodChange, registry);
-  assert.notEqual(methodViewer.analysis.solar.currentAnalysisInputHash, baseline.analysis.solar.currentAnalysisInputHash);
+  assert.notEqual(
+    methodViewer.analysis.solar.currentAnalysisInputHash,
+    baseline.analysis.solar.currentAnalysisInputHash,
+  );
   assert.equal(methodViewer.analysis.solar.status, 'stale');
 
   const assumptionChange = clone();
-  const assumptionActive = assumptionChange.geometryRevisions.find(({ id }) => id === assumptionChange.activeGeometryRevisionId);
+  const assumptionActive = assumptionChange.geometryRevisions.find(
+    ({ id }) => id === assumptionChange.activeGeometryRevisionId,
+  );
   assumptionActive.solar.energyAssumptions.mirrorReflectance = 0.74;
   const assumptionViewer = buildViewerModel(assumptionChange, registry);
-  assert.notEqual(assumptionViewer.analysis.solar.currentAnalysisInputHash, baseline.analysis.solar.currentAnalysisInputHash);
+  assert.notEqual(
+    assumptionViewer.analysis.solar.currentAnalysisInputHash,
+    baseline.analysis.solar.currentAnalysisInputHash,
+  );
   assert.equal(assumptionViewer.analysis.solar.status, 'stale');
 });
 
 test('Viewer follows the selected active ST-01 Y bounds without a legacy originY fallback', () => {
   const changed = clone();
-  const active = changed.geometryRevisions.find(({ id }) => id === changed.activeGeometryRevisionId);
+  const active = changed.geometryRevisions.find(
+    ({ id }) => id === changed.activeGeometryRevisionId,
+  );
   active.stair.bounds = { x1: 20.5, x2: 29, y1: 1, y2: 2.5 };
   const viewer = buildViewerModel(changed, registry);
   assert.deepEqual(viewer.geometry.stair.bounds, active.stair.bounds);
@@ -196,7 +271,9 @@ test('Viewer accepts only canonical site orientation and rejects parallel source
   );
 
   const legacySite = clone();
-  const active = legacySite.geometryRevisions.find(({ id }) => id === legacySite.activeGeometryRevisionId);
+  const active = legacySite.geometryRevisions.find(
+    ({ id }) => id === legacySite.activeGeometryRevisionId,
+  );
   active.site.rightwardBearingFromTrueNorth = 308;
   assert.throws(
     () => buildViewerModel(legacySite, registry),
@@ -206,15 +283,15 @@ test('Viewer accepts only canonical site orientation and rejects parallel source
   const changedCanonical = clone();
   changedCanonical.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth = 308;
   const viewer = buildViewerModel(changedCanonical, registry);
-  assert.equal(
-    viewer.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
-    308,
-  );
+  assert.equal(viewer.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth, 308);
 });
 
 test('public content compiler resolves current active geometry tokens for all five scenes', () => {
   const content = compilePublicContent(markdown, clone(), manifest);
-  assert.deepEqual(content.scenes.map(({ id }) => id), ['overview', 'light', 'rain', 'people', 'time']);
+  assert.deepEqual(
+    content.scenes.map(({ id }) => id),
+    ['overview', 'light', 'rain', 'people', 'time'],
+  );
   assert.doesNotMatch(JSON.stringify(content), /\{\{/);
   assert.match(content.scenes.find(({ id }) => id === 'light').html, /25\.5°/);
   assert.match(content.scenes.find(({ id }) => id === 'light').html, /23°/);
@@ -227,11 +304,15 @@ test('public content compiler resolves current active geometry tokens for all fi
   assert.match(overview.html, /href="#concept-people"/);
   assert.match(overview.html, /href="#concept-time"/);
   assert.equal(overview.title, '重新定向');
-  assert.ok(manifest.scenes.every(({ context }) =>
-    context.title
-    && context.summary
-    && context.observations.length === 3
-    && context.conceptAnchor));
+  assert.ok(
+    manifest.scenes.every(
+      ({ context }) =>
+        context.title &&
+        context.summary &&
+        context.observations.length === 3 &&
+        context.conceptAnchor,
+    ),
+  );
 });
 
 test('public content compiler rejects unknown scenes and unresolved active paths', () => {
@@ -297,7 +378,10 @@ test('Viewer, solar study, and atlas navigation expose current owners and versio
 test('world, L3, and coplanar mirror transforms remain separated in the scene factory', () => {
   assert.equal((sceneFactorySource.match(/worldRoot\.rotation\.y\s*=/g) ?? []).length, 1);
   assert.match(sceneFactorySource, /deriveViewerOrientation/);
-  assert.doesNotMatch(sceneFactorySource, /rotationFromTrueNorth|localLongAxisBearingFromTrueNorth/);
+  assert.doesNotMatch(
+    sceneFactorySource,
+    /rotationFromTrueNorth|localLongAxisBearingFromTrueNorth/,
+  );
   assert.match(sceneFactorySource, /TRUE-NORTH-LABEL-N/);
   assert.equal((sceneFactorySource.match(/l3RotationGroup\.rotation\.y\s*=/g) ?? []).length, 1);
   assert.match(sceneFactorySource, /siteRoot\.scale\.set\(1, 1, -1\)/);

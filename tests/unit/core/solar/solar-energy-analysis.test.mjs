@@ -9,18 +9,29 @@ import {
   evaluateMirrorEnergy,
   mirrorReceiverFractions,
 } from '../../../../core/solar/solar-energy-analysis.mjs';
-import { deriveSolarPlanOrientation, reflectSolarRay } from '../../../../core/solar/solar-reflection.mjs';
+import {
+  deriveSolarPlanOrientation,
+  reflectSolarRay,
+} from '../../../../core/solar/solar-reflection.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const model = JSON.parse(await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
-const pvgis = JSON.parse(await readFile(resolve(repoRoot, 'source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json'), 'utf8'));
+const pvgis = JSON.parse(
+  await readFile(
+    resolve(repoRoot, 'source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json'),
+    'utf8',
+  ),
+);
 const weather = buildPvgisWeatherSamples(model, pvgis);
 
 test('loads one coordinate-matched PVGIS typical meteorological year', () => {
   assert.equal(weather.length, 8760);
   assert.equal(weather.filter(({ season }) => season === 'warm').length, 3672);
   assert.equal(weather.filter(({ season }) => season === 'cool').length, 5088);
-  assert.equal(Number((weather.reduce((sum, sample) => sum + sample.ghi, 0) / 1000).toFixed(3)), 1584.747);
+  assert.equal(
+    Number((weather.reduce((sum, sample) => sum + sample.ghi, 0) / 1000).toFixed(3)),
+    1584.747,
+  );
 });
 
 // SOLAR-METHOD-1.1.0 values (right-handed SITE-XY, L3 turned clockwise). The data
@@ -54,22 +65,20 @@ test('receiver geometry and optical factors stay within physical energy bounds',
   const result = evaluateMirrorEnergy(model, weather);
   for (const season of [result.warm, result.cool]) {
     assert.ok(
-      season.roofRedirectedKWh
-        <= season.mirrorInterceptedKWh * result.input.mirrorReflectance + 0.002,
+      season.roofRedirectedKWh <=
+        season.mirrorInterceptedKWh * result.input.mirrorReflectance + 0.002,
     );
     assert.ok(
-      season.poolAddedKWh
-        <= season.mirrorInterceptedKWh
-          * result.input.mirrorReflectance
-          * result.input.glazingSolarTransmittance
-          + 0.002,
+      season.poolAddedKWh <=
+        season.mirrorInterceptedKWh *
+          result.input.mirrorReflectance *
+          result.input.glazingSolarTransmittance +
+          0.002,
     );
   }
 
   const orientation = deriveSolarPlanOrientation(model.referenceSystem);
-  const wallNormalAzimuth = (
-    orientation.poolFacingAzimuth + result.input.planRotation
-  ) % 360;
+  const wallNormalAzimuth = (orientation.poolFacingAzimuth + result.input.planRotation) % 360;
   let checkedReflections = 0;
   for (const sample of weather) {
     if (sample.dni <= 0 || sample.solar.altitude <= 0) continue;
@@ -80,10 +89,11 @@ test('receiver geometry and optical factors stay within physical energy bounds',
       wallLeanFromVertical: result.input.mirrorLeanFromVertical,
     });
     if (
-      !reflection.frontLit
-      || !reflection.reflectedFrontSide
-      || reflection.reflectedDownwardAngle <= 0
-    ) continue;
+      !reflection.frontLit ||
+      !reflection.reflectedFrontSide ||
+      reflection.reflectedDownwardAngle <= 0
+    )
+      continue;
     const fractions = mirrorReceiverFractions(model, result.input, reflection);
     checkedReflections += 1;
     for (const fraction of Object.values(fractions)) {
@@ -122,8 +132,13 @@ test('pivot sensitivity matches the corrected registered energy results', () => 
     { pivotX: 41, warm: 0, cool: 835.171 },
   ]);
   assert.deepEqual(
-    model.geometryRevisions.find(({ id }) => id === model.activeGeometryRevisionId).solar.pivotSensitivity
-      .map(({ pivotX, warmPoolAddedKWh, coolPoolAddedKWh }) => ({ pivotX, warm: warmPoolAddedKWh, cool: coolPoolAddedKWh })),
+    model.geometryRevisions
+      .find(({ id }) => id === model.activeGeometryRevisionId)
+      .solar.pivotSensitivity.map(({ pivotX, warmPoolAddedKWh, coolPoolAddedKWh }) => ({
+        pivotX,
+        warm: warmPoolAddedKWh,
+        cool: coolPoolAddedKWh,
+      })),
     compact,
     'the model must register the values the analysis computes',
   );

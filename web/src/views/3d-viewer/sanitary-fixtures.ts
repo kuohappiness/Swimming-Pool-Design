@@ -1,10 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import type {
-  ViewerModel,
-  ViewerToiletCubicle,
-  ViewerZone,
-} from './model-adapter';
+import type { ViewerModel, ViewerToiletCubicle, ViewerZone } from './model-adapter';
 import type { MaterialRegistry } from './rendering/contracts';
 import { markVisualDetail } from './rendering/visual-detail';
 
@@ -27,11 +23,13 @@ interface MergedPart {
 
 function mergedMesh(parts: readonly MergedPart[], material: THREE.Material) {
   const geometries = parts.map(({ geometry, position, rotation, scale }) => {
-    geometry.applyMatrix4(new THREE.Matrix4().compose(
-      new THREE.Vector3(...position),
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(...(rotation ?? [0, 0, 0]))),
-      new THREE.Vector3(...(scale ?? [1, 1, 1])),
-    ));
+    geometry.applyMatrix4(
+      new THREE.Matrix4().compose(
+        new THREE.Vector3(...position),
+        new THREE.Quaternion().setFromEuler(new THREE.Euler(...(rotation ?? [0, 0, 0]))),
+        new THREE.Vector3(...(scale ?? [1, 1, 1])),
+      ),
+    );
     return geometry;
   });
   const merged = mergeGeometries(geometries, false);
@@ -51,12 +49,7 @@ function detailGroup(
   return group;
 }
 
-function tagFixture(
-  group: THREE.Group,
-  zone: ViewerZone,
-  fixtureKind: string,
-  index: number,
-) {
+function tagFixture(group: THREE.Group, zone: ViewerZone, fixtureKind: string, index: number) {
   group.name = `visual-only:${zone.entityId}:${fixtureKind}:${index + 1}`;
   group.userData = {
     ...group.userData,
@@ -93,19 +86,24 @@ function createSeatedToilet(
   group.userData.fixtureFacing = cubicle.fixtureFacing;
 
   const essential = detailGroup('quality:essential:seated-toilet-shell', 'essential', true);
-  essential.add(mergedMesh([
-    {
-      geometry: new THREE.CylinderGeometry(0.17, 0.22, 0.34, 10),
-      position: [0, 0.17, -0.02],
-      scale: [1, 1, 1.28],
-    },
-    {
-      geometry: new THREE.SphereGeometry(0.26, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.56),
-      position: [0, 0.38, 0.07],
-      rotation: [Math.PI, 0, 0],
-      scale: [1, 0.48, 1.28],
-    },
-  ], materials.get('sanitary-fixture')));
+  essential.add(
+    mergedMesh(
+      [
+        {
+          geometry: new THREE.CylinderGeometry(0.17, 0.22, 0.34, 10),
+          position: [0, 0.17, -0.02],
+          scale: [1, 1, 1.28],
+        },
+        {
+          geometry: new THREE.SphereGeometry(0.26, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.56),
+          position: [0, 0.38, 0.07],
+          rotation: [Math.PI, 0, 0],
+          scale: [1, 0.48, 1.28],
+        },
+      ],
+      materials.get('sanitary-fixture'),
+    ),
+  );
   const seat = new THREE.Mesh(
     new THREE.TorusGeometry(0.205, 0.034, 6, 16),
     materials.get('sanitary-seat'),
@@ -129,29 +127,29 @@ function createSeatedToilet(
   reduced.add(flushButton);
 
   const full = detailGroup('quality:full:seated-toilet-hardware', 'full');
-  const inner = new THREE.Mesh(
-    new THREE.CircleGeometry(0.14, 20),
-    materials.get('sanitary-dark'),
-  );
+  const inner = new THREE.Mesh(new THREE.CircleGeometry(0.14, 20), materials.get('sanitary-dark'));
   inner.position.set(0, 0.435, 0.08);
   inner.rotation.x = -Math.PI / 2;
   inner.scale.z = 1.22;
-  const hardware = mergedMesh([
-    {
-      geometry: new THREE.CylinderGeometry(0.014, 0.014, 0.28, 8),
-      position: [-0.19, 0.2, -0.31],
-    },
-    {
-      geometry: new THREE.CylinderGeometry(0.024, 0.024, 0.055, 8),
-      position: [-0.11, 0.47, -0.08],
-      rotation: [0, 0, Math.PI / 2],
-    },
-    {
-      geometry: new THREE.CylinderGeometry(0.024, 0.024, 0.055, 8),
-      position: [0.11, 0.47, -0.08],
-      rotation: [0, 0, Math.PI / 2],
-    },
-  ], materials.get('sanitary-metal'));
+  const hardware = mergedMesh(
+    [
+      {
+        geometry: new THREE.CylinderGeometry(0.014, 0.014, 0.28, 8),
+        position: [-0.19, 0.2, -0.31],
+      },
+      {
+        geometry: new THREE.CylinderGeometry(0.024, 0.024, 0.055, 8),
+        position: [-0.11, 0.47, -0.08],
+        rotation: [0, 0, Math.PI / 2],
+      },
+      {
+        geometry: new THREE.CylinderGeometry(0.024, 0.024, 0.055, 8),
+        position: [0.11, 0.47, -0.08],
+        rotation: [0, 0, Math.PI / 2],
+      },
+    ],
+    materials.get('sanitary-metal'),
+  );
   full.add(inner, hardware);
   group.add(essential, reduced, full);
   return group;
@@ -207,17 +205,22 @@ function createSquatToilet(
   reduced.add(pads, grooves);
 
   const full = detailGroup('quality:full:squat-pan-flush-hardware', 'full');
-  full.add(mergedMesh([
-    {
-      geometry: new THREE.CylinderGeometry(0.018, 0.018, 0.32, 8),
-      position: [0, 0.24, -0.36],
-    },
-    {
-      geometry: new THREE.CylinderGeometry(0.045, 0.045, 0.055, 10),
-      position: [0, 0.38, -0.36],
-      rotation: [Math.PI / 2, 0, 0],
-    },
-  ], materials.get('sanitary-metal')));
+  full.add(
+    mergedMesh(
+      [
+        {
+          geometry: new THREE.CylinderGeometry(0.018, 0.018, 0.32, 8),
+          position: [0, 0.24, -0.36],
+        },
+        {
+          geometry: new THREE.CylinderGeometry(0.045, 0.045, 0.055, 10),
+          position: [0, 0.38, -0.36],
+          rotation: [Math.PI / 2, 0, 0],
+        },
+      ],
+      materials.get('sanitary-metal'),
+    ),
+  );
   group.add(essential, reduced, full);
   return group;
 }
@@ -233,23 +236,28 @@ function createWashbasin(
   group.rotation.y = facingRotation(facing);
 
   const essential = detailGroup('quality:essential:washbasin-shell', 'essential', true);
-  essential.add(mergedMesh([
-    {
-      geometry: new THREE.CylinderGeometry(0.1, 0.15, 0.66, 10),
-      position: [0, 0.35, 0.16],
-    },
-    {
-      geometry: new THREE.CylinderGeometry(0.31, 0.22, 0.15, 14),
-      position: [0, 0.74, 0.19],
-      scale: [1, 1, 0.74],
-    },
-    {
-      geometry: new THREE.TorusGeometry(0.29, 0.026, 6, 16),
-      position: [0, 0.825, 0.19],
-      rotation: [Math.PI / 2, 0, 0],
-      scale: [1, 1, 0.74],
-    },
-  ], materials.get('sanitary-fixture')));
+  essential.add(
+    mergedMesh(
+      [
+        {
+          geometry: new THREE.CylinderGeometry(0.1, 0.15, 0.66, 10),
+          position: [0, 0.35, 0.16],
+        },
+        {
+          geometry: new THREE.CylinderGeometry(0.31, 0.22, 0.15, 14),
+          position: [0, 0.74, 0.19],
+          scale: [1, 1, 0.74],
+        },
+        {
+          geometry: new THREE.TorusGeometry(0.29, 0.026, 6, 16),
+          position: [0, 0.825, 0.19],
+          rotation: [Math.PI / 2, 0, 0],
+          scale: [1, 1, 0.74],
+        },
+      ],
+      materials.get('sanitary-fixture'),
+    ),
+  );
 
   const reduced = detailGroup('quality:reduced:washbasin-faucet-mirror', 'reduced');
   const inner = new THREE.Mesh(new THREE.CircleGeometry(0.235, 20), materials.get('sanitary-dark'));
@@ -261,30 +269,38 @@ function createWashbasin(
     new THREE.Vector3(0, 1.03, 0.11),
     new THREE.Vector3(0, 0.94, 0.16),
   );
-  const tap = mergedMesh([
-    {
-      geometry: new THREE.CylinderGeometry(0.026, 0.032, 0.16, 10),
-      position: [0, 0.91, -0.01],
-    },
-    {
-      geometry: new THREE.TubeGeometry(spoutCurve, 10, 0.018, 6, false),
-      position: [0, 0, 0],
-    },
-  ], materials.get('sanitary-metal'));
+  const tap = mergedMesh(
+    [
+      {
+        geometry: new THREE.CylinderGeometry(0.026, 0.032, 0.16, 10),
+        position: [0, 0.91, -0.01],
+      },
+      {
+        geometry: new THREE.TubeGeometry(spoutCurve, 10, 0.018, 6, false),
+        position: [0, 0, 0],
+      },
+    ],
+    materials.get('sanitary-metal'),
+  );
   const mirror = box([0.66, 0.55, 0.026], [0, 1.45, -0.025], materials.get('mirror'));
   reduced.add(inner, tap, mirror);
 
   const full = detailGroup('quality:full:washbasin-plumbing', 'full');
-  full.add(mergedMesh([
-    {
-      geometry: new THREE.CylinderGeometry(0.035, 0.035, 0.012, 10),
-      position: [0, 0.838, 0.23],
-    },
-    {
-      geometry: new THREE.CylinderGeometry(0.024, 0.024, 0.31, 8),
-      position: [0, 0.49, 0.19],
-    },
-  ], materials.get('sanitary-metal')));
+  full.add(
+    mergedMesh(
+      [
+        {
+          geometry: new THREE.CylinderGeometry(0.035, 0.035, 0.012, 10),
+          position: [0, 0.838, 0.23],
+        },
+        {
+          geometry: new THREE.CylinderGeometry(0.024, 0.024, 0.31, 8),
+          position: [0, 0.49, 0.19],
+        },
+      ],
+      materials.get('sanitary-metal'),
+    ),
+  );
   group.add(essential, reduced, full);
   return group;
 }
@@ -300,31 +316,41 @@ function createUrinal(
   group.rotation.y = facingRotation(facing);
 
   const essential = detailGroup('quality:essential:urinal-shell', 'essential', true);
-  essential.add(mergedMesh([
-    {
-      geometry: new THREE.BoxGeometry(0.38, 0.58, 0.1),
-      position: [0, 0.66, -0.02],
-    },
-    {
-      geometry: new THREE.SphereGeometry(0.23, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.62),
-      position: [0, 0.52, 0.12],
-      rotation: [Math.PI, 0, 0],
-      scale: [0.88, 1.15, 0.7],
-    },
-  ], materials.get('sanitary-fixture')));
+  essential.add(
+    mergedMesh(
+      [
+        {
+          geometry: new THREE.BoxGeometry(0.38, 0.58, 0.1),
+          position: [0, 0.66, -0.02],
+        },
+        {
+          geometry: new THREE.SphereGeometry(0.23, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.62),
+          position: [0, 0.52, 0.12],
+          rotation: [Math.PI, 0, 0],
+          scale: [0.88, 1.15, 0.7],
+        },
+      ],
+      materials.get('sanitary-fixture'),
+    ),
+  );
 
   const reduced = detailGroup('quality:reduced:urinal-flush', 'reduced');
-  reduced.add(mergedMesh([
-    {
-      geometry: new THREE.CylinderGeometry(0.014, 0.014, 0.2, 8),
-      position: [0, 1.03, -0.01],
-    },
-    {
-      geometry: new THREE.CylinderGeometry(0.044, 0.044, 0.08, 10),
-      position: [0, 1.14, -0.01],
-      rotation: [Math.PI / 2, 0, 0],
-    },
-  ], materials.get('sanitary-metal')));
+  reduced.add(
+    mergedMesh(
+      [
+        {
+          geometry: new THREE.CylinderGeometry(0.014, 0.014, 0.2, 8),
+          position: [0, 1.03, -0.01],
+        },
+        {
+          geometry: new THREE.CylinderGeometry(0.044, 0.044, 0.08, 10),
+          position: [0, 1.14, -0.01],
+          rotation: [Math.PI / 2, 0, 0],
+        },
+      ],
+      materials.get('sanitary-metal'),
+    ),
+  );
 
   const full = detailGroup('quality:full:urinal-sensor-drain', 'full');
   const sensor = box([0.045, 0.045, 0.015], [0, 1.16, 0.036], materials.get('sanitary-dark'));
@@ -371,7 +397,7 @@ function addCubicle(
       position: [(x1 + x2) / 2, panelCenterY, backY],
     });
     const doorWidth = Math.min(0.72, x2 - x1 - 0.2);
-    const sideWidth = ((x2 - x1) - doorWidth) / 2;
+    const sideWidth = (x2 - x1 - doorWidth) / 2;
     panelParts.push(
       {
         geometry: new THREE.BoxGeometry(sideWidth, panelHeight, 0.045),
@@ -394,7 +420,7 @@ function addCubicle(
       position: [backX, panelCenterY, (y1 + y2) / 2],
     });
     const doorWidth = Math.min(0.72, y2 - y1 - 0.2);
-    const sideWidth = ((y2 - y1) - doorWidth) / 2;
+    const sideWidth = (y2 - y1 - doorWidth) / 2;
     panelParts.push(
       {
         geometry: new THREE.BoxGeometry(0.045, panelHeight, sideWidth),
@@ -417,7 +443,12 @@ function addCubicle(
   const footGeometry = new THREE.CylinderGeometry(0.032, 0.032, 0.12, 8);
   const feet = new THREE.InstancedMesh(footGeometry, materials.get('sanitary-metal'), 4);
   const footMatrix = new THREE.Matrix4();
-  for (const [index, [x, z]] of [[x1, y1], [x2, y1], [x1, y2], [x2, y2]].entries()) {
+  for (const [index, [x, z]] of [
+    [x1, y1],
+    [x2, y1],
+    [x1, y2],
+    [x2, y2],
+  ].entries()) {
     footMatrix.makeTranslation(x, floorElevation + 0.06, z);
     feet.setMatrixAt(index, footMatrix);
   }
@@ -427,44 +458,50 @@ function addCubicle(
   const doorCenterX = (x1 + x2) / 2;
   const doorCenterZ = (y1 + y2) / 2;
   if (doorAxis === 'y') {
-    full.add(mergedMesh([
-      {
-        geometry: new THREE.BoxGeometry(0.06, 0.045, 0.025),
-        position: [doorCenterX + 0.22, floorElevation + 1.05, doorCoordinate],
-      },
-      {
-        geometry: new THREE.BoxGeometry(0.025, 0.12, 0.025),
-        position: [doorCenterX - 0.31, floorElevation + 1.42, doorCoordinate],
-      },
-      {
-        geometry: new THREE.BoxGeometry(0.025, 0.12, 0.025),
-        position: [doorCenterX - 0.31, floorElevation + 0.65, doorCoordinate],
-      },
-    ], materials.get('sanitary-metal')));
+    full.add(
+      mergedMesh(
+        [
+          {
+            geometry: new THREE.BoxGeometry(0.06, 0.045, 0.025),
+            position: [doorCenterX + 0.22, floorElevation + 1.05, doorCoordinate],
+          },
+          {
+            geometry: new THREE.BoxGeometry(0.025, 0.12, 0.025),
+            position: [doorCenterX - 0.31, floorElevation + 1.42, doorCoordinate],
+          },
+          {
+            geometry: new THREE.BoxGeometry(0.025, 0.12, 0.025),
+            position: [doorCenterX - 0.31, floorElevation + 0.65, doorCoordinate],
+          },
+        ],
+        materials.get('sanitary-metal'),
+      ),
+    );
   } else {
-    full.add(mergedMesh([
-      {
-        geometry: new THREE.BoxGeometry(0.025, 0.045, 0.06),
-        position: [doorCoordinate, floorElevation + 1.05, doorCenterZ + 0.22],
-      },
-      {
-        geometry: new THREE.BoxGeometry(0.025, 0.12, 0.025),
-        position: [doorCoordinate, floorElevation + 1.42, doorCenterZ - 0.31],
-      },
-      {
-        geometry: new THREE.BoxGeometry(0.025, 0.12, 0.025),
-        position: [doorCoordinate, floorElevation + 0.65, doorCenterZ - 0.31],
-      },
-    ], materials.get('sanitary-metal')));
+    full.add(
+      mergedMesh(
+        [
+          {
+            geometry: new THREE.BoxGeometry(0.025, 0.045, 0.06),
+            position: [doorCoordinate, floorElevation + 1.05, doorCenterZ + 0.22],
+          },
+          {
+            geometry: new THREE.BoxGeometry(0.025, 0.12, 0.025),
+            position: [doorCoordinate, floorElevation + 1.42, doorCenterZ - 0.31],
+          },
+          {
+            geometry: new THREE.BoxGeometry(0.025, 0.12, 0.025),
+            position: [doorCoordinate, floorElevation + 0.65, doorCenterZ - 0.31],
+          },
+        ],
+        materials.get('sanitary-metal'),
+      ),
+    );
   }
   target.add(essential, reduced, full);
 }
 
-function addRoomFinishDetails(
-  target: THREE.Group,
-  zone: ViewerZone,
-  materials: MaterialRegistry,
-) {
+function addRoomFinishDetails(target: THREE.Group, zone: ViewerZone, materials: MaterialRegistry) {
   const floorElevation = zone.floorElevation ?? 0;
   const { x1, x2, y1, y2 } = zone.bounds;
   const reduced = detailGroup(`quality:reduced:${zone.entityId}:tile-grid`, 'reduced');
@@ -477,7 +514,11 @@ function addRoomFinishDetails(
     xCount,
   );
   for (let index = 0; index < xCount; index += 1) {
-    matrix.makeTranslation(x1 + (index + 1) * (x2 - x1) / (xCount + 1), floorElevation + 0.006, (y1 + y2) / 2);
+    matrix.makeTranslation(
+      x1 + ((index + 1) * (x2 - x1)) / (xCount + 1),
+      floorElevation + 0.006,
+      (y1 + y2) / 2,
+    );
     xLines.setMatrixAt(index, matrix);
   }
   const zLines = new THREE.InstancedMesh(
@@ -486,7 +527,11 @@ function addRoomFinishDetails(
     zCount,
   );
   for (let index = 0; index < zCount; index += 1) {
-    matrix.makeTranslation((x1 + x2) / 2, floorElevation + 0.006, y1 + (index + 1) * (y2 - y1) / (zCount + 1));
+    matrix.makeTranslation(
+      (x1 + x2) / 2,
+      floorElevation + 0.006,
+      y1 + ((index + 1) * (y2 - y1)) / (zCount + 1),
+    );
     zLines.setMatrixAt(index, matrix);
   }
   reduced.add(xLines, zLines);
@@ -502,9 +547,21 @@ function addRoomFinishDetails(
   const wetPatch = new THREE.Mesh(new THREE.CircleGeometry(0.42, 24), materials.get('wet-surface'));
   wetPatch.rotation.x = -Math.PI / 2;
   wetPatch.scale.set(1.4, 0.65, 1);
-  wetPatch.position.set((x1 + x2) / 2, floorElevation + 0.014, zone.entityId.includes('-M-') ? y1 + 0.85 : y2 - 0.85);
-  const bin = box([0.26, 0.42, 0.24], [x2 - 0.25, floorElevation + 0.21, zone.entityId.includes('-M-') ? y1 + 0.3 : y2 - 0.3], materials.get('sanitary-dark'));
-  const sign = box([0.32, 0.32, 0.022], [zone.entrySide === 'x31-only' ? x1 + 0.02 : x2 - 0.02, floorElevation + 1.72, (y1 + y2) / 2], materials.get('signage'));
+  wetPatch.position.set(
+    (x1 + x2) / 2,
+    floorElevation + 0.014,
+    zone.entityId.includes('-M-') ? y1 + 0.85 : y2 - 0.85,
+  );
+  const bin = box(
+    [0.26, 0.42, 0.24],
+    [x2 - 0.25, floorElevation + 0.21, zone.entityId.includes('-M-') ? y1 + 0.3 : y2 - 0.3],
+    materials.get('sanitary-dark'),
+  );
+  const sign = box(
+    [0.32, 0.32, 0.022],
+    [zone.entrySide === 'x31-only' ? x1 + 0.02 : x2 - 0.02, floorElevation + 1.72, (y1 + y2) / 2],
+    materials.get('signage'),
+  );
   full.add(wetPatch, bin, sign);
   target.add(reduced, full);
 }
@@ -542,9 +599,10 @@ export function createL1SanitaryDetails(model: ViewerModel, materials: MaterialR
     }
     for (const [index, cubicle] of zone.layout.toiletCubicles.entries()) {
       addCubicle(room, cubicle, floorElevation, materials);
-      const fixture = cubicle.fixtureType === 'seated'
-        ? createSeatedToilet(cubicle, floorElevation, materials)
-        : createSquatToilet(cubicle, floorElevation, materials);
+      const fixture =
+        cubicle.fixtureType === 'seated'
+          ? createSeatedToilet(cubicle, floorElevation, materials)
+          : createSquatToilet(cubicle, floorElevation, materials);
       tagFixture(fixture, zone, cubicle.fixtureType, index);
       room.add(fixture);
     }

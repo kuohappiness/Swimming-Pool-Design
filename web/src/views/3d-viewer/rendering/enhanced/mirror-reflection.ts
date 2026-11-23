@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import { MIRROR_FRONT_NORMAL_KEY, MIRROR_SURFACE_NAME, type VisualAssetContext } from '../contracts';
+import {
+  MIRROR_FRONT_NORMAL_KEY,
+  MIRROR_SURFACE_NAME,
+  type VisualAssetContext,
+} from '../contracts';
 import type { RenderQualityProfile, RenderQualityTier } from '../quality-profile';
 import { CubeReflectionProbe, type ReflectionProbe } from '../water/reflection-probe';
 
@@ -16,7 +20,11 @@ import { CubeReflectionProbe, type ReflectionProbe } from '../water/reflection-p
  */
 
 /** 各畫質的探針邊長（像素）：和水面探針相同。 */
-const PROBE_SIZE: Readonly<Record<RenderQualityTier, number>> = Object.freeze({ high: 256, medium: 128, low: 64 });
+const PROBE_SIZE: Readonly<Record<RenderQualityTier, number>> = Object.freeze({
+  high: 256,
+  medium: 128,
+  low: 64,
+});
 
 /** 探針放在鏡面中心正前方這麼遠（公尺）：太近會拍到鏡框，太遠視差修正的起點就偏了。 */
 const PROBE_OFFSET_METRES = 0.6;
@@ -25,11 +33,12 @@ const PROBE_OFFSET_METRES = 0.6;
 const BOX_HEIGHT_METRES = 80;
 
 const PARS_ANCHOR = '#include <envmap_physical_pars_fragment>';
-const REFLECT_ANCHOR = 'reflectVec = transformDirectionByInverseViewMatrix( reflectVec, viewMatrix );';
+const REFLECT_ANCHOR =
+  'reflectVec = transformDirectionByInverseViewMatrix( reflectVec, viewMatrix );';
 const MAPS_ANCHOR = '#include <lights_fragment_maps>';
 
 /** 盒狀視差修正：所有向量都在「盒子座標」（基地的 SITE 根節點），盒子是軸對齊的。 */
-const PARALLAX_PARS = /* glsl */`
+const PARALLAX_PARS = /* glsl */ `
 uniform mat4 uMirrorProbeWorldToBox;
 uniform mat3 uMirrorProbeBoxToWorld;
 uniform vec3 uMirrorProbeBoxMin;
@@ -53,7 +62,7 @@ vec3 mirrorProbeParallax( vec3 worldDirection ) {
 }
 `;
 
-const PARALLAX_POSITION = /* glsl */`
+const PARALLAX_POSITION = /* glsl */ `
 mirrorProbeWorldPosition = ( vec4( geometryPosition - viewMatrix[ 3 ].xyz, 0.0 ) * viewMatrix ).xyz;
 `;
 
@@ -86,12 +95,19 @@ export function installMirrorProbeParallax(
 ): boolean {
   const pars = chunks.envmap_physical_pars_fragment;
   if (typeof pars !== 'string' || pars.split(REFLECT_ANCHOR).length !== 2) return false;
-  const patchedPars = pars.replace(REFLECT_ANCHOR, `${REFLECT_ANCHOR}\n\t\t\treflectVec = mirrorProbeParallax( reflectVec );`);
+  const patchedPars = pars.replace(
+    REFLECT_ANCHOR,
+    `${REFLECT_ANCHOR}\n\t\t\treflectVec = mirrorProbeParallax( reflectVec );`,
+  );
   const previous = material.onBeforeCompile;
   const previousKey = material.customProgramCacheKey;
   material.onBeforeCompile = function onBeforeCompile(shader, renderer) {
     previous.call(this, shader, renderer);
-    if (!shader.fragmentShader.includes(PARS_ANCHOR) || !shader.fragmentShader.includes(MAPS_ANCHOR)) return;
+    if (
+      !shader.fragmentShader.includes(PARS_ANCHOR) ||
+      !shader.fragmentShader.includes(MAPS_ANCHOR)
+    )
+      return;
     Object.assign(shader.uniforms, uniforms);
     shader.fragmentShader = shader.fragmentShader
       .replace(PARS_ANCHOR, `${PARALLAX_PARS}\n${patchedPars}`)
@@ -161,12 +177,14 @@ export class MirrorReflection {
     const probe = this.createProbe(PROBE_SIZE[this.profile.id]);
 
     // 盒子：基地地坪的範圍（SITE 根節點的物件座標），從地面往上 80 m。
-    const ground = context.siteRoot.getObjectByName('CUTAWAY-HIDE-SITE-GROUND') as THREE.Mesh | undefined;
+    const ground = context.siteRoot.getObjectByName('CUTAWAY-HIDE-SITE-GROUND') as
+      THREE.Mesh | undefined;
     const box = new THREE.Box3();
     if (ground?.isMesh) {
       ground.geometry.computeBoundingBox();
       ground.updateMatrix();
-      if (ground.geometry.boundingBox) box.copy(ground.geometry.boundingBox).applyMatrix4(ground.matrix);
+      if (ground.geometry.boundingBox)
+        box.copy(ground.geometry.boundingBox).applyMatrix4(ground.matrix);
       // 盒底是地坪的上表面：反射光線碰到的是地面，不是地坪板的底。
       box.min.y = box.max.y;
     }
@@ -176,7 +194,9 @@ export class MirrorReflection {
     const normal = new THREE.Vector3(front[0], front[1], front[2]).normalize();
     // 鏡面網格 → SITE 根節點的物件座標。
     const meshToSite = new THREE.Matrix4()
-      .copy(context.siteRoot.matrixWorld).invert().multiply(mesh.matrixWorld);
+      .copy(context.siteRoot.matrixWorld)
+      .invert()
+      .multiply(mesh.matrixWorld);
     const siteCentre = centre.clone().applyMatrix4(meshToSite);
     const siteNormal = normal.clone().transformDirection(meshToSite);
     const siteProbe = siteCentre.clone().addScaledVector(siteNormal, PROBE_OFFSET_METRES);
@@ -250,7 +270,11 @@ export class MirrorReflection {
 
   private createProbe(size: number): ReflectionProbe {
     if (this.options.createProbe) return this.options.createProbe(size);
-    return new CubeReflectionProbe(this.options.renderer!, size, 'realistic:mirror-reflection-probe');
+    return new CubeReflectionProbe(
+      this.options.renderer!,
+      size,
+      'realistic:mirror-reflection-probe',
+    );
   }
 }
 

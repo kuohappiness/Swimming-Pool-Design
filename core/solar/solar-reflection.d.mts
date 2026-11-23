@@ -106,11 +106,7 @@ export function solarDirectionInLocalCoordinates(
   solar: Pick<SolarPosition, 'altitude' | 'azimuth'>,
   positiveXAxisBearingFromTrueNorth: number,
 ): Vector3D;
-export function rotatePlanPoint(
-  point: Point2D,
-  pivot: Point2D,
-  rotationDegrees: number,
-): Point2D;
+export function rotatePlanPoint(point: Point2D, pivot: Point2D, rotationDegrees: number): Point2D;
 export function polygonArea(polygon: Point2D[]): number;
 export function intersectConvexPolygons(
   subjectPolygon: Point2D[],
@@ -121,10 +117,7 @@ export function projectShadowFootprint(
   solarDirection: Vector3D,
   planeElevation?: number,
 ): Point2D[];
-export function polygonIntersectsRectangle(
-  polygon: Point2D[],
-  rectangle: Rectangle2D,
-): boolean;
+export function polygonIntersectsRectangle(polygon: Point2D[], rectangle: Rectangle2D): boolean;
 export function projectMirrorReflectionFootprint(
   input: MirrorFootprintInput,
 ): MirrorFootprintResult;

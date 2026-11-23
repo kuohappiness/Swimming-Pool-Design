@@ -25,12 +25,13 @@ const {
   withWeather,
   writeLightingParameters,
 } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/lighting-state.ts');
-const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+const { computeSunLighting } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
+);
 
-const manifest = JSON.parse(readFileSync(
-  resolve(repoRoot, 'web/src/views/3d-viewer/scene-manifest.json'),
-  'utf8',
-));
+const manifest = JSON.parse(
+  readFileSync(resolve(repoRoot, 'web/src/views/3d-viewer/scene-manifest.json'), 'utf8'),
+);
 const model = JSON.parse(readFileSync(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const preset = { month: 12, day: 21, time: '09:30', weather: 'clear' };
 const base = lightingStateFromPreset(preset, 2026);
@@ -51,9 +52,16 @@ test('a scene preset becomes a moment in the given year', () => {
 
 test('every scene carries a valid date, time and weather, and the sun is up unless it rains', () => {
   const siteLocation = model.referenceSystem.siteLocation;
-  assert.deepEqual(manifest.scenes.map((scene) => scene.id), ['overview', 'light', 'rain', 'people', 'time']);
+  assert.deepEqual(
+    manifest.scenes.map((scene) => scene.id),
+    ['overview', 'light', 'rain', 'people', 'time'],
+  );
   for (const scene of manifest.scenes) {
-    assert.deepEqual(Object.keys(scene.lighting).sort(), ['day', 'month', 'time', 'weather'], scene.id);
+    assert.deepEqual(
+      Object.keys(scene.lighting).sort(),
+      ['day', 'month', 'time', 'weather'],
+      scene.id,
+    );
     const state = lightingStateFromPreset(scene.lighting, 2026);
     const lighting = computeSunLighting({
       moment: state.moment,
@@ -62,7 +70,8 @@ test('every scene carries a valid date, time and weather, and the sun is up unle
         longitude: siteLocation.longitude.value,
         utcOffsetHours: siteLocation.utcOffsetHours,
       },
-      positiveXAxisBearingFromTrueNorth: model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+      positiveXAxisBearingFromTrueNorth:
+        model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
       weather: state.weather,
     });
     assert.equal(lighting.phase, 'day', scene.id);
@@ -98,7 +107,9 @@ test('URL parameters override the scene preset only when they are well formed', 
 });
 
 test('the URL stays clean on the scene preset and carries time and weather after a change', () => {
-  const parameters = new URLSearchParams('view=3d-viewer&quality=high&time=2026-01-01T00:00&weather=rain');
+  const parameters = new URLSearchParams(
+    'view=3d-viewer&quality=high&time=2026-01-01T00:00&weather=rain',
+  );
   writeLightingParameters(parameters, base, base);
   assert.equal(parameters.toString(), 'view=3d-viewer&quality=high');
   const changed = withWeather(withMinutes(base, 16 * 60 + 40), 'overcast');
@@ -115,7 +126,12 @@ test('state changes clamp the time and reject impossible dates', () => {
   assert.equal(withMinutes(base, -30).moment.minutes, 0);
   assert.equal(withMinutes(base, 5000).moment.minutes, 1439);
   assert.equal(withMinutes(base, 600.4).moment.minutes, 600);
-  assert.deepEqual(withDate(base, { month: 6, day: 21 }).moment, { year: 2026, month: 6, day: 21, minutes: 570 });
+  assert.deepEqual(withDate(base, { month: 6, day: 21 }).moment, {
+    year: 2026,
+    month: 6,
+    day: 21,
+    minutes: 570,
+  });
   assert.throws(() => withDate(base, { month: 2, day: 29 }), RangeError);
   assert.throws(() => withWeather(base, 'night'), TypeError);
   assert.equal(withWeather(base, 'rain').moment, base.moment);
@@ -124,9 +140,15 @@ test('state changes clamp the time and reject impossible dates', () => {
 test('"now" is the wall clock at the school, whatever time zone the browser is in', () => {
   // 2026-12-31T16:30Z 在校址（UTC+8）已經是 2027 年元旦凌晨。
   assert.deepEqual(siteMomentAt(Date.UTC(2026, 11, 31, 16, 30), 8), {
-    year: 2027, month: 1, day: 1, minutes: 30,
+    year: 2027,
+    month: 1,
+    day: 1,
+    minutes: 30,
   });
   assert.deepEqual(siteMomentAt(Date.UTC(2026, 5, 21, 4, 0, 59), 8), {
-    year: 2026, month: 6, day: 21, minutes: 720,
+    year: 2026,
+    month: 6,
+    day: 21,
+    minutes: 720,
   });
 });

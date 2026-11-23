@@ -36,23 +36,31 @@ const downloads = [
 const anchorFor = (sectionId: string) => `about-${sectionId}`;
 
 function renderTopics(section: AboutSection): string {
-  return section.items.map((item) => `
+  return section.items
+    .map(
+      (item) => `
     <article class="about-topic" id="about-${item.id}">
       <h3>${item.title}</h3>
       ${item.html}
     </article>
-  `).join('');
+  `,
+    )
+    .join('');
 }
 
 function renderGlossary(section: AboutSection): string {
   return `
     <dl class="about-glossary">
-      ${section.items.map((item) => `
+      ${section.items
+        .map(
+          (item) => `
         <div class="about-term" id="about-${item.id}">
           <dt>${item.title}</dt>
           <dd>${item.html}</dd>
         </div>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </dl>
   `;
 }
@@ -60,12 +68,16 @@ function renderGlossary(section: AboutSection): string {
 function renderFaq(section: AboutSection): string {
   return `
     <div class="about-faq">
-      ${section.items.map((item) => `
+      ${section.items
+        .map(
+          (item) => `
         <details class="about-question" id="about-${item.id}">
           <summary><span>${item.title}</span></summary>
           <div class="about-answer">${item.html}</div>
         </details>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
   `;
 }
@@ -73,14 +85,18 @@ function renderFaq(section: AboutSection): string {
 function renderDownloads(): string {
   return `
     <ul class="about-downloads">
-      ${downloads.map(({ label, fileName, url }) => `
+      ${downloads
+        .map(
+          ({ label, fileName, url }) => `
         <li>
           <a href="${url}" download="${fileName}" data-about-download="${fileName}">
             <strong>${label}</strong>
             <span>SVG · ${fileName}</span>
           </a>
         </li>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </ul>
     <p class="about-version">模型版本 ${model.modelVersion} · 幾何修訂 ${model.activeGeometryRevisionId}</p>
   `;
@@ -104,13 +120,19 @@ export function mount(container: HTMLElement): MountedView {
     <div class="about-layout" data-content-hash="${content.contentHash}">
       <nav class="about-contents site-chapter-index site-chapter-index--aside" aria-label="本頁目錄">
         <ol>
-          ${content.sections.map((section) => `
+          ${content.sections
+            .map(
+              (section) => `
             <li><a href="#${anchorFor(section.id)}">${section.title}</a></li>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </ol>
       </nav>
       <div class="about-sections">
-        ${content.sections.map((section) => `
+        ${content.sections
+          .map(
+            (section) => `
           <section
             class="about-section site-chapter about-section--${section.id}"
             id="${anchorFor(section.id)}"
@@ -120,7 +142,9 @@ export function mount(container: HTMLElement): MountedView {
             <div class="about-section-intro">${section.html}</div>
             ${renderSectionBody(section)}
           </section>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
     </div>
   `;

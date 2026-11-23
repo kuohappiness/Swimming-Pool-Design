@@ -10,7 +10,11 @@ export interface ReflectionProbe {
   /** 改貼圖邊長；回傳 true 代表貼圖物件換了，使用者要重新取 `texture` 並重拍。 */
   setSize(size: number): boolean;
   /** 從 worldPosition 拍一次。hidden 裡的物件拍的時候暫時隱藏（例如水面自己）。 */
-  capture(scene: THREE.Scene, worldPosition: THREE.Vector3, hidden: readonly THREE.Object3D[]): void;
+  capture(
+    scene: THREE.Scene,
+    worldPosition: THREE.Vector3,
+    hidden: readonly THREE.Object3D[],
+  ): void;
   dispose(): void;
 }
 
@@ -24,14 +28,19 @@ export class CubeReflectionProbe implements ReflectionProbe {
   private disposed = false;
 
   /** @param name 貼圖名稱（除錯與記憶體統計用）。 */
-  constructor(renderer: THREE.WebGLRenderer, size: number, name = 'realistic:water-reflection-probe') {
+  constructor(
+    renderer: THREE.WebGLRenderer,
+    size: number,
+    name = 'realistic:water-reflection-probe',
+  ) {
     this.renderer = renderer;
     this.name = name;
     // 半精度浮點才存得下比白色更亮的天窗與燈具；不支援的裝置退回 8 位元，亮部會被截掉但仍可用。
-    this.textureType = renderer.extensions.has('EXT_color_buffer_float')
-      || renderer.extensions.has('EXT_color_buffer_half_float')
-      ? THREE.HalfFloatType
-      : THREE.UnsignedByteType;
+    this.textureType =
+      renderer.extensions.has('EXT_color_buffer_float') ||
+      renderer.extensions.has('EXT_color_buffer_half_float')
+        ? THREE.HalfFloatType
+        : THREE.UnsignedByteType;
     this.size = size;
     this.target = this.createTarget(size);
     this.camera = this.createCamera(this.target);
@@ -50,7 +59,11 @@ export class CubeReflectionProbe implements ReflectionProbe {
     return true;
   }
 
-  capture(scene: THREE.Scene, worldPosition: THREE.Vector3, hidden: readonly THREE.Object3D[]): void {
+  capture(
+    scene: THREE.Scene,
+    worldPosition: THREE.Vector3,
+    hidden: readonly THREE.Object3D[],
+  ): void {
     if (this.disposed) return;
     const visibility = hidden.map((object) => object.visible);
     for (const object of hidden) object.visible = false;

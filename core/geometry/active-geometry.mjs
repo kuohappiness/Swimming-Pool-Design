@@ -36,7 +36,10 @@ function collectGeometryEntities(value, output, path = 'activeGeometry') {
     if (output.has(value.entityId)) {
       throw new RangeError(`Active geometry contains duplicate entityId ${value.entityId}.`);
     }
-    output.set(value.entityId, { ...value, bounds: normalizeBounds(value.bounds, `${path}.bounds`) });
+    output.set(value.entityId, {
+      ...value,
+      bounds: normalizeBounds(value.bounds, `${path}.bounds`),
+    });
   }
   for (const [key, entry] of Object.entries(value)) {
     if (key !== 'bounds') collectGeometryEntities(entry, output, `${path}.${key}`);
@@ -54,22 +57,33 @@ export function resolveActiveGeometry(model) {
   }
   const matches = model.geometryRevisions.filter((revision) => revision?.id === activeId);
   if (matches.length !== 1) {
-    throw new RangeError(`activeGeometryRevisionId ${activeId} must resolve exactly once; found ${matches.length}.`);
+    throw new RangeError(
+      `activeGeometryRevisionId ${activeId} must resolve exactly once; found ${matches.length}.`,
+    );
   }
   const active = matches[0];
   if (active.modelVersion !== active.revision || active.id !== `GEO-${active.revision}`) {
-    throw new RangeError('Active geometry id, revision, and geometry modelVersion must match exactly.');
+    throw new RangeError(
+      'Active geometry id, revision, and geometry modelVersion must match exactly.',
+    );
   }
-  const releaseVersion = String(model?.modelVersion ?? '').split('.').map(Number);
+  const releaseVersion = String(model?.modelVersion ?? '')
+    .split('.')
+    .map(Number);
   const geometryVersion = String(active.revision).split('.').map(Number);
-  if (releaseVersion.length !== 3
-    || geometryVersion.length !== 3
-    || [...releaseVersion, ...geometryVersion].some((value) => !Number.isInteger(value) || value < 0)) {
+  if (
+    releaseVersion.length !== 3 ||
+    geometryVersion.length !== 3 ||
+    [...releaseVersion, ...geometryVersion].some((value) => !Number.isInteger(value) || value < 0)
+  ) {
     throw new TypeError('Release and active geometry revisions must be semantic x.y.z versions.');
   }
   const geometryIsNewer = geometryVersion.some(
-    (value, index) => value > releaseVersion[index]
-      && geometryVersion.slice(0, index).every((entry, prefixIndex) => entry === releaseVersion[prefixIndex]),
+    (value, index) =>
+      value > releaseVersion[index] &&
+      geometryVersion
+        .slice(0, index)
+        .every((entry, prefixIndex) => entry === releaseVersion[prefixIndex]),
   );
   if (geometryIsNewer) {
     throw new RangeError('Active geometry revision cannot be newer than the release modelVersion.');
@@ -82,9 +96,14 @@ export function resolveActiveGeometry(model) {
     ? coordinateSystems.filter((frame) => frame?.id === SITE_COORDINATE_SYSTEM_ID)
     : [];
   if (frames.length !== 1) {
-    throw new RangeError(`${SITE_COORDINATE_SYSTEM_ID} must be declared exactly once; found ${frames.length}.`);
+    throw new RangeError(
+      `${SITE_COORDINATE_SYSTEM_ID} must be declared exactly once; found ${frames.length}.`,
+    );
   }
-  normalizeBounds(frames[0].bounds, `referenceSystem.coordinateSystems.${SITE_COORDINATE_SYSTEM_ID}.bounds`);
+  normalizeBounds(
+    frames[0].bounds,
+    `referenceSystem.coordinateSystems.${SITE_COORDINATE_SYSTEM_ID}.bounds`,
+  );
   collectGeometryEntities(active, new Map());
   return active;
 }

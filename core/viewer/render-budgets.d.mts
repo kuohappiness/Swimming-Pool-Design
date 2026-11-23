@@ -22,7 +22,9 @@ export interface AssetFileRecord {
 export const REALISM_TIER_IDS: readonly RealismTierBudgetId[];
 export const RENDER_BUDGETS: Readonly<Record<RealismTierBudgetId, RenderBudget>>;
 export const ASSET_FILE_LIMITS: AssetFileLimits;
-export const ASSET_EXTENSION_KINDS: Readonly<Record<string, 'texture' | 'model' | 'audio' | 'other'>>;
+export const ASSET_EXTENSION_KINDS: Readonly<
+  Record<string, 'texture' | 'model' | 'audio' | 'other'>
+>;
 
 export function isRealismTierId(value: unknown): value is RealismTierBudgetId;
 export function assertRenderBudgets(

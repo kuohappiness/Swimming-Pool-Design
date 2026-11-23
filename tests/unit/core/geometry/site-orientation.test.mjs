@@ -53,8 +53,7 @@ test('all fixed site directions derive from canonical +X 307 degrees', () => {
 
 test('mirror normal is derived from the current L3 rotation and is not canonical site data', () => {
   const referenceSystem = model.referenceSystem;
-  const active = model.geometryRevisions
-    .find(({ id }) => id === model.activeGeometryRevisionId);
+  const active = model.geometryRevisions.find(({ id }) => id === model.activeGeometryRevisionId);
   const currentRotation = active.solar.planRotation.value;
   assert.equal('mirrorNormalAzimuth' in referenceSystem.siteOrientation, false);
   assert.equal(

@@ -11,10 +11,7 @@ import {
   reflectionDirectionInLocalCoordinates,
   solarDirectionInLocalCoordinates,
 } from './solar-reflection.mjs';
-import {
-  activeSolarStudyGeometry,
-  buildReflectingVolumeCorners,
-} from './solar-angle-analysis.mjs';
+import { activeSolarStudyGeometry, buildReflectingVolumeCorners } from './solar-angle-analysis.mjs';
 import { resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active-geometry.mjs';
 
 export const WARM_MONTHS = new Set([5, 6, 7, 8, 9]);
@@ -67,12 +64,20 @@ export function buildPvgisWeatherSamples(model, pvgis) {
   const sourceLocation = pvgis?.inputs?.location;
   const latitude = finite(model.referenceSystem.siteLocation.latitude.value, 'site latitude');
   const longitude = finite(model.referenceSystem.siteLocation.longitude.value, 'site longitude');
-  if (Math.abs(sourceLocation?.latitude - latitude) > 1e-6
-    || Math.abs(sourceLocation?.longitude - longitude) > 1e-6) {
+  if (
+    Math.abs(sourceLocation?.latitude - latitude) > 1e-6 ||
+    Math.abs(sourceLocation?.longitude - longitude) > 1e-6
+  ) {
     throw new RangeError('PVGIS TMY coordinates must match the model site location.');
   }
-  const utcOffsetHours = finite(model.referenceSystem.siteLocation.utcOffsetHours, 'site utc offset');
-  const irradianceOffset = finite(sourceLocation.irradiance_time_offset ?? 0, 'irradiance time offset');
+  const utcOffsetHours = finite(
+    model.referenceSystem.siteLocation.utcOffsetHours,
+    'site utc offset',
+  );
+  const irradianceOffset = finite(
+    sourceLocation.irradiance_time_offset ?? 0,
+    'irradiance time offset',
+  );
   return hourly.map((record) => {
     const local = parseTimestamp(record['time(UTC)'], utcOffsetHours + irradianceOffset);
     const solar = calculateSolarPosition({
@@ -93,7 +98,7 @@ export function buildPvgisWeatherSamples(model, pvgis) {
 }
 
 function projectToRoofPlane(sourceCorners, direction, roof) {
-  const slope = Math.tan(roof.pitchDegrees * Math.PI / 180);
+  const slope = Math.tan((roof.pitchDegrees * Math.PI) / 180);
   const intercept = roof.highElevation - slope * roof.x2;
   const denominator = direction.z - slope * direction.x;
   if (Math.abs(denominator) <= EPSILON) return null;
@@ -111,11 +116,8 @@ function projectToRoofPlane(sourceCorners, direction, roof) {
 }
 
 function clipUnitSquareToForwardProjection(scales) {
-  const scalarAt = (point) => (
-    scales[0]
-      + (scales[1] - scales[0]) * point.x
-      + (scales[3] - scales[0]) * point.y
-  );
+  const scalarAt = (point) =>
+    scales[0] + (scales[1] - scales[0]) * point.x + (scales[3] - scales[0]) * point.y;
   const input = [
     { x: 0, y: 0 },
     { x: 1, y: 0 },
@@ -164,10 +166,7 @@ function pointToUnitCoordinates(point, projectedCorners) {
 }
 
 function receiverUnitPolygon(projectedCorners, receiverRectangle) {
-  const clipped = intersectConvexPolygons(
-    projectedCorners,
-    rectanglePolygon(receiverRectangle),
-  );
+  const clipped = intersectConvexPolygons(projectedCorners, rectanglePolygon(receiverRectangle));
   if (clipped.length < 3 || polygonArea(clipped) <= EPSILON) return [];
   return clipped.map((point) => pointToUnitCoordinates(point, projectedCorners));
 }
@@ -194,18 +193,16 @@ export function mirrorReceiverFractions(model, input, reflection) {
   }
   const poolUnit = receiverUnitPolygon(poolProjection.footprint, poolBounds);
   const rawPoolFraction = poolUnit.length >= 3 ? clamp(polygonArea(poolUnit), 0, 1) : 0;
-  const direction = reflectionDirectionInLocalCoordinates(
-    reflection,
-    orientation.buildingAzimuth,
-  );
+  const direction = reflectionDirectionInLocalCoordinates(reflection, orientation.buildingAzimuth);
   const roof = study.roof;
   const roofProjection = projectToRoofPlane(poolProjection.sourceCorners, direction, roof);
   if (!roofProjection) return { rawPoolFraction, roofFraction: 0, poolFraction: rawPoolFraction };
   const roofReceiverUnit = receiverUnitPolygon(roofProjection.footprint, roof);
   const forwardUnit = clipUnitSquareToForwardProjection(roofProjection.scales);
-  const roofUnit = roofReceiverUnit.length >= 3 && forwardUnit.length >= 3
-    ? intersectConvexPolygons(roofReceiverUnit, forwardUnit)
-    : [];
+  const roofUnit =
+    roofReceiverUnit.length >= 3 && forwardUnit.length >= 3
+      ? intersectConvexPolygons(roofReceiverUnit, forwardUnit)
+      : [];
   const roofFraction = roofUnit.length >= 3 ? clamp(polygonArea(roofUnit), 0, 1) : 0;
   return {
     rawPoolFraction,
@@ -239,9 +236,8 @@ function finalizeSeason(raw) {
     roofRedirectedKWh: round(raw.roofRedirectedKWh),
     poolAddedKWh: round(raw.poolAddedKWh),
     poolTotalWithMirrorKWh: round(raw.baselinePoolKWh + raw.poolAddedKWh),
-    poolIncreasePercent: raw.baselinePoolKWh > 0
-      ? round(raw.poolAddedKWh / raw.baselinePoolKWh * 100)
-      : 0,
+    poolIncreasePercent:
+      raw.baselinePoolKWh > 0 ? round((raw.poolAddedKWh / raw.baselinePoolKWh) * 100) : 0,
     roofRedirectedHours: raw.roofRedirectedHours,
     rawPoolProjectionHours: raw.rawPoolProjectionHours,
     poolAddedHours: raw.poolAddedHours,
@@ -263,8 +259,7 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
       'mirrorReflectance',
     ),
     glazingSolarTransmittance: finite(
-      options.glazingSolarTransmittance
-        ?? study.energyAssumptions.glazingSolarTransmittance,
+      options.glazingSolarTransmittance ?? study.energyAssumptions.glazingSolarTransmittance,
       'glazingSolarTransmittance',
     ),
     mirrorHeight: finite(options.mirrorHeight ?? study.mirrorHeight, 'mirrorHeight'),
@@ -277,32 +272,39 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
       options.daylightEndHour ?? study.energyAssumptions.daylightEndHour,
       'daylightEndHour',
     ),
-    maximumActiveSolarAltitude: options.maximumActiveSolarAltitude == null
-      ? null
-      : finite(options.maximumActiveSolarAltitude, 'maximumActiveSolarAltitude'),
-    minimumActiveSolarAzimuth: options.minimumActiveSolarAzimuth == null
-      ? null
-      : finite(options.minimumActiveSolarAzimuth, 'minimumActiveSolarAzimuth'),
-    maximumActiveSolarAzimuth: options.maximumActiveSolarAzimuth == null
-      ? null
-      : finite(options.maximumActiveSolarAzimuth, 'maximumActiveSolarAzimuth'),
+    maximumActiveSolarAltitude:
+      options.maximumActiveSolarAltitude == null
+        ? null
+        : finite(options.maximumActiveSolarAltitude, 'maximumActiveSolarAltitude'),
+    minimumActiveSolarAzimuth:
+      options.minimumActiveSolarAzimuth == null
+        ? null
+        : finite(options.minimumActiveSolarAzimuth, 'minimumActiveSolarAzimuth'),
+    maximumActiveSolarAzimuth:
+      options.maximumActiveSolarAzimuth == null
+        ? null
+        : finite(options.maximumActiveSolarAzimuth, 'maximumActiveSolarAzimuth'),
     includeBaseline: options.includeBaseline !== false,
   };
-  if (input.mirrorReflectance < 0 || input.mirrorReflectance > 1
-    || input.glazingSolarTransmittance < 0 || input.glazingSolarTransmittance > 1) {
+  if (
+    input.mirrorReflectance < 0 ||
+    input.mirrorReflectance > 1 ||
+    input.glazingSolarTransmittance < 0 ||
+    input.glazingSolarTransmittance > 1
+  ) {
     throw new RangeError('Optical factors must be within 0..1.');
   }
-  const mirrorSurfaceArea = study.width * input.mirrorHeight
-    / Math.cos(input.mirrorLeanFromVertical * Math.PI / 180);
+  const mirrorSurfaceArea =
+    (study.width * input.mirrorHeight) / Math.cos((input.mirrorLeanFromVertical * Math.PI) / 180);
   const poolBounds = poolRectangle(model);
   const poolPlan = rectanglePolygon(poolBounds);
   const poolArea = polygonArea(poolPlan);
-  const reflectingVolume = input.includeBaseline ? buildReflectingVolumeCorners(model, input) : null;
+  const reflectingVolume = input.includeBaseline
+    ? buildReflectingVolumeCorners(model, input)
+    : null;
   const results = { warm: emptySeason(), cool: emptySeason() };
   const orientation = deriveSolarPlanOrientation(model.referenceSystem);
-  const wallNormalAzimuth = (
-    orientation.poolFacingAzimuth + input.planRotation
-  ) % 360;
+  const wallNormalAzimuth = (orientation.poolFacingAzimuth + input.planRotation) % 360;
 
   for (const sample of weatherSamples) {
     const season = results[sample.season];
@@ -314,22 +316,32 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
         orientation.buildingAzimuth,
       );
       const shadow = projectShadowFootprint(reflectingVolume, sunDirection);
-      const shadowArea = shadow.length >= 3
-        ? clamp(polygonArea(intersectConvexPolygons(poolPlan, shadow)), 0, poolArea)
-        : 0;
+      const shadowArea =
+        shadow.length >= 3
+          ? clamp(polygonArea(intersectConvexPolygons(poolPlan, shadow)), 0, poolArea)
+          : 0;
       const directHorizontal = Math.max(0, sample.ghi - sample.dhi);
-      const baselineWatts = input.glazingSolarTransmittance * (
-        sample.dhi * poolArea + directHorizontal * (poolArea - shadowArea)
-      );
+      const baselineWatts =
+        input.glazingSolarTransmittance *
+        (sample.dhi * poolArea + directHorizontal * (poolArea - shadowArea));
       season.baselinePoolKWh += baselineWatts / 1000;
     }
     if (sample.dni <= 0 || sample.solar.altitude <= 0) continue;
-    if (input.maximumActiveSolarAltitude != null
-      && sample.solar.altitude > input.maximumActiveSolarAltitude) continue;
-    if (input.minimumActiveSolarAzimuth != null
-      && sample.solar.azimuth < input.minimumActiveSolarAzimuth) continue;
-    if (input.maximumActiveSolarAzimuth != null
-      && sample.solar.azimuth > input.maximumActiveSolarAzimuth) continue;
+    if (
+      input.maximumActiveSolarAltitude != null &&
+      sample.solar.altitude > input.maximumActiveSolarAltitude
+    )
+      continue;
+    if (
+      input.minimumActiveSolarAzimuth != null &&
+      sample.solar.azimuth < input.minimumActiveSolarAzimuth
+    )
+      continue;
+    if (
+      input.maximumActiveSolarAzimuth != null &&
+      sample.solar.azimuth > input.maximumActiveSolarAzimuth
+    )
+      continue;
     const reflection = reflectSolarRay({
       solarAltitude: sample.solar.altitude,
       solarAzimuth: sample.solar.azimuth,
@@ -337,11 +349,12 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
       wallLeanFromVertical: input.mirrorLeanFromVertical,
     });
     if (
-      !reflection.frontLit
-      || !reflection.reflectedFrontSide
-      || reflection.reflectedDownwardAngle <= 0
-    ) continue;
-    const interceptedKW = sample.dni * mirrorSurfaceArea * reflection.facingFactor / 1000;
+      !reflection.frontLit ||
+      !reflection.reflectedFrontSide ||
+      reflection.reflectedDownwardAngle <= 0
+    )
+      continue;
+    const interceptedKW = (sample.dni * mirrorSurfaceArea * reflection.facingFactor) / 1000;
     season.mirrorInterceptedKWh += interceptedKW;
     const fractions = mirrorReceiverFractions(model, input, reflection);
     if (fractions.rawPoolFraction > EPSILON) season.rawPoolProjectionHours += 1;
@@ -370,9 +383,8 @@ export function evaluateMirrorEnergy(model, weatherSamples, options = {}) {
     warm,
     cool,
     selectivity: {
-      warmToCoolPoolEnergyRatio: cool.poolAddedKWh > 0
-        ? round(warm.poolAddedKWh / cool.poolAddedKWh, 4)
-        : null,
+      warmToCoolPoolEnergyRatio:
+        cool.poolAddedKWh > 0 ? round(warm.poolAddedKWh / cool.poolAddedKWh, 4) : null,
       coolMinusWarmPoolKWh: round(cool.poolAddedKWh - warm.poolAddedKWh),
       strictWarmZero: warm.poolAddedKWh <= 0.001,
     },
@@ -386,11 +398,13 @@ export function evaluateEnergySensitivity(model, weatherSamples, options = {}) {
   const results = [];
   for (const pivotX of pivotScenarios) {
     for (const mirrorHeight of heightScenarios) {
-      results.push(evaluateMirrorEnergy(model, weatherSamples, {
-        ...options,
-        pivotX,
-        mirrorHeight,
-      }));
+      results.push(
+        evaluateMirrorEnergy(model, weatherSamples, {
+          ...options,
+          pivotX,
+          mirrorHeight,
+        }),
+      );
     }
   }
   return { pivotScenarios, heightScenarios, results };
@@ -402,14 +416,16 @@ export function scanMirrorEnergyAngles(model, weatherSamples, options = {}) {
   const results = [];
   for (const planRotation of planRotations) {
     for (const mirrorLeanFromVertical of leanAngles) {
-      results.push(evaluateMirrorEnergy(model, weatherSamples, {
-        ...options,
-        planRotation,
-        mirrorLeanFromVertical,
-        mirrorReflectance: 1,
-        glazingSolarTransmittance: 1,
-        includeBaseline: false,
-      }));
+      results.push(
+        evaluateMirrorEnergy(model, weatherSamples, {
+          ...options,
+          planRotation,
+          mirrorLeanFromVertical,
+          mirrorReflectance: 1,
+          glazingSolarTransmittance: 1,
+          includeBaseline: false,
+        }),
+      );
     }
   }
   const ranked = [...results].sort((left, right) => {
@@ -422,8 +438,10 @@ export function scanMirrorEnergyAngles(model, weatherSamples, options = {}) {
     .filter((result) => result.selectivity.strictWarmZero && result.cool.poolAddedKWh > 0)
     .sort((left, right) => right.cool.poolAddedKWh - left.cool.poolAddedKWh);
   const nearZero = results
-    .filter((result) => result.cool.poolAddedKWh > 0
-      && result.warm.poolAddedKWh / result.cool.poolAddedKWh <= 0.05)
+    .filter(
+      (result) =>
+        result.cool.poolAddedKWh > 0 && result.warm.poolAddedKWh / result.cool.poolAddedKWh <= 0.05,
+    )
     .sort((left, right) => right.cool.poolAddedKWh - left.cool.poolAddedKWh);
   return {
     candidateCount: results.length,
@@ -437,11 +455,15 @@ export function scanMirrorEnergyAngles(model, weatherSamples, options = {}) {
 }
 
 async function buildReport() {
-  const model = JSON.parse(await readFile(new URL('../../model/project-model.json', import.meta.url), 'utf8'));
-  const pvgis = JSON.parse(await readFile(
-    new URL('../../source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json', import.meta.url),
-    'utf8',
-  ));
+  const model = JSON.parse(
+    await readFile(new URL('../../model/project-model.json', import.meta.url), 'utf8'),
+  );
+  const pvgis = JSON.parse(
+    await readFile(
+      new URL('../../source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json', import.meta.url),
+      'utf8',
+    ),
+  );
   const weather = buildPvgisWeatherSamples(model, pvgis);
   const current = evaluateMirrorEnergy(model, weather);
   const sensitivity = evaluateEnergySensitivity(model, weather);
@@ -450,10 +472,11 @@ async function buildReport() {
   const denseScan = scanMirrorEnergyAngles(model, weather, { planRotations, leanAngles });
   const ratioRanked = denseScan.results
     .filter((result) => result.cool.poolAddedKWh > 0)
-    .sort((left, right) => (
-      left.warm.poolAddedKWh / left.cool.poolAddedKWh
-        - right.warm.poolAddedKWh / right.cool.poolAddedKWh
-    ));
+    .sort(
+      (left, right) =>
+        left.warm.poolAddedKWh / left.cool.poolAddedKWh -
+        right.warm.poolAddedKWh / right.cool.poolAddedKWh,
+    );
   const angleScan = {
     planRotationRange: [-20, 40, 1],
     leanRange: [-10, 40, 1],
@@ -463,18 +486,16 @@ async function buildReport() {
     lowestWarmToCoolRatio: ratioRanked[0] ?? null,
   };
   const opticalSensitivity = [
-    [0.60, 0.40],
-    [0.60, 0.60],
-    [0.75, 0.60],
-    [0.90, 0.60],
-    [0.90, 0.75],
-  ].map(([mirrorReflectance, glazingSolarTransmittance]) => evaluateMirrorEnergy(
-    model,
-    weather,
-    { mirrorReflectance, glazingSolarTransmittance },
-  ));
+    [0.6, 0.4],
+    [0.6, 0.6],
+    [0.75, 0.6],
+    [0.9, 0.6],
+    [0.9, 0.75],
+  ].map(([mirrorReflectance, glazingSolarTransmittance]) =>
+    evaluateMirrorEnergy(model, weather, { mirrorReflectance, glazingSolarTransmittance }),
+  );
   const annualHorizontalIrradiation = weather.reduce((sum, sample) => sum + sample.ghi, 0) / 1000;
-  const ceilingDiffuseScenarios = [0.10, 0.20, 0.30].map((diffuseFraction) => ({
+  const ceilingDiffuseScenarios = [0.1, 0.2, 0.3].map((diffuseFraction) => ({
     diffuseFraction,
     warmPotentialKWh: round(current.warm.roofRedirectedKWh * diffuseFraction),
     coolPotentialKWh: round(current.cool.roofRedirectedKWh * diffuseFraction),

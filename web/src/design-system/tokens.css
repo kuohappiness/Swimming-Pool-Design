@@ -11,9 +11,10 @@
   --site-gold: #9b762d;
   --site-deep: #172829;
   --site-white: #fffdf8;
-  --site-serif: "Noto Serif TC Web", "Noto Serif TC", "Songti TC", "PMingLiU", serif;
-  --site-sans: "Noto Sans TC Web", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
-  --site-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --site-serif: 'Noto Serif TC Web', 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
+  --site-sans:
+    'Noto Sans TC Web', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --site-mono: ui-monospace, 'SFMono-Regular', Consolas, monospace;
   --site-page: min(100% - 40px, 1440px);
   --site-reading: 760px;
   --site-space-6: 6rem;

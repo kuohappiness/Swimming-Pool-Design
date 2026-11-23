@@ -20,14 +20,8 @@ const vite = await createServer({
 });
 const [
   { createViewerScene },
-  {
-    BASELINE_QUALITY_PROFILE,
-    createBaselineSceneRenderingDependencies,
-  },
-  {
-    EnhancedVisualAssetAdapter,
-    getEnhancedQualityProfile,
-  },
+  { BASELINE_QUALITY_PROFILE, createBaselineSceneRenderingDependencies },
+  { EnhancedVisualAssetAdapter, getEnhancedQualityProfile },
 ] = await Promise.all([
   vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
@@ -80,11 +74,15 @@ test('enhanced water and scale assets share the canonical visual water hook only
     poolCutaway: true,
   });
   assert.equal(waterline.visible, false);
-  assert.throws(() => adapter.setWalkthroughState({
-    movementMode: 'walking',
-    waterSurfaceElevation: graph.water.surfaceElevation + 0.1,
-    poolCutaway: false,
-  }), /second water surface state/);
+  assert.throws(
+    () =>
+      adapter.setWalkthroughState({
+        movementMode: 'walking',
+        waterSurfaceElevation: graph.water.surfaceElevation + 0.1,
+        poolCutaway: false,
+      }),
+    /second water surface state/,
+  );
 
   const caustic = graph.siteRoot.getObjectByName('visual-only:POOL-01-caustic:1');
   assert.ok(caustic);
@@ -152,11 +150,20 @@ test('the enhanced adapter gives the scene mirror its own reflection probe and r
   assert.equal(adapter.mirrorReflection, 'environment', 'nothing attached yet');
   const { graph, materials } = createGraph(adapter);
   assert.equal(adapter.mirrorReflection, 'probe');
-  const frame = { deltaSeconds: 0, elapsedSeconds: 0, reducedMotion: false, camera: new THREE.PerspectiveCamera() };
+  const frame = {
+    deltaSeconds: 0,
+    elapsedSeconds: 0,
+    reducedMotion: false,
+    camera: new THREE.PerspectiveCamera(),
+  };
   graph.scene.updateMatrixWorld(true);
   adapter.updateFrame(frame);
   adapter.updateFrame(frame);
-  assert.deepEqual(captures, [{ size: 128, hidden: ['F-MIR-01-SURFACE'] }], 'captured once, without the mirror itself');
+  assert.deepEqual(
+    captures,
+    [{ size: 128, hidden: ['F-MIR-01-SURFACE'] }],
+    'captured once, without the mirror itself',
+  );
   adapter.invalidateLighting();
   adapter.setQuality(getEnhancedQualityProfile('high'));
   adapter.updateFrame(frame);

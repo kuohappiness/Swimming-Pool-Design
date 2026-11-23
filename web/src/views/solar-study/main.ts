@@ -178,7 +178,10 @@ function clonePreviewSvg(source: SVGSVGElement, idPrefix: string): SVGSVGElement
         value = value.replaceAll('url(#' + oldId + ')', 'url(#' + newId + ')');
         if (value === '#' + oldId) value = '#' + newId;
         if (attribute.name === 'aria-labelledby' || attribute.name === 'aria-describedby') {
-          value = value.split(/\s+/).map((token) => token === oldId ? newId : token).join(' ');
+          value = value
+            .split(/\s+/)
+            .map((token) => (token === oldId ? newId : token))
+            .join(' ');
         }
       });
       if (value !== attribute.value) element.setAttribute(attribute.name, value);
@@ -208,21 +211,25 @@ function setMobilePreview(mode: MobilePreviewMode): void {
 
 required<HTMLElement>('#tableStudyVersion').textContent = 'STUDY ' + activeStudy.revision;
 if (
-  generatedViewerModel.modelVersion !== model.modelVersion
-  || generatedViewerModel.activeGeometryRevisionId !== activeStudy.id
+  generatedViewerModel.modelVersion !== model.modelVersion ||
+  generatedViewerModel.activeGeometryRevisionId !== activeStudy.id
 ) {
   throw new Error('Generated solar analysis status does not match the active model.');
 }
 required<HTMLElement>('#coord-fact').textContent =
-  '基地 ' + location.latitude.value.toFixed(5) + '°N · ' + location.longitude.value.toFixed(5) + '°E';
+  '基地 ' +
+  location.latitude.value.toFixed(5) +
+  '°N · ' +
+  location.longitude.value.toFixed(5) +
+  '°E';
 required<HTMLElement>('#axis-fact').textContent =
   '建築本地 +X ' + planOrientation.buildingAzimuth.toFixed(0) + '°';
 required<HTMLElement>('#pool-fact').textContent = '泳池方向 −X ' + poolAzimuth.toFixed(0) + '°';
 required<HTMLElement>('#timezone-fact').textContent =
   location.timeZone + ' · UTC+' + location.utcOffsetHours;
 const energyFormatter = new Intl.NumberFormat('zh-TW', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
 });
 required<HTMLElement>('#conclusion-plan-rotation').textContent = signed(defaultPlanRotation);
 required<HTMLElement>('#conclusion-wall-lean').textContent = signed(defaultWallLean);
@@ -244,7 +251,10 @@ yearControl.value = String(studyYear);
 function initialDateStopIndex(month: number, day: number): number {
   const exactSolstice = dateStops.findIndex((stop) => stop.month === month && stop.day === day);
   if (exactSolstice >= 0) return exactSolstice;
-  return Math.max(0, dateStops.findIndex((stop) => stop.month === month && stop.day === 1));
+  return Math.max(
+    0,
+    dateStops.findIndex((stop) => stop.month === month && stop.day === 1),
+  );
 }
 
 const initialNow = taipeiNow();
@@ -276,8 +286,10 @@ function periodFor(date: Date): { key: 'warm' | 'cool'; name: '暖季' | '冷季
 }
 
 function dateMilestone(date: Date): string {
-  const key = String(date.getUTCMonth() + 1).padStart(2, '0')
-    + '-' + String(date.getUTCDate()).padStart(2, '0');
+  const key =
+    String(date.getUTCMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(date.getUTCDate()).padStart(2, '0');
   const milestones: Record<string, string> = {
     '03-20': '春分',
     '06-21': '夏至',
@@ -288,8 +300,12 @@ function dateMilestone(date: Date): string {
 }
 
 function formatDate(date: Date, includeYear = false): string {
-  const base = (includeYear ? studyYear + '年' : '')
-    + (date.getUTCMonth() + 1) + '月' + date.getUTCDate() + '日';
+  const base =
+    (includeYear ? studyYear + '年' : '') +
+    (date.getUTCMonth() + 1) +
+    '月' +
+    date.getUTCDate() +
+    '日';
   const milestone = dateMilestone(date);
   return base + (milestone ? '（' + milestone + '）' : '');
 }
@@ -316,11 +332,8 @@ function pointFromAzimuth(
   azimuth: number,
   radius: number,
 ): [number, number] {
-  const radians = azimuth * Math.PI / 180;
-  return [
-    origin[0] + radius * Math.sin(radians),
-    origin[1] - radius * Math.cos(radians),
-  ];
+  const radians = (azimuth * Math.PI) / 180;
+  return [origin[0] + radius * Math.sin(radians), origin[1] - radius * Math.cos(radians)];
 }
 
 function pointFromOriginToward(
@@ -332,10 +345,7 @@ function pointFromOriginToward(
   const deltaY = target[1] - origin[1];
   const length = Math.hypot(deltaX, deltaY);
   if (length <= 1e-9) return origin;
-  return [
-    origin[0] + deltaX / length * distance,
-    origin[1] + deltaY / length * distance,
-  ];
+  return [origin[0] + (deltaX / length) * distance, origin[1] + (deltaY / length) * distance];
 }
 
 function rotateSvgPoint(
@@ -343,7 +353,7 @@ function rotateSvgPoint(
   pivot: [number, number],
   degrees: number,
 ): [number, number] {
-  const radians = degrees * Math.PI / 180;
+  const radians = (degrees * Math.PI) / 180;
   const x = point[0] - pivot[0];
   const y = point[1] - pivot[1];
   return [
@@ -382,9 +392,21 @@ function renderPlanTolerance(): void {
 
   azimuthToleranceFan.setAttribute(
     'd',
-    'M 280 235 L ' + start[0].toFixed(1) + ' ' + start[1].toFixed(1)
-      + ' A ' + radius + ' ' + radius + ' 0 ' + largeArc + ' 1 '
-      + end[0].toFixed(1) + ' ' + end[1].toFixed(1) + ' Z',
+    'M 280 235 L ' +
+      start[0].toFixed(1) +
+      ' ' +
+      start[1].toFixed(1) +
+      ' A ' +
+      radius +
+      ' ' +
+      radius +
+      ' 0 ' +
+      largeArc +
+      ' 1 ' +
+      end[0].toFixed(1) +
+      ' ' +
+      end[1].toFixed(1) +
+      ' Z',
   );
   for (const [line, point] of [
     [azimuthToleranceStart, start],
@@ -407,7 +429,7 @@ function signed(value: number): string {
 
 function skyPoint(solar: ReturnType<typeof calculateSolarPosition>): [number, number] {
   const altitude = Math.max(0, Math.min(90, solar.altitude));
-  const radius = 42 + 136 * Math.cos(altitude * Math.PI / 180);
+  const radius = 42 + 136 * Math.cos((altitude * Math.PI) / 180);
   return polar(solar.azimuth, radius);
 }
 
@@ -422,8 +444,11 @@ function drawPlanPath(date: Date, selectedMinutes: number, color: string): void 
   if (samples.length > 1) {
     const points = samples.map(({ solar }) => skyPoint(solar));
     fragments.push(
-      '<polyline points="' + points.map((point) => point.map((value) => value.toFixed(1)).join(',')).join(' ')
-        + '" stroke="' + color + '" class="solar-path-track current-date"/>',
+      '<polyline points="' +
+        points.map((point) => point.map((value) => value.toFixed(1)).join(',')).join(' ') +
+        '" stroke="' +
+        color +
+        '" class="solar-path-track current-date"/>',
     );
   }
   sampleTimes.forEach((time) => {
@@ -432,14 +457,30 @@ function drawPlanPath(date: Date, selectedMinutes: number, color: string): void 
     if (solar.altitude <= 0) return;
     const point = skyPoint(solar);
     const isSelected = minutes === selectedMinutes;
-      fragments.push(
-        '<g class="solar-hour-point' + (isSelected ? ' is-selected' : '') + '">'
-          + '<title>' + dateLabel + ' ' + time + '｜高度 ' + solar.altitude.toFixed(1)
-          + '°｜方位 ' + solar.azimuth.toFixed(1) + '°</title>'
-          + '<circle cx="' + point[0].toFixed(1) + '" cy="' + point[1].toFixed(1)
-          + '" r="' + (isSelected ? '7' : '4') + '" fill="' + color + '" class="solar-path-point"/>'
-          + '</g>',
-      );
+    fragments.push(
+      '<g class="solar-hour-point' +
+        (isSelected ? ' is-selected' : '') +
+        '">' +
+        '<title>' +
+        dateLabel +
+        ' ' +
+        time +
+        '｜高度 ' +
+        solar.altitude.toFixed(1) +
+        '°｜方位 ' +
+        solar.azimuth.toFixed(1) +
+        '°</title>' +
+        '<circle cx="' +
+        point[0].toFixed(1) +
+        '" cy="' +
+        point[1].toFixed(1) +
+        '" r="' +
+        (isSelected ? '7' : '4') +
+        '" fill="' +
+        color +
+        '" class="solar-path-point"/>' +
+        '</g>',
+    );
   });
   planRays.innerHTML = fragments.join('');
 }
@@ -456,8 +497,12 @@ function drawSelectedSun(
   planIncidentPoint.setAttribute('cy', incidentPoint[1].toFixed(1));
   if (solar.altitude <= 0) {
     selectedSun.dataset.reflectionState = 'below-horizon';
-    selectedSun.innerHTML = '<text x="280" y="422" text-anchor="middle" class="sun-below-label">'
-      + dateLabel + ' ' + time + ' · 太陽在地平線下</text>';
+    selectedSun.innerHTML =
+      '<text x="280" y="422" text-anchor="middle" class="sun-below-label">' +
+      dateLabel +
+      ' ' +
+      time +
+      ' · 太陽在地平線下</text>';
     return;
   }
   const point = skyPoint(solar);
@@ -472,10 +517,7 @@ function drawSelectedSun(
   const reflectionExtendsRight = reflectedPoint[0] >= incidentPoint[0];
   const reflectedLabelX = reflectedPoint[0] + (reflectionExtendsRight ? -9 : 9);
   const reflectedLabelY = reflectedPoint[1] + (reflectedPoint[1] >= 235 ? 18 : -10);
-  const incomingMidpoint = [
-    (point[0] + incomingEnd[0]) / 2,
-    (point[1] + incomingEnd[1]) / 2,
-  ];
+  const incomingMidpoint = [(point[0] + incomingEnd[0]) / 2, (point[1] + incomingEnd[1]) / 2];
   const reflectedMidpoint = [
     (reflectedStart[0] + reflectedPoint[0]) / 2,
     (reflectedStart[1] + reflectedPoint[1]) / 2,
@@ -485,62 +527,103 @@ function drawSelectedSun(
   planReflectedArrow.setAttribute('fill', color);
   selectedSun.dataset.reflectionState = validReflection
     ? 'front-lit'
-    : (reflection.frontLit ? 'invalid-reflection' : 'back-lit');
+    : reflection.frontLit
+      ? 'invalid-reflection'
+      : 'back-lit';
   selectedSun.dataset.frontHalfSpaceDot = reflection.frontHalfSpaceDot.toFixed(6);
   const reflectedMarkup = validReflection
-    ? '<polyline points="' + reflectedStart.map((value) => value.toFixed(1)).join(',') + ' '
-      + reflectedMidpoint.map((value) => value.toFixed(1)).join(',') + ' '
-      + reflectedPoint.map((value) => value.toFixed(1)).join(',')
-      + '" stroke="' + color
-      + '" class="selected-reflected-ray" marker-end="url(#plan-arrow-reflected)"'
-      + ' aria-label="3D 反射光水平投影，方位 '
-      + reflection.reflectedAzimuth.toFixed(1) + ' 度，下射角 '
-      + reflection.reflectedDownwardAngle.toFixed(1) + ' 度"/>'
-      + '<text x="' + reflectedLabelX.toFixed(1)
-      + '" y="' + reflectedLabelY.toFixed(1)
-      + '" text-anchor="' + (reflectionExtendsRight ? 'end' : 'start')
-      + '" fill="' + color + '" class="selected-reflection-label">反射方位投影 '
-      + reflection.reflectedAzimuth.toFixed(1) + '° · 下射角 '
-      + reflection.reflectedDownwardAngle.toFixed(1) + '°</text>'
+    ? '<polyline points="' +
+      reflectedStart.map((value) => value.toFixed(1)).join(',') +
+      ' ' +
+      reflectedMidpoint.map((value) => value.toFixed(1)).join(',') +
+      ' ' +
+      reflectedPoint.map((value) => value.toFixed(1)).join(',') +
+      '" stroke="' +
+      color +
+      '" class="selected-reflected-ray" marker-end="url(#plan-arrow-reflected)"' +
+      ' aria-label="3D 反射光水平投影，方位 ' +
+      reflection.reflectedAzimuth.toFixed(1) +
+      ' 度，下射角 ' +
+      reflection.reflectedDownwardAngle.toFixed(1) +
+      ' 度"/>' +
+      '<text x="' +
+      reflectedLabelX.toFixed(1) +
+      '" y="' +
+      reflectedLabelY.toFixed(1) +
+      '" text-anchor="' +
+      (reflectionExtendsRight ? 'end' : 'start') +
+      '" fill="' +
+      color +
+      '" class="selected-reflection-label">反射方位投影 ' +
+      reflection.reflectedAzimuth.toFixed(1) +
+      '° · 下射角 ' +
+      reflection.reflectedDownwardAngle.toFixed(1) +
+      '°</text>'
     : '';
   selectedSun.innerHTML =
-    reflectedMarkup
-      + '<polyline points="' + point.map((value) => value.toFixed(1)).join(',') + ' '
-      + incomingMidpoint.map((value) => value.toFixed(1)).join(',') + ' '
-      + incomingEnd.map((value) => value.toFixed(1)).join(',')
-      + '" stroke="' + color
-      + '" class="selected-sun-ray" marker-end="url(#plan-arrow-incoming)"/>'
-      + '<circle cx="' + point[0].toFixed(1)
-      + '" cy="' + point[1].toFixed(1)
-      + '" r="11" fill="' + color + '" class="selected-sun-point"/>'
-      + '<text x="' + labelX.toFixed(1)
-      + '" y="' + (labelPoint[1] + 5).toFixed(1)
-      + '" text-anchor="' + (placeLabelOnRight ? 'start' : 'end')
-      + '" fill="' + color + '" class="selected-sun-label">'
-      + dateLabel + ' ' + time + '</text>';
+    reflectedMarkup +
+    '<polyline points="' +
+    point.map((value) => value.toFixed(1)).join(',') +
+    ' ' +
+    incomingMidpoint.map((value) => value.toFixed(1)).join(',') +
+    ' ' +
+    incomingEnd.map((value) => value.toFixed(1)).join(',') +
+    '" stroke="' +
+    color +
+    '" class="selected-sun-ray" marker-end="url(#plan-arrow-incoming)"/>' +
+    '<circle cx="' +
+    point[0].toFixed(1) +
+    '" cy="' +
+    point[1].toFixed(1) +
+    '" r="11" fill="' +
+    color +
+    '" class="selected-sun-point"/>' +
+    '<text x="' +
+    labelX.toFixed(1) +
+    '" y="' +
+    (labelPoint[1] + 5).toFixed(1) +
+    '" text-anchor="' +
+    (placeLabelOnRight ? 'start' : 'end') +
+    '" fill="' +
+    color +
+    '" class="selected-sun-label">' +
+    dateLabel +
+    ' ' +
+    time +
+    '</text>';
 }
 
 function renderSolarTable(): void {
   const rows: string[] = [];
-  required<HTMLElement>('#solar-table-head').innerHTML = '<th>季節／時間</th>'
-    + sampleTimes.map((time) => '<th>' + time + '</th>').join('');
+  required<HTMLElement>('#solar-table-head').innerHTML =
+    '<th>季節／時間</th>' + sampleTimes.map((time) => '<th>' + time + '</th>').join('');
   (Object.keys(solstices) as SolsticeKey[]).forEach((solsticeKey) => {
     const solstice = solstices[solsticeKey];
-    const positions = sampleTimes.map((time) => solarAt(
-      solstice.month,
-      solstice.day,
-      minutesFromTime(time),
-    ));
-    rows.push(
-      '<tr><td>' + solstice.name + '高度角</td>'
-        + positions.map((position) => '<td' + (position.altitude <= 0 ? ' class="is-below-horizon"' : '')
-          + '>' + position.altitude.toFixed(1) + '°</td>').join('')
-        + '</tr>',
+    const positions = sampleTimes.map((time) =>
+      solarAt(solstice.month, solstice.day, minutesFromTime(time)),
     );
     rows.push(
-      '<tr><td>' + solstice.name + '方位角</td>'
-        + positions.map((position) => '<td>' + position.azimuth.toFixed(1) + '°</td>').join('')
-        + '</tr>',
+      '<tr><td>' +
+        solstice.name +
+        '高度角</td>' +
+        positions
+          .map(
+            (position) =>
+              '<td' +
+              (position.altitude <= 0 ? ' class="is-below-horizon"' : '') +
+              '>' +
+              position.altitude.toFixed(1) +
+              '°</td>',
+          )
+          .join('') +
+        '</tr>',
+    );
+    rows.push(
+      '<tr><td>' +
+        solstice.name +
+        '方位角</td>' +
+        positions.map((position) => '<td>' + position.azimuth.toFixed(1) + '°</td>').join('') +
+        '</tr>',
     );
   });
   required<HTMLElement>('#solar-table-body').innerHTML = rows.join('');
@@ -573,15 +656,20 @@ function update(): void {
   });
   // Whether the reflected light lands on the pool: the same footprint test the
   // annual energy analysis uses (DEC-151).
-  const hitsPool = solar.altitude > 0
-    && projectPoolFootprint(model, reflection, { planRotation: rotation, leanFromVertical: lean }).hitsPool;
+  const hitsPool =
+    solar.altitude > 0 &&
+    projectPoolFootprint(model, reflection, { planRotation: rotation, leanFromVertical: lean })
+      .hitsPool;
 
   required<HTMLElement>('#planValue').textContent = signed(rotation);
   required<HTMLElement>('#leanValue').textContent = lean.toFixed(1) + '°';
   yearValue.textContent = (followsCurrentYear ? '自動 · ' : '比較 · ') + studyYear;
   dateValue.textContent = period.name + ' · ' + formatDate(date, true);
   timeValue.textContent = time;
-  yearControl.setAttribute('aria-valuetext', studyYear + '年' + (followsCurrentYear ? '，自動跟隨今年' : '，手動比較'));
+  yearControl.setAttribute(
+    'aria-valuetext',
+    studyYear + '年' + (followsCurrentYear ? '，自動跟隨今年' : '，手動比較'),
+  );
   dateControl.setAttribute('aria-valuetext', formatDate(date, true) + '，' + period.name);
   timeControl.setAttribute('aria-valuetext', time);
   rotationControl.setAttribute('aria-valuetext', '3F 水平旋轉 ' + signed(rotation));
@@ -590,8 +678,11 @@ function update(): void {
   // Annual energy sums every hour with direct sun; the 07–17 assumption only
   // counts roof-redirected hours during school use.
   timeScope.textContent =
-    '逐時診斷 ' + String(diagnosticStartHour).padStart(2, '0') + ':00–'
-      + String(diagnosticEndHour).padStart(2, '0') + ':00 · 年度能量逐時加總全天直射';
+    '逐時診斷 ' +
+    String(diagnosticStartHour).padStart(2, '0') +
+    ':00–' +
+    String(diagnosticEndHour).padStart(2, '0') +
+    ':00 · 年度能量逐時加總全天直射';
 
   buildingPlan.setAttribute(
     'transform',
@@ -615,17 +706,27 @@ function update(): void {
   const bottomX = 495;
   const bottomY = 363;
   const height = 258;
-  const topX = bottomX - Math.tan(lean * Math.PI / 180) * height;
+  const topX = bottomX - Math.tan((lean * Math.PI) / 180) * height;
   const topY = 105;
   wall.setAttribute('x2', topX.toFixed(1));
   wall.setAttribute('y2', String(topY));
   upperSection.setAttribute(
     'points',
-    bottomX + ',' + bottomY + ' 690,' + bottomY + ' 690,' + topY + ' ' + topX.toFixed(1) + ',' + topY,
+    bottomX +
+      ',' +
+      bottomY +
+      ' 690,' +
+      bottomY +
+      ' 690,' +
+      topY +
+      ' ' +
+      topX.toFixed(1) +
+      ',' +
+      topY,
   );
   const hitX = bottomX + (topX - bottomX) * 0.54;
   const hitY = bottomY + (topY - bottomY) * 0.54;
-  const minimumDownwardRadians = study.minimumDownwardAngle.value * Math.PI / 180;
+  const minimumDownwardRadians = (study.minimumDownwardAngle.value * Math.PI) / 180;
   const minimumDownwardLength = 225;
   const minimumDownwardX = hitX - Math.cos(minimumDownwardRadians) * minimumDownwardLength;
   const minimumDownwardY = hitY + Math.sin(minimumDownwardRadians) * minimumDownwardLength;
@@ -647,8 +748,13 @@ function update(): void {
     reflected.style.opacity = '0';
     reflected.dataset.reflectionState = 'below-horizon';
     reflected.setAttribute('aria-label', '此時無反射光');
-    sunLabel.textContent = formatDate(date) + ' ' + time + ' · 太陽在地平線下（高度 '
-      + solar.altitude.toFixed(1) + '°）';
+    sunLabel.textContent =
+      formatDate(date) +
+      ' ' +
+      time +
+      ' · 太陽在地平線下（高度 ' +
+      solar.altitude.toFixed(1) +
+      '°）';
     sunLabel.setAttribute('fill', '#6b7f87');
     rayLabel.textContent = '此時無直射太陽光';
     rayLabel.setAttribute('fill', '#6b7f87');
@@ -656,7 +762,8 @@ function update(): void {
     required<HTMLElement>('#downAngle').textContent = '—';
     result.classList.remove('is-warn');
     resultTitle.textContent = '此時刻方向診斷：太陽已在地平線下';
-    resultDetail.textContent = '沒有可用直射日光，因此沒有鏡面反射；年度性能仍以 PVGIS TMY 能量分析為準。';
+    resultDetail.textContent =
+      '沒有可用直射日光，因此沒有鏡面反射；年度性能仍以 PVGIS TMY 能量分析為準。';
     renderLivePreview();
     return;
   }
@@ -664,15 +771,22 @@ function update(): void {
   incoming.style.opacity = '1';
 
   const incomingLength = 310;
-  const incomingX = hitX - Math.cos(solar.altitude * Math.PI / 180) * incomingLength;
-  const incomingY = hitY - Math.sin(solar.altitude * Math.PI / 180) * incomingLength;
+  const incomingX = hitX - Math.cos((solar.altitude * Math.PI) / 180) * incomingLength;
+  const incomingY = hitY - Math.sin((solar.altitude * Math.PI) / 180) * incomingLength;
   const incomingStartY = Math.max(28, incomingY);
   incoming.setAttribute(
     'points',
-    incomingX.toFixed(1) + ',' + incomingStartY.toFixed(1) + ' '
-      + ((incomingX + hitX) / 2).toFixed(1) + ','
-      + ((incomingStartY + hitY) / 2).toFixed(1) + ' '
-      + hitX.toFixed(1) + ',' + hitY.toFixed(1),
+    incomingX.toFixed(1) +
+      ',' +
+      incomingStartY.toFixed(1) +
+      ' ' +
+      ((incomingX + hitX) / 2).toFixed(1) +
+      ',' +
+      ((incomingStartY + hitY) / 2).toFixed(1) +
+      ' ' +
+      hitX.toFixed(1) +
+      ',' +
+      hitY.toFixed(1),
   );
   incoming.setAttribute('stroke', period.color);
   sunArrow.setAttribute('fill', period.color);
@@ -680,23 +794,32 @@ function update(): void {
   const displayDown = Math.max(5, Math.min(78, Math.abs(reflection.reflectedDownwardAngle)));
   const displayVerticalDirection = reflection.reflectedDownwardAngle >= 0 ? 1 : -1;
   const outgoingLength = 250;
-  const outgoingX = hitX - Math.cos(displayDown * Math.PI / 180) * outgoingLength;
-  const outgoingY = hitY
-    + displayVerticalDirection * Math.sin(displayDown * Math.PI / 180) * outgoingLength;
+  const outgoingX = hitX - Math.cos((displayDown * Math.PI) / 180) * outgoingLength;
+  const outgoingY =
+    hitY + displayVerticalDirection * Math.sin((displayDown * Math.PI) / 180) * outgoingLength;
   const outgoingEndY = Math.max(28, Math.min(332, outgoingY));
   const reflectedColor = period.color;
   const hasValidReflection = reflection.frontLit && reflection.reflectedFrontSide;
   const sectionReflectionState = !reflection.frontLit
     ? 'back-lit'
-    : (!reflection.reflectedFrontSide
+    : !reflection.reflectedFrontSide
       ? 'invalid-reflection'
-      : (hitsPool ? 'hits-pool' : 'misses-pool'));
+      : hitsPool
+        ? 'hits-pool'
+        : 'misses-pool';
   reflected.setAttribute(
     'points',
-    hitX.toFixed(1) + ',' + hitY.toFixed(1) + ' '
-      + ((hitX + outgoingX) / 2).toFixed(1) + ','
-      + ((hitY + outgoingEndY) / 2).toFixed(1) + ' '
-      + outgoingX.toFixed(1) + ',' + outgoingEndY.toFixed(1),
+    hitX.toFixed(1) +
+      ',' +
+      hitY.toFixed(1) +
+      ' ' +
+      ((hitX + outgoingX) / 2).toFixed(1) +
+      ',' +
+      ((hitY + outgoingEndY) / 2).toFixed(1) +
+      ' ' +
+      outgoingX.toFixed(1) +
+      ',' +
+      outgoingEndY.toFixed(1),
   );
   reflected.setAttribute('stroke', reflectedColor);
   reflected.setAttribute('stroke-dasharray', '8 7');
@@ -706,55 +829,73 @@ function update(): void {
     'aria-label',
     sectionReflectionState === 'hits-pool'
       ? '反射光，落在池面'
-      : (sectionReflectionState === 'misses-pool'
+      : sectionReflectionState === 'misses-pool'
         ? '反射光，未落在池面'
-        : (sectionReflectionState === 'invalid-reflection'
+        : sectionReflectionState === 'invalid-reflection'
           ? '反射向量未位於鏡面正面，已停止繪製'
-          : '鏡牆背光，無有效反射')),
+          : '鏡牆背光，無有效反射',
   );
   reflectedArrow.setAttribute('fill', reflectedColor);
 
-  sunLabel.textContent = formatDate(date) + ' ' + time + ' · 高度 ' + solar.altitude.toFixed(1) + '°';
+  sunLabel.textContent =
+    formatDate(date) + ' ' + time + ' · 高度 ' + solar.altitude.toFixed(1) + '°';
   sunLabel.setAttribute('fill', period.color);
   rayLabel.textContent = hitsPool
     ? '反射光（落在池面）'
-    : (hasValidReflection
+    : hasValidReflection
       ? '反射光（未落在池面）'
-      : (reflection.frontLit ? '反射向量無效（停止繪製）' : '鏡牆背光（無有效反射）'));
+      : reflection.frontLit
+        ? '反射向量無效（停止繪製）'
+        : '鏡牆背光（無有效反射）';
   rayLabel.setAttribute('fill', reflectedColor);
   sideLabel.textContent =
-    '3D 反射方位 ' + reflection.reflectedAzimuth.toFixed(1)
-      + '° · 與池向差 ' + evaluation.azimuthDelta.toFixed(1)
-      + '° · 下射 ' + reflection.reflectedDownwardAngle.toFixed(1) + '°';
+    '3D 反射方位 ' +
+    reflection.reflectedAzimuth.toFixed(1) +
+    '° · 與池向差 ' +
+    evaluation.azimuthDelta.toFixed(1) +
+    '° · 下射 ' +
+    reflection.reflectedDownwardAngle.toFixed(1) +
+    '°';
 
-  required<HTMLElement>('#downAngle').textContent = reflection.reflectedDownwardAngle.toFixed(1) + '°';
+  required<HTMLElement>('#downAngle').textContent =
+    reflection.reflectedDownwardAngle.toFixed(1) + '°';
   const directionReadout =
-    '方向參考：反射方位與池向差 ' + evaluation.azimuthDelta.toFixed(1)
-      + '°（參考範圍 ±' + study.azimuthTolerance.value.toFixed(0)
-      + '°），反射向下 ' + reflection.reflectedDownwardAngle.toFixed(1)
-      + '°（參考線 ' + study.minimumDownwardAngle.value.toFixed(0) + '°）。';
+    '方向參考：反射方位與池向差 ' +
+    evaluation.azimuthDelta.toFixed(1) +
+    '°（參考範圍 ±' +
+    study.azimuthTolerance.value.toFixed(0) +
+    '°），反射向下 ' +
+    reflection.reflectedDownwardAngle.toFixed(1) +
+    '°（參考線 ' +
+    study.minimumDownwardAngle.value.toFixed(0) +
+    '°）。';
 
-  const diagnosticPrefix = period.key === 'warm'
-    ? '此夏季時刻方向診斷'
-    : '此冬季時刻方向診斷';
+  const diagnosticPrefix = period.key === 'warm' ? '此夏季時刻方向診斷' : '此冬季時刻方向診斷';
   result.classList.toggle('is-warn', period.key === 'warm' && hitsPool);
   if (!reflection.frontLit) {
     resultTitle.textContent = diagnosticPrefix + '：鏡牆背光';
-    resultDetail.textContent = '入射方向位於鏡面背側，沒有有效反射；暖冷季性能仍以 PVGIS TMY 有鏡／無鏡能量差為準。';
+    resultDetail.textContent =
+      '入射方向位於鏡面背側，沒有有效反射；暖冷季性能仍以 PVGIS TMY 有鏡／無鏡能量差為準。';
   } else if (!reflection.reflectedFrontSide) {
     resultTitle.textContent = diagnosticPrefix + '：反射向量未通過 3D 正面檢查';
-    resultDetail.textContent = '反射向量不在鏡面正面半空間，已停止繪製反射光，避免把座標或方向錯誤顯示成穿牆光線。';
+    resultDetail.textContent =
+      '反射向量不在鏡面正面半空間，已停止繪製反射光，避免把座標或方向錯誤顯示成穿牆光線。';
   } else if (hitsPool) {
     resultTitle.textContent = diagnosticPrefix + '：反射光落在池面';
-    resultDetail.textContent = '鏡面反射光投到池面高度的範圍與泳池相交，年度能量分析用的是同一個判定。'
-      + directionReadout
-      + (period.key === 'warm'
+    resultDetail.textContent =
+      '鏡面反射光投到池面高度的範圍與泳池相交，年度能量分析用的是同一個判定。' +
+      directionReadout +
+      (period.key === 'warm'
         ? ' 這是單一時刻，不是整季 kWh 或熱效益結論。'
         : ' 這不是 kWh、照度或熱效益定量。');
   } else {
     resultTitle.innerHTML = diagnosticPrefix + '：<br>反射光未落在池面';
-    resultDetail.textContent = '鏡面反射光投到池面高度的範圍沒有與泳池相交。' + directionReadout
-      + (period.key === 'warm' ? ' 單一時刻未落在池面，不代表整個暖季零增量；仍須看年度能量分析。' : '');
+    resultDetail.textContent =
+      '鏡面反射光投到池面高度的範圍沒有與泳池相交。' +
+      directionReadout +
+      (period.key === 'warm'
+        ? ' 單一時刻未落在池面，不代表整個暖季零增量；仍須看年度能量分析。'
+        : '');
   }
   renderLivePreview();
 }

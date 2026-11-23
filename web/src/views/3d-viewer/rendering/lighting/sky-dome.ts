@@ -52,7 +52,13 @@ export class SkyDome {
 
   constructor() {
     const noise = createCloudNoise();
-    this.noise = new THREE.DataTexture(noise.data, noise.size, noise.size, THREE.RedFormat, THREE.UnsignedByteType);
+    this.noise = new THREE.DataTexture(
+      noise.data,
+      noise.size,
+      noise.size,
+      THREE.RedFormat,
+      THREE.UnsignedByteType,
+    );
     this.noise.name = 'sky:cloud-noise';
     this.noise.wrapS = THREE.RepeatWrapping;
     this.noise.wrapT = THREE.RepeatWrapping;

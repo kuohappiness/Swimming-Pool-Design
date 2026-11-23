@@ -13,37 +13,65 @@ const vite = await createServer({
 test.after(async () => vite.close());
 
 const THREE = await vite.ssrLoadModule('three');
-const {
-  MirrorReflection,
-  createMirrorProbeUniforms,
-  installMirrorProbeParallax,
-} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/mirror-reflection.ts');
-const { MIRROR_FRONT_NORMAL_KEY, MIRROR_SURFACE_NAME } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/contracts.ts');
-const { ENHANCED_QUALITY_PROFILES } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/quality-profiles.ts');
+const { MirrorReflection, createMirrorProbeUniforms, installMirrorProbeParallax } =
+  await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/mirror-reflection.ts');
+const { MIRROR_FRONT_NORMAL_KEY, MIRROR_SURFACE_NAME } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/contracts.ts',
+);
+const { ENHANCED_QUALITY_PROFILES } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/enhanced/quality-profiles.ts',
+);
 
-const REFLECT_ANCHOR = 'reflectVec = transformDirectionByInverseViewMatrix( reflectVec, viewMatrix );';
+const REFLECT_ANCHOR =
+  'reflectVec = transformDirectionByInverseViewMatrix( reflectVec, viewMatrix );';
 
 test('box-projected parallax patches only the mirror material’s environment lookup', () => {
   const pars = THREE.ShaderChunk.envmap_physical_pars_fragment;
   // three.js 改版後這一行不見了，這個測試會先失敗，提醒要重新對照著色器。
-  assert.equal(pars.split(REFLECT_ANCHOR).length, 2, 'three.js still turns the reflection into world space once');
+  assert.equal(
+    pars.split(REFLECT_ANCHOR).length,
+    2,
+    'three.js still turns the reflection into world space once',
+  );
   const uniforms = createMirrorProbeUniforms();
   const material = new THREE.MeshPhysicalMaterial();
   assert.equal(installMirrorProbeParallax(material, uniforms), true);
-  const shader = { fragmentShader: THREE.ShaderLib.physical.fragmentShader, vertexShader: '', uniforms: {} };
+  const shader = {
+    fragmentShader: THREE.ShaderLib.physical.fragmentShader,
+    vertexShader: '',
+    uniforms: {},
+  };
   material.onBeforeCompile(shader, null);
   const source = shader.fragmentShader;
-  assert.ok(!source.includes('#include <envmap_physical_pars_fragment>'), 'the shared chunk is replaced inline');
+  assert.ok(
+    !source.includes('#include <envmap_physical_pars_fragment>'),
+    'the shared chunk is replaced inline',
+  );
   assert.equal(source.split('reflectVec = mirrorProbeParallax( reflectVec );').length, 2);
-  assert.ok(source.indexOf('vec3 mirrorProbeParallax(') < source.indexOf('reflectVec = mirrorProbeParallax('));
-  assert.ok(source.indexOf('mirrorProbeWorldPosition = (') < source.indexOf('#include <lights_fragment_maps>'));
-  assert.equal(shader.uniforms.uMirrorProbeBoxMin, uniforms.uMirrorProbeBoxMin, 'shared, not copied');
+  assert.ok(
+    source.indexOf('vec3 mirrorProbeParallax(') <
+      source.indexOf('reflectVec = mirrorProbeParallax('),
+  );
+  assert.ok(
+    source.indexOf('mirrorProbeWorldPosition = (') <
+      source.indexOf('#include <lights_fragment_maps>'),
+  );
+  assert.equal(
+    shader.uniforms.uMirrorProbeBoxMin,
+    uniforms.uMirrorProbeBoxMin,
+    'shared, not copied',
+  );
   assert.ok(material.customProgramCacheKey().endsWith('|mirror-probe-parallax'));
   // three.js 自己的共用片段沒有被改。
   assert.equal(THREE.ShaderChunk.envmap_physical_pars_fragment, pars);
 
-  const unfamiliar = { envmap_physical_pars_fragment: 'vec3 getIBLRadiance() { return vec3(0.0); }' };
-  assert.equal(installMirrorProbeParallax(new THREE.MeshPhysicalMaterial(), uniforms, unfamiliar), false);
+  const unfamiliar = {
+    envmap_physical_pars_fragment: 'vec3 getIBLRadiance() { return vec3(0.0); }',
+  };
+  assert.equal(
+    installMirrorProbeParallax(new THREE.MeshPhysicalMaterial(), uniforms, unfamiliar),
+    false,
+  );
 });
 
 class FakeProbe {
@@ -62,7 +90,11 @@ class FakeProbe {
   }
 
   capture(scene, position, hidden) {
-    this.captures.push({ position: position.clone(), hidden: [...hidden], hiddenVisible: hidden.map((object) => object.visible) });
+    this.captures.push({
+      position: position.clone(),
+      hidden: [...hidden],
+      hiddenVisible: hidden.map((object) => object.visible),
+    });
   }
 
   dispose() {
@@ -77,7 +109,10 @@ function fixture() {
   siteRoot.rotation.y = 0.6;
   siteRoot.scale.set(1, 1, -1);
   scene.add(siteRoot);
-  const ground = new THREE.Mesh(new THREE.BoxGeometry(60, 0.2, 40), new THREE.MeshStandardMaterial());
+  const ground = new THREE.Mesh(
+    new THREE.BoxGeometry(60, 0.2, 40),
+    new THREE.MeshStandardMaterial(),
+  );
   ground.name = 'CUTAWAY-HIDE-SITE-GROUND';
   ground.position.set(20, -0.1, 10);
   siteRoot.add(ground);
@@ -88,11 +123,19 @@ function fixture() {
   const mirror = new THREE.Mesh(new THREE.PlaneGeometry(13.5, 3.6), material);
   mirror.name = MIRROR_SURFACE_NAME;
   mirror.position.set(30, 8.7, 6.75);
-  const lean = 23 * Math.PI / 180;
+  const lean = (23 * Math.PI) / 180;
   mirror.userData[MIRROR_FRONT_NORMAL_KEY] = [-Math.cos(lean), -Math.sin(lean), 0];
   layer.add(mirror);
   scene.updateMatrixWorld(true);
-  return { scene, siteRoot, layer, mirror, material, environment, context: { scene, siteRoot, worldRoot: siteRoot, layerGroups: new Map() } };
+  return {
+    scene,
+    siteRoot,
+    layer,
+    mirror,
+    material,
+    environment,
+    context: { scene, siteRoot, worldRoot: siteRoot, layerGroups: new Map() },
+  };
 }
 
 test('the mirror gets its own probe in front of it and recaptures only when told to', () => {
@@ -119,15 +162,26 @@ test('the mirror gets its own probe in front of it and recaptures only when told
   const [first] = probe.captures;
   assert.deepEqual(first.hidden, [mirror], 'the mirror never photographs itself');
   // 探針在鏡面中心沿正面法線往外 0.6 m（世界座標）。
-  const normal = new THREE.Vector3(...mirror.userData[MIRROR_FRONT_NORMAL_KEY]).transformDirection(mirror.matrixWorld);
+  const normal = new THREE.Vector3(...mirror.userData[MIRROR_FRONT_NORMAL_KEY]).transformDirection(
+    mirror.matrixWorld,
+  );
   const expected = mirror.getWorldPosition(new THREE.Vector3()).addScaledVector(normal, 0.6);
-  assert.ok(first.position.distanceTo(expected) < 1e-9, `${first.position.toArray()} vs ${expected.toArray()}`);
+  assert.ok(
+    first.position.distanceTo(expected) < 1e-9,
+    `${first.position.toArray()} vs ${expected.toArray()}`,
+  );
   // 視差修正的盒子在 SITE 根節點的座標裡包住探針，地面就是盒底。
-  const uniforms = material.onBeforeCompile && (() => {
-    const shader = { fragmentShader: THREE.ShaderLib.physical.fragmentShader, vertexShader: '', uniforms: {} };
-    material.onBeforeCompile(shader, null);
-    return shader.uniforms;
-  })();
+  const uniforms =
+    material.onBeforeCompile &&
+    (() => {
+      const shader = {
+        fragmentShader: THREE.ShaderLib.physical.fragmentShader,
+        vertexShader: '',
+        uniforms: {},
+      };
+      material.onBeforeCompile(shader, null);
+      return shader.uniforms;
+    })();
   const local = uniforms.uMirrorProbePosition.value;
   assert.ok(local.distanceTo(siteRoot.worldToLocal(first.position.clone())) < 1e-9);
   const box = new THREE.Box3(uniforms.uMirrorProbeBoxMin.value, uniforms.uMirrorProbeBoxMax.value);
@@ -163,7 +217,9 @@ test('the mirror gets its own probe in front of it and recaptures only when told
 });
 
 test('a scene without the mirror, or a mirror without a front, is handled plainly', () => {
-  const reflection = new MirrorReflection(ENHANCED_QUALITY_PROFILES.medium, { createProbe: (size) => new FakeProbe(size) });
+  const reflection = new MirrorReflection(ENHANCED_QUALITY_PROFILES.medium, {
+    createProbe: (size) => new FakeProbe(size),
+  });
   const scene = new THREE.Scene();
   const siteRoot = new THREE.Group();
   scene.add(siteRoot);
@@ -175,8 +231,14 @@ test('a scene without the mirror, or a mirror without a front, is handled plainl
   const { mirror, context } = fixture();
   delete mirror.userData[MIRROR_FRONT_NORMAL_KEY];
   assert.throws(
-    () => new MirrorReflection(ENHANCED_QUALITY_PROFILES.medium, { createProbe: (size) => new FakeProbe(size) }).attach(context),
+    () =>
+      new MirrorReflection(ENHANCED_QUALITY_PROFILES.medium, {
+        createProbe: (size) => new FakeProbe(size),
+      }).attach(context),
     /front normal/,
   );
-  assert.throws(() => new MirrorReflection(ENHANCED_QUALITY_PROFILES.medium, {}), /renderer or a reflection probe/);
+  assert.throws(
+    () => new MirrorReflection(ENHANCED_QUALITY_PROFILES.medium, {}),
+    /renderer or a reflection probe/,
+  );
 });

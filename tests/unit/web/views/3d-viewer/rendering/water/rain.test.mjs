@@ -16,22 +16,37 @@ test.after(async () => vite.close());
 
 const THREE = await vite.ssrLoadModule('three');
 const rainModule = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/water/rain.ts');
-const { RAIN_CURTAIN_NAME, RAIN_CURTAIN_SCHEMATIC_NAME } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/contracts.ts');
-const { createGlossyFilmMaterial } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/glossy-film-material.ts');
-const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+const { RAIN_CURTAIN_NAME, RAIN_CURTAIN_SCHEMATIC_NAME } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/contracts.ts',
+);
+const { createGlossyFilmMaterial } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/enhanced/glossy-film-material.ts',
+);
+const { computeSunLighting } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
+);
 const { createViewerScene } = await vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts');
-const { createBaselineSceneRenderingDependencies } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts');
+const { createBaselineSceneRenderingDependencies } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/index.ts',
+);
 
 const sourceModel = JSON.parse(readFileSync(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
-const registry = JSON.parse(readFileSync(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'));
+const registry = JSON.parse(
+  readFileSync(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'),
+);
 const viewerModel = buildViewerModel(sourceModel, registry);
 const site = sourceModel.referenceSystem.siteLocation;
 const at = (time, weather) => {
   const [hour, minute] = time.split(':').map(Number);
   return computeSunLighting({
     moment: { year: 2026, month: 6, day: 10, minutes: hour * 60 + minute },
-    location: { latitude: site.latitude.value, longitude: site.longitude.value, utcOffsetHours: site.utcOffsetHours },
-    positiveXAxisBearingFromTrueNorth: viewerModel.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+    location: {
+      latitude: site.latitude.value,
+      longitude: site.longitude.value,
+      utcOffsetHours: site.utcOffsetHours,
+    },
+    positiveXAxisBearingFromTrueNorth:
+      viewerModel.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
     weather,
   });
 };
@@ -70,7 +85,9 @@ test('the rain curtain hangs from the low end of the roof into the catch trench,
   assert.equal(schematic.parent, curtain.parent);
   assert.equal(curtain.parent.userData.entityId, 'RC-RF-01');
   let lines = 0;
-  schematic.traverse((object) => { if (object.isLine) lines += 1; });
+  schematic.traverse((object) => {
+    if (object.isLine) lines += 1;
+  });
   assert.ok(lines > 0, 'the schematic group still holds its lines after batching');
 });
 
@@ -85,7 +102,11 @@ test('rain shows from the medium tier up and only when it rains; the saver tier 
   assert.equal(rain.install(glass), true);
   assert.equal(rain.install(glass), true, 'installing twice is harmless');
   const placeholder = curtain.material;
-  const sharedKey = createGlossyFilmMaterial({ color: 0xffffff, roughness: 0.1, opacity: 0.1 }).customProgramCacheKey();
+  const sharedKey = createGlossyFilmMaterial({
+    color: 0xffffff,
+    roughness: 0.1,
+    opacity: 0.1,
+  }).customProgramCacheKey();
 
   // 還沒設畫質之前當作省電級：不編進雨，屋頂玻璃和其他玻璃共用同一支程式，雨簾也還沒換材質。
   assert.equal(rain.state, 'none');
@@ -145,14 +166,23 @@ test('rain on glass patches the standard shader after the glossy film, and the u
   assert.equal(shader.uniforms.uRainAmount, uniforms.uRainAmount);
   assert.equal(shader.uniforms.uRainTime, uniforms.uRainTime);
   // 玻璃的薄膜混合還在；水的法線接在法線貼圖之後、光照之前，菲涅耳倒影才會被水珠打碎。
-  assert.ok(!shader.fragmentShader.includes('#include <opaque_fragment>'), 'glossy film still patched');
+  assert.ok(
+    !shader.fragmentShader.includes('#include <opaque_fragment>'),
+    'glossy film still patched',
+  );
   const normalAt = shader.fragmentShader.indexOf('#include <normal_fragment_maps>');
   const rainAt = shader.fragmentShader.indexOf('rainHeight( rainPoint');
   const lightsAt = shader.fragmentShader.indexOf('#include <lights_fragment_begin>');
   assert.ok(normalAt >= 0 && rainAt > normalAt && lightsAt > rainAt);
   assert.match(shader.fragmentShader, /float rainHeight\( vec2 p, float t, float slope \)/);
-  assert.match(shader.vertexShader, /vRainWorld = \( modelMatrix \* vec4\( transformed, 1\.0 \) \)\.xyz;/);
-  assert.ok(shader.vertexShader.indexOf('vRainNormal = ') > shader.vertexShader.indexOf('#include <project_vertex>'));
+  assert.match(
+    shader.vertexShader,
+    /vRainWorld = \( modelMatrix \* vec4\( transformed, 1\.0 \) \)\.xyz;/,
+  );
+  assert.ok(
+    shader.vertexShader.indexOf('vRainNormal = ') >
+      shader.vertexShader.indexOf('#include <project_vertex>'),
+  );
 
   program.compiled = false;
   const off = standardShader();
@@ -161,8 +191,17 @@ test('rain on glass patches the standard shader after the glossy film, and the u
   assert.ok(!off.fragmentShader.includes('rainHeight'));
   assert.ok(!off.vertexShader.includes('vRainWorld'));
 
-  assert.equal(rainModule.installRainOnGlass(new THREE.MeshBasicMaterial(), uniforms, program), false);
-  assert.equal(rainModule.patchRainOnGlassShader({ vertexShader: 'void main() {}', fragmentShader: 'void main() {}' }), false);
+  assert.equal(
+    rainModule.installRainOnGlass(new THREE.MeshBasicMaterial(), uniforms, program),
+    false,
+  );
+  assert.equal(
+    rainModule.patchRainOnGlassShader({
+      vertexShader: 'void main() {}',
+      fragmentShader: 'void main() {}',
+    }),
+    false,
+  );
 });
 
 test('the rain curtain catches the cloudy sky by day and dims at night', () => {

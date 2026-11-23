@@ -28,8 +28,8 @@ function createWaves() {
   const waves = [];
   while (waves.length < WAVE_COUNT) {
     // 波數取整數，圖的左右、上下邊才接得起來。
-    const magnitude = MINIMUM_WAVE_NUMBER
-      + (MAXIMUM_WAVE_NUMBER - MINIMUM_WAVE_NUMBER) * random() ** 2;
+    const magnitude =
+      MINIMUM_WAVE_NUMBER + (MAXIMUM_WAVE_NUMBER - MINIMUM_WAVE_NUMBER) * random() ** 2;
     const angle = random() * Math.PI * 2;
     const kx = Math.round(Math.cos(angle) * magnitude);
     const ky = Math.round(Math.sin(angle) * magnitude);
@@ -77,14 +77,20 @@ export function rippleSlopeField() {
     squared += slopeX[index] ** 2 + slopeY[index] ** 2;
   }
   // 坡度乘上 scale 才是實際值；分開回傳，使用端以雙精度相乘，法線貼圖的像素才不會因捨入而變動。
-  return { size: SIZE, slopeX, slopeY, scale: TARGET_RMS_SLOPE / Math.sqrt(squared / slopeX.length) };
+  return {
+    size: SIZE,
+    slopeX,
+    slopeY,
+    scale: TARGET_RMS_SLOPE / Math.sqrt(squared / slopeX.length),
+  };
 }
 
 export const waterRippleNormal = Object.freeze({
   manifest: Object.freeze({
     id: 'material-water-ripple-normal-v1',
     kind: 'texture',
-    purpose: 'Seamless isotropic ripple normal map sampled at two scales by the water surface shader.',
+    purpose:
+      'Seamless isotropic ripple normal map sampled at two scales by the water surface shader.',
     localPath: 'assets/materials/water/ripple-normal.ktx2',
     source: 'project-authored:tools/build/textures/water-ripple-normal.mjs',
     author: 'Swimming Pool Design contributors',

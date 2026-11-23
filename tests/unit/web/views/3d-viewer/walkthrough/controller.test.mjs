@@ -18,10 +18,7 @@ const [
   { TouchInput },
   { PlayerController, advancePlayerFrame },
   { WALKTHROUGH_CONFIG },
-  {
-    adaptRenderQualityProfile,
-    getWalkthroughCapabilityProfile,
-  },
+  { adaptRenderQualityProfile, getWalkthroughCapabilityProfile },
 ] = await Promise.all([
   vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/camera-mode-manager.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/walkthrough/fixed-step-loop.ts'),
@@ -169,35 +166,64 @@ test('desktop and touch adapters normalize equivalent movement and clear transie
   touch.start();
   fakeWindow.dispatchEvent(inputEvent('keydown', { code: 'KeyW' }));
   fakeWindow.dispatchEvent(inputEvent('keydown', { code: 'KeyD' }));
-  moveSurface.dispatchEvent(inputEvent('pointerdown', {
-    pointerId: 1, clientX: 100, clientY: 100,
-  }));
-  moveSurface.dispatchEvent(inputEvent('pointermove', {
-    pointerId: 1, clientX: 164, clientY: 36,
-  }));
+  moveSurface.dispatchEvent(
+    inputEvent('pointerdown', {
+      pointerId: 1,
+      clientX: 100,
+      clientY: 100,
+    }),
+  );
+  moveSurface.dispatchEvent(
+    inputEvent('pointermove', {
+      pointerId: 1,
+      clientX: 164,
+      clientY: 36,
+    }),
+  );
   const desktopIntent = desktop.readIntent();
   const touchIntent = touch.readIntent();
   assert.ok(Math.abs(desktopIntent.moveX - touchIntent.moveX) < 1e-9);
   assert.ok(Math.abs(desktopIntent.moveZ - touchIntent.moveZ) < 1e-9);
 
-  canvas.dispatchEvent(inputEvent('pointerdown', {
-    button: 0, pointerId: 9, clientX: 20, clientY: 20,
-  }));
-  canvas.dispatchEvent(inputEvent('pointermove', {
-    pointerId: 9, clientX: 32, clientY: 26,
-  }));
+  canvas.dispatchEvent(
+    inputEvent('pointerdown', {
+      button: 0,
+      pointerId: 9,
+      clientX: 20,
+      clientY: 20,
+    }),
+  );
+  canvas.dispatchEvent(
+    inputEvent('pointermove', {
+      pointerId: 9,
+      clientX: 32,
+      clientY: 26,
+    }),
+  );
   await Promise.resolve();
   const dragLook = desktop.readIntent();
   assert.equal(canvas.pointerLockRequests, 1);
-  assert.notEqual(dragLook.lookYaw, 0, 'drag-look must remain available when pointer lock is denied');
+  assert.notEqual(
+    dragLook.lookYaw,
+    0,
+    'drag-look must remain available when pointer lock is denied',
+  );
   assert.notEqual(dragLook.lookPitch, 0);
 
-  lookSurface.dispatchEvent(inputEvent('pointerdown', {
-    pointerId: 2, clientX: 200, clientY: 100,
-  }));
-  lookSurface.dispatchEvent(inputEvent('pointermove', {
-    pointerId: 2, clientX: 216, clientY: 108,
-  }));
+  lookSurface.dispatchEvent(
+    inputEvent('pointerdown', {
+      pointerId: 2,
+      clientX: 200,
+      clientY: 100,
+    }),
+  );
+  lookSurface.dispatchEvent(
+    inputEvent('pointermove', {
+      pointerId: 2,
+      clientX: 216,
+      clientY: 108,
+    }),
+  );
   assert.notEqual(touch.readIntent().lookYaw, 0);
   lookSurface.dispatchEvent(inputEvent('pointercancel', { pointerId: 2 }));
   moveSurface.dispatchEvent(inputEvent('pointercancel', { pointerId: 1 }));
@@ -233,16 +259,21 @@ test('fixed-step movement is stable across render deltas and caps delayed frames
     const player = new PlayerController(WALKTHROUGH_CONFIG, strategy);
     const loop = new FixedStepLoop(1 / 120, 0.1, 20);
     for (let frame = 0; frame < frames; frame += 1) {
-      loop.advance(renderDelta, (step) => player.step({
-        moveX: 0.6,
-        moveZ: -0.8,
-        lookYaw: 0,
-        lookPitch: 0,
-        ascend: 0,
-        descend: 0,
-        fast: false,
-        exitRequested: false,
-      }, step));
+      loop.advance(renderDelta, (step) =>
+        player.step(
+          {
+            moveX: 0.6,
+            moveZ: -0.8,
+            lookYaw: 0,
+            lookPitch: 0,
+            ascend: 0,
+            descend: 0,
+            fast: false,
+            exitRequested: false,
+          },
+          step,
+        ),
+      );
     }
     return player.state.position;
   };
@@ -256,7 +287,9 @@ test('fixed-step movement is stable across render deltas and caps delayed frames
 
   const capped = new FixedStepLoop(1 / 120, 0.1, 8);
   let steps = 0;
-  const result = capped.advance(2, () => { steps += 1; });
+  const result = capped.advance(2, () => {
+    steps += 1;
+  });
   assert.equal(steps, 8);
   assert.ok(result.droppedTimeSeconds > 1.9);
   assert.ok(result.alpha >= 0 && result.alpha < 1);
@@ -280,14 +313,19 @@ test('view turns every rendered frame, including frames that run no physics step
   const loop = new FixedStepLoop(1 / 120, 0.1, 8);
   let framesWithoutStep = 0;
   for (let frame = 0; frame < 240; frame += 1) {
-    const result = advancePlayerFrame(player, loop, { ...idleIntent, lookYaw: 0.001, lookPitch: 0.0005 }, 1 / 240);
+    const result = advancePlayerFrame(
+      player,
+      loop,
+      { ...idleIntent, lookYaw: 0.001, lookPitch: 0.0005 },
+      1 / 240,
+    );
     if (result.steps === 0) framesWithoutStep += 1;
   }
   assert.ok(framesWithoutStep > 0, 'the scenario must include frames with no physics step');
   assert.ok(Math.abs(player.state.yaw - 0.24) < 1e-9);
   assert.ok(Math.abs(player.state.pitch - 0.12) < 1e-9);
 
-  const limit = WALKTHROUGH_CONFIG.player.maxPitchDegrees * Math.PI / 180;
+  const limit = (WALKTHROUGH_CONFIG.player.maxPitchDegrees * Math.PI) / 180;
   player.look(0, 10);
   assert.equal(player.state.pitch, limit);
   player.look(Number.NaN, Number.POSITIVE_INFINITY);
@@ -309,7 +347,11 @@ test('walkthrough keys leave browser shortcuts and focused controls alone', () =
     fakeWindow.dispatchEvent(inputEvent('keydown', { code, ctrlKey: true }));
   }
   assert.equal(desktop.readIntent().descend, 0);
-  for (const [code, modifier] of [['KeyW', 'ctrlKey'], ['KeyS', 'metaKey'], ['KeyD', 'altKey']]) {
+  for (const [code, modifier] of [
+    ['KeyW', 'ctrlKey'],
+    ['KeyS', 'metaKey'],
+    ['KeyD', 'altKey'],
+  ]) {
     const shortcut = inputEvent('keydown', { code, [modifier]: true });
     fakeWindow.dispatchEvent(shortcut);
     assert.equal(shortcut.defaultPrevented, false, `${modifier}+${code} must reach the browser`);

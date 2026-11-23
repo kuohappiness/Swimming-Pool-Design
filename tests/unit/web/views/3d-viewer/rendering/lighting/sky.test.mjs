@@ -14,12 +14,22 @@ const vite = await createServer({
 });
 test.after(async () => vite.close());
 
-const { createCloudNoise } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/cloud-noise.ts');
-const { deriveSkyParameters } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sky-parameters.ts');
+const { createCloudNoise } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/cloud-noise.ts',
+);
+const { deriveSkyParameters } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/sky-parameters.ts',
+);
 const { SkyDome } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sky-dome.ts');
-const { isReflectionCapture, markReflectionCapture } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/reflection-capture.ts');
-const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
-const { toSceneLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/scene-lighting.ts');
+const { isReflectionCapture, markReflectionCapture } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/reflection-capture.ts',
+);
+const { computeSunLighting } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
+);
+const { toSceneLighting } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/scene-lighting.ts',
+);
 
 const model = JSON.parse(readFileSync(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const siteLocation = model.referenceSystem.siteLocation;
@@ -32,7 +42,8 @@ const at = (month, day, time, weather = 'clear') => {
       longitude: siteLocation.longitude.value,
       utcOffsetHours: siteLocation.utcOffsetHours,
     },
-    positiveXAxisBearingFromTrueNorth: model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+    positiveXAxisBearingFromTrueNorth:
+      model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
     weather,
   });
 };
@@ -69,7 +80,12 @@ test('cloud noise is reproducible, tiles in both directions and uses the whole r
   assert.ok(seam <= Math.max(inside, 12) + 12, `seam ${seam} vs inside ${inside}`);
   const values = [...noise.data];
   assert.ok(Math.min(...values) < 40 && Math.max(...values) > 215);
-  for (const bad of [[0, 8], [64, 0], [64, 7], [64.5, 8]]) {
+  for (const bad of [
+    [0, 8],
+    [64, 0],
+    [64, 7],
+    [64.5, 8],
+  ]) {
     assert.throws(() => createCloudNoise(...bad), RangeError);
   }
 });
@@ -121,19 +137,29 @@ test('sky values stay finite and non-negative through a whole day, and clouds dr
   let previous = null;
   for (let minutes = 0; minutes < 1440; minutes += 10) {
     for (const weather of ['clear', 'overcast', 'rain']) {
-      const sky = deriveSkyParameters(computeSunLighting({
-        moment: { year: 2026, month: 9, day: 23, minutes },
-        location: {
-          latitude: siteLocation.latitude.value,
-          longitude: siteLocation.longitude.value,
-          utcOffsetHours: siteLocation.utcOffsetHours,
-        },
-        positiveXAxisBearingFromTrueNorth: model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
-        weather,
-      }));
+      const sky = deriveSkyParameters(
+        computeSunLighting({
+          moment: { year: 2026, month: 9, day: 23, minutes },
+          location: {
+            latitude: siteLocation.latitude.value,
+            longitude: siteLocation.longitude.value,
+            utcOffsetHours: siteLocation.utcOffsetHours,
+          },
+          positiveXAxisBearingFromTrueNorth:
+            model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+          weather,
+        }),
+      );
       for (const value of [
-        ...sky.sunDiscColor, ...sky.twilightColor, ...sky.nightColor, ...sky.moonColor,
-        ...sky.cloudLit, ...sky.cloudShade, ...sky.groundColor, sky.stars, sky.cloudCover,
+        ...sky.sunDiscColor,
+        ...sky.twilightColor,
+        ...sky.nightColor,
+        ...sky.moonColor,
+        ...sky.cloudLit,
+        ...sky.cloudShade,
+        ...sky.groundColor,
+        sky.stars,
+        sky.cloudCover,
       ]) {
         assert.ok(Number.isFinite(value) && value >= 0, `${weather} ${minutes}: ${value}`);
       }
@@ -201,7 +227,14 @@ test('the environment source shares the sky but leaves out the sun disc, the moo
     assert.ok(visible.uSunDirection.value.distanceTo(day.sunDirection) < 1e-12);
     assert.ok(visible.uSunDiscColor.value.length() > 10);
     assert.equal(environment.uSunDiscColor.value.length(), 0);
-    for (const name of ['uSunDirection', 'uCloudCover', 'uCloudLit', 'uNightColor', 'uGroundColor', 'uNoise']) {
+    for (const name of [
+      'uSunDirection',
+      'uCloudCover',
+      'uCloudLit',
+      'uNightColor',
+      'uGroundColor',
+      'uNoise',
+    ]) {
       assert.equal(environment[name], visible[name], name);
     }
 
@@ -209,7 +242,10 @@ test('the environment source shares the sky but leaves out the sun disc, the moo
     dome.update(night);
     assert.ok(visible.uStars.value > 0.5);
     assert.ok(visible.uMoonColor.value.length() > 1);
-    assert.ok(visible.uSunDirection.value.y < 0, 'the sky uses the real sun, below the horizon at night');
+    assert.ok(
+      visible.uSunDirection.value.y < 0,
+      'the sky uses the real sun, below the horizon at night',
+    );
     assert.ok(visible.uMoonDirection.value.y > 0.5);
     assert.equal(visible.uSunDiscColor.value.length(), 0);
     assert.equal(environment.uStars.value, 0);

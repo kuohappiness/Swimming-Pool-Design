@@ -21,7 +21,16 @@ test('public site has one HTML entry and eight query views', async () => {
   await assert.rejects(access(resolve(repoRoot, 'web/3d-viewer/index.html'), constants.F_OK));
   assert.match(viteSource, /input:\s*resolve\(webRoot,\s*'index\.html'\)/);
   assert.doesNotMatch(viteSource, /solarStudy:|viewer3d:|atlas:/);
-  for (const view of ['design-concept', 'solar-study', 'water-cycle', 'swim-class', 'design-process', 'drawings', '3d-viewer', 'about']) {
+  for (const view of [
+    'design-concept',
+    'solar-study',
+    'water-cycle',
+    'swim-class',
+    'design-process',
+    'drawings',
+    '3d-viewer',
+    'about',
+  ]) {
     assert.match(routerSource, new RegExp(`'${view}'`));
     assert.match(bootstrapSource, new RegExp(`(?:'${view}'|\\b${view})\\s*:`));
   }

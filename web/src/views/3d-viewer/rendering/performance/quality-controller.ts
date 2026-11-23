@@ -31,7 +31,11 @@ export interface QualityState {
 }
 
 export type QualityEvent =
-  | { readonly kind: 'resolution'; readonly state: QualityState; readonly direction: 'lower' | 'raise' }
+  | {
+      readonly kind: 'resolution';
+      readonly state: QualityState;
+      readonly direction: 'lower' | 'raise';
+    }
   | {
       readonly kind: 'effects';
       readonly state: QualityState;
@@ -66,7 +70,10 @@ export class QualityController {
   private tierSource: QualityTierSource;
   private governor: FrameGovernor;
   /** 自動降級之前的級別；沒有自動降過時是 null。 */
-  private tierBeforeAutomaticLowering: { readonly tier: RealismTierId; readonly source: QualityTierSource } | null = null;
+  private tierBeforeAutomaticLowering: {
+    readonly tier: RealismTierId;
+    readonly source: QualityTierSource;
+  } | null = null;
 
   constructor(options: QualityControllerOptions) {
     assertTierId(options.selection.tier);
@@ -102,9 +109,10 @@ export class QualityController {
   select(selection: TierSelection): QualityEvent | null {
     assertTierId(selection.tier);
     const previous = this.tierId;
-    const unchanged = previous === selection.tier
-      && this.governor.state.resolutionScale === 1
-      && this.governor.state.shed.length === 0;
+    const unchanged =
+      previous === selection.tier &&
+      this.governor.state.resolutionScale === 1 &&
+      this.governor.state.shed.length === 0;
     this.tierSource = selection.source;
     this.tierBeforeAutomaticLowering = null;
     if (unchanged) return null;
@@ -152,7 +160,12 @@ export class QualityController {
         this.tierId = restore.tier;
         this.tierSource = restore.source;
         this.governor = this.createGovernor(this.governor.displayIntervalMilliseconds);
-        return Object.freeze({ kind: 'tier', state: this.state, previous, reason: 'display-limited' });
+        return Object.freeze({
+          kind: 'tier',
+          state: this.state,
+          previous,
+          reason: 'display-limited',
+        });
       }
       default:
         return null;

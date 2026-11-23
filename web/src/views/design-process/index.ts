@@ -105,10 +105,14 @@ function section(id: string): ProcessSection {
 function renderTimeline({ items }: ProcessSection): string {
   return `
     <ol class="process-timeline">
-      ${items.map((item) => {
-        const [when, name] = item.title.split(TITLE_SEPARATOR);
-        if (!when || !name) throw new TypeError(`Timeline title needs "<when>${TITLE_SEPARATOR}<name>": ${item.title}`);
-        return `
+      ${items
+        .map((item) => {
+          const [when, name] = item.title.split(TITLE_SEPARATOR);
+          if (!when || !name)
+            throw new TypeError(
+              `Timeline title needs "<when>${TITLE_SEPARATOR}<name>": ${item.title}`,
+            );
+          return `
           <li class="process-milestone" id="${anchorFor(item.id)}">
             <p class="process-when">${when}</p>
             <div class="process-milestone-body">
@@ -117,7 +121,8 @@ function renderTimeline({ items }: ProcessSection): string {
             </div>
           </li>
         `;
-      }).join('')}
+        })
+        .join('')}
     </ol>
   `;
 }
@@ -151,25 +156,30 @@ function renderVersionMedia(image: VersionImage): string {
 
 /** Each version item is three paragraphs: a bold stage label followed by the caption for one image. */
 function renderVersions({ items }: ProcessSection): string {
-  return items.map((item, itemIndex) => {
-    const images = versionImages[itemIndex];
-    const template = document.createElement('template');
-    template.innerHTML = item.html;
-    const paragraphs = [...template.content.children].filter((child) => child.tagName === 'P');
-    if (!images || paragraphs.length !== images.length) {
-      throw new TypeError(`Version item "${item.title}" needs one paragraph per image.`);
-    }
-    return `
+  return items
+    .map((item, itemIndex) => {
+      const images = versionImages[itemIndex];
+      const template = document.createElement('template');
+      template.innerHTML = item.html;
+      const paragraphs = [...template.content.children].filter((child) => child.tagName === 'P');
+      if (!images || paragraphs.length !== images.length) {
+        throw new TypeError(`Version item "${item.title}" needs one paragraph per image.`);
+      }
+      return `
       <article class="process-version" id="${anchorFor(item.id)}" aria-labelledby="${anchorFor(item.id)}-title">
         <h3 id="${anchorFor(item.id)}-title">${item.title}</h3>
         <div class="process-version-row">
-          ${paragraphs.map((paragraph, index) => {
-            const image = images[index];
-            const label = paragraph.querySelector('strong');
-            const stage = label?.textContent?.trim();
-            if (!stage) throw new TypeError(`Version paragraph ${index + 1} of "${item.title}" needs a bold label.`);
-            label?.remove();
-            return `
+          ${paragraphs
+            .map((paragraph, index) => {
+              const image = images[index];
+              const label = paragraph.querySelector('strong');
+              const stage = label?.textContent?.trim();
+              if (!stage)
+                throw new TypeError(
+                  `Version paragraph ${index + 1} of "${item.title}" needs a bold label.`,
+                );
+              label?.remove();
+              return `
               <figure
                 class="process-version-figure"
                 data-process-stage="${index + 1}"
@@ -182,23 +192,29 @@ function renderVersions({ items }: ProcessSection): string {
                 </figcaption>
               </figure>
             `;
-          }).join('')}
+            })
+            .join('')}
         </div>
       </article>
     `;
-  }).join('');
+    })
+    .join('');
 }
 
 function renderCards({ items }: ProcessSection, modifier: string): string {
   return `
     <div class="process-cards site-cards${modifier === 'open' ? '' : ' site-cards--two'} process-cards--${modifier}">
-      ${items.map((item, index) => `
+      ${items
+        .map(
+          (item, index) => `
         <article class="process-card site-card" id="${anchorFor(item.id)}">
           <p class="process-card-number site-card-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</p>
           <h3>${item.title}</h3>
           ${item.html}
         </article>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
   `;
 }
@@ -225,7 +241,9 @@ export function mount(container: HTMLElement): MountedView {
       </ol>
     </nav>
     <div class="process-sections site-chapters" data-content-hash="${content.contentHash}">
-      ${sections.map((current) => `
+      ${sections
+        .map(
+          (current) => `
         <section
           class="process-section site-chapter process-section--${current.id}"
           id="${anchorFor(current.id)}"
@@ -237,7 +255,9 @@ export function mount(container: HTMLElement): MountedView {
           </header>
           ${renderSectionBody(current)}
         </section>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
   `;
   markExternalLinks(container, '.process-section');

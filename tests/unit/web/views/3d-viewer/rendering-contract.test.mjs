@@ -93,10 +93,18 @@ test('baseline environment and frame pipeline preserve direct-render behavior an
     const renderer = {
       shadowMap: {},
       outputColorSpace: '',
-      setPixelRatio(value) { calls.push(['pixelRatio', value]); },
-      setSize(width, height, updateStyle) { calls.push(['size', width, height, updateStyle]); },
-      render(targetScene, camera) { calls.push(['render', targetScene, camera]); },
-      resetState() { calls.push(['reset']); },
+      setPixelRatio(value) {
+        calls.push(['pixelRatio', value]);
+      },
+      setSize(width, height, updateStyle) {
+        calls.push(['size', width, height, updateStyle]);
+      },
+      render(targetScene, camera) {
+        calls.push(['render', targetScene, camera]);
+      },
+      resetState() {
+        calls.push(['reset']);
+      },
     };
     const pipeline = new BaselineFrameEffectPipeline(renderer, BASELINE_QUALITY_PROFILE);
     pipeline.resize(800, 600, 3);
@@ -116,7 +124,8 @@ test('baseline environment and frame pipeline preserve direct-render behavior an
   }
 });
 
-const approvedDecision = '| DEC-120 | 允許平行開發，使用獨立 branch／worktree | boundary | confirmed parallel-development boundary |';
+const approvedDecision =
+  '| DEC-120 | 允許平行開發，使用獨立 branch／worktree | boundary | confirmed parallel-development boundary |';
 const approvedSpec = `# Visual
 
 - 日期：2026-07-24
@@ -135,35 +144,50 @@ function taskRow(id, target) {
 }
 
 test('docs task concurrency accepts only the approved isolated 0.7/0.8 pairing', () => {
-  assert.deepEqual(validateTaskConcurrency({
-    taskRows: [taskRow('TASK-054', '0.7.0'), taskRow('TASK-060', '0.8.0')],
-    decisionContent: approvedDecision,
-    activeSpecContents: [approvedSpec],
-  }), []);
+  assert.deepEqual(
+    validateTaskConcurrency({
+      taskRows: [taskRow('TASK-054', '0.7.0'), taskRow('TASK-060', '0.8.0')],
+      decisionContent: approvedDecision,
+      activeSpecContents: [approvedSpec],
+    }),
+    [],
+  );
 
-  assert.match(validateTaskConcurrency({
-    taskRows: [taskRow('TASK-054', '0.7.0'), taskRow('TASK-055', '0.7.0')],
-    decisionContent: approvedDecision,
-    activeSpecContents: [approvedSpec],
-  }).join('\n'), /at most one in_progress task for 0\.7\.0/);
+  assert.match(
+    validateTaskConcurrency({
+      taskRows: [taskRow('TASK-054', '0.7.0'), taskRow('TASK-055', '0.7.0')],
+      decisionContent: approvedDecision,
+      activeSpecContents: [approvedSpec],
+    }).join('\n'),
+    /at most one in_progress task for 0\.7\.0/,
+  );
 
-  assert.match(validateTaskConcurrency({
-    taskRows: [taskRow('TASK-054', '0.7.0'), taskRow('TASK-999', 'next')],
-    decisionContent: approvedDecision,
-    activeSpecContents: [approvedSpec],
-  }).join('\n'), /unknown parallel target next/);
+  assert.match(
+    validateTaskConcurrency({
+      taskRows: [taskRow('TASK-054', '0.7.0'), taskRow('TASK-999', 'next')],
+      decisionContent: approvedDecision,
+      activeSpecContents: [approvedSpec],
+    }).join('\n'),
+    /unknown parallel target next/,
+  );
 
-  assert.match(validateTaskConcurrency({
-    taskRows: [taskRow('TASK-054', '0.7.0'), taskRow('TASK-060', '0.8.0')],
-    decisionContent: '',
-    activeSpecContents: [],
-  }).join('\n'), /DEC-120 isolation approval/);
+  assert.match(
+    validateTaskConcurrency({
+      taskRows: [taskRow('TASK-054', '0.7.0'), taskRow('TASK-060', '0.8.0')],
+      decisionContent: '',
+      activeSpecContents: [],
+    }).join('\n'),
+    /DEC-120 isolation approval/,
+  );
 
-  assert.match(validateTaskConcurrency({
-    taskRows: [taskRow('TASK-059', '0.8.0'), taskRow('TASK-054', '0.7.0')],
-    decisionContent: approvedDecision,
-    activeSpecContents: [approvedSpec],
-  }).join('\n'), /shared integration task TASK-059/);
+  assert.match(
+    validateTaskConcurrency({
+      taskRows: [taskRow('TASK-059', '0.8.0'), taskRow('TASK-054', '0.7.0')],
+      decisionContent: approvedDecision,
+      activeSpecContents: [approvedSpec],
+    }).join('\n'),
+    /shared integration task TASK-059/,
+  );
 });
 
 test('main and scene factory use rendering contracts instead of concrete material or direct render setup', async () => {

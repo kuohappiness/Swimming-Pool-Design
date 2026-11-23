@@ -37,22 +37,36 @@ export const BASELINE_QUALITY_PROFILE: RenderQualityProfile = Object.freeze({
  * 鏡頭效果（`postProcessing`）要先把場景畫到半浮點貼圖；顯示卡不支援時，極致與高級也直接畫到
  * 畫面，暈光與環境遮蔽就不在。測試用的假繪圖器沒有 extensions，算不支援。
  */
-export function supportsFrameEffects(renderer: { readonly extensions?: { has(name: string): boolean } }): boolean {
-  return typeof renderer.extensions?.has === 'function' && renderer.extensions.has('EXT_color_buffer_float');
+export function supportsFrameEffects(renderer: {
+  readonly extensions?: { has(name: string): boolean };
+}): boolean {
+  return (
+    typeof renderer.extensions?.has === 'function' &&
+    renderer.extensions.has('EXT_color_buffer_float')
+  );
 }
 
 export function assertRenderQualityProfile(profile: RenderQualityProfile): RenderQualityProfile {
   if (!['high', 'medium', 'low'].includes(profile.id)) {
     throw new TypeError(`Unknown render quality profile: ${String(profile.id)}`);
   }
-  if (!Number.isFinite(profile.pixelRatioCap) || profile.pixelRatioCap <= 0 || profile.pixelRatioCap > 2) {
+  if (
+    !Number.isFinite(profile.pixelRatioCap) ||
+    profile.pixelRatioCap <= 0 ||
+    profile.pixelRatioCap > 2
+  ) {
     throw new TypeError('Render quality pixelRatioCap must be finite and within (0, 2].');
   }
   if (!Number.isInteger(profile.shadowMapSize) || profile.shadowMapSize < 0) {
     throw new TypeError('Render quality shadowMapSize must be a non-negative integer.');
   }
-  if ((profile.ambientOcclusion || profile.bloom || profile.exposureAdaptation) && !profile.postProcessing) {
-    throw new TypeError('Render quality ambient occlusion, bloom and exposure adaptation need postProcessing.');
+  if (
+    (profile.ambientOcclusion || profile.bloom || profile.exposureAdaptation) &&
+    !profile.postProcessing
+  ) {
+    throw new TypeError(
+      'Render quality ambient occlusion, bloom and exposure adaptation need postProcessing.',
+    );
   }
   const reflection = profile.waterReflectionScale ?? 0;
   if (!Number.isFinite(reflection) || reflection < 0 || reflection > 1) {

@@ -48,10 +48,11 @@ const WARM_SEASON = { first: 5, last: 9 };
 const AXIS_STEP_MM = 100;
 
 const anchorFor = (id: string) => `water-${id}`;
-const grouped = (value: number, digits: number) => value.toLocaleString('en-US', {
-  minimumFractionDigits: digits,
-  maximumFractionDigits: digits,
-});
+const grouped = (value: number, digits: number) =>
+  value.toLocaleString('en-US', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
 const millimetres = (value: number) => `${grouped(value, 1)} mm`;
 const cubicMetres = (value: number) => `${grouped(value, 0)} m³`;
 
@@ -67,12 +68,16 @@ function section(id: string): WaterSection {
  */
 function renderRainfallChart(): string {
   const axisTop = Math.ceil(data.wettestMonth.millimetres / AXIS_STEP_MM) * AXIS_STEP_MM;
-  const ticks = Array.from({ length: axisTop / AXIS_STEP_MM + 1 }, (_, index) => index * AXIS_STEP_MM);
-  const share = (value: number) => (value / axisTop * 100).toFixed(3);
-  const summary = `長條圖：${data.stationName} ${data.statisticalPeriod} 年各月平均降水量。`
-    + `最多是 ${data.wettestMonth.month} 月 ${millimetres(data.wettestMonth.millimetres)}，`
-    + `最少是 ${data.driestMonth.month} 月 ${millimetres(data.driestMonth.millimetres)}，`
-    + `全年 ${millimetres(data.annualMm)}。`;
+  const ticks = Array.from(
+    { length: axisTop / AXIS_STEP_MM + 1 },
+    (_, index) => index * AXIS_STEP_MM,
+  );
+  const share = (value: number) => ((value / axisTop) * 100).toFixed(3);
+  const summary =
+    `長條圖：${data.stationName} ${data.statisticalPeriod} 年各月平均降水量。` +
+    `最多是 ${data.wettestMonth.month} 月 ${millimetres(data.wettestMonth.millimetres)}，` +
+    `最少是 ${data.driestMonth.month} 月 ${millimetres(data.driestMonth.millimetres)}，` +
+    `全年 ${millimetres(data.annualMm)}。`;
   return `
     <figure class="water-chart" data-source-id="${data.sourceId}">
       <figcaption class="water-chart-caption">
@@ -90,9 +95,11 @@ function renderRainfallChart(): string {
             style="--water-first: ${WARM_SEASON.first}; --water-last: ${WARM_SEASON.last}"
           >暖季</span>
           <ol class="water-chart-columns">
-            ${data.months.map(({ month, millimetres: value, volumeM3 }) => {
-              const marked = month === data.wettestMonth.month || month === data.driestMonth.month;
-              return `
+            ${data.months
+              .map(({ month, millimetres: value, volumeM3 }) => {
+                const marked =
+                  month === data.wettestMonth.month || month === data.driestMonth.month;
+                return `
                 <li class="water-chart-column" data-water-month="${month}" style="--water-level: ${share(value)}%">
                   <span class="water-chart-bar"></span>
                   ${marked ? `<span class="water-chart-value">${grouped(value, 1)}</span>` : ''}
@@ -103,7 +110,8 @@ function renderRainfallChart(): string {
                   </span>
                 </li>
               `;
-            }).join('')}
+              })
+              .join('')}
           </ol>
         </div>
         <ol class="water-chart-months" aria-hidden="true">
@@ -122,13 +130,17 @@ function renderRainfallChart(): string {
               </tr>
             </thead>
             <tbody>
-              ${data.months.map(({ month, millimetres: value, volumeM3 }) => `
+              ${data.months
+                .map(
+                  ({ month, millimetres: value, volumeM3 }) => `
                 <tr>
                   <th scope="row">${month} 月</th>
                   <td>${millimetres(value)}</td>
                   <td>約 ${cubicMetres(volumeM3)}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </tbody>
             <tfoot>
               <tr>
@@ -152,12 +164,16 @@ function renderRoofFigures(): string {
   ];
   return `
     <dl class="water-figures">
-      ${figures.map(({ value, label }) => `
+      ${figures
+        .map(
+          ({ value, label }) => `
         <div class="water-figure">
           <dt>${label}</dt>
           <dd>${value}</dd>
         </div>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </dl>
     <p class="water-estimate-note">概念估算｜落在屋頂上的雨水總量，不是可以回收的水量</p>
   `;
@@ -166,13 +182,17 @@ function renderRoofFigures(): string {
 function renderPath({ items }: WaterSection): string {
   return `
     <ol class="water-path">
-      ${items.map((item, index) => `
+      ${items
+        .map(
+          (item, index) => `
         <li class="water-step" id="${anchorFor(item.id)}">
           <p class="water-step-number site-card-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</p>
           <h3>${item.title}</h3>
           ${item.html}
         </li>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </ol>
   `;
 }
@@ -183,18 +203,23 @@ const threeColumnCards = new Set(['rainfall', 'seasons', 'open']);
 function renderCards({ items }: WaterSection, modifier: string): string {
   return `
     <div class="water-cards site-cards${threeColumnCards.has(modifier) ? '' : ' site-cards--two'} water-cards--${modifier}">
-      ${items.map((item) => `
+      ${items
+        .map(
+          (item) => `
         <article class="water-card site-card" id="${anchorFor(item.id)}">
           <h3>${item.title}</h3>
           ${item.html}
         </article>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
   `;
 }
 
 function renderSectionBody(current: WaterSection): string {
-  if (current.id === 'rainfall') return `${renderRainfallChart()}${renderCards(current, current.id)}`;
+  if (current.id === 'rainfall')
+    return `${renderRainfallChart()}${renderCards(current, current.id)}`;
   if (current.id === 'roof') return `${renderRoofFigures()}${renderCards(current, current.id)}`;
   if (current.id === 'path') return renderPath(current);
   return renderCards(current, current.id);
@@ -204,15 +229,26 @@ function renderSectionBody(current: WaterSection): string {
 function bindChart(container: HTMLElement, signal: AbortSignal): void {
   const columns = [...container.querySelectorAll<HTMLElement>('.water-chart-column')];
   const release = () => columns.forEach((column) => column.removeAttribute('data-water-active'));
-  container.addEventListener('click', (event) => {
-    const column = event.target instanceof Element ? event.target.closest<HTMLElement>('.water-chart-column') : null;
-    const wasActive = column?.hasAttribute('data-water-active');
-    release();
-    if (column && !wasActive) column.setAttribute('data-water-active', '');
-  }, { signal });
-  container.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') release();
-  }, { signal });
+  container.addEventListener(
+    'click',
+    (event) => {
+      const column =
+        event.target instanceof Element
+          ? event.target.closest<HTMLElement>('.water-chart-column')
+          : null;
+      const wasActive = column?.hasAttribute('data-water-active');
+      release();
+      if (column && !wasActive) column.setAttribute('data-water-active', '');
+    },
+    { signal },
+  );
+  container.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key === 'Escape') release();
+    },
+    { signal },
+  );
 }
 
 export function mount(container: HTMLElement): MountedView {
@@ -231,7 +267,9 @@ export function mount(container: HTMLElement): MountedView {
       </ol>
     </nav>
     <div class="water-sections site-chapters" data-content-hash="${content.contentHash}">
-      ${sections.map((current) => `
+      ${sections
+        .map(
+          (current) => `
         <section
           class="water-section site-chapter water-section--${current.id}"
           id="${anchorFor(current.id)}"
@@ -243,7 +281,9 @@ export function mount(container: HTMLElement): MountedView {
           </header>
           ${renderSectionBody(current)}
         </section>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
   `;
   markExternalLinks(container, '.water-section');

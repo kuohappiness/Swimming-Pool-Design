@@ -4,7 +4,10 @@ import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { createServer } from 'vite';
 import { buildViewerModel } from '../../../../../../../core/viewer/viewer-data.mjs';
-import { activeMirrorFootprintGeometry, projectPoolFootprint } from '../../../../../../../core/solar/pool-footprint.mjs';
+import {
+  activeMirrorFootprintGeometry,
+  projectPoolFootprint,
+} from '../../../../../../../core/solar/pool-footprint.mjs';
 import { deriveMirrorGeometry } from '../../../../../../../core/geometry/mirror-geometry.mjs';
 import { reflectSolarRay } from '../../../../../../../core/solar/solar-reflection.mjs';
 
@@ -32,10 +35,14 @@ const {
   readSceneMirrorBounce,
   writeMirrorBounceUniforms,
 } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/mirror-bounce.ts');
-const { computeSunLighting } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
+const { computeSunLighting } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/lighting/sun-lighting.ts',
+);
 
 const sourceModel = JSON.parse(readFileSync(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
-const registry = JSON.parse(readFileSync(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'));
+const registry = JSON.parse(
+  readFileSync(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8'),
+);
 const viewerModel = buildViewerModel(sourceModel, registry);
 const wall = mirrorWallFromViewerModel(viewerModel);
 const siteLocation = sourceModel.referenceSystem.siteLocation;
@@ -59,8 +66,15 @@ const close = (actual, expected, tolerance, label) => {
 test('the 3D mirror wall reads the same inputs as the solar study', () => {
   // 單一真相：網站從模型取的鏡牆數值，和日照研究頁 activeMirrorFootprintGeometry 逐項相同。
   const study = activeMirrorFootprintGeometry(sourceModel);
-  for (const key of ['startX', 'width', 'planRotation', 'leanFromVertical', 'height', 'baseElevation',
-    'positiveXAxisBearingFromTrueNorth']) {
+  for (const key of [
+    'startX',
+    'width',
+    'planRotation',
+    'leanFromVertical',
+    'height',
+    'baseElevation',
+    'positiveXAxisBearingFromTrueNorth',
+  ]) {
     assert.equal(wall[key], study[key], key);
   }
   assert.deepEqual(wall.pivot, study.pivot);
@@ -89,15 +103,25 @@ test('the reflected sunlight lands where the solar study projects it', () => {
   close(bounce.incidenceAngle, reflection.incidenceAngle, 1e-9, 'incidence');
   // 反射光往下走、是單位向量；亮度是陽光乘鏡面反射率，顏色與光源大小和陽光相同。
   assert.ok(bounce.direction.z < -0.5);
-  close(Math.hypot(bounce.direction.x, bounce.direction.y, bounce.direction.z), 1, 1e-9, '|direction|');
+  close(
+    Math.hypot(bounce.direction.x, bounce.direction.y, bounce.direction.z),
+    1,
+    1e-9,
+    '|direction|',
+  );
   close(bounce.intensity, lighting.key.intensity * MIRROR_REFLECTANCE, 1e-12, 'intensity');
   assert.deepEqual(bounce.color, lighting.key.color);
   assert.equal(bounce.angularRadius, lighting.key.angularRadius);
   // 鏡面四個角點：下緣在 3F 樓板標高，上緣高出鏡牆高度。
   const mirror = deriveMirrorGeometry(wall);
-  assert.deepEqual(bounce.corners.map(({ x, y, z }) => [x, y, z]), [
-    mirror.lower[0], mirror.lower[1], mirror.upper[1], mirror.upper[0],
-  ].map(({ x, y, z }) => [x, y, z]));
+  assert.deepEqual(
+    bounce.corners.map(({ x, y, z }) => [x, y, z]),
+    [mirror.lower[0], mirror.lower[1], mirror.upper[1], mirror.upper[0]].map(({ x, y, z }) => [
+      x,
+      y,
+      z,
+    ]),
+  );
   close(bounce.corners[2].z - bounce.corners[1].z, wall.height, 1e-9, 'mirror height');
 });
 
@@ -161,9 +185,16 @@ test('the reflected light is handed to shaders in world and in object coordinate
   mesh.updateMatrixWorld(true);
   const inverse = mesh.matrixWorld.clone().invert();
   writeMirrorBounceUniforms(uniforms, world, inverse);
-  assert.ok(uniforms.uMirrorBounceOrigin.value.distanceTo(mesh.worldToLocal(world.origin.clone())) < 1e-9);
+  assert.ok(
+    uniforms.uMirrorBounceOrigin.value.distanceTo(mesh.worldToLocal(world.origin.clone())) < 1e-9,
+  );
   const far = mesh.worldToLocal(world.origin.clone().add(world.edgeU));
-  assert.ok(uniforms.uMirrorBounceOrigin.value.clone().add(uniforms.uMirrorBounceEdgeU.value).distanceTo(far) < 1e-9);
+  assert.ok(
+    uniforms.uMirrorBounceOrigin.value
+      .clone()
+      .add(uniforms.uMirrorBounceEdgeU.value)
+      .distanceTo(far) < 1e-9,
+  );
   close(uniforms.uMirrorBounceDirection.value.length(), 1, 1e-9, 'local |direction|');
 
   writeMirrorBounceUniforms(uniforms, null, inverse);
@@ -185,29 +216,52 @@ test('the reflected light is handed to shaders in world and in object coordinate
 test('the bounce is injected into the lit materials after three.js lights', () => {
   // 注入的程式碼用到 three.js 光照片段裡的這些名稱；改版後對不上時這裡先失敗。
   const begin = THREE.ShaderChunk.lights_fragment_begin;
-  for (const name of ['vec3 geometryPosition', 'vec3 geometryNormal', 'vec3 geometryViewDir', 'vec3 geometryClearcoatNormal', 'IncidentLight directLight;']) {
+  for (const name of [
+    'vec3 geometryPosition',
+    'vec3 geometryNormal',
+    'vec3 geometryViewDir',
+    'vec3 geometryClearcoatNormal',
+    'IncidentLight directLight;',
+  ]) {
     assert.ok(begin.includes(name), name);
   }
   const fragment = THREE.ShaderLib.physical.fragmentShader;
-  assert.ok(fragment.includes('#include <common>') && fragment.includes('#include <lights_fragment_maps>'));
-  assert.ok(fragment.indexOf('#include <lights_fragment_begin>') < fragment.indexOf('#include <lights_fragment_maps>'));
+  assert.ok(
+    fragment.includes('#include <common>') && fragment.includes('#include <lights_fragment_maps>'),
+  );
+  assert.ok(
+    fragment.indexOf('#include <lights_fragment_begin>') <
+      fragment.indexOf('#include <lights_fragment_maps>'),
+  );
 
   const uniforms = createMirrorBounceUniforms();
   const material = new THREE.MeshPhysicalMaterial();
   let chained = 0;
-  material.onBeforeCompile = () => { chained += 1; };
+  material.onBeforeCompile = () => {
+    chained += 1;
+  };
   assert.equal(installMirrorBounce(material, uniforms), true);
   assert.equal(installMirrorBounce(material, uniforms), true, 'installing twice is harmless');
   const shader = { fragmentShader: fragment, vertexShader: '', uniforms: {} };
   material.onBeforeCompile(shader, null);
   assert.equal(chained, 1, 'an earlier onBeforeCompile still runs, once');
-  assert.equal(shader.uniforms.uMirrorBounceColor, uniforms.uMirrorBounceColor, 'shared, not copied');
+  assert.equal(
+    shader.uniforms.uMirrorBounceColor,
+    uniforms.uMirrorBounceColor,
+    'shared, not copied',
+  );
   assert.equal(shader.fragmentShader.split('float mirrorBounceMask(').length, 2);
-  assert.ok(shader.fragmentShader.indexOf('mirrorBounceMask( mirrorBounceWorld )')
-    < shader.fragmentShader.indexOf('#include <lights_fragment_maps>'));
+  assert.ok(
+    shader.fragmentShader.indexOf('mirrorBounceMask( mirrorBounceWorld )') <
+      shader.fragmentShader.indexOf('#include <lights_fragment_maps>'),
+  );
   assert.ok(material.customProgramCacheKey().endsWith('|mirror-bounce'));
 
-  assert.equal(installMirrorBounce(new THREE.MeshBasicMaterial(), uniforms), false, 'unlit materials stay unlit');
+  assert.equal(
+    installMirrorBounce(new THREE.MeshBasicMaterial(), uniforms),
+    false,
+    'unlit materials stay unlit',
+  );
   assert.equal(installMirrorBounce(new THREE.ShaderMaterial(), uniforms), false);
   assert.ok(MIRROR_BOUNCE_GLSL.includes('uniform vec4 uMirrorBounceColor;'));
 

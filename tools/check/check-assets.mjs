@@ -17,7 +17,7 @@ async function listFiles(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const absolutePath = resolve(directory, entry.name);
     if (entry.isDirectory()) {
-      files.push(...await listFiles(absolutePath));
+      files.push(...(await listFiles(absolutePath)));
     } else if (entry.isFile()) {
       files.push({
         path: relative(assetRoot, absolutePath).split(sep).join('/'),
@@ -28,7 +28,9 @@ async function listFiles(directory) {
   return files;
 }
 
-const files = (await listFiles(assetRoot)).sort((left, right) => left.path.localeCompare(right.path));
+const files = (await listFiles(assetRoot)).sort((left, right) =>
+  left.path.localeCompare(right.path),
+);
 const errors = findAssetBudgetErrors(files);
 const totalBytes = files.reduce((total, file) => total + file.byteSize, 0);
 

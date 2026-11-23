@@ -33,7 +33,8 @@ export function parseClockTime(text: string): number {
 }
 
 export function lightingStateFromPreset(preset: SceneLightingPreset, year: number): LightingState {
-  if (!isWeather(preset.weather)) throw new TypeError(`Scene weather is unknown: ${String(preset.weather)}`);
+  if (!isWeather(preset.weather))
+    throw new TypeError(`Scene weather is unknown: ${String(preset.weather)}`);
   return Object.freeze({
     moment: assertSolarMoment({
       year,
@@ -66,22 +67,27 @@ export const NIGHT_ALIAS_MINUTES = 21 * 60;
  * - `weather=clear|overcast|rain`。
  * - `weather=night`：夜景的簡寫，等於晴天晚上九點；同時有 `time` 時以 `time` 為準。
  */
-export function readLightingParameters(parameters: URLSearchParams, base: LightingState): LightingState {
+export function readLightingParameters(
+  parameters: URLSearchParams,
+  base: LightingState,
+): LightingState {
   const requestedWeather = parameters.get('weather');
   const requestedMoment = parseSolarMoment(parameters.get('time'));
   const night = requestedWeather === 'night';
   const weather = night ? 'clear' : isWeather(requestedWeather) ? requestedWeather : base.weather;
-  const moment = requestedMoment
-    ?? (night ? { ...base.moment, minutes: NIGHT_ALIAS_MINUTES } : base.moment);
+  const moment =
+    requestedMoment ?? (night ? { ...base.moment, minutes: NIGHT_ALIAS_MINUTES } : base.moment);
   return Object.freeze({ moment: assertSolarMoment(moment), weather });
 }
 
 export function sameLightingState(a: LightingState, b: LightingState): boolean {
-  return a.weather === b.weather
-    && a.moment.year === b.moment.year
-    && a.moment.month === b.moment.month
-    && a.moment.day === b.moment.day
-    && a.moment.minutes === b.moment.minutes;
+  return (
+    a.weather === b.weather &&
+    a.moment.year === b.moment.year &&
+    a.moment.month === b.moment.month &&
+    a.moment.day === b.moment.day &&
+    a.moment.minutes === b.moment.minutes
+  );
 }
 
 /**
@@ -107,7 +113,10 @@ export function withMinutes(state: LightingState, minutes: number): LightingStat
   return Object.freeze({ ...state, moment: { ...state.moment, minutes: clamped } });
 }
 
-export function withDate(state: LightingState, date: { month: number; day: number }): LightingState {
+export function withDate(
+  state: LightingState,
+  date: { month: number; day: number },
+): LightingState {
   return Object.freeze({
     ...state,
     moment: assertSolarMoment({ ...state.moment, month: date.month, day: date.day }),

@@ -44,10 +44,13 @@ export function assertSolarMoment(moment: SolarMoment): SolarMoment {
   if (![year, month, day, minutes].every(Number.isInteger)) {
     throw new TypeError('Solar moment fields must be integers.');
   }
-  if (year < 1900 || year > 2200) throw new RangeError('Solar moment year must be within 1900..2200.');
+  if (year < 1900 || year > 2200)
+    throw new RangeError('Solar moment year must be within 1900..2200.');
   if (month < 1 || month > 12) throw new RangeError('Solar moment month must be within 1..12.');
-  if (day < 1 || day > daysInMonth(year, month)) throw new RangeError('Solar moment day is not in that month.');
-  if (minutes < 0 || minutes >= MINUTES_PER_DAY) throw new RangeError('Solar moment minutes must be within 0..1439.');
+  if (day < 1 || day > daysInMonth(year, month))
+    throw new RangeError('Solar moment day is not in that month.');
+  if (minutes < 0 || minutes >= MINUTES_PER_DAY)
+    throw new RangeError('Solar moment minutes must be within 0..1439.');
   return moment;
 }
 
@@ -73,15 +76,22 @@ const pad = (value: number, width = 2) => String(value).padStart(width, '0');
 
 /** 網址參數 `time` 的寫法：`2026-12-21T09:30`（校址當地時間，不帶時區）。 */
 export function formatSolarMoment(moment: SolarMoment): string {
-  return `${pad(moment.year, 4)}-${pad(moment.month)}-${pad(moment.day)}T${
-    pad(Math.floor(moment.minutes / 60))}:${pad(moment.minutes % 60)}`;
+  return `${pad(moment.year, 4)}-${pad(moment.month)}-${pad(moment.day)}T${pad(
+    Math.floor(moment.minutes / 60),
+  )}:${pad(moment.minutes % 60)}`;
 }
 
 /** 讀網址參數 `time`；寫法不對或日期不存在時回傳 null，由呼叫端決定退回哪個時刻。 */
 export function parseSolarMoment(text: string | null | undefined): SolarMoment | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(text ?? '');
   if (!match) return null;
-  const [year, month, day, hour, minute] = match.slice(1).map(Number) as [number, number, number, number, number];
+  const [year, month, day, hour, minute] = match.slice(1).map(Number) as [
+    number,
+    number,
+    number,
+    number,
+    number,
+  ];
   if (hour > 23 || minute > 59) return null;
   try {
     return assertSolarMoment({ year, month, day, minutes: hour * 60 + minute });
@@ -92,7 +102,9 @@ export function parseSolarMoment(text: string | null | undefined): SolarMoment |
 
 /** 給畫面看的寫法：`12月21日（冬至）09:30`。 */
 export function describeSolarMoment(moment: SolarMoment): { date: string; time: string } {
-  const term = SOLAR_TERMS.find((candidate) => candidate.month === moment.month && candidate.day === moment.day);
+  const term = SOLAR_TERMS.find(
+    (candidate) => candidate.month === moment.month && candidate.day === moment.day,
+  );
   return {
     date: `${moment.month}月${moment.day}日${term ? `（${term.label}）` : ''}`,
     time: `${pad(Math.floor(moment.minutes / 60))}:${pad(moment.minutes % 60)}`,

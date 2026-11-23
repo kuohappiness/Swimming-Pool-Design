@@ -1,9 +1,5 @@
 import * as THREE from 'three';
-import type {
-  VisualAssetContext,
-  VisualFrameState,
-  VisualWalkthroughState,
-} from '../contracts';
+import type { VisualAssetContext, VisualFrameState, VisualWalkthroughState } from '../contracts';
 import { readSceneMirrorBounce } from '../lighting/mirror-bounce';
 import { readSceneFixtureLights } from '../lighting/fixture-lights';
 import type { HallProbeSource } from '../enhanced/hall-reflection';
@@ -26,10 +22,7 @@ const RIPPLE_NORMAL_URL = new URL(
   '../../assets/materials/water/ripple-normal.ktx2',
   import.meta.url,
 ).href;
-const CAUSTICS_URL = new URL(
-  '../../assets/materials/water/caustics.ktx2',
-  import.meta.url,
-).href;
+const CAUSTICS_URL = new URL('../../assets/materials/water/caustics.ktx2', import.meta.url).href;
 
 /** 探針放在池面中央上方這麼高（公尺）：太低會被池緣擋住地平線附近的景物。 */
 const PROBE_HEIGHT_ABOVE_WATER = 0.5;
@@ -56,9 +49,27 @@ interface WaterDetail {
 }
 
 const WATER_DETAIL: Readonly<Record<RenderQualityTier, WaterDetail>> = Object.freeze({
-  high: Object.freeze({ cellSize: 0.25, probeSize: 256, underwaterView: true, shaftSteps: 14, moteCount: 700 }),
-  medium: Object.freeze({ cellSize: 0.5, probeSize: 128, underwaterView: true, shaftSteps: 8, moteCount: 350 }),
-  low: Object.freeze({ cellSize: 1, probeSize: 64, underwaterView: false, shaftSteps: 0, moteCount: 0 }),
+  high: Object.freeze({
+    cellSize: 0.25,
+    probeSize: 256,
+    underwaterView: true,
+    shaftSteps: 14,
+    moteCount: 700,
+  }),
+  medium: Object.freeze({
+    cellSize: 0.5,
+    probeSize: 128,
+    underwaterView: true,
+    shaftSteps: 8,
+    moteCount: 350,
+  }),
+  low: Object.freeze({
+    cellSize: 1,
+    probeSize: 64,
+    underwaterView: false,
+    shaftSteps: 0,
+    moteCount: 0,
+  }),
 });
 
 export interface WaterTextureSource {
@@ -110,7 +121,10 @@ export class RealisticWaterPresentation {
   private readonly drawingBufferSize = new THREE.Vector2();
   private surface: WaterSurface | null = null;
   private basinMaterial: THREE.ShaderMaterial | null = null;
-  private readonly basinMeshes: Array<{ mesh: THREE.Mesh; original: THREE.Material | THREE.Material[] }> = [];
+  private readonly basinMeshes: Array<{
+    mesh: THREE.Mesh;
+    original: THREE.Material | THREE.Material[];
+  }> = [];
   private scene: THREE.Scene | null = null;
   private sun: THREE.DirectionalLight | null = null;
   private ambient: THREE.HemisphereLight | null = null;
@@ -125,13 +139,20 @@ export class RealisticWaterPresentation {
   private readonly sunDirection = new THREE.Vector3(0, 1, 0);
   private readonly sunColor = new THREE.Color();
   private readonly skyColor = new THREE.Color();
-  private readonly sunShadow: { -readonly [Key in keyof WaterSunShadow]: WaterSunShadow[Key] | null } = {
-    map: null, matrix: null, bias: 0, radius: 0,
+  private readonly sunShadow: {
+    -readonly [Key in keyof WaterSunShadow]: WaterSunShadow[Key] | null;
+  } = {
+    map: null,
+    matrix: null,
+    bias: 0,
+    radius: 0,
   };
 
   constructor(initialProfile: RenderQualityProfile, options: RealisticWaterOptions) {
     if (!options.renderer && !(options.textureSource && options.createReflectionProbe)) {
-      throw new TypeError('Realistic water needs a renderer, or a texture source and a reflection probe.');
+      throw new TypeError(
+        'Realistic water needs a renderer, or a texture source and a reflection probe.',
+      );
     }
     this.profile = initialProfile;
     this.options = options;
@@ -144,19 +165,16 @@ export class RealisticWaterPresentation {
   /** 下載並轉碼兩張貼圖。失敗時丟出錯誤，已載入的那一張會被釋放。 */
   async load(): Promise<void> {
     if (this.disposed || this.textures) return;
-    const source = this.options.textureSource
-      ?? new Ktx2TextureSource(this.options.renderer as THREE.WebGLRenderer);
+    const source =
+      this.options.textureSource ??
+      new Ktx2TextureSource(this.options.renderer as THREE.WebGLRenderer);
     this.textureSource = source;
     const results = await Promise.allSettled([
       source.loadTexture(RIPPLE_NORMAL_URL),
       source.loadTexture(CAUSTICS_URL),
     ]);
     const [rippleNormal, caustics] = results;
-    if (
-      this.disposed
-      || rippleNormal?.status !== 'fulfilled'
-      || caustics?.status !== 'fulfilled'
-    ) {
+    if (this.disposed || rippleNormal?.status !== 'fulfilled' || caustics?.status !== 'fulfilled') {
       for (const result of results) if (result.status === 'fulfilled') result.value.dispose();
       if (this.disposed) return;
       const failure = results.find((result) => result.status === 'rejected');
@@ -180,18 +198,22 @@ export class RealisticWaterPresentation {
     this.assertAligned(target);
 
     const detail = WATER_DETAIL[this.profile.id];
-    this.probe = this.options.createReflectionProbe?.(detail.probeSize)
-      ?? new CubeReflectionProbe(this.options.renderer as THREE.WebGLRenderer, detail.probeSize);
-    this.surface = new WaterSurface({
-      basin: this.options.basin,
-      rippleNormal: this.textures.rippleNormal,
-      caustics: this.textures.caustics,
-      reflectionCube: this.probe.texture,
-      hall: this.options.hall,
-      laneLineColor: this.options.laneLineColor,
-      metalColor: this.options.metalColor,
-      cellSize: detail.cellSize,
-    }, target);
+    this.probe =
+      this.options.createReflectionProbe?.(detail.probeSize) ??
+      new CubeReflectionProbe(this.options.renderer as THREE.WebGLRenderer, detail.probeSize);
+    this.surface = new WaterSurface(
+      {
+        basin: this.options.basin,
+        rippleNormal: this.textures.rippleNormal,
+        caustics: this.textures.caustics,
+        reflectionCube: this.probe.texture,
+        hall: this.options.hall,
+        laneLineColor: this.options.laneLineColor,
+        metalColor: this.options.metalColor,
+        cellSize: detail.cellSize,
+      },
+      target,
+    );
     this.adoptBasin(context, target);
     this.scene = context.scene;
     this.expectedSurfaceElevation = this.options.basin.waterLevel;
@@ -204,14 +226,16 @@ export class RealisticWaterPresentation {
     // 平面倒影要在主畫面畫到水面之前才知道鏡頭在哪，所以掛在水面網格的 onBeforeRender；
     // 這樣水面不在視野裡時也不會白畫，繪製呼叫也算在同一個畫面的統計裡。
     this.originalOnBeforeRender = target.onBeforeRender;
-    target.onBeforeRender = (renderer, scene, camera) => this.renderPlanarReflection(renderer, scene, camera);
+    target.onBeforeRender = (renderer, scene, camera) =>
+      this.renderPlanarReflection(renderer, scene, camera);
     this.planarHidden.length = 0;
     this.planarHidden.push(target, ...this.basinMeshes.map(({ mesh }) => mesh));
     this.syncPlanarReflection();
 
     this.motes = new UnderwaterMotes(this.surface.material.uniforms, target, detail.moteCount);
-    this.underwaterView = this.options.createUnderwaterView?.(this.surface)
-      ?? new ScreenUnderwaterView({
+    this.underwaterView =
+      this.options.createUnderwaterView?.(this.surface) ??
+      new ScreenUnderwaterView({
         basin: this.options.basin,
         waterUniforms: this.surface.material.uniforms,
         surface: target,
@@ -249,7 +273,11 @@ export class RealisticWaterPresentation {
   }
 
   /** 鏡頭在水裡時畫出水下畫面並回傳 true；否則回傳 false，由呼叫端照常畫。 */
-  renderUnderwaterView(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): boolean {
+  renderUnderwaterView(
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene,
+    camera: THREE.Camera,
+  ): boolean {
     if (this.disposed || !this.underwaterView || !this.handlesUnderwaterView) return false;
     return this.underwaterView.render(renderer, scene, camera);
   }
@@ -272,8 +300,8 @@ export class RealisticWaterPresentation {
   setWalkthroughState(state: VisualWalkthroughState): void {
     if (this.disposed) return;
     if (
-      this.expectedSurfaceElevation !== null
-      && Math.abs(state.waterSurfaceElevation - this.expectedSurfaceElevation) > 1e-9
+      this.expectedSurfaceElevation !== null &&
+      Math.abs(state.waterSurfaceElevation - this.expectedSurfaceElevation) > 1e-9
     ) {
       throw new TypeError('Realistic water presentation received a second water surface state.');
     }
@@ -321,7 +349,8 @@ export class RealisticWaterPresentation {
     if (shadow && shadowMap && shadowMap.compareFunction !== null) {
       this.sunShadow.map = shadowMap;
       this.sunShadow.matrix = shadow.matrix;
-      this.sunShadow.bias = WATER_SHADOW_BIAS_METRES / Math.max(shadow.camera.far - shadow.camera.near, 1e-3);
+      this.sunShadow.bias =
+        WATER_SHADOW_BIAS_METRES / Math.max(shadow.camera.far - shadow.camera.near, 1e-3);
       this.sunShadow.radius = WATER_SHADOW_RADIUS_TEXELS / Math.max(shadow.mapSize.x, 1);
       sunShadow = this.sunShadow as WaterSunShadow;
     }
@@ -329,9 +358,15 @@ export class RealisticWaterPresentation {
     if (this.ambient) {
       // 有算出來的天光時用整片天空的照度（半球光只是其中一部分，其餘在環境貼圖裡，水不吃環境貼圖）。
       const skyIrradiance = this.ambient.userData.skyIrradiance;
-      this.skyColor.copy(this.ambient.color).multiplyScalar(
-        this.ambient.visible ? (typeof skyIrradiance === 'number' ? skyIrradiance : this.ambient.intensity) : 0,
-      );
+      this.skyColor
+        .copy(this.ambient.color)
+        .multiplyScalar(
+          this.ambient.visible
+            ? typeof skyIrradiance === 'number'
+              ? skyIrradiance
+              : this.ambient.intensity
+            : 0,
+        );
     } else {
       this.skyColor.setScalar(1);
     }
@@ -387,8 +422,9 @@ export class RealisticWaterPresentation {
   private syncPlanarReflection(): void {
     const { surface } = this;
     if (!surface) return;
-    const wanted = (this.profile.waterReflectionScale ?? 0) > 0
-      && Boolean(this.options.createPlanarReflection ?? this.options.renderer);
+    const wanted =
+      (this.profile.waterReflectionScale ?? 0) > 0 &&
+      Boolean(this.options.createPlanarReflection ?? this.options.renderer);
     if (!wanted) {
       this.planar?.dispose();
       this.planar = null;
@@ -397,25 +433,32 @@ export class RealisticWaterPresentation {
     }
     if (this.planar) return;
     // 先給最小的貼圖，真正的大小在第一次要畫時依畫布決定。
-    this.planar = this.options.createPlanarReflection?.(1, 1)
-      ?? new ScenePlanarReflection(this.options.renderer as THREE.WebGLRenderer, 1, 1);
+    this.planar =
+      this.options.createPlanarReflection?.(1, 1) ??
+      new ScenePlanarReflection(this.options.renderer as THREE.WebGLRenderer, 1, 1);
     surface.setPlanarReflection(this.planar.texture, this.planar.textureMatrix);
   }
 
-  private renderPlanarReflection(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): void {
+  private renderPlanarReflection(
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene,
+    camera: THREE.Camera,
+  ): void {
     const { surface, planar } = this;
     if (this.disposed || !surface || !planar) return;
     const scale = this.profile.waterReflectionScale ?? 0;
     renderer.getDrawingBufferSize(this.drawingBufferSize);
     planar.setSize(this.drawingBufferSize.x * scale, this.drawingBufferSize.y * scale);
-    surface.setPlanarReflectionVisible(planar.update({
-      renderer,
-      scene,
-      camera,
-      surface: surface.mesh,
-      waterLevel: this.options.basin.waterLevel,
-      hidden: this.planarHidden,
-    }));
+    surface.setPlanarReflectionVisible(
+      planar.update({
+        renderer,
+        scene,
+        camera,
+        surface: surface.mesh,
+        waterLevel: this.options.basin.waterLevel,
+        hidden: this.planarHidden,
+      }),
+    );
   }
 
   /** 把實體池底與池壁換成與水面共用著色的材質。 */
@@ -442,9 +485,12 @@ export class RealisticWaterPresentation {
     const box = target.geometry.boundingBox;
     if (!box) throw new TypeError('Scene water surface has no bounds.');
     const pairs: ReadonlyArray<readonly [number, number]> = [
-      [box.min.x, basin.minX], [box.max.x, basin.maxX],
-      [box.min.z, basin.minZ], [box.max.z, basin.maxZ],
-      [box.min.y, basin.waterLevel], [box.max.y, basin.waterLevel],
+      [box.min.x, basin.minX],
+      [box.max.x, basin.maxX],
+      [box.min.z, basin.minZ],
+      [box.max.z, basin.maxZ],
+      [box.min.y, basin.waterLevel],
+      [box.max.y, basin.waterLevel],
     ];
     if (pairs.some(([actual, expected]) => Math.abs(actual - expected) > ALIGNMENT_TOLERANCE)) {
       throw new TypeError('Scene water surface and the model pool basin are not aligned.');

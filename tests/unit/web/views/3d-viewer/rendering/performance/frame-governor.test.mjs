@@ -93,11 +93,10 @@ test('the lowest tier has nothing left to suggest once everything is shed', () =
   const governor = desktop('saver');
   const clock = { time: 0 };
   const changes = drive(governor, clock, 60, SLOW);
-  assert.deepEqual(changes.map(({ action }) => action), [
-    'lower-resolution',
-    'lower-resolution',
-    'lower-resolution',
-  ]);
+  assert.deepEqual(
+    changes.map(({ action }) => action),
+    ['lower-resolution', 'lower-resolution', 'lower-resolution'],
+  );
 });
 
 test('ten seconds of headroom restores one step at a time in reverse order', () => {
@@ -109,7 +108,11 @@ test('ten seconds of headroom restores one step at a time in reverse order', () 
     shed: ['people-animation'],
   });
 
-  assert.deepEqual(drive(governor, clock, 60, STEADY), [], 'no dropped frames but no spare work time either');
+  assert.deepEqual(
+    drive(governor, clock, 60, STEADY),
+    [],
+    'no dropped frames but no spare work time either',
+  );
 
   const changes = drive(governor, clock, 60, IDLE);
   assert.deepEqual(
@@ -156,12 +159,14 @@ test('thin statistics, a background tab and the settling window all restart the 
   assert.deepEqual(drive(governor, clock, 1.25, SLOW), [], 'the gap must not count as slow time');
   assert.equal(drive(governor, clock, 0.75, SLOW).length, 1);
 
+  assert.equal(governor.observe({ timeSeconds: Number.NaN, samples: 120, ...SLOW }), null);
   assert.equal(
-    governor.observe({ timeSeconds: Number.NaN, samples: 120, ...SLOW }),
-    null,
-  );
-  assert.equal(
-    governor.observe({ timeSeconds: clock.time + 0.25, samples: 120, intervalP95Milliseconds: Number.NaN, workP95Milliseconds: 1 }),
+    governor.observe({
+      timeSeconds: clock.time + 0.25,
+      samples: 120,
+      intervalP95Milliseconds: Number.NaN,
+      workP95Milliseconds: 1,
+    }),
     null,
   );
 });
@@ -169,14 +174,24 @@ test('thin statistics, a background tab and the settling window all restart the 
 test('mobile keeps everything on at 30 fps and only reacts below the floor', () => {
   const governor = new FrameGovernor({ tier: REALISM_TIERS.medium, deviceClass: 'mobile' });
   const clock = { time: 0 };
-  assert.deepEqual(drive(governor, clock, 20, { intervalP95Milliseconds: 34, workP95Milliseconds: 28 }), []);
-  const changes = drive(governor, clock, 3, { intervalP95Milliseconds: 45, workP95Milliseconds: 40 });
-  assert.deepEqual(changes.map(({ action }) => action), ['lower-resolution']);
+  assert.deepEqual(
+    drive(governor, clock, 20, { intervalP95Milliseconds: 34, workP95Milliseconds: 28 }),
+    [],
+  );
+  const changes = drive(governor, clock, 3, {
+    intervalP95Milliseconds: 45,
+    workP95Milliseconds: 40,
+  });
+  assert.deepEqual(
+    changes.map(({ action }) => action),
+    ['lower-resolution'],
+  );
 });
 
 test('options are validated', () => {
   assert.throws(
-    () => new FrameGovernor({ tier: REALISM_TIERS.high, deviceClass: 'desktop', resolutionStep: 0 }),
+    () =>
+      new FrameGovernor({ tier: REALISM_TIERS.high, deviceClass: 'desktop', resolutionStep: 0 }),
     RangeError,
   );
 });
@@ -189,22 +204,27 @@ test('only the effects the page can really switch are queued for shedding', () =
   });
   const clock = { time: 0 };
   const changes = drive(governor, clock, 40, SLOW);
-  assert.deepEqual(changes.map(({ action, step }) => [action, step]), [
-    ['lower-resolution', null],
-    ['lower-resolution', null],
-    ['lower-resolution', null],
-    ['shed', 'water-refraction'],
-    ['lower-tier', null],
-  ]);
+  assert.deepEqual(
+    changes.map(({ action, step }) => [action, step]),
+    [
+      ['lower-resolution', null],
+      ['lower-resolution', null],
+      ['lower-resolution', null],
+      ['shed', 'water-refraction'],
+      ['lower-tier', null],
+    ],
+  );
 
-  const none = new FrameGovernor({ tier: REALISM_TIERS.high, deviceClass: 'desktop', availableSteps: [] });
+  const none = new FrameGovernor({
+    tier: REALISM_TIERS.high,
+    deviceClass: 'desktop',
+    availableSteps: [],
+  });
   const noneChanges = drive(none, { time: 0 }, 40, SLOW);
-  assert.deepEqual(noneChanges.map(({ action }) => action), [
-    'lower-resolution',
-    'lower-resolution',
-    'lower-resolution',
-    'lower-tier',
-  ]);
+  assert.deepEqual(
+    noneChanges.map(({ action }) => action),
+    ['lower-resolution', 'lower-resolution', 'lower-resolution', 'lower-tier'],
+  );
 });
 
 test('a display that refreshes slower than the floor relaxes the floor instead of degrading', () => {
@@ -216,10 +236,19 @@ test('a display that refreshes slower than the floor relaxes the floor instead o
   });
   assert.equal(governor.effectiveFloorMilliseconds, 20);
   const clock = { time: 0 };
-  assert.deepEqual(drive(governor, clock, 30, { intervalP95Milliseconds: 20.4, workP95Milliseconds: 6 }), []);
+  assert.deepEqual(
+    drive(governor, clock, 30, { intervalP95Milliseconds: 20.4, workP95Milliseconds: 6 }),
+    [],
+  );
   // Really dropping frames on that display still counts.
-  const changes = drive(governor, clock, 3, { intervalP95Milliseconds: 40, workP95Milliseconds: 30 });
-  assert.deepEqual(changes.map(({ action }) => action), ['lower-resolution']);
+  const changes = drive(governor, clock, 3, {
+    intervalP95Milliseconds: 40,
+    workP95Milliseconds: 30,
+  });
+  assert.deepEqual(
+    changes.map(({ action }) => action),
+    ['lower-resolution'],
+  );
 
   // A faster display than the floor never tightens it.
   const fast = new FrameGovernor({
@@ -251,12 +280,10 @@ test('at the lowest tier, frames that stay slow with almost no work mean the dis
   const governor = desktop('saver');
   const clock = { time: 0 };
   const changes = drive(governor, clock, 30, capped);
-  assert.deepEqual(changes.map(({ action }) => action), [
-    'lower-resolution',
-    'lower-resolution',
-    'lower-resolution',
-    'display-limited',
-  ]);
+  assert.deepEqual(
+    changes.map(({ action }) => action),
+    ['lower-resolution', 'lower-resolution', 'lower-resolution', 'display-limited'],
+  );
   // Everything this tier gave up is back, and 33 ms is the new floor.
   assert.deepEqual(governor.state, { resolutionScale: 1, shed: [] });
   assert.equal(governor.displayIntervalMilliseconds, 33.4);
@@ -264,7 +291,11 @@ test('at the lowest tier, frames that stay slow with almost no work mean the dis
 
   // A higher tier never draws that conclusion by itself: it hands over to the next tier down,
   // because vertical sync can hide whether lowering quality helped.
-  const high = new FrameGovernor({ tier: REALISM_TIERS.high, deviceClass: 'desktop', availableSteps: [] });
+  const high = new FrameGovernor({
+    tier: REALISM_TIERS.high,
+    deviceClass: 'desktop',
+    availableSteps: [],
+  });
   const highChanges = drive(high, { time: 0 }, 30, capped);
   assert.equal(highChanges.at(-1).action, 'lower-tier');
   assert.equal(high.displayIntervalMilliseconds, null);

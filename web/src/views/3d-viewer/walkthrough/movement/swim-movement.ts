@@ -1,22 +1,15 @@
 import type { CollisionWorld } from '../collision/collision-world.js';
 import type { SafeSpawnRegistry } from '../collision/safe-spawn-registry.js';
 import type { WaterVolume } from '../environment/water-volume.js';
-import type {
-  MovementStrategy,
-  PlayerState,
-} from '../player-controller.js';
-import type {
-  MovementIntent,
-  WalkthroughConfig,
-} from '../types.js';
+import type { MovementStrategy, PlayerState } from '../player-controller.js';
+import type { MovementIntent, WalkthroughConfig } from '../types.js';
 import type { WalkMovement } from './walk-movement.js';
 
 const SURFACE_EYE_OFFSET = 0.12;
 const BOTTOM_EYE_CLEARANCE = 0.42;
 
 function isSwimming(state: PlayerState) {
-  return state.movementMode === 'swimming-surface'
-    || state.movementMode === 'swimming-underwater';
+  return state.movementMode === 'swimming-surface' || state.movementMode === 'swimming-underwater';
 }
 
 function clearVelocity(state: PlayerState) {
@@ -49,7 +42,8 @@ export class SwimMovement implements MovementStrategy {
 
   returnToPoolside(state: PlayerState) {
     const spawn = this.safeSpawns.get('l1-pool-deck');
-    if (!this.world.isCapsuleClear(spawn.position) || !this.world.isSupported(spawn.position)) return false;
+    if (!this.world.isCapsuleClear(spawn.position) || !this.world.isSupported(spawn.position))
+      return false;
     state.position = { ...spawn.position };
     state.movementMode = 'teleporting';
     state.grounded = true;
@@ -66,9 +60,7 @@ export class SwimMovement implements MovementStrategy {
         this.config.swimming.waterlineHysteresis,
       );
       if (waterline.bodySubmerged) {
-        state.movementMode = waterline.eyeSubmerged
-          ? 'swimming-underwater'
-          : 'swimming-surface';
+        state.movementMode = waterline.eyeSubmerged ? 'swimming-underwater' : 'swimming-surface';
         state.grounded = false;
         state.velocity.y = 0;
       }
@@ -88,7 +80,11 @@ export class SwimMovement implements MovementStrategy {
         this.config.player.eyeHeight,
         this.config.player.capsuleRadius,
       );
-      if (climbTarget && this.world.isCapsuleClear(climbTarget) && this.world.isSupported(climbTarget)) {
+      if (
+        climbTarget &&
+        this.world.isCapsuleClear(climbTarget) &&
+        this.world.isSupported(climbTarget)
+      ) {
         state.position = climbTarget;
         state.movementMode = 'walking';
         state.grounded = true;
@@ -97,9 +93,10 @@ export class SwimMovement implements MovementStrategy {
       }
     }
 
-    const speed = state.movementMode === 'swimming-underwater'
-      ? this.config.swimming.underwaterSwimSpeed
-      : this.config.swimming.surfaceSwimSpeed;
+    const speed =
+      state.movementMode === 'swimming-underwater'
+        ? this.config.swimming.underwaterSwimSpeed
+        : this.config.swimming.surfaceSwimSpeed;
     const cosine = Math.cos(state.yaw);
     const sine = Math.sin(state.yaw);
     state.velocity.x = (intent.moveX * cosine + intent.moveZ * sine) * speed;
@@ -136,8 +133,7 @@ export class SwimMovement implements MovementStrategy {
     if (state.movementMode === 'swimming-underwater') {
       const verticalIntent = Math.max(-1, Math.min(1, intent.ascend - intent.descend));
       const targetVelocity = verticalIntent * this.config.swimming.verticalSwimSpeed;
-      state.velocity.y += (targetVelocity - state.velocity.y)
-        * Math.min(1, deltaSeconds * 4.5);
+      state.velocity.y += (targetVelocity - state.velocity.y) * Math.min(1, deltaSeconds * 4.5);
       state.position.y += state.velocity.y * deltaSeconds;
       const bottom = this.water.bottomWorldElevation(state.position) + BOTTOM_EYE_CLEARANCE;
       if (state.position.y < bottom) {

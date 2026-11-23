@@ -1,4 +1,13 @@
-export const viewIds = ['design-concept', 'solar-study', 'water-cycle', 'swim-class', 'design-process', 'drawings', '3d-viewer', 'about'] as const;
+export const viewIds = [
+  'design-concept',
+  'solar-study',
+  'water-cycle',
+  'swim-class',
+  'design-process',
+  'drawings',
+  '3d-viewer',
+  'about',
+] as const;
 
 export type ViewId = (typeof viewIds)[number];
 

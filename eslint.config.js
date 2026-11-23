@@ -7,9 +7,12 @@ import tseslint from 'typescript-eslint';
 
 // Relative imports that climb out of a layer into a folder it must not use.
 const forbidLayers = (layers, message) => ({
-  'no-restricted-imports': ['error', {
-    patterns: [{ regex: `^(\\.\\./)+(${layers.join('|')})/`, message }],
-  }],
+  'no-restricted-imports': [
+    'error',
+    {
+      patterns: [{ regex: `^(\\.\\./)+(${layers.join('|')})/`, message }],
+    },
+  ],
 });
 
 export default tseslint.config(
@@ -39,24 +42,42 @@ export default tseslint.config(
   },
   {
     files: ['core/**/*.mjs'],
-    rules: forbidLayers(['web', 'tools', 'tests'], 'core/ 是純邏輯，只能依賴 model/，不得引用網站、工具或測試。'),
+    rules: forbidLayers(
+      ['web', 'tools', 'tests'],
+      'core/ 是純邏輯，只能依賴 model/，不得引用網站、工具或測試。',
+    ),
   },
   {
     files: ['tools/**/*.mjs'],
-    rules: forbidLayers(['web', 'tests'], 'tools/ 只能依賴 core/ 與 model/，不得引用網站程式或測試。'),
+    rules: forbidLayers(
+      ['web', 'tests'],
+      'tools/ 只能依賴 core/ 與 model/，不得引用網站程式或測試。',
+    ),
   },
   {
     files: ['web/src/**/*.ts'],
     rules: {
-      ...forbidLayers(['tools', 'tests', 'source-materials'], '網站只能依賴 core/ 與 model/，不得引用工具、測試或原始素材。'),
-      'no-restricted-syntax': ['error', {
-        selector: "NewExpression[callee.name='URL'] > Literal[value=/source-materials\\//]",
-        message: '網站不得直接讀取 source-materials/，請改用 web/ 內的衍生檔。',
-      }],
+      ...forbidLayers(
+        ['tools', 'tests', 'source-materials'],
+        '網站只能依賴 core/ 與 model/，不得引用工具、測試或原始素材。',
+      ),
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "NewExpression[callee.name='URL'] > Literal[value=/source-materials\\//]",
+          message: '網站不得直接讀取 source-materials/，請改用 web/ 內的衍生檔。',
+        },
+      ],
     },
   },
   {
-    files: ['core/**/*.mjs', 'tools/**/*.mjs', 'tests/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],
+    files: [
+      'core/**/*.mjs',
+      'tools/**/*.mjs',
+      'tests/**/*.mjs',
+      'vite.config.ts',
+      'eslint.config.js',
+    ],
     languageOptions: { globals: globals.node },
   },
   {

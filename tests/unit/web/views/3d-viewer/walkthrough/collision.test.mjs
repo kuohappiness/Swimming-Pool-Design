@@ -24,13 +24,7 @@ const vite = await createServer({
 const [
   { createViewerScene },
   { createBaselineSceneRenderingDependencies },
-  {
-    CollisionWorld,
-    SafeSpawnRegistry,
-    WalkMovement,
-    PlayerController,
-    FixedStepLoop,
-  },
+  { CollisionWorld, SafeSpawnRegistry, WalkMovement, PlayerController, FixedStepLoop },
 ] = await Promise.all([
   vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
   vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
@@ -46,11 +40,7 @@ const collisionWorld = new CollisionWorld(
   graph.siteRoot.matrixWorld,
   WALKTHROUGH_CONFIG,
 );
-const safeSpawns = new SafeSpawnRegistry(
-  walkthroughSource,
-  collisionWorld,
-  WALKTHROUGH_CONFIG,
-);
+const safeSpawns = new SafeSpawnRegistry(walkthroughSource, collisionWorld, WALKTHROUGH_CONFIG);
 
 function siteToWorld(x, y, z) {
   return collisionWorld.sitePointToWorld({ x, y, z });
@@ -93,11 +83,14 @@ function controllerAtSite(x, z, yaw, maximumGround = Number.POSITIVE_INFINITY) {
   assert.notEqual(ground, null, `ground is required at SITE ${x},${z}`);
   const movement = new WalkMovement(collisionWorld, safeSpawns, WALKTHROUGH_CONFIG);
   const controller = new PlayerController(WALKTHROUGH_CONFIG, movement);
-  controller.setPose({
-    x: probe.x,
-    y: ground + WALKTHROUGH_CONFIG.player.eyeHeight,
-    z: probe.z,
-  }, yaw);
+  controller.setPose(
+    {
+      x: probe.x,
+      y: ground + WALKTHROUGH_CONFIG.player.eyeHeight,
+      z: probe.z,
+    },
+    yaw,
+  );
   controller.state.grounded = true;
   return { controller, movement };
 }
@@ -159,7 +152,9 @@ test('ST-01 and ST-02 continuous ramps support smooth bidirectional traversal', 
   runSteps(st1Up.controller, 3.25, 60);
   const st1Upper = collisionWorld.worldPointToSite(st1Up.controller.state.position);
   assert.ok(st1Upper.x > 29);
-  assert.ok(Math.abs(st1Up.controller.state.position.y - WALKTHROUGH_CONFIG.player.eyeHeight - 3.3) < 0.03);
+  assert.ok(
+    Math.abs(st1Up.controller.state.position.y - WALKTHROUGH_CONFIG.player.eyeHeight - 3.3) < 0.03,
+  );
   assert.equal(st1Up.controller.state.grounded, true);
 
   const negativeX = positiveX + Math.PI;
@@ -167,46 +162,45 @@ test('ST-01 and ST-02 continuous ramps support smooth bidirectional traversal', 
   runSteps(st1Down.controller, 3.25, 60);
   const st1Lower = collisionWorld.worldPointToSite(st1Down.controller.state.position);
   assert.ok(st1Lower.x < 20.5);
-  assert.ok(Math.abs(st1Down.controller.state.position.y - WALKTHROUGH_CONFIG.player.eyeHeight - 0.3) < 0.03);
+  assert.ok(
+    Math.abs(st1Down.controller.state.position.y - WALKTHROUGH_CONFIG.player.eyeHeight - 0.3) <
+      0.03,
+  );
   assert.equal(st1Down.controller.state.grounded, true);
 
   const st2Up = controllerAtSite(32.55, 1.25, positiveX, 4);
   runSteps(st2Up.controller, 2.9, 60);
   const st2Upper = collisionWorld.worldPointToSite(st2Up.controller.state.position);
+  assert.ok(st2Upper.x > 40.4 && st2Upper.x < 41.1, `ST-02 upper SITE x was ${st2Upper.x}`);
   assert.ok(
-    st2Upper.x > 40.4 && st2Upper.x < 41.1,
-    `ST-02 upper SITE x was ${st2Upper.x}`,
+    Math.abs(st2Up.controller.state.position.y - WALKTHROUGH_CONFIG.player.eyeHeight - 6.88) < 0.03,
   );
-  assert.ok(Math.abs(st2Up.controller.state.position.y - WALKTHROUGH_CONFIG.player.eyeHeight - 6.88) < 0.03);
   assert.equal(st2Up.controller.state.grounded, true);
 });
 
 test('DEC-157 entry: shoes off at ±0.00, then the 1:12 ramp climbs to the +0.30 m deck', () => {
-  const groundAt = (x, z) => collisionWorld.worldPointToSite({
-    ...siteToWorld(x, 0, z),
-    y: collisionWorld.getGroundHeight(siteToWorld(x, 1, z), siteToWorld(x, 1, z).y),
-  }).y;
+  const groundAt = (x, z) =>
+    collisionWorld.worldPointToSite({
+      ...siteToWorld(x, 0, z),
+      y: collisionWorld.getGroundHeight(siteToWorld(x, 1, z), siteToWorld(x, 1, z).y),
+    }).y;
   assert.ok(Math.abs(groundAt(2.5, 1)) < 1e-9, 'vestibule floor stays at ±0.00');
   assert.ok(Math.abs(groundAt(6.3, 0.6) - 0.15) < 1e-6, 'ramp is halfway up at its midpoint');
   assert.ok(Math.abs(groundAt(12.5, 1) - 0.3) < 1e-9, 'dry corridor is at deck level');
 
-  const positiveX = worldYawForSiteDirection(
-    { x: 3, y: 0, z: 0.6 },
-    { x: 4, y: 0, z: 0.6 },
-  );
+  const positiveX = worldYawForSiteDirection({ x: 3, y: 0, z: 0.6 }, { x: 4, y: 0, z: 0.6 });
   const up = controllerAtSite(3.5, 0.6, positiveX, 0.5);
   runSteps(up.controller, 2, 60);
   const top = collisionWorld.worldPointToSite(up.controller.state.position);
   assert.ok(top.x > 8.1, `ramp walk ended at SITE x ${top.x}`);
-  assert.ok(Math.abs(up.controller.state.position.y - WALKTHROUGH_CONFIG.player.eyeHeight - 0.3) < 0.03);
+  assert.ok(
+    Math.abs(up.controller.state.position.y - WALKTHROUGH_CONFIG.player.eyeHeight - 0.3) < 0.03,
+  );
   assert.equal(up.controller.state.grounded, true);
 });
 
 test('fixed-step paths agree across render rates and invalid states recover once with zero velocity', () => {
-  const positiveX = worldYawForSiteDirection(
-    { x: 8, y: 0.3, z: 3 },
-    { x: 9, y: 0.3, z: 3 },
-  );
+  const positiveX = worldYawForSiteDirection({ x: 8, y: 0.3, z: 3 }, { x: 9, y: 0.3, z: 3 });
   const run = (fps) => {
     const { controller } = controllerAtSite(8, 3, positiveX, 1);
     runSteps(controller, 1, fps, { ...movementIntent, fast: false });

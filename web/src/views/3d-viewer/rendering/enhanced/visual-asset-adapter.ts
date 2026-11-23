@@ -26,7 +26,8 @@ export interface EnhancedVisualAssetAdapterOptions {
 }
 
 /** 目前畫面上的水是哪一種，寫在水面網格的 userData.waterPresentation。 */
-export type WaterPresentationStatus = 'legacy' | 'realistic-loading' | 'realistic' | 'legacy-fallback';
+export type WaterPresentationStatus =
+  'legacy' | 'realistic-loading' | 'realistic' | 'legacy-fallback';
 
 function disposeGroup(group: THREE.Group) {
   const geometries = new Set<THREE.BufferGeometry>();
@@ -49,7 +50,8 @@ function siteBoundsFromVisualEntity(context: VisualAssetContext) {
     throw new TypeError('SITE-01 visual anchor mesh is missing.');
   }
   ground.geometry.computeBoundingBox();
-  if (!ground.geometry.boundingBox) throw new TypeError('SITE-01 visual anchor bounds are missing.');
+  if (!ground.geometry.boundingBox)
+    throw new TypeError('SITE-01 visual anchor bounds are missing.');
   ground.updateMatrix();
   return ground.geometry.boundingBox.clone().applyMatrix4(ground.matrix);
 }
@@ -118,10 +120,7 @@ function createProceduralScaleAssets(siteBounds: THREE.Box3) {
     metalness: 0.34,
   });
   const equipmentAnchor = point(0.78, 0.16);
-  const equipment = new THREE.Mesh(
-    new THREE.BoxGeometry(1.25, 0.9, 0.7),
-    equipmentMaterial,
-  );
+  const equipment = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.9, 0.7), equipmentMaterial);
   equipment.name = 'visual-only:SITE-01-equipment-scale';
   equipment.position.set(equipmentAnchor.x, 0.45, equipmentAnchor.z);
   group.add(equipment);
@@ -171,7 +170,9 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
       ? new MirrorReflection(initialProfile, options.mirrorReflection)
       : null;
     this.hall = this.realisticWater
-      ? new HallReflection(() => (this.waterStatus === 'realistic' ? this.realisticWater?.hallProbe ?? null : null))
+      ? new HallReflection(() =>
+          this.waterStatus === 'realistic' ? (this.realisticWater?.hallProbe ?? null) : null,
+        )
       : null;
     this.createOptionalAssets = options.createOptionalAssets ?? createProceduralScaleAssets;
   }
@@ -198,9 +199,14 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.mirror?.attach(context);
     this.context = context;
     this.setWaterStatus(this.realisticWater ? 'realistic-loading' : 'legacy');
-    if (this.realisticWater) this.waterReady = this.startRealisticWater(this.realisticWater, context);
+    if (this.realisticWater)
+      this.waterReady = this.startRealisticWater(this.realisticWater, context);
     context.siteRoot.traverse((object) => {
-      if (!(object instanceof THREE.Mesh) || !object.name.startsWith('visual-only:POOL-01-caustic:')) return;
+      if (
+        !(object instanceof THREE.Mesh) ||
+        !object.name.startsWith('visual-only:POOL-01-caustic:')
+      )
+        return;
       this.caustics.push({
         mesh: object,
         baseX: object.position.x,
@@ -256,8 +262,10 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
 
   /** 鏡頭在水裡時由寫實水面畫出水下畫面；其他時候回傳 false，由繪圖管線照常畫。 */
   renderFrame(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): boolean {
-    this.underwaterFrame = !this.disposed && this.waterStatus === 'realistic'
-      && (this.realisticWater?.renderUnderwaterView(renderer, scene, camera) ?? false);
+    this.underwaterFrame =
+      !this.disposed &&
+      this.waterStatus === 'realistic' &&
+      (this.realisticWater?.renderUnderwaterView(renderer, scene, camera) ?? false);
     return this.underwaterFrame;
   }
 
@@ -310,7 +318,10 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.attached = false;
   }
 
-  private async startRealisticWater(water: RealisticWaterPresentation, context: VisualAssetContext) {
+  private async startRealisticWater(
+    water: RealisticWaterPresentation,
+    context: VisualAssetContext,
+  ) {
     try {
       await water.load();
       if (this.disposed) return;
@@ -324,7 +335,8 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
       this.setWaterStatus('realistic');
     } catch (error) {
       if (this.disposed) return;
-      this.waterFailure = error instanceof Error ? error.message : 'Realistic water could not be created.';
+      this.waterFailure =
+        error instanceof Error ? error.message : 'Realistic water could not be created.';
       this.setWaterStatus('legacy-fallback');
     }
   }
