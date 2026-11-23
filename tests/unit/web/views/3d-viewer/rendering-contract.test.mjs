@@ -3,18 +3,13 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
-import { createServer } from 'vite';
+import { createWebModuleServer } from '../../../../support/web-modules.mjs';
 import { validateTaskConcurrency } from '../../../../../tools/check/check-docs.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../../../../..');
 
 async function withRenderingModule(run) {
-  const vite = await createServer({
-    root: resolve(repoRoot, 'web'),
-    appType: 'custom',
-    optimizeDeps: { noDiscovery: true },
-    server: { middlewareMode: true, hmr: { port: 0 } },
-  });
+  const vite = await createWebModuleServer();
   try {
     await run(await vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'));
   } finally {
@@ -58,12 +53,7 @@ test('baseline material registry exposes unique semantic materials without chang
 });
 
 test('baseline environment and frame pipeline preserve direct-render behavior and are idempotent', async () => {
-  const vite = await createServer({
-    root: resolve(repoRoot, 'web'),
-    appType: 'custom',
-    optimizeDeps: { noDiscovery: true },
-    server: { middlewareMode: true, hmr: { port: 0 } },
-  });
+  const vite = await createWebModuleServer();
   try {
     const [
       { BaselineEnvironmentEffect },

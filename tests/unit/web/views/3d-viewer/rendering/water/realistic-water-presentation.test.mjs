@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { createServer } from 'vite';
+import { createWebModuleServer } from '../../../../../../support/web-modules.mjs';
 import { buildViewerModel } from '../../../../../../../core/viewer/viewer-data.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../../../../../../..');
@@ -11,12 +11,7 @@ const [projectModel, analysisRegistry] = await Promise.all([
   readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
 ]);
 const viewerModel = buildViewerModel(projectModel, analysisRegistry);
-const vite = await createServer({
-  root: resolve(repoRoot, 'web'),
-  appType: 'custom',
-  optimizeDeps: { noDiscovery: true },
-  server: { middlewareMode: true, hmr: false },
-});
+const vite = await createWebModuleServer();
 test.after(async () => vite.close());
 const THREE = await vite.ssrLoadModule('three');
 const { createViewerScene } = await vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts');

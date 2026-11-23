@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
-import { createServer } from 'vite';
+import { createWebModuleServer } from '../../../../support/web-modules.mjs';
 import { buildViewerModel } from '../../../../../core/viewer/viewer-data.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../../../../..');
@@ -14,12 +14,7 @@ test('L2 Y0 ray reaches glass first and the changing-room divider stays at Y8', 
     readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
     readFile(resolve(repoRoot, 'web/src/generated/concept-content.json'), 'utf8').then(JSON.parse),
   ]);
-  const vite = await createServer({
-    root: resolve(repoRoot, 'web'),
-    appType: 'custom',
-    optimizeDeps: { noDiscovery: true },
-    server: { middlewareMode: true, hmr: { port: 0 } },
-  });
+  const vite = await createWebModuleServer();
 
   try {
     const [
@@ -89,12 +84,7 @@ test('307 degree compass bearing rotates local +X to northwest and derives true 
     readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
     readFile(resolve(repoRoot, 'web/src/generated/concept-content.json'), 'utf8').then(JSON.parse),
   ]);
-  const vite = await createServer({
-    root: resolve(repoRoot, 'web'),
-    appType: 'custom',
-    optimizeDeps: { noDiscovery: true },
-    server: { middlewareMode: true, hmr: { port: 0 } },
-  });
+  const vite = await createWebModuleServer();
 
   try {
     const [
@@ -161,12 +151,7 @@ test('DEC-157 entry sits at ±0.00, its Y0-band pieces hide with the pool cutawa
     readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
     readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
   ]);
-  const vite = await createServer({
-    root: resolve(repoRoot, 'web'),
-    appType: 'custom',
-    optimizeDeps: { noDiscovery: true },
-    server: { middlewareMode: true, hmr: { port: 0 } },
-  });
+  const vite = await createWebModuleServer();
   try {
     const [{ createViewerScene }, { createBaselineSceneRenderingDependencies }] = await Promise.all(
       [
@@ -223,12 +208,7 @@ test('only opaque parts cast sun shadows, and the 3F roof never floats without i
     readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8').then(JSON.parse),
     readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
   ]);
-  const vite = await createServer({
-    root: resolve(repoRoot, 'web'),
-    appType: 'custom',
-    optimizeDeps: { noDiscovery: true },
-    server: { middlewareMode: true, hmr: { port: 0 } },
-  });
+  const vite = await createWebModuleServer();
   try {
     const [
       { createViewerScene, syncLayerDependents },

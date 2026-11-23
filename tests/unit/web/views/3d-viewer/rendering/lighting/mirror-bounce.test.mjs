@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { createServer } from 'vite';
+import { createWebModuleServer } from '../../../../../../support/web-modules.mjs';
 import { buildViewerModel } from '../../../../../../../core/viewer/viewer-data.mjs';
 import {
   activeMirrorFootprintGeometry,
@@ -12,12 +12,7 @@ import { deriveMirrorGeometry } from '../../../../../../../core/geometry/mirror-
 import { reflectSolarRay } from '../../../../../../../core/solar/solar-reflection.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../../../../../../..');
-const vite = await createServer({
-  root: resolve(repoRoot, 'web'),
-  appType: 'custom',
-  optimizeDeps: { noDiscovery: true },
-  server: { middlewareMode: true, hmr: false },
-});
+const vite = await createWebModuleServer();
 test.after(async () => vite.close());
 
 const THREE = await vite.ssrLoadModule('three');
