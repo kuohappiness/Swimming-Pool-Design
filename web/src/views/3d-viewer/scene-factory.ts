@@ -12,6 +12,7 @@ import { createL1SanitaryDetails } from './sanitary-fixtures';
 import { createArchitecturalDetails } from './architectural-details';
 import { createPoolHallDetails } from './pool-hall-details';
 import { createL2InteriorDetails } from './interior-details';
+import { createL3LearningRoom } from './l3-learning-room';
 import { createPoolUseDeck, createPoolUseDetails } from './pool-use-details';
 import {
   MIRROR_FRONT_NORMAL_KEY,
@@ -1005,14 +1006,38 @@ export function createViewerScene(
     box([0.18, l3Height, l3Data.width], [halfL3X - 0.09, l3Height / 2, 0], l3Material),
     box([l3Data.length, l3Height, 0.16], [0, l3Height / 2, -halfL3Z + 0.08], l3Material),
     box([l3Data.length, l3Height, 0.16], [0, l3Height / 2, halfL3Z - 0.08], l3Material),
-    box([0.12, l3Height * 0.78, l3Data.width * 0.62], [0, l3Height * 0.39, 0], l3Material),
-    box([l3Data.length * 0.62, l3Height * 0.78, 0.12], [0.8, l3Height * 0.39, 1.6], l3Material),
   );
   layer('l3').add(l3RotationGroup);
   tag(l3Slab, {
     entityId: 'EXT-L3-01', label: '3F 旋轉服務／景觀層', status: 'working',
     description: `同面積 ${l3Data.length.toFixed(1)} × ${l3Data.width.toFixed(1)} m 樓板，繞 X=${l3Data.planPivot.x.toFixed(1)}／Y=${l3Data.planPivot.y.toFixed(2)} 順時針旋轉 ${l3Data.planRotation.value.toFixed(1)}°；外挑與轉換構架仍待結構驗證。`,
     openItemId: l3Data.planPivot.openItemId,
+  }, selectables);
+
+  // DEC-173：3F 以隔音玻璃分成觀課與環境教育室和設備區，教室裡不設固定隔間。
+  const l3Room = createL3LearningRoom(model, materials);
+  const learningRoom = l3Data.learningRoom;
+  const learningRoomGroup = new THREE.Group();
+  learningRoomGroup.name = learningRoom.entityId;
+  learningRoomGroup.add(l3Room.learningZone, l3Room.fixtures);
+  const equipmentZoneGroup = new THREE.Group();
+  equipmentZoneGroup.name = l3Data.equipmentZone.entityId;
+  equipmentZoneGroup.add(l3Room.equipmentZone);
+  l3RotationGroup.add(learningRoomGroup, equipmentZoneGroup, l3Room.partition, l3Room.furniture);
+  tag(learningRoomGroup, {
+    entityId: learningRoom.entityId, label: '3F 觀課與環境教育室', status: 'working',
+    description: `旋轉前 X${learningRoom.bounds.x1}～X${learningRoom.bounds.x2}／Y${learningRoom.bounds.y1}～Y${learningRoom.bounds.y2}，約 ${learningRoom.area} m²，從有頂到達翼進入；教師與預約小組（約半班）使用，不作整班教室。池上與水下攝影機接到鏡牆那一側的螢幕觀課，鏡牆不開窗；能源看板在玻璃隔間這一側。桌椅可移動、教室內不設固定隔間；畫面上的 15 個座位、螢幕與看板是示意。人數上限、電梯、隔音與攝影機位置待專業確認（DEC-173）。`,
+    openItemId: learningRoom.openItemId,
+  }, selectables);
+  tag(equipmentZoneGroup, {
+    entityId: l3Data.equipmentZone.entityId, label: '3F 設備區', status: 'working',
+    description: `旋轉前 Y${l3Data.equipmentZone.bounds.y1}～Y${l3Data.equipmentZone.bounds.y2}，約 ${l3Data.equipmentZone.area} m²；水塔與除濕熱回收留在玻璃後作為教材，只有維修人員經上鎖維修門進出。設備荷重、振動與維修淨空待專業確認（DEC-173）。`,
+    openItemId: l3Data.equipmentZone.openItemId,
+  }, selectables);
+  tag(l3Room.partition, {
+    entityId: l3Data.glassPartition.entityId, label: '3F 隔音玻璃隔間', status: 'working',
+    description: `旋轉前 Y${l3Data.glassPartition.bounds.y1}～Y${l3Data.glassPartition.bounds.y2} 一道隔音玻璃，從鏡牆接到端牆，把教室和設備區分開；留一樘上鎖維修門，位置照 3F 平面圖。玻璃規格、隔音性能與門的構造待專業確認（DEC-173）。`,
+    openItemId: l3Data.glassPartition.openItemId,
   }, selectables);
 
   const extensionMaterial = materials.get('l3-extension');
@@ -1099,20 +1124,28 @@ export function createViewerScene(
     openItemId: l3Data.mirror.openItemId,
   }, selectables);
 
+  // 3F 設備照 3F 平面圖畫在旋轉前的樓板座標（隨 3F 樓板旋轉），落在隔音玻璃後的設備區、
+  // 靠近支點與直接支承線；仍放在「交通」圖層，所以另開一個同樣旋轉的群組。
   const equipmentMaterial = materials.get('equipment');
   const fixedEquipment = new THREE.Group();
+  fixedEquipment.name = 'L3-EQUIPMENT-PLAN-ROTATION';
+  fixedEquipment.position.copy(l3RotationGroup.position);
+  fixedEquipment.rotation.copy(l3RotationGroup.rotation);
+  const l3Plan = (x: number, elevation: number, y: number): [number, number, number] => [
+    x - l3Data.planPivot.x, elevation, y - l3Data.planPivot.y,
+  ];
   fixedEquipment.add(
-    box([2.2, 1.3, 2.2], [34.1, l3Data.baseElevation + 0.65, 9.0], equipmentMaterial),
-    box([2.8, 1.0, 1.8], [34.0, l3Data.baseElevation + 0.5, 11.8], equipmentMaterial),
+    box([2.2, 1.3, 2.2], l3Plan(34.1, 0.65, 9.0), equipmentMaterial),
+    box([2.8, 1.0, 1.8], l3Plan(34.0, 0.5, 11.8), equipmentMaterial),
   );
   const tank = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 1.8, 28), equipmentMaterial);
-  tank.position.set(34.0, l3Data.baseElevation + 0.9, 6.8);
+  tank.position.set(...l3Plan(34.0, 0.9, 6.8));
   tank.castShadow = true;
   fixedEquipment.add(tank);
   layer('circulation').add(fixedEquipment);
   tag(tank, {
     entityId: 'WT-01', label: '水塔／重設備核心側配置', status: 'working',
-    description: '重物獨立保持在固定支承帶附近，不跟隨旋轉懸挑樓板；容量、設備荷重、振動、維修與真正結構落點尚未核定。',
+    description: '重物放在隔音玻璃後的設備區，靠近支點與直接支承線，不放在旋轉樓板的懸挑端；容量、設備荷重、振動、維修與真正結構落點尚未核定。',
     openItemId: 'OPEN-011',
   }, selectables);
 
