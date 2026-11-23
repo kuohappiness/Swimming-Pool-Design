@@ -515,7 +515,7 @@ test('ST-02 keeps 23 risers within art. 33 and opens the L3 plate where headroom
   assert.deepEqual(l3.stairOpening.bounds, { x1: 34.85, x2: 39.5, y1: 0.5, y2: 2 });
   assert.deepEqual(l3.stairOpening.cutsEntityIds, ['CLG-L2-01', 'L3-PLATE-01', 'Z-L3-ARRIVAL-01']);
   assert.equal(l3.learningRoom.netArea, 59.739);
-  assert.equal(l3.arrivalWing.walkableArea, 2.25);
+  assert.equal(l3.arrivalWing.walkableArea, 3.674);
   const mutate = (change) => {
     const copy = structuredClone(model);
     change(resolveActiveGeometry(copy));
@@ -569,7 +569,56 @@ test('ST-02 keeps 23 risers within art. 33 and opens the L3 plate where headroom
     mutate((g) => {
       g.l3.stairOpening.edgeProtection = 'none';
     }),
-    /guardrails on the learning room edges/,
+    /guardrails on every edge except the stair top/,
+  );
+});
+
+test('the L3 learning room door sits on its end wall where the extended arrival wing meets it (DEC-175)', () => {
+  const l3 = resolveActiveGeometry(model).l3;
+  assert.deepEqual(l3.learningRoom.entryDoor.wallSegment, [
+    [39.382, 2],
+    [39.847, 2.976],
+  ]);
+  assert.equal(l3.arrivalWing.area, 4.388);
+  assert.equal(l3.landscapeTerrace.netLandscapeArea, 2.547);
+  const mutate = (change) => {
+    const copy = structuredClone(model);
+    change(resolveActiveGeometry(copy));
+    return validateModel(copy).join('\n');
+  };
+  // The 0.12.0 contact segment lies entirely inside the stair opening.
+  assert.match(
+    mutate((g) => {
+      g.l3.learningRoom.entryDoor.wallSegment = [
+        [38.666, 0.5],
+        [39.382, 2],
+      ];
+      g.l3.learningRoom.entryDoor.wallLength = 1.578;
+    }),
+    /outside the ST-02 stair opening/,
+  );
+  // Running the door up to the room corner would cut into the glass partition.
+  assert.match(
+    mutate((g) => {
+      g.l3.learningRoom.entryDoor.wallSegment = [
+        [39.382, 2],
+        [39.877, 3.039],
+      ];
+      g.l3.learningRoom.entryDoor.wallLength = 1.151;
+    }),
+    /short of the glass partition/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.learningRoom.entryDoor.wallLength = 2;
+    }),
+    /learning room door/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.landscapeTerrace.netLandscapeArea = 3.971;
+    }),
+    /terrace net area/,
   );
 });
 

@@ -1606,11 +1606,12 @@ export function createViewerScene(
       [(terrace.bounds.x1 + terrace.bounds.x2) / 2, l3Data.baseElevation + 0.575, 0.04],
       dark,
     ),
-    box([0.9, 2.1, 0.06], [40.25, l3Data.baseElevation + 1.05, 2.04], dark),
+    // DEC-175：到達翼往北延伸後，通往景觀區的上鎖門移到到達翼北緣。
+    box([0.9, 2.1, 0.06], [40.45, l3Data.baseElevation + 1.05, arrival.bounds.y2 + 0.04], dark),
   );
   const planterMaterial = materials.get('planter');
   extensionGroup.add(
-    box([0.55, 0.42, 0.75], [40.45, l3Data.baseElevation + 0.21, 3.0], planterMaterial),
+    box([0.55, 0.42, 0.75], [40.55, l3Data.baseElevation + 0.21, 3.65], planterMaterial),
     box([0.45, 0.36, 0.65], [40.5, l3Data.baseElevation + 0.18, 4.25], planterMaterial),
     box([0.4, 0.32, 0.35], [40.4, l3Data.baseElevation + 0.16, 0.22], planterMaterial),
   );
