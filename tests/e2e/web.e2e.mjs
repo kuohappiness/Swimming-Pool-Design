@@ -18,7 +18,7 @@ const chromeCandidates = [
 ].filter(Boolean);
 
 // Registry order (router.ts viewDefinitions), which the footer's previous/next links follow.
-const pageOrder = ['design-concept', 'solar-study', 'design-process', 'drawings', '3d-viewer', 'about'];
+const pageOrder = ['design-concept', 'solar-study', 'water-cycle', 'design-process', 'drawings', '3d-viewer', 'about'];
 
 const routes = [
   { id: 'design-concept', url: '/' },
