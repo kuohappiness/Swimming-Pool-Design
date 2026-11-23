@@ -14,7 +14,7 @@ export default defineConfig({
   build: {
     outDir: resolve(repoRoot, 'dist/web'),
     emptyOutDir: false,
-    rollupOptions: {
+    rolldownOptions: {
       input: resolve(webRoot, 'index.html'),
     },
   },
