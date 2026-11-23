@@ -3,18 +3,16 @@
  * 外層用 :where() 包住，不增加選擇器權重。
  */
 :where(.site-view--solar-study) {
-  --ink: #102b3a;
-  --muted: #607681;
-  --panel: #fffdf8;
-  --winter: #e5a23d;
-  --summer: #e15a4f;
-  --wall: #176f89;
-  --water: #63c6d7;
-  --fixed: #537b68;
-  --upper: #b45247;
+  --ink: var(--site-ink);
+  --muted: var(--site-muted);
+  --panel: var(--site-white);
+  --winter: var(--site-data-winter);
+  --summer: var(--site-data-summer);
+  --wall: var(--site-data-mirror);
+  --water: var(--site-data-water);
+  --fixed: var(--site-data-fixed);
+  --upper: var(--site-data-rotating);
   --soft: #eaf1f1;
-
-  font-family: Inter, 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
 
   button,
   input {
@@ -39,9 +37,10 @@
     border: 1px solid #c4d3d6;
     border-radius: 999px;
     background: #e5edef;
-    font:
-      700 13px/1.2 ui-monospace,
-      monospace;
+    font-family: var(--site-mono);
+    font-size: var(--site-text-sm);
+    font-weight: var(--site-weight-bold);
+    line-height: 1.2;
   }
 
   .stage {
@@ -61,13 +60,13 @@
 
   h2 {
     margin: 0 0 5px;
-    font-size: 20px;
+    font-size: var(--site-text-h4);
   }
 
   .sub {
     margin: 0 0 14px;
     color: var(--muted);
-    font-size: 14px;
+    font-size: var(--site-text-sm);
     line-height: 1.55;
   }
 
@@ -251,7 +250,7 @@
     flex-wrap: wrap;
     margin-top: 12px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--site-text-sm);
   }
 
   .swatch {
@@ -381,7 +380,7 @@
     grid-column: 1 / -1;
     margin: 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--site-text-sm);
     line-height: 1.5;
   }
 
@@ -407,7 +406,7 @@
 
   .live-preview-toolbar strong {
     color: var(--ink);
-    font-size: 14px;
+    font-size: var(--site-text-sm);
   }
 
   .mobile-preview-tabs {
@@ -433,11 +432,6 @@
     color: white;
   }
 
-  .mobile-preview-tabs button:focus-visible {
-    outline: 3px solid rgba(23, 111, 137, 0.22);
-    outline-offset: 2px;
-  }
-
   .desktop-preview-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -453,7 +447,7 @@
   .desktop-preview-grid figcaption {
     margin-bottom: 4px;
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--site-text-xs);
     font-weight: 800;
   }
 
@@ -488,7 +482,7 @@
     display: block;
     margin-top: 6px;
     color: var(--muted);
-    font-size: 10px;
+    font-size: var(--site-text-xs);
     line-height: 1.35;
   }
 
@@ -507,21 +501,21 @@
   .control span {
     display: block;
     margin-bottom: 7px;
-    font-size: 13px;
+    font-size: var(--site-text-sm);
     font-weight: 700;
   }
 
   .control > label {
     display: block;
     margin-bottom: 7px;
-    font-size: 13px;
+    font-size: var(--site-text-sm);
     font-weight: 700;
   }
 
   .control b {
     float: right;
     color: var(--wall);
-    font-size: 13px;
+    font-size: var(--site-text-sm);
   }
 
   .control input {
@@ -533,19 +527,16 @@
     accent-color: var(--wall);
   }
 
-  .control input:focus-visible {
-    outline: 3px solid rgba(23, 111, 137, 0.2);
-    outline-offset: 2px;
-  }
-
   .range-ends {
     display: flex;
     justify-content: space-between;
     margin-top: 5px;
     color: var(--muted);
-    font:
-      700 10px/1 ui-monospace,
-      monospace;
+    font-family: inherit;
+    font-size: var(--site-text-xs);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--site-weight-bold);
+    line-height: 1;
   }
 
   .range-ends span:nth-child(2) {
@@ -561,9 +552,11 @@
     grid-template-columns: repeat(7, minmax(0, 1fr));
     margin-top: 5px;
     color: var(--muted);
-    font:
-      700 9px/1 ui-monospace,
-      monospace;
+    font-family: inherit;
+    font-size: var(--site-text-xs);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--site-weight-bold);
+    line-height: 1;
   }
 
   .rotation-scale span {
@@ -617,9 +610,11 @@
     height: 12px;
     margin-top: 5px;
     color: var(--muted);
-    font:
-      700 10px/1 ui-monospace,
-      monospace;
+    font-family: inherit;
+    font-size: var(--site-text-xs);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--site-weight-bold);
+    line-height: 1;
   }
 
   .time-scale span {
@@ -654,7 +649,7 @@
     display: block;
     margin-top: 8px;
     color: var(--muted);
-    font-size: 10px;
+    font-size: var(--site-text-xs);
     line-height: 1.4;
   }
 
@@ -664,7 +659,7 @@
     border-left: 3px solid var(--wall);
     background: rgba(23, 111, 137, 0.07);
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--site-text-xs);
     font-weight: 700;
     line-height: 1.45;
   }
@@ -685,13 +680,13 @@
 
   .metric b {
     display: block;
-    font-size: 18px;
+    font-size: var(--site-text-lead);
     line-height: 1.25;
   }
 
   .metric span {
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--site-text-xs);
   }
 
   .result {
@@ -707,12 +702,12 @@
   }
 
   .result strong {
-    font-size: 16px;
+    font-size: var(--site-text-md);
   }
 
   .result span {
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--site-text-sm);
     line-height: 1.45;
     text-align: left;
   }
@@ -736,7 +731,7 @@
     align-items: center;
     min-height: 44px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--site-text-sm);
     font-weight: 700;
     cursor: pointer;
   }
@@ -745,7 +740,7 @@
     margin: 0;
     padding: 0 0 12px 20px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--site-text-sm);
     line-height: 1.65;
   }
 
@@ -757,7 +752,7 @@
     width: 100%;
     min-width: 1040px;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: var(--site-text-sm);
   }
 
   th,
@@ -778,7 +773,7 @@
   }
 
   td.is-below-horizon {
-    color: #8a6b6b;
+    color: var(--site-terracotta);
     background: #fff6f3;
   }
 
@@ -822,7 +817,7 @@
 
     .pill {
       width: 100%;
-      font-size: 12px;
+      font-size: var(--site-text-xs);
     }
 
     .panel {
@@ -845,7 +840,7 @@
 
     .legend {
       gap: 9px 12px;
-      font-size: 12px;
+      font-size: var(--site-text-xs);
     }
 
     .year-input-row {
@@ -963,7 +958,7 @@
 
   .research-conclusion-heading a {
     color: var(--site-water);
-    font-size: 0.78rem;
+    font-size: var(--site-text-xs);
     font-weight: 700;
     text-decoration-color: color-mix(in srgb, var(--site-water) 35%, transparent);
     text-underline-offset: 0.25rem;
@@ -989,18 +984,17 @@
 
   .research-conclusion-metrics dt {
     color: var(--site-muted);
-    font-size: 0.76rem;
+    font-size: var(--site-text-xs);
     letter-spacing: 0.02em;
   }
 
   .research-conclusion-metrics dd {
     margin: 0.45rem 0 0;
     color: var(--site-ink);
-    font-family: var(--site-mono);
     font-size: clamp(1.55rem, 2.5vw, 2.35rem);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     line-height: 1.1;
-    letter-spacing: -0.045em;
     white-space: nowrap;
   }
 
@@ -1012,7 +1006,7 @@
     display: block;
     margin-top: 0.45rem;
     color: var(--site-water);
-    font-size: 0.72rem;
+    font-size: var(--site-text-xs);
     letter-spacing: 0.02em;
   }
 
@@ -1020,7 +1014,7 @@
     max-width: var(--site-reading);
     margin: 0.8rem 0 0;
     color: var(--site-muted);
-    font-size: 0.72rem;
+    font-size: var(--site-text-xs);
     line-height: 1.65;
   }
 
@@ -1102,7 +1096,7 @@
   .solar-method > div {
     padding: 0 0 1.5rem;
     color: var(--site-muted);
-    font-size: 0.8rem;
+    font-size: var(--site-text-sm);
     line-height: 1.8;
   }
 
