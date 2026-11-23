@@ -1360,22 +1360,33 @@ try {
   assert.equal(await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   assert.equal(await atlasMobile.locator('.review-drawing[data-sheet-id="L1"]').count(), 1);
   assert.equal(await atlasMobile.locator('.review-drawing [data-entity="F-L1-Y0-01"]').count(), 1);
-  assert.equal(await atlasMobile.locator('#sheet-stage').getAttribute('class'), 'sheet-stage fit-sheet');
+  // 圖面檢視器（TASK-173）：一開始整張圖紙符合畫面，按鈕、鍵盤可縮放平移，「符合畫面」回到全圖。
+  const viewport = atlasMobile.locator('.drawing-viewport');
+  const contentTransform = () => atlasMobile.locator('.drawing-wrap').evaluate((wrap) => wrap.style.transform);
   assert.equal(
-    await atlasMobile.locator('.drawing-scroll').evaluate(
-      (scroller) => scroller.scrollWidth <= scroller.clientWidth + 1,
-    ),
+    await viewport.evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
     true,
   );
-  await atlasMobile.locator('#fit-sheet').click();
-  assert.equal(await atlasMobile.locator('#fit-sheet').getAttribute('aria-pressed'), 'false');
-  assert.equal(
-    await atlasMobile.locator('.drawing-scroll').evaluate(
-      (scroller) => scroller.scrollWidth > scroller.clientWidth,
-    ),
-    true,
-  );
-  await atlasMobile.locator('#fit-sheet').click();
+  assert.equal(await atlasMobile.locator('#zoom-level').innerText(), '100%');
+  assert.equal(await atlasMobile.locator('[data-zoom="out"]').isDisabled(), true);
+  assert.equal(await viewport.getAttribute('aria-describedby'), 'drawing-help');
+  await atlasMobile.locator('[data-zoom="in"]').click();
+  assert.equal(await atlasMobile.locator('#zoom-level').innerText(), '150%');
+  assert.equal(await viewport.evaluate((element) => element.classList.contains('is-zoomed')), true);
+  assert.equal(await atlasMobile.locator('[data-zoom="out"]').isDisabled(), false);
+  const zoomedTransform = await contentTransform();
+  await viewport.focus();
+  await atlasMobile.keyboard.press('ArrowRight');
+  assert.notEqual(await contentTransform(), zoomedTransform);
+  await atlasMobile.keyboard.press('+');
+  assert.equal(await atlasMobile.locator('#zoom-level').innerText(), '225%');
+  await atlasMobile.locator('[data-zoom="fit"]').click();
+  assert.equal(await atlasMobile.locator('#zoom-level').innerText(), '100%');
+  assert.equal(await viewport.evaluate((element) => element.classList.contains('is-zoomed')), false);
+  // 只有一般滾輪時，頁面照常捲動，不會被圖紙攔下來縮放。
+  await viewport.hover();
+  await atlasMobile.mouse.wheel(0, 200);
+  assert.equal(await atlasMobile.locator('#zoom-level').innerText(), '100%');
   await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-l1-mobile.png'), fullPage: true });
   await atlasMobile.close();
 
