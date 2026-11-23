@@ -745,6 +745,17 @@ try {
     await qualityShell.getAttribute('data-frame-effects'),
     'multisample exposure-adaptation bloom ambient-occlusion contact-shadows',
   );
+  // Rain (TASK-152 step 7): from the medium tier up, rain beads and runs on the roof glass and
+  // the low end of the roof pours a rain curtain into the catch trench; the status line labels
+  // it a concept illustration. Clear weather takes it away again.
+  assert.equal(await qualityShell.getAttribute('data-rain'), 'none');
+  await quality.locator('[data-light-weather] button[data-weather="rain"]').click();
+  await quality.waitForFunction(
+    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-rain') === 'glass curtain',
+  );
+  assert.match(await quality.locator('[data-light-status]').innerText(), /；屋頂玻璃上的雨與低端雨簾（概念示意）/);
+  await quality.locator('[data-light-weather] button[data-weather="clear"]').click();
+  assert.equal(await qualityShell.getAttribute('data-rain'), 'none');
   await qualityContext.close();
 
   // Real sun (DEC-191): the light comes from the site, its bearing, the date, the time and the
@@ -877,6 +888,8 @@ try {
   // only show as glowing fittings, not as light on the hall.
   assert.equal(await sunShell.getAttribute('data-fixture-lights'), 'on');
   assert.equal(await sunShell.getAttribute('data-fixture-surface-lighting'), '0.00');
+  // The saver tier keeps the rain curtain as its schematic lines, with no rain on the glass.
+  assert.equal(await sunShell.getAttribute('data-rain'), 'none');
   assert.equal(summerRain.altitude, summerEvening.altitude);
   assert.equal(
     await sun.locator('[data-light-weather] button[data-weather="rain"]').getAttribute('aria-pressed'),
