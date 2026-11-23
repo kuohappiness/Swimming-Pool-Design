@@ -184,10 +184,10 @@ const MOON_COLOR: LinearColor = [0.62, 0.72, 1];
 const MOON_INTENSITY = 0.3;
 const MOON_ALTITUDE = 48;
 /**
- * 夜裡的天光：城市夜空的散射光。比真實的夜晚亮，因為池館的燈具照明還沒做（階段三步驟 5），
- * 現在只靠它讓量體在夜裡仍然讀得出來。
+ * 夜裡的天光：城市夜空的散射光。仍比真實的夜晚亮（夜景攝影般的曝光），讓量體在夜裡讀得出輪廓；
+ * 池館裡的亮度由燈具負責（`fixture-lights.ts`），室內約是室外的三到五倍。
  */
-const SKY_NIGHT_INTENSITY = 0.3;
+const SKY_NIGHT_INTENSITY = 0.1;
 /** 入夜後曝光拉高的倍數，像眼睛適應暗處。對晴天的曝光而言。 */
 const NIGHT_EXPOSURE_GAIN = 2.2;
 /** 主光源的最低仰角：再低，影子會長到看不出形狀，陰影貼圖也用不上。 */
