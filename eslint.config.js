@@ -6,14 +6,21 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 // Relative imports that climb out of a layer into a folder it must not use.
-const forbidLayers = (layers, message) => ({
+const forbidLayers = (layers, message, extraPatterns = []) => ({
   'no-restricted-imports': [
     'error',
     {
-      patterns: [{ regex: `^(\\.\\./)+(${layers.join('|')})/`, message }],
+      patterns: [{ regex: `^(\\.\\./)+(${layers.join('|')})/`, message }, ...extraPatterns],
     },
   ],
 });
+
+const CORE_LAYER_MESSAGE = 'core/ 是純邏輯，只能依賴 model/，不得引用網站、工具或測試。';
+// core/ 不讀檔、不當命令列入口：讀檔與印報告放 tools/（TASK-167）。
+const CORE_NO_FILE_ACCESS = {
+  regex: '^node:(fs|fs/promises|path|url|child_process|process)$',
+  message: 'core/ 不讀檔、不當命令列入口；讀檔與印報告請放 tools/，core/ 只收已讀好的資料。',
+};
 
 export default tseslint.config(
   {
@@ -42,10 +49,7 @@ export default tseslint.config(
   },
   {
     files: ['core/**/*.mjs'],
-    rules: forbidLayers(
-      ['web', 'tools', 'tests'],
-      'core/ 是純邏輯，只能依賴 model/，不得引用網站、工具或測試。',
-    ),
+    rules: forbidLayers(['web', 'tools', 'tests'], CORE_LAYER_MESSAGE, [CORE_NO_FILE_ACCESS]),
   },
   {
     files: ['tools/**/*.mjs'],

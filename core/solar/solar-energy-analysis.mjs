@@ -1,5 +1,3 @@
-import { readFile } from 'node:fs/promises';
-import { pathToFileURL } from 'node:url';
 import {
   calculateSolarPosition,
   deriveSolarPlanOrientation,
@@ -454,16 +452,11 @@ export function scanMirrorEnergyAngles(model, weatherSamples, options = {}) {
   };
 }
 
-async function buildReport() {
-  const model = JSON.parse(
-    await readFile(new URL('../../model/project-model.json', import.meta.url), 'utf8'),
-  );
-  const pvgis = JSON.parse(
-    await readFile(
-      new URL('../../source-materials/site/SRC-SITE-003_pvgis-5-3-tmy.json', import.meta.url),
-      'utf8',
-    ),
-  );
+/**
+ * 年度能量的完整報告（`node tools/analysis/solar-energy-report.mjs` 印出）。
+ * `pvgis` 是 SRC-SITE-003 的 PVGIS TMY 原始 JSON，由呼叫端讀檔。
+ */
+export function buildSolarEnergyReport(model, pvgis) {
   const weather = buildPvgisWeatherSamples(model, pvgis);
   const current = evaluateMirrorEnergy(model, weather);
   const sensitivity = evaluateEnergySensitivity(model, weather);
@@ -516,8 +509,4 @@ async function buildReport() {
     opticalSensitivity,
     ceilingDiffuseScenarios,
   };
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  console.log(JSON.stringify(await buildReport(), null, 2));
 }
