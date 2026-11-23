@@ -140,7 +140,7 @@ git diff --check
 
 ## 7. GitHub Pages
 
-公開首頁是 `https://kuohappiness.github.io/Swimming-Pool-Design/`；設計理念使用根網址，日照研究、水循環、設計歷程、圖面設計、3D 展示與關於分別使用 `?view=solar-study`、`?view=water-cycle`、`?view=design-process`、`?view=drawings`、`?view=3d-viewer`、`?view=about`。`.github/workflows/deploy-pages.yml` 在 `main` push 或人工觸發時：
+公開首頁是 `https://kuohappiness.github.io/Swimming-Pool-Design/`；設計理念使用根網址，日照研究、水循環、一堂游泳課、設計歷程、圖面、3D 與關於分別使用 `?view=solar-study`、`?view=water-cycle`、`?view=swim-class`、`?view=design-process`、`?view=drawings`、`?view=3d-viewer`、`?view=about`。`.github/workflows/deploy-pages.yml` 在 `main` push 或人工觸發時：
 
 - 以 lockfile 安裝依賴並執行 `npm run build`。
 - 只上傳 `dist/web/`；`dist/` 不納入 Git 歷史。

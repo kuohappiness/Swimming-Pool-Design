@@ -6,22 +6,32 @@ import {
   ABOUT_SECTION_IDS,
   DESIGN_PROCESS_SECTION_IDS,
   RAINFALL_SOURCE_PATH,
+  SWIM_CLASS_SECTION_IDS,
   WATER_CYCLE_SECTION_IDS,
   compileSectionedContent,
   injectRecordQuotes,
   readRecords,
   recordKeysIn,
   recordPathFor,
+  swimClassDataFor,
   waterCycleDataFor,
 } from '../../../../tools/build/build-content.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../../../..');
-const [modelText, aboutMarkdown, designProcessMarkdown, waterCycleMarkdown, rainfallText] = await Promise.all([
+const [
+  modelText,
+  aboutMarkdown,
+  designProcessMarkdown,
+  waterCycleMarkdown,
+  rainfallText,
+  swimClassMarkdown,
+] = await Promise.all([
   readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
   readFile(resolve(repoRoot, 'content/about.md'), 'utf8'),
   readFile(resolve(repoRoot, 'content/design-process.md'), 'utf8'),
   readFile(resolve(repoRoot, 'content/water-cycle.md'), 'utf8'),
   readFile(resolve(repoRoot, RAINFALL_SOURCE_PATH), 'utf8'),
+  readFile(resolve(repoRoot, 'content/swim-class.md'), 'utf8'),
 ]);
 const rainfallSource = JSON.parse(rainfallText);
 const designProcessRecords = await readRecords(repoRoot, designProcessMarkdown);
@@ -178,7 +188,7 @@ test('design process copy compiles against the model and the records it quotes',
   for (const [, href] of html.matchAll(/href="([^"]+)"/g)) {
     assert.match(
       href,
-      /^(\.\/|\?view=(solar-study|drawings|3d-viewer|about)|https:\/\/github\.com\/kuohappiness\/Swimming-Pool-Design(\/|$))/,
+      /^(\.\/|\?view=(solar-study|swim-class|drawings|3d-viewer|about)|https:\/\/github\.com\/kuohappiness\/Swimming-Pool-Design(\/|$))/,
       `unexpected link target in design process copy: ${href}`,
     );
   }
@@ -274,4 +284,50 @@ test('water cycle copy carries no hand-typed measurement', () => {
     /(?<![A-Za-z0-9.])\d+(\.\d+)?\s*(mm|毫米|m²|m³|km|m|公尺|公分|公里|公升|平方公尺|立方公尺|°|度|kWh|%)(?![A-Za-z])/u,
   );
   assert.ok((waterCycleMarkdown.match(/\{\{data:/g) ?? []).length >= 15);
+});
+
+test('swim class copy compiles from the active first floor', () => {
+  const data = swimClassDataFor(clone());
+  const compiled = compileSectionedContent(swimClassMarkdown, clone(), SWIM_CLASS_SECTION_IDS, { data });
+  assert.deepEqual(compiled.sections.map(({ id }) => id), SWIM_CLASS_SECTION_IDS);
+  const bySection = Object.fromEntries(compiled.sections.map((section) => [section.id, section]));
+  const html = compiled.sections.map((section) => [section.html, ...section.items.map((item) => item.html)].join('\n')).join('\n');
+  assert.doesNotMatch(html, /\{\{/);
+  // The page pairs its steps with the model's class route and its care items with five places on the plan.
+  assert.equal(bySection.route.items.length, activeRevision.l1.poolUse.classRoute.length);
+  assert.equal(bySection.care.items.length, 5);
+  assert.match(bySection.overview.html, /概念設計的規劃值/);
+  assert.doesNotMatch(html, /符合法規|翻修/);
+  // Internal names stay out of the public copy.
+  assert.doesNotMatch(html, /ST-0\d|Z-L1-|SITE-XY|DEC-\d|X\d+(\.\d+)?～/);
+  for (const [, href] of html.matchAll(/href="([^"]+)"/g)) {
+    assert.match(
+      href,
+      /^(\.\/|\?view=drawings|\?view=3d-viewer#people|https:\/\/github\.com\/kuohappiness\/Swimming-Pool-Design\/)/,
+      `unexpected link target in swim class copy: ${href}`,
+    );
+  }
+  // Class size, shoe cubbies and the platform depth come from the model.
+  const changed = clone();
+  const changedRevision = changed.geometryRevisions.find(({ id }) => id === changed.activeGeometryRevisionId);
+  changedRevision.l1.poolUse.assemblyArea.seatedClassCapacity = 28;
+  changedRevision.l1.pool.teachingPlatform.topWaterDepth = 0.9;
+  const recompiled = compileSectionedContent(
+    swimClassMarkdown,
+    changed,
+    SWIM_CLASS_SECTION_IDS,
+    { data: swimClassDataFor(changed) },
+  );
+  const changedHtml = recompiled.sections.flatMap((section) => [section.html, ...section.items.map((item) => item.html)]).join('\n');
+  assert.match(changedHtml, /一班 28 個學生/);
+  assert.match(changedHtml, /水深是 0\.9 m/);
+});
+
+test('swim class copy carries no hand-typed measurement', () => {
+  const withoutTokens = swimClassMarkdown.replace(/\{\{[^}]+\}\}/g, '');
+  assert.doesNotMatch(
+    withoutTokens,
+    /(?<![A-Za-z0-9.:])\d+(\.\d+)?\s*(mm|m²|m³|km|m|公尺|公分|公里|°|度|%|人|雙|級|階|支|條|個淋浴間)(?![A-Za-z])/u,
+  );
+  assert.ok((swimClassMarkdown.match(/\{\{(active|data):/g) ?? []).length >= 20);
 });
