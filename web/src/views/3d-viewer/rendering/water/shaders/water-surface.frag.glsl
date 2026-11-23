@@ -155,7 +155,13 @@ void main() {
     // 這裡不重複計算；池體剖面視角從池外往上看時也就不會多一層水色。
   }
 
+  #if defined( TONE_MAPPING )
   gl_FragColor = vec4(color, 1.0);
+  #else
+  // 畫進後製用的浮點貼圖（three.js 這時不做色調映射）：alpha 0 告訴後製不要在水面套環境遮蔽與
+  // 接觸陰影，水的陰影與水色在這裡已經算好了。直接畫到畫面時一定要是 1，否則畫布會透出底色。
+  gl_FragColor = vec4(color, 0.0);
+  #endif
 
   #include <tonemapping_fragment>
   #include <colorspace_fragment>

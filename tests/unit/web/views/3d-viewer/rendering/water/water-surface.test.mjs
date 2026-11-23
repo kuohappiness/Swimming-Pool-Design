@@ -104,6 +104,12 @@ test('material inlines the shared basin shader and keeps tone mapping, colour sp
   assert.equal(material.side, THREE.DoubleSide);
   assert.ok('fogColor' in material.uniforms);
   assert.doesNotMatch(material.fragmentShader, /onBeforeCompile|transmission/);
+  // Drawn into the frame pipeline's float target (no tone mapping there), the water writes alpha 0
+  // so the ambient occlusion and contact shadows of the top tiers leave it alone (TASK-152 step 6).
+  assert.match(
+    material.fragmentShader,
+    /#if defined\( TONE_MAPPING \)\s*gl_FragColor = vec4\(color, 1\.0\);\s*#else(?:\s*\/\/[^\n]*)*\s*gl_FragColor = vec4\(color, 0\.0\);\s*#endif/,
+  );
 });
 
 test('uniforms come from the basin shape and textures are passed through, not cloned', () => {

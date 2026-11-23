@@ -559,6 +559,13 @@ try {
     // Steel, glass and the wet deck inside the pool hall reflect the hall through the water's
     // hall probe (TASK-152 step 5), not the sky; no extra capture, so no extra draw calls.
     assert.equal(await shell.getAttribute('data-hall-reflection'), 'probe');
+    // Frame effects (TASK-152 step 6): the high tier draws into a multisampled float target, adapts
+    // its exposure and adds bloom (ambient occlusion is ultra only); medium draws to the screen.
+    // The full-screen passes count as draw calls, so the budgets above include them.
+    assert.equal(
+      await shell.getAttribute('data-frame-effects'),
+      budget.quality === 'high' ? 'multisample exposure-adaptation bloom' : 'none',
+    );
     await page.close();
   }
 
@@ -710,6 +717,11 @@ try {
   assert.deepEqual(await qualityState(), {
     tier: 'ultra', source: 'url', pipeline: 'high', choice: 'ultra', status: '目前：極致（由網址指定）',
   });
+  // Only the top tier adds ambient occlusion and contact shadows (TASK-152 step 6).
+  assert.equal(
+    await qualityShell.getAttribute('data-frame-effects'),
+    'multisample exposure-adaptation bloom ambient-occlusion contact-shadows',
+  );
   await qualityContext.close();
 
   // Real sun (DEC-191): the light comes from the site, its bearing, the date, the time and the

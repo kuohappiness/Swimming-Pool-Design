@@ -122,6 +122,27 @@ test('a realism tier overrides only what the pipeline profile already exposes', 
     () => renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.low, REALISM_TIERS.high),
     /expects the high pipeline profile/,
   );
+  // Frame effects (TASK-152 step 6): the two upper tiers post-process, medium and saver draw
+  // straight to the screen. Shedding bloom or ambient occlusion keeps the post-processing itself,
+  // so the exposure does not jump when the governor steps in.
+  const medium = renderQualityProfileForTier(ENHANCED_QUALITY_PROFILES.medium, REALISM_TIERS.medium);
+  const frameEffects = ({ postProcessing, exposureAdaptation, bloom, ambientOcclusion }) => ({
+    postProcessing, exposureAdaptation, bloom, ambientOcclusion,
+  });
+  assert.deepEqual([ultra, high, medium, saver].map(frameEffects), [
+    { postProcessing: true, exposureAdaptation: true, bloom: true, ambientOcclusion: true },
+    { postProcessing: true, exposureAdaptation: true, bloom: true, ambientOcclusion: false },
+    { postProcessing: false, exposureAdaptation: false, bloom: false, ambientOcclusion: false },
+    { postProcessing: false, exposureAdaptation: false, bloom: false, ambientOcclusion: false },
+  ]);
+  assert.deepEqual(
+    frameEffects(renderQualityProfileForTier(
+      ENHANCED_QUALITY_PROFILES.high,
+      REALISM_TIERS.ultra,
+      ['bloom', 'ambient-occlusion'],
+    )),
+    { postProcessing: true, exposureAdaptation: true, bloom: false, ambientOcclusion: false },
+  );
 
   assert.equal(effectivePixelRatio(3, REALISM_TIERS.ultra, 1), 2);
   assert.equal(effectivePixelRatio(1, REALISM_TIERS.high, 0.8), 0.8);

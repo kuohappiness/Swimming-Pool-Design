@@ -30,6 +30,11 @@ export function renderQualityProfileForTier<Profile extends RenderQualityProfile
     waterReflectionScale: shed.includes('water-reflection-resolution')
       ? tier.waterReflectionScale * SHED_REFLECTION_RATIO
       : tier.waterReflectionScale,
+    // 鏡頭效果（TASK-152 步驟 6）。卸載暈光或環境遮蔽時後製本身留著，曝光才不會跟著跳。
+    postProcessing: tier.exposureAdaptation || tier.bloom || tier.ambientOcclusion,
+    exposureAdaptation: tier.exposureAdaptation,
+    bloom: tier.bloom && !shed.includes('bloom'),
+    ambientOcclusion: tier.ambientOcclusion && !shed.includes('ambient-occlusion'),
   });
 }
 

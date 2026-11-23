@@ -130,6 +130,8 @@ export class ScreenUnderwaterView implements UnderwaterView {
 
     const target = this.ensureTarget(renderer);
     const underwaterOnly = this.options.underwaterOnly ?? [];
+    // 畫面管線有後製時，整個畫面畫在它的場景貼圖裡；畫完換回原本的繪製目標。
+    const output = renderer.getRenderTarget();
     for (const object of underwaterOnly) object.visible = true;
     try {
       renderer.setRenderTarget(target);
@@ -137,7 +139,7 @@ export class ScreenUnderwaterView implements UnderwaterView {
       renderer.render(scene, camera);
     } finally {
       for (const object of underwaterOnly) object.visible = false;
-      renderer.setRenderTarget(null);
+      renderer.setRenderTarget(output);
     }
 
     const { uniforms } = this.material;
