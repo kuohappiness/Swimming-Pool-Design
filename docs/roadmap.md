@@ -28,6 +28,7 @@
 
 | 日期 | 工作 |
 | --- | --- |
+| 2026-11-23 | **日照頁程式拆出日期與平面圖換算，補上單元測試（TASK-180）**：日照頁 `main.ts` 的日期、平面圖座標與手機預覽複製拆成三個純函式模組並補 9 項單元測試，畫面不變（已合併，[入口](tasks/2026-11-23-solar-study-split.md)） |
 | 2026-11-23 | **清掉 core 與網站共用程式裡沒人用的匯出（TASK-169）**：core 與網站共用程式 23 個沒人引用的匯出改為檔內私有或刪除，型別宣告檔同步（已合併，[入口](tasks/2026-11-23-unused-exports-core.md)） |
 | 2026-11-23 | **單元測試共用一份 Vite 載入設定（TASK-168）**：39 個 3D 單元測試檔改用 `tests/support/web-modules.mjs` 建立 Vite 載入器，關掉 WebSocket，平行跑時不再印出 26 行埠被占用的錯誤（已合併，[入口](tasks/2026-11-23-test-web-modules.md)） |
 | 2026-11-23 | **core/ 的讀檔與命令列入口搬到 tools/（TASK-167）**：角度與能量報告改由 `tools/analysis/` 的兩支程式讀檔印出，來源檔雜湊比對移到 `tools/check/`，`core/` 不再讀檔，ESLint 擋下 `core/` 讀檔（已合併，[入口](tasks/2026-11-23-core-cli-to-tools.md)） |
