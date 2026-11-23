@@ -118,8 +118,6 @@ const planSvg = required<SVGSVGElement>('#plan');
 const sectionSvg = required<SVGSVGElement>('#section');
 const previewPlanButton = required<HTMLButtonElement>('#previewPlan');
 const previewSectionButton = required<HTMLButtonElement>('#previewSection');
-const desktopPlanPreviewViewport = required<HTMLElement>('#desktopPlanPreviewViewport');
-const desktopSectionPreviewViewport = required<HTMLElement>('#desktopSectionPreviewViewport');
 const mobilePreviewViewport = required<HTMLElement>('#mobilePreviewViewport');
 const planRays = required<SVGGElement>('#planRays');
 const selectedSun = required<SVGGElement>('#selectedSun');
@@ -152,7 +150,8 @@ const resultTitle = required<HTMLElement>('#resultTitle');
 const resultDetail = required<HTMLElement>('#resultDetail');
 const timeScope = required<HTMLElement>('#timeScope');
 type MobilePreviewMode = 'plan' | 'section';
-const mobilePreviewMedia = window.matchMedia('(max-width: 640px)');
+// 寬螢幕上兩張圖固定在左欄、隨時看得到，不需要預覽；窄於 1000px 時才在控制器上方放一張可切換的預覽。
+const mobilePreviewMedia = window.matchMedia('(max-width: 999px)');
 let mobilePreviewMode: MobilePreviewMode = 'plan';
 
 function clonePreviewSvg(source: SVGSVGElement, idPrefix: string): SVGSVGElement {
@@ -191,8 +190,6 @@ function clonePreviewSvg(source: SVGSVGElement, idPrefix: string): SVGSVGElement
 
 function renderLivePreview(): void {
   if (mobilePreviewMedia.matches) {
-    desktopPlanPreviewViewport.replaceChildren();
-    desktopSectionPreviewViewport.replaceChildren();
     const source = mobilePreviewMode === 'plan' ? planSvg : sectionSvg;
     mobilePreviewViewport.replaceChildren(
       clonePreviewSvg(source, 'mobile-preview-' + mobilePreviewMode),
@@ -202,12 +199,6 @@ function renderLivePreview(): void {
     return;
   }
   mobilePreviewViewport.replaceChildren();
-  desktopPlanPreviewViewport.replaceChildren(
-    clonePreviewSvg(planSvg, 'desktop-preview-plan'),
-  );
-  desktopSectionPreviewViewport.replaceChildren(
-    clonePreviewSvg(sectionSvg, 'desktop-preview-section'),
-  );
 }
 
 function setMobilePreview(mode: MobilePreviewMode): void {
