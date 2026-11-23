@@ -69,7 +69,7 @@ void main() {
     vec3 target = basinPosition(ndc, texture2D(tDepth, vUv).x);
     float distanceToScene = distance(eye, target);
     vec3 direction = (target - eye) / max(distanceToScene, 1.0e-4);
-    vec3 underwater = applyWaterColumn(color, distanceToScene);
+    vec3 underwater = applyWaterColumn(color, distanceToScene) + poolLightGlow(eye, direction, distanceToScene);
 
     if (uShaftSteps > 0) {
       vec3 towardSun = -refract(-uSunDirection, vec3(0.0, 1.0, 0.0), 1.0 / WATER_IOR);

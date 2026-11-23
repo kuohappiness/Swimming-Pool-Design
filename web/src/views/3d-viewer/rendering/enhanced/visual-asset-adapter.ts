@@ -14,6 +14,7 @@ import {
   type RealisticWaterOptions,
 } from '../water/realistic-water-presentation';
 import { WATER_SURFACE_NAME } from '../water/water-surface';
+import { HallReflection } from './hall-reflection';
 import { MirrorReflection, type MirrorReflectionOptions } from './mirror-reflection';
 
 export interface EnhancedVisualAssetAdapterOptions {
@@ -139,6 +140,8 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   private readonly water: EnhancedWaterPresentation;
   private readonly realisticWater: RealisticWaterPresentation | null;
   private readonly mirror: MirrorReflection | null;
+  /** 池館室內的反射：沿用寫實水面的池廳探針。 */
+  private readonly hall: HallReflection | null;
   private waterStatus: WaterPresentationStatus = 'legacy';
   private waterFailure: string | null = null;
   private underwaterFrame = false;
@@ -166,6 +169,9 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
       : null;
     this.mirror = options.mirrorReflection
       ? new MirrorReflection(initialProfile, options.mirrorReflection)
+      : null;
+    this.hall = this.realisticWater
+      ? new HallReflection(() => (this.waterStatus === 'realistic' ? this.realisticWater?.hallProbe ?? null : null))
       : null;
     this.createOptionalAssets = options.createOptionalAssets ?? createProceduralScaleAssets;
   }
@@ -211,6 +217,8 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
       this.optionalAssets = null;
       this.status = 'degraded';
     }
+    // 鏡面先接上（它有自己的探針，池廳反射不裝在它身上），其餘構件再裝池廳反射。
+    this.hall?.attach(context.scene);
     this.applyQuality();
   }
 
@@ -222,6 +230,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     this.water.setQuality(profile);
     this.realisticWater?.setQuality(profile);
     this.mirror?.setQuality(profile);
+    if (this.context) this.hall?.install(this.context.scene);
     this.applyQuality();
   }
 
@@ -233,6 +242,11 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
   invalidateLighting() {
     this.mirror?.invalidate();
     this.realisticWater?.invalidateReflection();
+  }
+
+  /** 池廳裡的構件照出池館本身（`probe`），或水的探針還沒拍好、沒有寫實水面時只照環境貼圖（`environment`）。 */
+  get hallReflection(): 'probe' | 'environment' {
+    return this.hall?.enabled ? 'probe' : 'environment';
   }
 
   /** 鏡面照出場景（`probe`），或沒有鏡面、沒啟用時只照環境貼圖（`environment`）。 */
@@ -266,6 +280,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     // 鏡面先拍：水面的探針拍得到鏡面，鏡面才不會停在上一次的光線。
     this.mirror?.updateFrame();
     this.realisticWater?.updateFrame(state);
+    this.hall?.updateFrame();
     // 寫實水面的焦散在著色器裡，舊的滑動光帶已隱藏，不必再移動。
     if (this.waterStatus === 'realistic') return;
     if (state.reducedMotion || this.profile.id !== 'high') return;
@@ -284,6 +299,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
       mesh.visible = true;
     }
     this.caustics.length = 0;
+    this.hall?.dispose();
     this.realisticWater?.dispose();
     this.mirror?.dispose();
     this.water.dispose();

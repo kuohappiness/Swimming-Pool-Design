@@ -560,6 +560,9 @@ try {
     // The mirror wall reflects the scene through its own probe (TASK-152 step 4); capturing it
     // happens outside the counted frame, so the budgets above already include its cost.
     assert.equal(await shell.getAttribute('data-mirror-reflection'), 'probe');
+    // Steel, glass and the wet deck inside the pool hall reflect the hall through the water's
+    // hall probe (TASK-152 step 5), not the sky; no extra capture, so no extra draw calls.
+    assert.equal(await shell.getAttribute('data-hall-reflection'), 'probe');
     await page.close();
   }
 
@@ -769,6 +772,9 @@ try {
   );
   assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'pool');
   assert.ok(Number(await sunShell.getAttribute('data-mirror-incidence')) > 0);
+  // A clear winter morning needs no lights in the pool hall (TASK-152 step 5).
+  assert.equal(await sunShell.getAttribute('data-fixture-lights'), 'off');
+  assert.equal(await sunShell.getAttribute('data-fixture-surface-lighting'), '0.00');
   // Even the saver tier, which has no environment map, gives the mirror its own reflection
   // (published with the frame counters, so wait for the next window).
   await sun.waitForFunction(
@@ -836,6 +842,10 @@ try {
   await sun.locator('[data-light-weather] button[data-weather="rain"]').click();
   const summerRain = await sunState();
   assert.equal(summerRain.weather, 'rain');
+  // On a rainy afternoon the lights are on, but next to the daylight through the glass they
+  // only show as glowing fittings, not as light on the hall.
+  assert.equal(await sunShell.getAttribute('data-fixture-lights'), 'on');
+  assert.equal(await sunShell.getAttribute('data-fixture-surface-lighting'), '0.00');
   assert.equal(summerRain.altitude, summerEvening.altitude);
   assert.equal(
     await sun.locator('[data-light-weather] button[data-weather="rain"]').getAttribute('aria-pressed'),
@@ -849,7 +859,14 @@ try {
   assert.equal(summerNight.key, 'moon');
   assert.ok(summerNight.altitude < -6);
   assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'none', 'moonlight is not reflected');
-  assert.equal(await sun.locator('[data-light-status]').innerText(), '夜間，太陽在地平線下');
+  // At night the pool hall's lights are on and light the hall; the status line says so and
+  // labels the fixture layout a concept illustration.
+  assert.equal(await sunShell.getAttribute('data-fixture-lights'), 'on');
+  assert.equal(await sunShell.getAttribute('data-fixture-surface-lighting'), '1.00');
+  assert.equal(
+    await sun.locator('[data-light-status]').innerText(),
+    '夜間，太陽在地平線下；池館燈具開啟（燈具配置為概念示意）',
+  );
   await sun.screenshot({ path: resolve(outputDirectory, 'viewer-sun-night.png') });
 
   // The URL is a deep link: a reload comes back to the same light.
