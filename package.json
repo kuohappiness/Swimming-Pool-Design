@@ -17,6 +17,7 @@
     "build:analysis": "node tools/analysis/solar-optimize.mjs",
     "build:copy": "node tools/build/build-copy.mjs",
     "build:textures": "node tools/build/build-textures.mjs",
+    "build:icons": "node tools/build/build-icons.mjs",
     "check:docs": "node tools/check/check-docs.mjs",
     "check:model": "node tools/check/check-model.mjs",
     "check:assets": "node tools/check/check-assets.mjs",

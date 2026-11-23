@@ -17,6 +17,9 @@ const chromeCandidates = [
   '/usr/bin/chromium',
 ].filter(Boolean);
 
+// Registry order (router.ts viewDefinitions), which the footer's previous/next links follow.
+const pageOrder = ['design-concept', 'solar-study', 'design-process', 'drawings', '3d-viewer', 'about'];
+
 const routes = [
   { id: 'design-concept', url: '/' },
   { id: 'solar-study', url: '/?view=solar-study', group: 'topics' },
@@ -81,9 +84,34 @@ async function waitForView(page, viewId) {
   }
 }
 
+async function openMenuIfFolded(page) {
+  // At 900px and below the main navigation folds into the menu panel (a native popover).
+  const menuButton = page.locator('.site-menu-button');
+  if (!(await menuButton.isVisible())) return false;
+  await menuButton.click();
+  assert.equal(await page.locator('#site-navigation').evaluate((nav) => nav.matches(':popover-open')), true);
+  return true;
+}
+
 async function assertCommonShell(page, route, viewport) {
   // DEC-170: five main items; 四向專題 is a group, not a page.
   assert.equal(await page.locator('[data-site-nav]').count(), 5);
+  const folded = await openMenuIfFolded(page);
+  assert.equal(folded, viewport.width <= 900, `${route.id} menu button visibility is wrong at ${viewport.width}px`);
+  if (folded) {
+    const button = await page.locator('.site-menu-button').boundingBox();
+    assert.ok(button.width >= 44 && button.height >= 44, `${route.id} menu button is smaller than 44px at ${viewport.width}px`);
+    assert.equal(
+      await page.locator('[data-site-nav]').evaluateAll((links) =>
+        links.every((link) => {
+          const rect = link.getBoundingClientRect();
+          return rect.left >= 0 && rect.right <= window.innerWidth && rect.bottom <= window.innerHeight;
+        }),
+      ),
+      true,
+      `${route.id} menu panel does not fit the screen at ${viewport.width}px`,
+    );
+  }
   assert.deepEqual(
     (await page.locator('[data-site-nav]').allTextContents()).map((text) => text.trim()),
     ['設計理念', '四向專題', '圖面', '3D', '關於'],
@@ -98,6 +126,10 @@ async function assertCommonShell(page, route, viewport) {
     `${route.id} current navigation link is scrolled out of view at ${viewport.width}px`,
   );
   assert.equal(await page.locator('[data-site-nav][aria-current]').count(), 1);
+  if (folded) {
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#site-navigation').evaluate((nav) => nav.matches(':popover-open')), false);
+  }
   const label = await page.locator(route.group ? `[data-site-subnav="${route.id}"]` : `[data-site-nav="${route.id}"]`).textContent();
   assert.equal(await page.title(), `${label.trim()}｜實小泳池改建概念設計`);
   if (route.group) {
@@ -141,6 +173,7 @@ async function assertCommonShell(page, route, viewport) {
     `${route.id} overflows at ${viewport.width}px`,
   );
 
+  const reopened = await openMenuIfFolded(page);
   const navigationTargets = await page.locator('[data-site-nav]').evaluateAll((links) =>
     links.map((link) => {
       const rect = link.getBoundingClientRect();
@@ -152,6 +185,27 @@ async function assertCommonShell(page, route, viewport) {
     true,
     `${route.id} navigation target is smaller than 44px at ${viewport.width}px`,
   );
+  if (reopened) await page.keyboard.press('Escape');
+
+  // Footer: previous and next page in registry order, each a 44px target.
+  const index = pageOrder.indexOf(route.id);
+  const pager = await page.locator('[data-site-pager]').evaluateAll((links) =>
+    links.map((link) => ({
+      rel: link.getAttribute('rel'),
+      href: link.getAttribute('href'),
+      height: link.getBoundingClientRect().height,
+    })),
+  );
+  const expectedPager = [
+    index > 0 && { rel: 'prev', view: pageOrder[index - 1] },
+    index < pageOrder.length - 1 && { rel: 'next', view: pageOrder[index + 1] },
+  ].filter(Boolean);
+  assert.deepEqual(
+    pager.map(({ rel, href }) => ({ rel, view: new URL(href, origin).searchParams.get('view') ?? 'design-concept' })),
+    expectedPager,
+    `${route.id} footer previous/next links are wrong`,
+  );
+  assert.equal(pager.every(({ height }) => height >= 44), true, `${route.id} footer pager target is smaller than 44px`);
 
   const resourceOrigins = await page.evaluate(() =>
     [...new Set(performance.getEntriesByType('resource').map(({ name }) => new URL(name).origin))],
@@ -215,6 +269,23 @@ try {
       await page.close();
     }
   }
+
+  // Site icons and the share card are published next to index.html (npm run build:icons).
+  const iconPage = await browser.newPage();
+  await iconPage.goto(origin, { waitUntil: 'networkidle' });
+  for (const [selector, attribute] of [
+    ['link[rel="icon"]', 'href'],
+    ['link[rel="apple-touch-icon"]', 'href'],
+  ]) {
+    const href = await iconPage.locator(selector).getAttribute(attribute);
+    const response = await iconPage.request.get(new URL(href, iconPage.url()).href);
+    assert.equal(response.ok(), true, `${selector} ${href} is missing`);
+    assert.equal(response.headers()['content-type'], 'image/png');
+  }
+  const shareImage = await iconPage.locator('meta[property="og:image"]').getAttribute('content');
+  const shareResponse = await iconPage.request.get(`${origin}/${new URL(shareImage).pathname.split('/').pop()}`);
+  assert.equal(shareResponse.ok(), true, 'share card is not published next to index.html');
+  await iconPage.close();
 
   for (const viewId of ['design-concept', 'solar-study', 'design-process', 'drawings', 'about']) {
     const metrics = routeScriptMetrics.get(viewId) ?? [];
@@ -559,6 +630,7 @@ try {
   trackErrors(reentry, errors);
   await reentry.goto(origin, { waitUntil: 'networkidle' });
   for (const viewId of ['3d-viewer', 'design-concept', '3d-viewer']) {
+    await openMenuIfFolded(reentry);
     await Promise.all([
       reentry.waitForNavigation({ waitUntil: 'networkidle' }),
       reentry.locator(`[data-site-nav="${viewId}"]`).click(),

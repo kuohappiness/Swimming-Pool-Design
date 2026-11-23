@@ -1,0 +1,64 @@
+/*
+ * 列印：只印內容。導覽、選單與操作元件不印；圖、表與照片不跨頁切斷；
+ * 標題不留在頁尾；技術資料展開印出。圖面頁另在自己的 view.css 讓一張圖紙橫印成一頁。
+ */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  html,
+  body {
+    background: #fff;
+  }
+
+  .site-skip-link,
+  .site-masthead,
+  .site-pager {
+    display: none;
+  }
+
+  .site-view {
+    min-height: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  img,
+  svg,
+  picture,
+  figure,
+  table,
+  blockquote {
+    break-inside: avoid;
+  }
+
+  img,
+  svg {
+    max-width: 100%;
+  }
+
+  .site-footer {
+    margin-top: 2rem;
+    break-inside: avoid;
+  }
+
+  .site-technical summary {
+    display: none;
+  }
+
+  .site-technical::details-content {
+    content-visibility: visible;
+  }
+}

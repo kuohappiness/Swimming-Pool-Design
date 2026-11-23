@@ -38,7 +38,11 @@
   --site-text-sm: 0.875rem; /* 14px：圖說、表格、按鈕、導覽 */
   --site-text-md: 1rem; /* 16px：段落，桌機 17px */
   --site-text-lead: clamp(1.125rem, 1rem + 0.5vw, 1.25rem); /* 18 到 20px：導言、引文 */
-  --site-text-h4: 1.25rem; /* 20px */
+  --site-text-h4: 1.25rem; /* 20px：小標、卡片標題 */
+  --site-text-h3: 1.5rem; /* 24px：節標 */
+  --site-text-h2: clamp(1.75rem, 1.25rem + 1.6vw, 2.5rem); /* 28 到 40px：章標 */
+  --site-text-h1: clamp(2rem, 1.4rem + 2.6vw, 3.5rem); /* 32 到 56px：各頁 H1 */
+  --site-text-display: clamp(2.5rem, 1.5rem + 4vw, 4.5rem); /* 40 到 72px：只給首頁 H1 */
 
   --site-weight-medium: 500;
   --site-weight-bold: 700;
@@ -60,14 +64,14 @@
   --site-header-height: calc(76px + var(--site-subnav-height));
 }
 
-/* 900px 以下頁首改成兩列（站名一列、主導覽一列），與 layout.css 同一個斷點。 */
+/* 900px 以下頁首改成單列（站名與選單鈕），主導覽收進選單面板；與 layout.css 同一個斷點。 */
 @media (max-width: 900px) {
   :root {
-    --site-header-height: 116px;
+    --site-header-height: 56px;
   }
 
   :root[data-nav-group] {
-    --site-header-height: calc(116px + var(--site-subnav-height));
+    --site-header-height: calc(56px + var(--site-subnav-height));
   }
 }
 
@@ -81,5 +85,14 @@
 @media (min-width: 900px) {
   :root {
     --site-text-md: 1.0625rem;
+  }
+}
+
+/* 列印時頁首不印，sticky 元素與錨點不再預留頁首高度；版心用滿紙張寬度（print.css）。 */
+@media print {
+  :root,
+  :root[data-nav-group] {
+    --site-header-height: 0px;
+    --site-page: 100%;
   }
 }

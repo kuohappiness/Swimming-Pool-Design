@@ -12,25 +12,6 @@
     font: inherit;
   }
 
-  .view-intro--drawings {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
-    column-gap: 4rem;
-    padding-bottom: clamp(1.05rem, 2.1vw, 2.1rem);
-  }
-
-  .view-intro--drawings .site-kicker,
-  .view-intro--drawings .site-section-description,
-  .view-intro--drawings h1 {
-    grid-column: 1;
-  }
-
-  .view-intro--drawings > p:last-child {
-    grid-column: 2;
-    grid-row: 3;
-    align-self: start;
-  }
-
   .drawings-catalogue {
     width: var(--site-page);
     margin: 0 auto;
@@ -214,14 +195,6 @@
   }
 
   @media (max-width: 820px) {
-    .view-intro--drawings {
-      display: block;
-    }
-
-    .view-intro--drawings > p:last-child {
-      margin-top: 2rem;
-    }
-
     .drawings-catalogue {
       width: 100%;
       padding-top: 1rem;
@@ -326,6 +299,17 @@
     .drawing-wrap {
       min-width: 0;
     }
+
+    /* 圖紙本身有圖名，列印時省去頁面首區，讓圖紙與頁尾收在同一張 A4 橫向紙上。 */
+    .view-intro {
+      display: none;
+    }
+
+    .drawing-wrap :is(svg, img) {
+      width: auto;
+      max-width: 100%;
+      max-height: 140mm;
+    }
   }
 }
 
@@ -333,4 +317,20 @@
 .site-view--drawings + .site-footer {
   margin-top: calc(var(--site-space-6) / 2);
   border-top: 0;
+}
+
+/* 列印：圖面頁整份橫印，一張圖紙收在一頁之內。 */
+@page drawing-sheet {
+  size: A4 landscape;
+}
+
+@media print {
+  .site-view--drawings {
+    page: drawing-sheet;
+  }
+
+  /* 圖框與下方資訊列已有專案名稱與版本，頁尾不另外多印一頁。 */
+  .site-view--drawings + .site-footer {
+    display: none;
+  }
 }

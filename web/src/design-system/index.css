@@ -12,3 +12,4 @@
 @import './typography.css' layer(base);
 @import './layout.css' layer(layout);
 @import './components.css' layer(components);
+@import './print.css' layer(components);
