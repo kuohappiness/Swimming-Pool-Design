@@ -1,10 +1,12 @@
 import type { ViewerModel } from '../model-adapter.js';
 
-export type DeepReadonly<T> =
-  T extends (...args: never[]) => unknown ? T
-    : T extends readonly (infer Item)[] ? readonly DeepReadonly<Item>[]
-      : T extends object ? { readonly [Key in keyof T]: DeepReadonly<T[Key]> }
-        : T;
+export type DeepReadonly<T> = T extends (...args: never[]) => unknown
+  ? T
+  : T extends readonly (infer Item)[]
+    ? readonly DeepReadonly<Item>[]
+    : T extends object
+      ? { readonly [Key in keyof T]: DeepReadonly<T[Key]> }
+      : T;
 
 export type ReadonlyViewerModel = DeepReadonly<ViewerModel>;
 export type SiteCoordinateSystemId = 'SITE-XY';
@@ -114,10 +116,7 @@ export interface OpeningDescriptor {
 }
 
 export type CollisionDescriptor =
-  | WalkSurfaceDescriptor
-  | StairRampDescriptor
-  | PoolShellDescriptor
-  | OpeningDescriptor;
+  WalkSurfaceDescriptor | StairRampDescriptor | PoolShellDescriptor | OpeningDescriptor;
 
 export interface WaterVolumeDescriptor {
   readonly id: 'main-pool-water';
@@ -134,11 +133,7 @@ export interface WaterVolumeDescriptor {
 }
 
 export type SpawnElevationRole =
-  | 'site-ground'
-  | 'pool-deck'
-  | 'l2-floor'
-  | 'l3-floor'
-  | 'roof-surface';
+  'site-ground' | 'pool-deck' | 'l2-floor' | 'l3-floor' | 'roof-surface';
 
 export interface SpawnDescriptor {
   readonly id:
@@ -158,12 +153,7 @@ export interface SpawnDescriptor {
 }
 
 export type MovementMode =
-  | 'walking'
-  | 'falling'
-  | 'swimming-surface'
-  | 'swimming-underwater'
-  | 'teleporting'
-  | 'recovering';
+  'walking' | 'falling' | 'swimming-surface' | 'swimming-underwater' | 'teleporting' | 'recovering';
 
 export interface MovementIntent {
   readonly moveX: number;

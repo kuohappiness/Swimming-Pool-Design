@@ -1,9 +1,5 @@
 import * as THREE from 'three';
-import type {
-  VisualFrameState,
-  VisualAssetContext,
-  VisualWalkthroughState,
-} from '../contracts';
+import type { VisualFrameState, VisualAssetContext, VisualWalkthroughState } from '../contracts';
 import type { RenderQualityProfile } from '../quality-profile';
 
 const WATER_SURFACE_NAME = 'POOL-01-WATER-SURFACE';
@@ -81,8 +77,8 @@ export class EnhancedWaterPresentation {
   setWalkthroughState(state: VisualWalkthroughState) {
     if (this.disposed) return;
     if (
-      this.expectedSurfaceElevation !== null
-      && Math.abs(state.waterSurfaceElevation - this.expectedSurfaceElevation) > 1e-9
+      this.expectedSurfaceElevation !== null &&
+      Math.abs(state.waterSurfaceElevation - this.expectedSurfaceElevation) > 1e-9
     ) {
       throw new TypeError('Enhanced water presentation received a second water surface state.');
     }
@@ -91,10 +87,11 @@ export class EnhancedWaterPresentation {
     // The walkthrough reports its state every frame; only a real change may
     // touch the material, because apply() forces a shader program rebuild.
     if (
-      previous
-      && previous.movementMode === state.movementMode
-      && previous.poolCutaway === state.poolCutaway
-    ) return;
+      previous &&
+      previous.movementMode === state.movementMode &&
+      previous.poolCutaway === state.poolCutaway
+    )
+      return;
     this.apply();
   }
 

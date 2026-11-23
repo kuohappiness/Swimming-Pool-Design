@@ -39,17 +39,23 @@ export interface VisualAssetConversion {
  * 所以列舉值在 `assertVisualAssetManifest` 逐項檢查。
  */
 export const VISUAL_ASSET_MANIFEST: readonly VisualAssetManifestEntry[] = Object.freeze(
-  (manifestData.assets as unknown as VisualAssetManifestEntry[]).map((asset) => Object.freeze({
-    ...asset,
-    qualityTiers: Object.freeze([...asset.qualityTiers]),
-    ...(asset.conversion ? { conversion: Object.freeze({ ...asset.conversion }) } : {}),
-  })),
+  (manifestData.assets as unknown as VisualAssetManifestEntry[]).map((asset) =>
+    Object.freeze({
+      ...asset,
+      qualityTiers: Object.freeze([...asset.qualityTiers]),
+      ...(asset.conversion ? { conversion: Object.freeze({ ...asset.conversion }) } : {}),
+    }),
+  ),
 );
 
 const VALID_TIERS = new Set<RenderQualityTier>(['high', 'medium', 'low']);
 const VALID_KINDS = new Set<VisualAssetKind>(['texture', 'environment', 'model']);
 const VALID_REQUIREMENTS = new Set<VisualAssetRequirement>(['required', 'optional']);
-const VALID_PRIORITIES = new Set<VisualAssetLoadingPriority>(['viewer-ready', 'scene-ready', 'deferred']);
+const VALID_PRIORITIES = new Set<VisualAssetLoadingPriority>([
+  'viewer-ready',
+  'scene-ready',
+  'deferred',
+]);
 const EXTERNAL_URL = /^(?:https?:)?\/\//i;
 
 export function assertVisualAssetManifest(
@@ -65,22 +71,26 @@ export function assertVisualAssetManifest(
     ids.add(asset.id);
 
     if (
-      !asset.localPath.startsWith('assets/')
-      || asset.localPath.includes('\\')
-      || asset.localPath.includes('..')
-      || EXTERNAL_URL.test(asset.localPath)
-      || paths.has(asset.localPath)
+      !asset.localPath.startsWith('assets/') ||
+      asset.localPath.includes('\\') ||
+      asset.localPath.includes('..') ||
+      EXTERNAL_URL.test(asset.localPath) ||
+      paths.has(asset.localPath)
     ) {
-      throw new TypeError(`Visual asset localPath must be unique and repository-local: ${asset.localPath}`);
+      throw new TypeError(
+        `Visual asset localPath must be unique and repository-local: ${asset.localPath}`,
+      );
     }
     paths.add(asset.localPath);
 
     if (
-      !VALID_KINDS.has(asset.kind)
-      || !VALID_REQUIREMENTS.has(asset.requirement)
-      || !VALID_PRIORITIES.has(asset.loadingPriority)
+      !VALID_KINDS.has(asset.kind) ||
+      !VALID_REQUIREMENTS.has(asset.requirement) ||
+      !VALID_PRIORITIES.has(asset.loadingPriority)
     ) {
-      throw new TypeError(`Visual asset kind, requirement or loading priority is invalid: ${asset.id}`);
+      throw new TypeError(
+        `Visual asset kind, requirement or loading priority is invalid: ${asset.id}`,
+      );
     }
     if (!asset.source || !asset.author || !asset.license || !asset.purpose) {
       throw new TypeError(`Visual asset provenance is incomplete: ${asset.id}`);
@@ -91,11 +101,16 @@ export function assertVisualAssetManifest(
     if (!Number.isSafeInteger(asset.byteSize) || asset.byteSize <= 0) {
       throw new TypeError(`Visual asset byteSize is invalid: ${asset.id}`);
     }
-    if (asset.qualityTiers.length === 0 || asset.qualityTiers.some((tier) => !VALID_TIERS.has(tier))) {
+    if (
+      asset.qualityTiers.length === 0 ||
+      asset.qualityTiers.some((tier) => !VALID_TIERS.has(tier))
+    ) {
       throw new TypeError(`Visual asset quality tiers are invalid: ${asset.id}`);
     }
     if (asset.localPath.endsWith('.ktx2') !== Boolean(asset.conversion)) {
-      throw new TypeError(`Visual asset conversion record must exist exactly for .ktx2 files: ${asset.id}`);
+      throw new TypeError(
+        `Visual asset conversion record must exist exactly for .ktx2 files: ${asset.id}`,
+      );
     }
     if (asset.conversion && !/^[a-f0-9]{64}$/.test(asset.conversion.sourceSha256)) {
       throw new TypeError(`Visual asset conversion source hash is invalid: ${asset.id}`);

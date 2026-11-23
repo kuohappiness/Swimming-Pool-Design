@@ -24,11 +24,16 @@ test('3D mirror wall sits where the solar analysis puts it', async () => {
     server: { middlewareMode: true, hmr: false },
   });
   try {
-    const [{ createViewerScene }, { createBaselineSceneRenderingDependencies }] = await Promise.all([
-      vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
-      vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
-    ]);
-    const graph = createViewerScene(buildViewerModel(sourceModel, registry), createBaselineSceneRenderingDependencies());
+    const [{ createViewerScene }, { createBaselineSceneRenderingDependencies }] = await Promise.all(
+      [
+        vite.ssrLoadModule('/src/views/3d-viewer/scene-factory.ts'),
+        vite.ssrLoadModule('/src/views/3d-viewer/rendering/index.ts'),
+      ],
+    );
+    const graph = createViewerScene(
+      buildViewerModel(sourceModel, registry),
+      createBaselineSceneRenderingDependencies(),
+    );
     graph.scene.updateMatrixWorld(true);
     const siteRoot = graph.scene.getObjectByName('SITE-XYZ-TO-THREE-RH');
     const rotation = graph.scene.getObjectByName('L3-PLAN-ROTATION');
@@ -37,10 +42,13 @@ test('3D mirror wall sits where the solar analysis puts it', async () => {
     const study = activeSolarStudyGeometry(sourceModel);
     const halfLength = (study.endX - study.startX) / 2;
     const halfWidth = study.width / 2;
-    const lean = study.mirrorHeight * Math.tan(study.mirrorLeanFromVertical * Math.PI / 180);
+    const lean = study.mirrorHeight * Math.tan((study.mirrorLeanFromVertical * Math.PI) / 180);
     // Mirror backing corners in the rotation group's local frame (see scene-factory).
     const local = {
-      lower: [new THREE.Vector3(-halfLength, 0, -halfWidth), new THREE.Vector3(-halfLength, 0, halfWidth)],
+      lower: [
+        new THREE.Vector3(-halfLength, 0, -halfWidth),
+        new THREE.Vector3(-halfLength, 0, halfWidth),
+      ],
       upper: [
         new THREE.Vector3(-halfLength - lean, study.mirrorHeight, -halfWidth),
         new THREE.Vector3(-halfLength - lean, study.mirrorHeight, halfWidth),
@@ -59,7 +67,8 @@ test('3D mirror wall sits where the solar analysis puts it', async () => {
       leanFromVertical: study.mirrorLeanFromVertical,
       height: study.mirrorHeight,
       baseElevation: study.baseElevation,
-      positiveXAxisBearingFromTrueNorth: sourceModel.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+      positiveXAxisBearingFromTrueNorth:
+        sourceModel.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
     });
     for (const edge of ['lower', 'upper']) {
       local[edge].forEach((corner, index) => {
@@ -74,16 +83,22 @@ test('3D mirror wall sits where the solar analysis puts it', async () => {
     }
 
     // 鏡面網格（rendering 換上倒影時找它）記錄的反光正面，和日照研究的鏡面法線同一個方向。
-    const { MIRROR_FRONT_NORMAL_KEY, MIRROR_SURFACE_NAME } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/contracts.ts');
+    const { MIRROR_FRONT_NORMAL_KEY, MIRROR_SURFACE_NAME } = await vite.ssrLoadModule(
+      '/src/views/3d-viewer/rendering/contracts.ts',
+    );
     const surface = siteRoot.getObjectByName(MIRROR_SURFACE_NAME);
     assert.ok(surface, 'the mirror surface can be found by name');
-    assert.equal(surface.userData.batchExclude, true, 'kept out of static batching so its material can be changed');
+    assert.equal(
+      surface.userData.batchExclude,
+      true,
+      'kept out of static batching so its material can be changed',
+    );
     const front = new THREE.Vector3(...surface.userData[MIRROR_FRONT_NORMAL_KEY])
       .transformDirection(surface.matrixWorld)
       .transformDirection(worldToSite);
     const siteFront = { x: front.x, y: front.z, z: front.y };
     // 日照研究的鏡面：水平法線 normal 朝泳池，往下傾 lean（外傾牆的反光面朝下）。
-    const leanRadians = study.mirrorLeanFromVertical * Math.PI / 180;
+    const leanRadians = (study.mirrorLeanFromVertical * Math.PI) / 180;
     const analysisFront = {
       x: expected.normal.x * Math.cos(leanRadians),
       y: expected.normal.y * Math.cos(leanRadians),

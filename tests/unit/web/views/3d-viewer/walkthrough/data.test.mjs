@@ -37,7 +37,10 @@ test('walkthrough adaptation is read-only and leaves canonical source bytes unch
   assert.equal(walkthrough.identity.activeGeometryRevisionId, viewerModel.activeGeometryRevisionId);
   assert.equal(walkthrough.identity.geometryRevision, viewerModel.geometryRevision);
 
-  assert.notStrictEqual(walkthrough.entities['POOL-01'].bounds, viewerModel.entityBounds['POOL-01'].bounds);
+  assert.notStrictEqual(
+    walkthrough.entities['POOL-01'].bounds,
+    viewerModel.entityBounds['POOL-01'].bounds,
+  );
   assert.notStrictEqual(walkthrough.waterVolumes[0].bounds, viewerModel.geometry.pool.bounds);
   assert.ok(Object.isFrozen(walkthrough));
   assert.ok(Object.isFrozen(walkthrough.entities['POOL-01'].bounds));
@@ -79,31 +82,39 @@ test('walkthrough adapter exposes the complete MVP semantic descriptors', async 
     'Z-L3-TERRACE-01',
   ]);
 
-  assert.deepEqual(walkthrough.surfaces.map(({ id }) => id), [
-    'site-ground',
-    'l1-pool-deck',
-    'l1-entry-vestibule',
-    'l2-floor',
-    'l3-rotated-floor',
-    'l3-fixed-extension',
-    'l3-arrival',
-    'l3-terrace',
-    'roof-inspection',
-  ]);
-  assert.deepEqual(walkthrough.stairs.map(({ entityId, lowerElevation, upperElevation }) => ({
-    entityId,
-    lowerElevation,
-    upperElevation,
-  })), [
-    { entityId: 'ST-01', lowerElevation: 0.3, upperElevation: 3.3 },
-    { entityId: 'ST-02', lowerElevation: 3.3, upperElevation: 6.88 },
-    { entityId: 'RMP-L1-ENTRY-01', lowerElevation: 0, upperElevation: 0.3 },
-    { entityId: 'STP-L1-ENTRY-01', lowerElevation: 0, upperElevation: 0.3 },
-  ]);
   assert.deepEqual(
-    walkthrough.surfaces.find(({ id }) => id === 'l1-pool-deck').exclusions,
-    ['POOL-01', 'Z-L1-ENTRY-01', 'RMP-L1-ENTRY-01', 'STP-L1-ENTRY-01'],
+    walkthrough.surfaces.map(({ id }) => id),
+    [
+      'site-ground',
+      'l1-pool-deck',
+      'l1-entry-vestibule',
+      'l2-floor',
+      'l3-rotated-floor',
+      'l3-fixed-extension',
+      'l3-arrival',
+      'l3-terrace',
+      'roof-inspection',
+    ],
   );
+  assert.deepEqual(
+    walkthrough.stairs.map(({ entityId, lowerElevation, upperElevation }) => ({
+      entityId,
+      lowerElevation,
+      upperElevation,
+    })),
+    [
+      { entityId: 'ST-01', lowerElevation: 0.3, upperElevation: 3.3 },
+      { entityId: 'ST-02', lowerElevation: 3.3, upperElevation: 6.88 },
+      { entityId: 'RMP-L1-ENTRY-01', lowerElevation: 0, upperElevation: 0.3 },
+      { entityId: 'STP-L1-ENTRY-01', lowerElevation: 0, upperElevation: 0.3 },
+    ],
+  );
+  assert.deepEqual(walkthrough.surfaces.find(({ id }) => id === 'l1-pool-deck').exclusions, [
+    'POOL-01',
+    'Z-L1-ENTRY-01',
+    'RMP-L1-ENTRY-01',
+    'STP-L1-ENTRY-01',
+  ]);
   assert.equal(walkthrough.surfaces.find(({ id }) => id === 'l1-entry-vestibule').elevation, 0);
   assert.deepEqual(walkthrough.waterVolumes[0], {
     id: 'main-pool-water',
@@ -139,15 +150,18 @@ test('walkthrough adapter exposes the complete MVP semantic descriptors', async 
       { entityId: 'OP-L2-CS-F-01', clearHeight: null, heightStatus: 'unresolved' },
     ],
   );
-  assert.deepEqual(walkthrough.spawns.map(({ id, entityId }) => ({ id, entityId })), [
-    { id: 'entrance', entityId: 'EN-01' },
-    { id: 'l1-pool-deck', entityId: 'POOL-01' },
-    { id: 'l1-sanitary', entityId: 'BLDG-01' },
-    { id: 'l2-arrival', entityId: 'ST-01' },
-    { id: 'l3-arrival', entityId: 'Z-L3-ARRIVAL-01' },
-    { id: 'l3-terrace', entityId: 'Z-L3-TERRACE-01' },
-    { id: 'roof-inspection', entityId: 'RF-PV-RES-01' },
-  ]);
+  assert.deepEqual(
+    walkthrough.spawns.map(({ id, entityId }) => ({ id, entityId })),
+    [
+      { id: 'entrance', entityId: 'EN-01' },
+      { id: 'l1-pool-deck', entityId: 'POOL-01' },
+      { id: 'l1-sanitary', entityId: 'BLDG-01' },
+      { id: 'l2-arrival', entityId: 'ST-01' },
+      { id: 'l3-arrival', entityId: 'Z-L3-ARRIVAL-01' },
+      { id: 'l3-terrace', entityId: 'Z-L3-TERRACE-01' },
+      { id: 'roof-inspection', entityId: 'RF-PV-RES-01' },
+    ],
+  );
   assert.deepEqual(walkthrough.capabilities, {
     inspectModePreserved: true,
     desktopInput: true,
@@ -168,47 +182,65 @@ test('walkthrough adapter fails closed for invalid identity, coordinate, entity,
   const corruptions = [
     {
       label: 'active geometry version mismatch',
-      mutate: (value) => { value.activeGeometryRevisionId = 'GEO-0.0.0'; },
+      mutate: (value) => {
+        value.activeGeometryRevisionId = 'GEO-0.0.0';
+      },
       error: /activeGeometryRevisionId must match geometryRevision/,
     },
     {
       label: 'missing revision',
-      mutate: (value) => { value.revision = ''; },
+      mutate: (value) => {
+        value.revision = '';
+      },
       error: /revision is required/,
     },
     {
       label: 'invalid model hash',
-      mutate: (value) => { value.modelHash = 'not-a-sha256'; },
+      mutate: (value) => {
+        value.modelHash = 'not-a-sha256';
+      },
       error: /modelHash must be a canonical SHA-256/,
     },
     {
       label: 'wrong coordinate system',
-      mutate: (value) => { value.coordinateSystemId = 'LEGACY-XY'; },
+      mutate: (value) => {
+        value.coordinateSystemId = 'LEGACY-XY';
+      },
       error: /coordinateSystemId must be SITE-XY/,
     },
     {
       label: 'wrong Three adapter',
-      mutate: (value) => { value.referenceSystem.coordinateAdapter.adapterId = 'LEGACY-ADAPTER'; },
+      mutate: (value) => {
+        value.referenceSystem.coordinateAdapter.adapterId = 'LEGACY-ADAPTER';
+      },
       error: /SITE-XYZ-TO-THREE-RH/,
     },
     {
       label: 'missing required entity',
-      mutate: (value) => { delete value.entityBounds['Z-L3-ARRIVAL-01']; },
+      mutate: (value) => {
+        delete value.entityBounds['Z-L3-ARRIVAL-01'];
+      },
       error: /required entity Z-L3-ARRIVAL-01/,
     },
     {
       label: 'non-positive entity bounds',
-      mutate: (value) => { value.entityBounds['POOL-01'].bounds.x2 = 3; },
+      mutate: (value) => {
+        value.entityBounds['POOL-01'].bounds.x2 = 3;
+      },
       error: /POOL-01 bounds must have positive area/,
     },
     {
       label: 'geometry drift from canonical bounds',
-      mutate: (value) => { value.geometry.stair.bounds.y2 = 5; },
+      mutate: (value) => {
+        value.geometry.stair.bounds.y2 = 5;
+      },
       error: /ST-01 geometry must match canonical entity bounds/,
     },
     {
       label: 'non-finite pool depth',
-      mutate: (value) => { value.geometry.pool.deepDepth.value = Number.NaN; },
+      mutate: (value) => {
+        value.geometry.pool.deepDepth.value = Number.NaN;
+      },
       error: /pool.deepDepth must be finite/,
     },
     {

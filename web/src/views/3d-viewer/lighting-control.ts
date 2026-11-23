@@ -52,40 +52,65 @@ export class LightingControl {
     const { signal } = this.abort;
     const { date, time, terms, weather, now, root } = this.elements;
 
-    terms.replaceChildren(...SOLAR_TERMS.map((term) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = term.label;
-      button.dataset.term = term.id;
-      button.addEventListener('click', () => {
-        if (this.state) this.options.onChange(withDate(this.state, term));
-      }, { signal });
-      this.termButtons.set(term.id, button);
-      return button;
-    }));
-    weather.replaceChildren(...WEATHERS.map((id) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = WEATHER_LABELS[id];
-      button.dataset.weather = id;
-      button.addEventListener('click', () => {
-        if (this.state) this.options.onChange(withWeather(this.state, id));
-      }, { signal });
-      this.weatherButtons.set(id, button);
-      return button;
-    }));
+    terms.replaceChildren(
+      ...SOLAR_TERMS.map((term) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = term.label;
+        button.dataset.term = term.id;
+        button.addEventListener(
+          'click',
+          () => {
+            if (this.state) this.options.onChange(withDate(this.state, term));
+          },
+          { signal },
+        );
+        this.termButtons.set(term.id, button);
+        return button;
+      }),
+    );
+    weather.replaceChildren(
+      ...WEATHERS.map((id) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = WEATHER_LABELS[id];
+        button.dataset.weather = id;
+        button.addEventListener(
+          'click',
+          () => {
+            if (this.state) this.options.onChange(withWeather(this.state, id));
+          },
+          { signal },
+        );
+        this.weatherButtons.set(id, button);
+        return button;
+      }),
+    );
 
-    date.addEventListener('input', () => {
-      if (!this.state) return;
-      const next = dateFromDayOfYear(this.state.moment.year, Number(date.value));
-      this.options.onChange(withDate(this.state, next));
-    }, { signal });
-    time.addEventListener('input', () => {
-      if (this.state) this.options.onChange(withMinutes(this.state, Number(time.value)));
-    }, { signal });
-    now.addEventListener('click', () => {
-      if (this.state) this.options.onChange({ ...this.state, moment: this.options.currentMoment() });
-    }, { signal });
+    date.addEventListener(
+      'input',
+      () => {
+        if (!this.state) return;
+        const next = dateFromDayOfYear(this.state.moment.year, Number(date.value));
+        this.options.onChange(withDate(this.state, next));
+      },
+      { signal },
+    );
+    time.addEventListener(
+      'input',
+      () => {
+        if (this.state) this.options.onChange(withMinutes(this.state, Number(time.value)));
+      },
+      { signal },
+    );
+    now.addEventListener(
+      'click',
+      () => {
+        if (this.state)
+          this.options.onChange({ ...this.state, moment: this.options.currentMoment() });
+      },
+      { signal },
+    );
     root.hidden = false;
   }
 

@@ -55,10 +55,11 @@ test('frame targets keep 60 fps on desktop and a 30 fps floor with a 45 fps targ
 
 test('tier validation rejects a lower tier that costs more or turns an effect back on', () => {
   assert.throws(
-    () => assertRealismTiers({
-      ...REALISM_TIERS,
-      medium: { ...REALISM_TIERS.medium, shadowMapSize: 4096 },
-    }),
+    () =>
+      assertRealismTiers({
+        ...REALISM_TIERS,
+        medium: { ...REALISM_TIERS.medium, shadowMapSize: 4096 },
+      }),
     /shadowMapSize must not grow from high to medium/,
   );
   assert.throws(
@@ -66,11 +67,19 @@ test('tier validation rejects a lower tier that costs more or turns an effect ba
     /bloom must not turn on below medium/,
   );
   assert.throws(
-    () => assertRealismTiers({ ...REALISM_TIERS, saver: { ...REALISM_TIERS.saver, exposureAdaptation: true } }),
+    () =>
+      assertRealismTiers({
+        ...REALISM_TIERS,
+        saver: { ...REALISM_TIERS.saver, exposureAdaptation: true },
+      }),
     /exposureAdaptation must not turn on below medium/,
   );
   assert.throws(
-    () => assertRealismTiers({ ...REALISM_TIERS, saver: { ...REALISM_TIERS.saver, shadowMapSize: 512 } }),
+    () =>
+      assertRealismTiers({
+        ...REALISM_TIERS,
+        saver: { ...REALISM_TIERS.saver, shadowMapSize: 512 },
+      }),
     /shadow cascades and map size must agree/,
   );
 });
@@ -86,7 +95,10 @@ test('shed order is fixed and each tier only sheds what it has switched on', () 
     'people-animation',
   ]);
   assert.deepEqual(sheddableSteps(REALISM_TIERS.ultra), SHED_ORDER);
-  assert.deepEqual(sheddableSteps(REALISM_TIERS.high), SHED_ORDER.filter((step) => step !== 'ambient-occlusion'));
+  assert.deepEqual(
+    sheddableSteps(REALISM_TIERS.high),
+    SHED_ORDER.filter((step) => step !== 'ambient-occlusion'),
+  );
   assert.deepEqual(sheddableSteps(REALISM_TIERS.medium), ['people-animation']);
   assert.deepEqual(sheddableSteps(REALISM_TIERS.saver), []);
 });
@@ -108,6 +120,9 @@ test('the assets each tier downloads today fit its download budget', () => {
   }
   for (const id of REALISM_TIER_ORDER) {
     assert.ok(totals[id] > 0, `${id} must load at least the required assets`);
-    assert.ok(totals[id] <= REALISM_TIERS[id].downloadBudgetBytes, `${id} exceeds its download budget`);
+    assert.ok(
+      totals[id] <= REALISM_TIERS[id].downloadBudgetBytes,
+      `${id} exceeds its download budget`,
+    );
   }
 });

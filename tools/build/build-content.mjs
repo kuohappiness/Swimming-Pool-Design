@@ -12,34 +12,49 @@ const TOKEN_PATTERN = /\{\{(model|active|derived|data):([A-Za-z0-9_.]+)\|([a-zA-
 const SCENE_PATTERN = /^<!--\s*scene:([a-z0-9-]+)\s*-->$/;
 const SECTION_PATTERN = /^<!--\s*section:([a-z0-9-]+)\s*-->$/;
 export const ABOUT_SECTION_IDS = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'];
-export const DESIGN_PROCESS_SECTION_IDS = ['overview', 'timeline', 'versions', 'pivots', 'corrections', 'open'];
+export const DESIGN_PROCESS_SECTION_IDS = [
+  'overview',
+  'timeline',
+  'versions',
+  'pivots',
+  'corrections',
+  'open',
+];
 export const WATER_CYCLE_SECTION_IDS = ['overview', 'rainfall', 'roof', 'path', 'seasons', 'open'];
 export const SWIM_CLASS_SECTION_IDS = ['overview', 'route', 'water', 'care', 'open'];
-export const RAINFALL_SOURCE_PATH = 'source-materials/data/SRC-DATA-001_cwa-taichung-climate-normals-1991-2020.json';
+export const RAINFALL_SOURCE_PATH =
+  'source-materials/data/SRC-DATA-001_cwa-taichung-climate-normals-1991-2020.json';
 const RECORD_PATTERN = /\{\{record:([a-z0-9.-]+)\|([^{}|]+)\}\}/g;
 
-const escapeHtml = (value) => String(value)
-  .replaceAll('&', '&amp;')
-  .replaceAll('<', '&lt;')
-  .replaceAll('>', '&gt;')
-  .replaceAll('"', '&quot;');
+const escapeHtml = (value) =>
+  String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
 
-const formatNumber = (value, digits = 3) => Number(value).toFixed(digits)
-  .replace(/\.0+$/, '')
-  .replace(/(\.\d*?)0+$/, '$1');
+const formatNumber = (value, digits = 3) =>
+  Number(value)
+    .toFixed(digits)
+    .replace(/\.0+$/, '')
+    .replace(/(\.\d*?)0+$/, '$1');
 
-const formatGrouped = (value, digits) => Number(value).toLocaleString('en-US', {
-  minimumFractionDigits: digits,
-  maximumFractionDigits: digits,
-});
+const formatGrouped = (value, digits) =>
+  Number(value).toLocaleString('en-US', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
 
 function formatToken(value, format) {
   if (format === 'text') {
-    if (typeof value !== 'string' || !value.trim()) throw new TypeError('Token format text requires a non-empty string.');
+    if (typeof value !== 'string' || !value.trim())
+      throw new TypeError('Token format text requires a non-empty string.');
     return value;
   }
-  const numeric = typeof value === 'object' && value !== null && 'value' in value ? value.value : value;
-  if (!Number.isFinite(numeric)) throw new TypeError(`Model token format ${format} requires a finite number.`);
+  const numeric =
+    typeof value === 'object' && value !== null && 'value' in value ? value.value : value;
+  if (!Number.isFinite(numeric))
+    throw new TypeError(`Model token format ${format} requires a finite number.`);
   if (format === 'degree') return `${formatNumber(numeric, 1)}°`;
   if (format === 'metre') return `${formatNumber(numeric, 3)} m`;
   if (format === 'elevation') return `${numeric >= 0 ? '+' : ''}${Number(numeric).toFixed(3)} m`;
@@ -62,9 +77,15 @@ function getPath(owner, path) {
 
 /** `data` holds the page's registered external data (the `{{data:…}}` owner); pages without any omit it. */
 export function injectModelTokens(markdown, model, data) {
-  const owners = { model, active: resolveActiveGeometry(model), derived: deriveReferenceGeometry(model), data };
+  const owners = {
+    model,
+    active: resolveActiveGeometry(model),
+    derived: deriveReferenceGeometry(model),
+    data,
+  };
   const output = markdown.replace(TOKEN_PATTERN, (_, owner, path, format) => {
-    if (owners[owner] === undefined) throw new TypeError(`Token owner ${owner} was not provided for path: ${path}`);
+    if (owners[owner] === undefined)
+      throw new TypeError(`Token owner ${owner} was not provided for path: ${path}`);
     return formatToken(getPath(owners[owner], path), format);
   });
   const unresolved = output.match(/\{\{[^}]+\}\}/g);
@@ -90,8 +111,10 @@ export function recordKeysIn(markdown) {
 export function injectRecordQuotes(markdown, records = {}) {
   return markdown.replace(RECORD_PATTERN, (_, key, quote) => {
     const record = records[key];
-    if (typeof record !== 'string') throw new TypeError(`Record ${recordPathFor(key)} was not provided for quote "${quote}".`);
-    if (!record.includes(quote)) throw new TypeError(`Quote "${quote}" does not appear in ${recordPathFor(key)}.`);
+    if (typeof record !== 'string')
+      throw new TypeError(`Record ${recordPathFor(key)} was not provided for quote "${quote}".`);
+    if (!record.includes(quote))
+      throw new TypeError(`Quote "${quote}" does not appear in ${recordPathFor(key)}.`);
     return quote;
   });
 }
@@ -160,7 +183,8 @@ function markdownToHtml(lines) {
 export function compilePublicContent(markdown, model, sceneManifest) {
   const renderedMarkdown = injectModelTokens(markdown, model);
   const sceneIds = new Set(sceneManifest.scenes.map((scene) => scene.id));
-  if (sceneIds.size !== sceneManifest.scenes.length) throw new TypeError('Scene manifest IDs must be unique.');
+  if (sceneIds.size !== sceneManifest.scenes.length)
+    throw new TypeError('Scene manifest IDs must be unique.');
 
   const sceneLines = new Map();
   const references = new Set();
@@ -169,8 +193,10 @@ export function compilePublicContent(markdown, model, sceneManifest) {
     const sceneMatch = line.trim().match(SCENE_PATTERN);
     if (sceneMatch) {
       const sceneId = sceneMatch[1];
-      if (!sceneIds.has(sceneId)) throw new TypeError(`Markdown references unknown scene ID: ${sceneId}`);
-      if (references.has(sceneId)) throw new TypeError(`Markdown references scene ID more than once: ${sceneId}`);
+      if (!sceneIds.has(sceneId))
+        throw new TypeError(`Markdown references unknown scene ID: ${sceneId}`);
+      if (references.has(sceneId))
+        throw new TypeError(`Markdown references scene ID more than once: ${sceneId}`);
       references.add(sceneId);
       currentScene = sceneId;
       sceneLines.set(sceneId, []);
@@ -219,7 +245,8 @@ export function compileSectionedContent(markdown, model, sectionIds, { records, 
     const sectionMatch = line.trim().match(SECTION_PATTERN);
     if (sectionMatch) {
       const sectionId = sectionMatch[1];
-      if (sectionLines.has(sectionId)) throw new TypeError(`Markdown repeats section ID: ${sectionId}`);
+      if (sectionLines.has(sectionId))
+        throw new TypeError(`Markdown repeats section ID: ${sectionId}`);
       currentSection = sectionId;
       sectionLines.set(sectionId, []);
     } else if (currentSection) {
@@ -230,8 +257,13 @@ export function compileSectionedContent(markdown, model, sectionIds, { records, 
   }
 
   const found = [...sectionLines.keys()];
-  if (found.length !== sectionIds.length || found.some((sectionId, index) => sectionId !== sectionIds[index])) {
-    throw new TypeError(`Markdown sections must be exactly: ${sectionIds.join(', ')}; found: ${found.join(', ')}`);
+  if (
+    found.length !== sectionIds.length ||
+    found.some((sectionId, index) => sectionId !== sectionIds[index])
+  ) {
+    throw new TypeError(
+      `Markdown sections must be exactly: ${sectionIds.join(', ')}; found: ${found.join(', ')}`,
+    );
   }
 
   const sections = found.map((sectionId) => {
@@ -243,7 +275,8 @@ export function compileSectionedContent(markdown, model, sectionIds, { records, 
     const items = [];
     for (const line of lines.slice(titleIndex + 1)) {
       const itemMatch = line.match(/^###\s+(.+)$/);
-      if (/^#{1,2}\s+/.test(line)) throw new TypeError(`Section ${sectionId} allows only one level-2 title.`);
+      if (/^#{1,2}\s+/.test(line))
+        throw new TypeError(`Section ${sectionId} allows only one level-2 title.`);
       if (itemMatch) items.push({ title: itemMatch[1].trim(), lines: [] });
       else (items.at(-1)?.lines ?? intro).push(line);
     }
@@ -253,7 +286,8 @@ export function compileSectionedContent(markdown, model, sectionIds, { records, 
       html: markdownToHtml(intro),
       items: items.map((item, index) => {
         const html = markdownToHtml(item.lines);
-        if (!html) throw new TypeError(`Item "${item.title}" in section ${sectionId} has no content.`);
+        if (!html)
+          throw new TypeError(`Item "${item.title}" in section ${sectionId} has no content.`);
         return { id: `${sectionId}-${index + 1}`, title: item.title, html };
       }),
     };
@@ -271,7 +305,9 @@ export function compileSectionedContent(markdown, model, sectionIds, { records, 
 /** Reads every record that the Markdown quotes, keyed the way `injectRecordQuotes` expects. */
 export async function readRecords(root, markdown) {
   const keys = recordKeysIn(markdown);
-  const texts = await Promise.all(keys.map((key) => readFile(resolve(root, recordPathFor(key)), 'utf8')));
+  const texts = await Promise.all(
+    keys.map((key) => readFile(resolve(root, recordPathFor(key)), 'utf8')),
+  );
   return Object.fromEntries(keys.map((key, index) => [key, texts[index]]));
 }
 
@@ -346,8 +382,14 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
   const outputDirectory = resolve(root, 'web/src/generated');
   await mkdir(outputDirectory, { recursive: true });
   await Promise.all([
-    writeFile(resolve(outputDirectory, 'concept-content.json'), `${JSON.stringify(content, null, 2)}\n`),
-    writeFile(resolve(outputDirectory, 'about-content.json'), `${JSON.stringify(aboutContent, null, 2)}\n`),
+    writeFile(
+      resolve(outputDirectory, 'concept-content.json'),
+      `${JSON.stringify(content, null, 2)}\n`,
+    ),
+    writeFile(
+      resolve(outputDirectory, 'about-content.json'),
+      `${JSON.stringify(aboutContent, null, 2)}\n`,
+    ),
     writeFile(
       resolve(outputDirectory, 'design-process-content.json'),
       `${JSON.stringify(designProcessContent, null, 2)}\n`,
@@ -356,13 +398,22 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
       resolve(outputDirectory, 'water-cycle-content.json'),
       `${JSON.stringify(waterCycleContent, null, 2)}\n`,
     ),
-    writeFile(resolve(outputDirectory, 'water-cycle-data.json'), `${JSON.stringify(waterCycleData, null, 2)}\n`),
+    writeFile(
+      resolve(outputDirectory, 'water-cycle-data.json'),
+      `${JSON.stringify(waterCycleData, null, 2)}\n`,
+    ),
     writeFile(
       resolve(outputDirectory, 'swim-class-content.json'),
       `${JSON.stringify(swimClassContent, null, 2)}\n`,
     ),
-    writeFile(resolve(outputDirectory, 'swim-class-data.json'), `${JSON.stringify(swimClassData, null, 2)}\n`),
-    writeFile(resolve(outputDirectory, 'viewer-model.json'), `${JSON.stringify(viewerModel, null, 2)}\n`),
+    writeFile(
+      resolve(outputDirectory, 'swim-class-data.json'),
+      `${JSON.stringify(swimClassData, null, 2)}\n`,
+    ),
+    writeFile(
+      resolve(outputDirectory, 'viewer-model.json'),
+      `${JSON.stringify(viewerModel, null, 2)}\n`,
+    ),
   ]);
   return {
     content,
@@ -378,5 +429,7 @@ export async function buildPublicContent({ root = repoRoot } = {}) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { content, viewerModel } = await buildPublicContent();
-  process.stdout.write(`Built Viewer data ${viewerModel.modelVersion} · ${viewerModel.modelHash.slice(0, 12)} · content ${content.contentHash.slice(0, 12)}\n`);
+  process.stdout.write(
+    `Built Viewer data ${viewerModel.modelVersion} · ${viewerModel.modelHash.slice(0, 12)} · content ${content.contentHash.slice(0, 12)}\n`,
+  );
 }

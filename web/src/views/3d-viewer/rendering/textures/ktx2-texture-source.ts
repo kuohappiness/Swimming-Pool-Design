@@ -25,7 +25,10 @@ export const BUNDLED_TRANSCODER_URLS: TranscoderUrls = Object.freeze({
 });
 
 /** 把 KTX2Loader 要的兩個固定檔名換成實際網址；其他網址原樣通過。 */
-export function resolveTranscoderUrl(url: string, urls: TranscoderUrls = BUNDLED_TRANSCODER_URLS): string {
+export function resolveTranscoderUrl(
+  url: string,
+  urls: TranscoderUrls = BUNDLED_TRANSCODER_URLS,
+): string {
   if (url === `${TRANSCODER_PATH}basis_transcoder.js`) return urls.script;
   if (url === `${TRANSCODER_PATH}basis_transcoder.wasm`) return urls.wasm;
   return url;

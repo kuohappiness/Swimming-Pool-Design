@@ -20,11 +20,13 @@ const projectModel = JSON.parse(
   await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
 );
 const expectedModelVersion = projectModel.modelVersion;
-const expectedGeometryRevision = projectModel.geometryRevisions
-  .find(({ id }) => id === projectModel.activeGeometryRevisionId)?.revision;
+const expectedGeometryRevision = projectModel.geometryRevisions.find(
+  ({ id }) => id === projectModel.activeGeometryRevisionId,
+)?.revision;
 assert.ok(expectedGeometryRevision, 'Active geometry revision must resolve for browser tests.');
-const expectedActiveGeometry = projectModel.geometryRevisions
-  .find(({ id }) => id === projectModel.activeGeometryRevisionId);
+const expectedActiveGeometry = projectModel.geometryRevisions.find(
+  ({ id }) => id === projectModel.activeGeometryRevisionId,
+);
 const expectedSiteOrientation = deriveSiteOrientation(projectModel.referenceSystem);
 const chromeCandidates = [
   process.env.CHROME_PATH,
@@ -62,10 +64,14 @@ async function waitForServer() {
 
 await mkdir(outputDirectory, { recursive: true });
 const viteCli = resolve(repoRoot, 'node_modules/vite/bin/vite.js');
-const preview = spawn(process.execPath, [viteCli, 'preview', '--host', '127.0.0.1', '--port', String(port)], {
-  cwd: repoRoot,
-  stdio: ['ignore', 'pipe', 'pipe'],
-});
+const preview = spawn(
+  process.execPath,
+  [viteCli, 'preview', '--host', '127.0.0.1', '--port', String(port)],
+  {
+    cwd: repoRoot,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  },
+);
 
 let browser;
 try {
@@ -95,9 +101,12 @@ try {
     });
   };
   const activateScene = async (page, label) => {
-    await page.locator('[data-scene-nav] button').filter({
-      hasText: new RegExp(`^${label}$`),
-    }).evaluate((button) => button.click());
+    await page
+      .locator('[data-scene-nav] button')
+      .filter({
+        hasText: new RegExp(`^${label}$`),
+      })
+      .evaluate((button) => button.click());
   };
   const selectObject = async (page, option) => {
     const value = await option.getAttribute('value');
@@ -106,34 +115,74 @@ try {
       select.dispatchEvent(new Event('change', { bubbles: true }));
     }, value);
   };
-  const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+  const desktop = await browser.newPage({
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(desktop);
   await desktop.goto(`${origin}/?view=3d-viewer`, { waitUntil: 'networkidle' });
   await desktop.locator('[data-viewer-shell]').waitFor({ state: 'visible' });
-  await desktop.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') !== 'false');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-viewer-ready'), 'true');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'), 'enhanced');
+  await desktop.waitForFunction(
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') !== 'false',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-viewer-ready'),
+    'true',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'),
+    'enhanced',
+  );
   assert.equal(
     await desktop.locator('[data-viewer-shell]').getAttribute('data-material-registry'),
     'enhanced-pbr-material-registry',
   );
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-software-renderer'), 'true');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-render-quality'), 'low');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-performance-profile'), 'low');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-software-renderer'),
+    'true',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-render-quality'),
+    'low',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-performance-profile'),
+    'low',
+  );
   assert.equal(
     await desktop.locator('[data-viewer-shell]').getAttribute('data-shadow-update-mode'),
     'on-demand-static-scene',
   );
   await desktop.waitForFunction(
-    () => Number(document.querySelector('[data-viewer-shell]')?.getAttribute('data-draw-calls')) > 0,
+    () =>
+      Number(document.querySelector('[data-viewer-shell]')?.getAttribute('data-draw-calls')) > 0,
   );
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-coordinate-adapter'), 'SITE-XYZ-TO-THREE-RH');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-collision-world'), 'capsule-proxies-task-055');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-safe-spawn-count'), '7');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-site-y-to-three'), 'negativeThreeZ');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-site-root-scale-z'), '-1');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-coordinate-adapter'),
+    'SITE-XYZ-TO-THREE-RH',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-collision-world'),
+    'capsule-proxies-task-055',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-safe-spawn-count'),
+    '7',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-site-y-to-three'),
+    'negativeThreeZ',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-site-root-scale-z'),
+    '-1',
+  );
   assert.equal(await desktop.locator('[data-orientation-cue]').isVisible(), true);
-  assert.equal(await desktop.locator('[data-orientation-cue]').getAttribute('data-north-direction'), 'lower-right');
+  assert.equal(
+    await desktop.locator('[data-orientation-cue]').getAttribute('data-north-direction'),
+    'lower-right',
+  );
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-stair-side'), 'Y0');
   assert.equal(
     await desktop.locator('[data-viewer-shell]').getAttribute('data-stair-site-bounds'),
@@ -152,43 +201,136 @@ try {
     new RegExp(`^MODEL ${expectedModelVersion.replaceAll('.', '\\.')} · `),
   );
   assert.equal(await desktop.locator('.topbar').count(), 0);
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'), '25.5°');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-deck-elevation'), '+0.300 m');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-stair-design'), 'suspended-floating-stair');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-stair-stringers'), '2');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-toilet-entrance-count'), '4');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-toilet-entrance-width'), '1.00 m');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-toilet-entrance-door-leaves'), '0');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-wc-cubicle-door-leaves'), '8');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-service-material'), 'fair-faced-exposed-concrete');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-male-washbasins'), '2');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-male-urinals'), '2');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-female-washbasins'), '2');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-stair2-design'), 'suspended-floating-stair');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-stair2-planters'), '3');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-shower-module'), '1.2 × 1.2');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-support-wc-per-gender'), '1');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-support-basins-per-gender'), '2');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pv-reserve-area'), '169.364');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pv-coverage-percent'), '92.74');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l1-y0-material'), 'segmented-safety-glass-and-fair-faced-concrete');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-y0-material'), 'full-width-safety-glass');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-split-axis-y'), '8');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-gender-divider-overlaps-y0'), 'false');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-selection-outline'), 'none');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-rotation'),
+    '25.5°',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-deck-elevation'),
+    '+0.300 m',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-stair-design'),
+    'suspended-floating-stair',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-stair-stringers'),
+    '2',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-toilet-entrance-count'),
+    '4',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-toilet-entrance-width'),
+    '1.00 m',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-toilet-entrance-door-leaves'),
+    '0',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-wc-cubicle-door-leaves'),
+    '8',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-service-material'),
+    'fair-faced-exposed-concrete',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-male-washbasins'),
+    '2',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-male-urinals'),
+    '2',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-playground-female-washbasins'),
+    '2',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-stair2-design'),
+    'suspended-floating-stair',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-stair2-planters'),
+    '3',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-shower-module'),
+    '1.2 × 1.2',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-support-wc-per-gender'),
+    '1',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-support-basins-per-gender'),
+    '2',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-pv-reserve-area'),
+    '169.364',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-pv-coverage-percent'),
+    '92.74',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l1-y0-material'),
+    'segmented-safety-glass-and-fair-faced-concrete',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-y0-material'),
+    'full-width-safety-glass',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-split-axis-y'),
+    '8',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-gender-divider-overlaps-y0'),
+    'false',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-selection-outline'),
+    'none',
+  );
   assert.equal(
     await desktop.locator('[data-viewer-shell]').getAttribute('data-glass-facade-material-system'),
     'shared-safety-glass-facade',
   );
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-divider-span'), '32–41');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-divider-openings'), '0');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-ceiling-continuous'), 'true');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-roof-continuous'), 'true');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-mirror-end-gaps-filled'), 'true');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-interior-battery-objects'), 'false');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-divider-span'),
+    '32–41',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-divider-openings'),
+    '0',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l2-ceiling-continuous'),
+    'true',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-roof-continuous'),
+    'true',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-mirror-end-gaps-filled'),
+    'true',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-l3-interior-battery-objects'),
+    'false',
+  );
   // Canvas picking: a plain click selects, an orbit drag does not, hidden layers cannot be picked.
   const objectSelect = desktop.locator('[data-object-select]');
-  const clearSelection = () => objectSelect.evaluate((select) => { select.value = ''; });
+  const clearSelection = () =>
+    objectSelect.evaluate((select) => {
+      select.value = '';
+    });
   const desktopCanvasBox = await desktop.locator('canvas').boundingBox();
   assert.ok(desktopCanvasBox);
   const centre = {
@@ -197,7 +339,11 @@ try {
   };
   await clearSelection();
   await desktop.mouse.click(centre.x, centre.y);
-  assert.notEqual(await objectSelect.inputValue(), '', 'clicking the building at the centre must select it');
+  assert.notEqual(
+    await objectSelect.inputValue(),
+    '',
+    'clicking the building at the centre must select it',
+  );
   await clearSelection();
   await desktop.mouse.move(centre.x - 240, centre.y + 160);
   await desktop.mouse.down();
@@ -205,14 +351,16 @@ try {
   await desktop.mouse.up();
   assert.equal(await objectSelect.inputValue(), '', 'releasing an orbit drag must not select');
   await activateScene(desktop, '總覽');
-  const checkedLayers = await desktop.locator('[data-layer-list] input:checked').evaluateAll(
-    (inputs) => inputs.map((input) => input.value),
-  );
-  for (const layer of checkedLayers) await desktop.locator(`[data-layer-list] input[value="${layer}"]`).uncheck();
+  const checkedLayers = await desktop
+    .locator('[data-layer-list] input:checked')
+    .evaluateAll((inputs) => inputs.map((input) => input.value));
+  for (const layer of checkedLayers)
+    await desktop.locator(`[data-layer-list] input[value="${layer}"]`).uncheck();
   await clearSelection();
   await desktop.mouse.click(centre.x, centre.y);
   assert.equal(await objectSelect.inputValue(), '', 'hidden layers must not be selectable');
-  for (const layer of checkedLayers) await desktop.locator(`[data-layer-list] input[value="${layer}"]`).check();
+  for (const layer of checkedLayers)
+    await desktop.locator(`[data-layer-list] input[value="${layer}"]`).check();
   await selectObject(desktop, objectSelect.locator('option').filter({ hasText: /^ST-02 ·/ }));
   assert.equal(
     await desktop.locator('[data-selection-info] a').getAttribute('href'),
@@ -227,10 +375,15 @@ try {
   });
   await selectObject(desktop, poolBeforeWalkthrough);
   await desktop.getByRole('button', { name: '泳池剖視' }).click();
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'true');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'),
+    'true',
+  );
   await desktop.locator('[data-enter-walkthrough]').click();
   await desktop.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'walkthrough',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') ===
+      'walkthrough',
   );
   const areaSelect = desktop.locator('[data-walkthrough-area-select]');
   assert.equal(await areaSelect.locator('option').count(), 7);
@@ -245,38 +398,58 @@ try {
   ]) {
     await areaSelect.selectOption(areaId);
     await desktop.waitForFunction(
-      (expectedArea) => document.querySelector('[data-viewer-shell]')
-        ?.getAttribute('data-walkthrough-area') === expectedArea
-        && document.querySelector('[data-viewer-shell]')
-          ?.getAttribute('data-player-grounded') === 'true',
+      (expectedArea) =>
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-walkthrough-area') ===
+          expectedArea &&
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-player-grounded') ===
+          'true',
       areaId,
     );
-    assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-player-grounded'), 'true');
+    assert.equal(
+      await desktop.locator('[data-viewer-shell]').getAttribute('data-player-grounded'),
+      'true',
+    );
   }
   // The area picker keeps its arrow keys while walkthrough listens for movement.
   await areaSelect.focus();
   await desktop.keyboard.press('ArrowUp');
   await desktop.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-walkthrough-area') === 'l3-terrace',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-walkthrough-area') ===
+      'l3-terrace',
   );
   await areaSelect.selectOption('entrance');
   await desktop.locator('canvas').focus();
-  const walkthroughStart = await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position');
+  const walkthroughStart = await desktop
+    .locator('[data-viewer-shell]')
+    .getAttribute('data-player-site-position');
   await desktop.keyboard.down('w');
   await desktop.evaluate(async () => {
     for (let frame = 0; frame < 16; frame += 1) await new Promise(requestAnimationFrame);
   });
   await desktop.keyboard.up('w');
-  const walkthroughMoved = await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position');
+  const walkthroughMoved = await desktop
+    .locator('[data-viewer-shell]')
+    .getAttribute('data-player-site-position');
   assert.notEqual(walkthroughMoved, walkthroughStart);
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-player-grounded'), 'true');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-player-grounded'),
+    'true',
+  );
   await desktop.locator('[data-return-safe]').click();
   await desktop.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-player-site-position')
-      === '2.000,0.000,-1.250',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-player-site-position') ===
+      '2.000,0.000,-1.250',
   );
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-walkthrough-area'), 'entrance');
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position'), '2.000,0.000,-1.250');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-walkthrough-area'),
+    'entrance',
+  );
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position'),
+    '2.000,0.000,-1.250',
+  );
 
   await areaSelect.selectOption('l1-pool-deck');
   await desktop.locator('canvas').focus();
@@ -293,7 +466,9 @@ try {
     });
     await desktop.waitForFunction(
       (budgetSeconds) => {
-        const mode = document.querySelector('[data-viewer-shell]')?.getAttribute('data-movement-mode');
+        const mode = document
+          .querySelector('[data-viewer-shell]')
+          ?.getAttribute('data-movement-mode');
         if (mode?.startsWith('swimming-')) return true;
         const clock = window.__waterEntryClock;
         const now = performance.now();
@@ -309,11 +484,13 @@ try {
     );
   } catch (error) {
     desktopWaterEntryError = new Error(
-      `Desktop water entry failed at ${
-        await desktop.locator('[data-viewer-shell]').getAttribute('data-player-site-position')
-      } in ${
-        await desktop.locator('[data-viewer-shell]').getAttribute('data-movement-mode')
-      }: ${error instanceof Error ? error.message : String(error)}`,
+      `Desktop water entry failed at ${await desktop
+        .locator('[data-viewer-shell]')
+        .getAttribute('data-player-site-position')} in ${await desktop
+        .locator('[data-viewer-shell]')
+        .getAttribute(
+          'data-movement-mode',
+        )}: ${error instanceof Error ? error.message : String(error)}`,
     );
   } finally {
     await desktop.keyboard.up('w');
@@ -324,60 +501,86 @@ try {
   await desktop.keyboard.down('c');
   try {
     await desktop.waitForFunction(
-      () => document.querySelector('[data-viewer-shell]')
-        ?.getAttribute('data-movement-mode') === 'swimming-underwater'
-        && document.querySelector('[data-viewer-shell]')
-          ?.getAttribute('data-underwater') === 'true',
+      () =>
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-movement-mode') ===
+          'swimming-underwater' &&
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-underwater') === 'true',
       undefined,
       { timeout: 3_000 },
     );
-    assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'), 'true');
+    assert.equal(
+      await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'),
+      'true',
+    );
     // The software renderer runs the saver tier, which has no underwater view of its own:
     // the walkthrough tints the water with scene fog instead, once the camera itself is under.
     // The eye starts about 0.7 m above the water and sinks in simulated time, which advances at
     // most 0.1 s per rendered frame, so a slow software renderer needs well over a second here.
     await desktop.waitForFunction(
-      () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-underwater-fog') === 'true',
+      () =>
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-underwater-fog') ===
+        'true',
       undefined,
       { timeout: 30_000 },
     );
-    await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-walkthrough-underwater.png') });
+    await desktop.screenshot({
+      path: resolve(outputDirectory, 'viewer-walkthrough-underwater.png'),
+    });
   } finally {
     await desktop.keyboard.up('c');
   }
   await desktop.locator('[data-return-poolside]').click();
   await desktop.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')
-      ?.getAttribute('data-walkthrough-area') === 'l1-pool-deck',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-walkthrough-area') ===
+      'l1-pool-deck',
   );
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'), 'false');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-underwater'),
+    'false',
+  );
   // The exit button must answer the Space key even though Space also means "rise".
   await desktop.locator('[data-exit-walkthrough]').focus();
   await desktop.keyboard.press('Space');
   await desktop.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'inspect',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'inspect',
   );
   assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-scene'), 'rain');
   assert.equal(await desktop.locator('input[value="energy"]').isChecked(), false);
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'true');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'),
+    'true',
+  );
   assert.match(await desktop.locator('[data-selection-info]').innerText(), /POOL-01/);
   assert.equal(
-    await desktop.locator('[data-enter-walkthrough]').evaluate(
-      (element) => element === document.activeElement,
-    ),
+    await desktop
+      .locator('[data-enter-walkthrough]')
+      .evaluate((element) => element === document.activeElement),
     true,
   );
   await activateScene(desktop, '總覽');
-  await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-perspective.png'), fullPage: true });
+  await desktop.screenshot({
+    path: resolve(outputDirectory, 'viewer-perspective.png'),
+    fullPage: true,
+  });
 
   for (const [objectId, expectedText, screenshotName] of [
     ['EN-01', /泳池大廳玻璃主入口/, 'viewer-pool-entry.png'],
     ['OP-WC-POOL-F-01', /1\.00 m.*無門板/, 'viewer-pool-female-opening.png'],
     ['WC-L1-DETAIL-01', /不設遮擋版[\s\S]*隔間仍保留門板[\s\S]*Y3\.5/, 'viewer-toilet-details.png'],
-    ['Z-CS-M-01', /15 間[\s\S]*1\.20 × 1\.20 m[\s\S]*1 間一般 WC[\s\S]*2 座洗手槽/, 'viewer-l2-male-showers.png'],
+    [
+      'Z-CS-M-01',
+      /15 間[\s\S]*1\.20 × 1\.20 m[\s\S]*1 間一般 WC[\s\S]*2 座洗手槽/,
+      'viewer-l2-male-showers.png',
+    ],
     ['ST-02', /X32\.5[\s\S]*Y0\.5～2\.0[\s\S]*\+X[\s\S]*兩道連續深色鋼箱梯梁/, 'viewer-st02.png'],
     ['Z-ST-02-PLANT-01', /3 組[\s\S]*可移除[\s\S]*不設深土槽/, 'viewer-st02-planting.png'],
-    ['F-L1-Y0-01', /X0\.5～X31[\s\S]*安全玻璃[\s\S]*X31～X39[\s\S]*自然灰清水模/, 'viewer-l1-y0-segmented.png'],
+    [
+      'F-L1-Y0-01',
+      /X0\.5～X31[\s\S]*安全玻璃[\s\S]*X31～X39[\s\S]*自然灰清水模/,
+      'viewer-l1-y0-segmented.png',
+    ],
     ['RF-L1-WEST-EAVE-01', /X0～X0\.5[\s\S]*0\.5 m 突出屋簷/, 'viewer-west-glass-eave.png'],
     ['RF-L1-REAR-CANOPY-01', /Y13\.5～Y14\.5[\s\S]*突出屋簷/, 'viewer-rear-glass-canopy.png'],
     ['F-L2-Y0-01', /X29～X41[\s\S]*淡藍安全玻璃[\s\S]*Y0／Y14/, 'viewer-l2-y0-glass.png'],
@@ -399,18 +602,29 @@ try {
     await desktop.screenshot({ path: resolve(outputDirectory, screenshotName), fullPage: true });
     if (objectId === 'F-L2-Y0-01') {
       await desktop.getByRole('button', { name: '池側' }).click();
-      await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-l2-y0-glass-from-y0.png'), fullPage: true });
+      await desktop.screenshot({
+        path: resolve(outputDirectory, 'viewer-l2-y0-glass-from-y0.png'),
+        fullPage: true,
+      });
       await desktop.getByRole('button', { name: '校側' }).click();
-      await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-l2-y0-glass-from-y14.png'), fullPage: true });
+      await desktop.screenshot({
+        path: resolve(outputDirectory, 'viewer-l2-y0-glass-from-y14.png'),
+        fullPage: true,
+      });
       await desktop.getByRole('button', { name: '重設視角' }).click();
     }
   }
 
-  const stairOption = desktop.locator('[data-object-select] option').filter({ hasText: /^ST-01 ·/ });
+  const stairOption = desktop
+    .locator('[data-object-select] option')
+    .filter({ hasText: /^ST-01 ·/ });
   await selectObject(desktop, stairOption);
   assert.match(await desktop.locator('[data-selection-info]').innerText(), /Y0 側/);
   await desktop.getByRole('button', { name: '俯視' }).click();
-  await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-stair-y0-top.png'), fullPage: true });
+  await desktop.screenshot({
+    path: resolve(outputDirectory, 'viewer-stair-y0-top.png'),
+    fullPage: true,
+  });
   await desktop.getByRole('button', { name: '重設視角' }).click();
 
   await activateScene(desktop, '向雨');
@@ -428,48 +642,110 @@ try {
   await desktop.keyboard.press('Enter');
   await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-top.png'), fullPage: true });
   await desktop.getByRole('button', { name: '池側' }).click();
-  await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-pool-elevation.png'), fullPage: true });
+  await desktop.screenshot({
+    path: resolve(outputDirectory, 'viewer-pool-elevation.png'),
+    fullPage: true,
+  });
   await desktop.getByRole('button', { name: '泳池剖視' }).click();
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'true');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'),
+    'true',
+  );
   assert.equal(await desktop.locator('[data-pool-cutaway-key]').isVisible(), true);
-  assert.match(await desktop.locator('[data-pool-cutaway-key]').innerText(), /淺端 1\.20 m[\s\S]*高差 0\.30 m[\s\S]*深端 1\.50 m/);
-  await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-pool-cutaway.png'), fullPage: true });
+  assert.match(
+    await desktop.locator('[data-pool-cutaway-key]').innerText(),
+    /淺端 1\.20 m[\s\S]*高差 0\.30 m[\s\S]*深端 1\.50 m/,
+  );
+  await desktop.screenshot({
+    path: resolve(outputDirectory, 'viewer-pool-cutaway.png'),
+    fullPage: true,
+  });
   await desktop.getByRole('button', { name: '校側' }).click();
-  assert.equal(await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'false');
+  assert.equal(
+    await desktop.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'),
+    'false',
+  );
   assert.equal(await desktop.locator('[data-pool-cutaway-key]').isHidden(), true);
-  await desktop.screenshot({ path: resolve(outputDirectory, 'viewer-school-elevation.png'), fullPage: true });
+  await desktop.screenshot({
+    path: resolve(outputDirectory, 'viewer-school-elevation.png'),
+    fullPage: true,
+  });
   await desktop.close();
 
-  const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const mobile = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(mobile);
   await mobile.goto(`${origin}/?view=3d-viewer`, { waitUntil: 'networkidle' });
-  await mobile.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true');
-  assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'), 'enhanced');
-  assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-render-quality'), 'low');
-  assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-l2-split-axis-y'), '8');
-  assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-l2-gender-divider-overlaps-y0'), 'false');
-  await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-l2-y0-mobile-overview.png'), fullPage: true });
+  await mobile.waitForFunction(
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+  );
+  assert.equal(
+    await mobile.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'),
+    'enhanced',
+  );
+  assert.equal(
+    await mobile.locator('[data-viewer-shell]').getAttribute('data-render-quality'),
+    'low',
+  );
+  assert.equal(
+    await mobile.locator('[data-viewer-shell]').getAttribute('data-l2-split-axis-y'),
+    '8',
+  );
+  assert.equal(
+    await mobile.locator('[data-viewer-shell]').getAttribute('data-l2-gender-divider-overlaps-y0'),
+    'false',
+  );
+  await mobile.screenshot({
+    path: resolve(outputDirectory, 'viewer-l2-y0-mobile-overview.png'),
+    fullPage: true,
+  });
   await mobile.goto(`${origin}/?view=3d-viewer#people`, { waitUntil: 'networkidle' });
   await mobile.reload({ waitUntil: 'networkidle' });
-  await mobile.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true');
+  await mobile.waitForFunction(
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+  );
   assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-scene'), 'people');
   assert.equal(await mobile.locator('[data-orientation-cue]').isVisible(), true);
-  assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  assert.equal(
+    await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    true,
+  );
   const canvasBox = await mobile.locator('canvas').boundingBox();
-  assert.ok(canvasBox && canvasBox.width >= 389 && canvasBox.height > 350, 'mobile canvas must remain usable');
+  assert.ok(
+    canvasBox && canvasBox.width >= 389 && canvasBox.height > 350,
+    'mobile canvas must remain usable',
+  );
   await mobile.getByRole('button', { name: '泳池剖視' }).click();
-  assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'true');
+  assert.equal(
+    await mobile.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'),
+    'true',
+  );
   assert.equal(await mobile.locator('[data-pool-cutaway-key]').isVisible(), true);
-  await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-pool-cutaway-mobile.png'), fullPage: true });
+  await mobile.screenshot({
+    path: resolve(outputDirectory, 'viewer-pool-cutaway-mobile.png'),
+    fullPage: true,
+  });
   await mobile.getByRole('button', { name: '重設視角' }).click();
-  assert.equal(await mobile.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'), 'false');
+  assert.equal(
+    await mobile.locator('[data-viewer-shell]').getAttribute('data-pool-cutaway'),
+    'false',
+  );
   await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-mobile.png'), fullPage: true });
 
   await mobile.locator('[data-enter-walkthrough]').click();
   await mobile.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'walkthrough',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') ===
+      'walkthrough',
   );
-  assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  assert.equal(
+    await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    true,
+  );
   assert.equal(await mobile.locator('[data-walkthrough-area-select] option').count(), 7);
   for (const selector of [
     '[data-walkthrough-area-select]',
@@ -493,8 +769,11 @@ try {
   });
   try {
     await mobile.waitForFunction(
-      () => document.querySelector('[data-viewer-shell]')
-        ?.getAttribute('data-movement-mode')?.startsWith('swimming-'),
+      () =>
+        document
+          .querySelector('[data-viewer-shell]')
+          ?.getAttribute('data-movement-mode')
+          ?.startsWith('swimming-'),
       undefined,
       { timeout: 5_000 },
     );
@@ -513,46 +792,71 @@ try {
   await mobile.locator('[data-swim-down]').dispatchEvent('pointerdown', { pointerId: 52 });
   try {
     await mobile.waitForFunction(
-      () => document.querySelector('[data-viewer-shell]')
-        ?.getAttribute('data-movement-mode') === 'swimming-underwater'
-        && document.querySelector('[data-viewer-shell]')
-          ?.getAttribute('data-underwater') === 'true',
+      () =>
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-movement-mode') ===
+          'swimming-underwater' &&
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-underwater') === 'true',
       undefined,
       { timeout: 3_000 },
     );
-    await mobile.screenshot({ path: resolve(outputDirectory, 'viewer-walkthrough-mobile-underwater.png') });
+    await mobile.screenshot({
+      path: resolve(outputDirectory, 'viewer-walkthrough-mobile-underwater.png'),
+    });
   } finally {
     await mobile.locator('[data-swim-down]').dispatchEvent('pointerup', { pointerId: 52 });
   }
   await mobile.locator('[data-return-poolside]').click();
   await mobile.locator('[data-exit-walkthrough]').click();
   await mobile.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'inspect',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'inspect',
   );
-  assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  assert.equal(
+    await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    true,
+  );
   await mobile.close();
 
   // Draw budgets (TASK-160, DEC-190): the numbers live in core/viewer/render-budgets.mjs.
   // Draw calls, triangles and batching are exact in SwiftShader; frame time is not, so it
   // is never asserted here.
   for (const budget of [
-    { label: 'desktop high', viewport: { width: 1440, height: 900 }, quality: 'high', ...RENDER_BUDGETS.high },
+    {
+      label: 'desktop high',
+      viewport: { width: 1440, height: 900 },
+      quality: 'high',
+      ...RENDER_BUDGETS.high,
+    },
     // The medium budget holds on a desktop viewport too, now that no material uses
     // transmission (which redrew every opaque object a second time).
-    { label: 'desktop medium', viewport: { width: 1440, height: 900 }, quality: 'medium', ...RENDER_BUDGETS.medium },
-    { label: 'mobile medium', viewport: { width: 390, height: 844 }, quality: 'medium', ...RENDER_BUDGETS.medium },
+    {
+      label: 'desktop medium',
+      viewport: { width: 1440, height: 900 },
+      quality: 'medium',
+      ...RENDER_BUDGETS.medium,
+    },
+    {
+      label: 'mobile medium',
+      viewport: { width: 390, height: 844 },
+      quality: 'medium',
+      ...RENDER_BUDGETS.medium,
+    },
   ]) {
     const page = await browser.newPage({ viewport: budget.viewport, deviceScaleFactor: 1 });
     trackErrors(page);
-    await page.goto(`${origin}/?view=3d-viewer&quality=${budget.quality}&adaptive=off`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/?view=3d-viewer&quality=${budget.quality}&adaptive=off`, {
+      waitUntil: 'networkidle',
+    });
     await page.waitForFunction(
       // Frame 1 also draws the shadow map; read the counters from a later, steady frame,
       // after the realistic water has replaced the placeholder water. The counters and
       // the water state are published together, so they describe the same frame.
       () => {
         const shell = document.querySelector('[data-viewer-shell]');
-        return Number(shell?.getAttribute('data-rendered-frames') ?? 0) >= 30
-          && shell?.getAttribute('data-water-presentation') === 'realistic';
+        return (
+          Number(shell?.getAttribute('data-rendered-frames') ?? 0) >= 30 &&
+          shell?.getAttribute('data-water-presentation') === 'realistic'
+        );
       },
       undefined,
       { timeout: 120_000 },
@@ -564,11 +868,23 @@ try {
     const triangles = Number(await shell.getAttribute('data-triangles'));
     const sourceMeshes = Number(await shell.getAttribute('data-static-batch-source-meshes'));
     const batchedMeshes = Number(await shell.getAttribute('data-static-batch-meshes'));
-    assert.ok(drawCalls > 0 && drawCalls <= budget.drawCalls, `${budget.label}: ${drawCalls} draw calls (budget ${budget.drawCalls})`);
-    assert.ok(triangles > 0 && triangles <= budget.triangles, `${budget.label}: ${triangles} triangles (budget ${budget.triangles})`);
-    assert.ok(batchedMeshes * 4 < sourceMeshes, `${budget.label}: static batching left ${batchedMeshes} of ${sourceMeshes} meshes`);
+    assert.ok(
+      drawCalls > 0 && drawCalls <= budget.drawCalls,
+      `${budget.label}: ${drawCalls} draw calls (budget ${budget.drawCalls})`,
+    );
+    assert.ok(
+      triangles > 0 && triangles <= budget.triangles,
+      `${budget.label}: ${triangles} triangles (budget ${budget.triangles})`,
+    );
+    assert.ok(
+      batchedMeshes * 4 < sourceMeshes,
+      `${budget.label}: static batching left ${batchedMeshes} of ${sourceMeshes} meshes`,
+    );
     // Only the upper tiers redraw the scene for a planar water reflection; medium keeps the probe.
-    assert.equal(await shell.getAttribute('data-water-reflection'), budget.quality === 'high' ? 'planar' : 'probe');
+    assert.equal(
+      await shell.getAttribute('data-water-reflection'),
+      budget.quality === 'high' ? 'planar' : 'probe',
+    );
     // The sky (TASK-152) is one more draw call inside the same budgets, and from medium up
     // reflections and indirect light are generated from it instead of the fixed sky image.
     assert.equal(await shell.getAttribute('data-sky'), 'dome');
@@ -597,18 +913,24 @@ try {
   // Planar reflection (TASK-151) costs nothing while the camera is still and one more scene
   // pass while it moves. The peak over a drag has to stay inside the high budget. A small
   // desktop viewport keeps the software renderer fast enough to publish several windows.
-  const moving = await browser.newPage({ viewport: { width: 900, height: 560 }, deviceScaleFactor: 1 });
+  const moving = await browser.newPage({
+    viewport: { width: 900, height: 560 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(moving);
-  await moving.goto(`${origin}/?view=3d-viewer&quality=high&adaptive=off`, { waitUntil: 'networkidle' });
+  await moving.goto(`${origin}/?view=3d-viewer&quality=high&adaptive=off`, {
+    waitUntil: 'networkidle',
+  });
   const movingShell = moving.locator('[data-viewer-shell]');
-  const renderedFrames = async (page) => Number(
-    await page.locator('[data-viewer-shell]').getAttribute('data-rendered-frames'),
-  );
+  const renderedFrames = async (page) =>
+    Number(await page.locator('[data-viewer-shell]').getAttribute('data-rendered-frames'));
   await moving.waitForFunction(
     () => {
       const shell = document.querySelector('[data-viewer-shell]');
-      return Number(shell?.getAttribute('data-rendered-frames') ?? 0) >= 60
-        && shell?.getAttribute('data-water-presentation') === 'realistic';
+      return (
+        Number(shell?.getAttribute('data-rendered-frames') ?? 0) >= 60 &&
+        shell?.getAttribute('data-water-presentation') === 'realistic'
+      );
     },
     undefined,
     { timeout: 120_000 },
@@ -623,12 +945,19 @@ try {
   await moving.mouse.move(dragX, dragY);
   await moving.mouse.down();
   const dragStartFrames = await renderedFrames(moving);
-  for (let step = 0; step < 2000 && await renderedFrames(moving) < dragStartFrames + 65; step += 1) {
+  for (
+    let step = 0;
+    step < 2000 && (await renderedFrames(moving)) < dragStartFrames + 65;
+    step += 1
+  ) {
     await moving.mouse.move(dragX + 140 * Math.sin(step / 5), dragY);
     await moving.evaluate(() => new Promise(requestAnimationFrame));
   }
   await moving.mouse.up();
-  assert.ok(await renderedFrames(moving) >= dragStartFrames + 65, 'the drag lasted two diagnostic windows');
+  assert.ok(
+    (await renderedFrames(moving)) >= dragStartFrames + 65,
+    'the drag lasted two diagnostic windows',
+  );
   const movingPeak = Number(await movingShell.getAttribute('data-draw-calls-peak'));
   assert.ok(
     movingPeak > stillDrawCalls,
@@ -643,19 +972,28 @@ try {
   // Underwater view (TASK-151): on the medium tier and up the frame is drawn through the
   // underwater pass while the camera is in the water, and the walkthrough adds no fog of its own.
   // Wider than 900 px so the walkthrough takes the keyboard rather than the touch controls.
-  const diving = await browser.newPage({ viewport: { width: 960, height: 560 }, deviceScaleFactor: 1 });
+  const diving = await browser.newPage({
+    viewport: { width: 960, height: 560 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(diving);
-  await diving.goto(`${origin}/?view=3d-viewer&quality=medium&adaptive=off`, { waitUntil: 'networkidle' });
+  await diving.goto(`${origin}/?view=3d-viewer&quality=medium&adaptive=off`, {
+    waitUntil: 'networkidle',
+  });
   const divingShell = diving.locator('[data-viewer-shell]');
   await diving.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-water-presentation') === 'realistic',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-water-presentation') ===
+      'realistic',
     undefined,
     { timeout: 120_000 },
   );
   assert.equal(await divingShell.getAttribute('data-underwater-view'), 'false');
   await diving.locator('[data-enter-walkthrough]').click();
   await diving.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') === 'walkthrough',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-camera-mode') ===
+      'walkthrough',
   );
   await diving.locator('[data-walkthrough-area-select]').selectOption('l1-pool-deck');
   await diving.locator('canvas').focus();
@@ -663,8 +1001,11 @@ try {
   await diving.keyboard.down('w');
   try {
     await diving.waitForFunction(
-      () => document.querySelector('[data-viewer-shell]')
-        ?.getAttribute('data-movement-mode')?.startsWith('swimming-'),
+      () =>
+        document
+          .querySelector('[data-viewer-shell]')
+          ?.getAttribute('data-movement-mode')
+          ?.startsWith('swimming-'),
       undefined,
       { timeout: 20_000 },
     );
@@ -677,8 +1018,10 @@ try {
     await diving.waitForFunction(
       () => {
         const shell = document.querySelector('[data-viewer-shell]');
-        return shell?.getAttribute('data-underwater') === 'true'
-          && shell?.getAttribute('data-underwater-view') === 'true';
+        return (
+          shell?.getAttribute('data-underwater') === 'true' &&
+          shell?.getAttribute('data-underwater-view') === 'true'
+        );
       },
       undefined,
       // The view state is published every 30 frames, which the software renderer takes a while over.
@@ -704,15 +1047,19 @@ try {
     choice: await quality.locator('[data-quality-select]').inputValue(),
     status: await quality.locator('[data-quality-status]').innerText(),
   });
-  const waitForViewer = () => quality.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
-    undefined,
-    { timeout: 120_000 },
-  );
+  const waitForViewer = () =>
+    quality.waitForFunction(
+      () =>
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+      undefined,
+      { timeout: 120_000 },
+    );
   await quality.goto(`${origin}/?view=3d-viewer`, { waitUntil: 'networkidle' });
   await waitForViewer();
   assert.deepEqual(
-    await quality.locator('[data-quality-select] option').evaluateAll((options) => options.map((option) => option.value)),
+    await quality
+      .locator('[data-quality-select] option')
+      .evaluateAll((options) => options.map((option) => option.value)),
     ['auto', 'ultra', 'high', 'medium', 'saver'],
   );
   assert.deepEqual(await qualityState(), {
@@ -725,22 +1072,36 @@ try {
   assert.equal(await qualityShell.getAttribute('data-adaptive-quality'), 'false');
   await quality.locator('[data-quality-select]').selectOption('medium');
   assert.deepEqual(await qualityState(), {
-    tier: 'medium', source: 'manual', pipeline: 'medium', choice: 'medium', status: '目前：中',
+    tier: 'medium',
+    source: 'manual',
+    pipeline: 'medium',
+    choice: 'medium',
+    status: '目前：中',
   });
   await quality.reload({ waitUntil: 'networkidle' });
   await waitForViewer();
   assert.deepEqual(await qualityState(), {
-    tier: 'medium', source: 'manual', pipeline: 'medium', choice: 'medium', status: '目前：中',
+    tier: 'medium',
+    source: 'manual',
+    pipeline: 'medium',
+    choice: 'medium',
+    status: '目前：中',
   });
   await quality.locator('[data-quality-select]').selectOption('auto');
   assert.equal((await qualityState()).tier, 'saver');
   assert.equal((await qualityState()).choice, 'auto');
   // A link wins over the stored choice, and the top tier runs on the high pipeline profile.
   await quality.locator('[data-quality-select]').selectOption('saver');
-  await quality.goto(`${origin}/?view=3d-viewer&quality=ultra&adaptive=off`, { waitUntil: 'networkidle' });
+  await quality.goto(`${origin}/?view=3d-viewer&quality=ultra&adaptive=off`, {
+    waitUntil: 'networkidle',
+  });
   await waitForViewer();
   assert.deepEqual(await qualityState(), {
-    tier: 'ultra', source: 'url', pipeline: 'high', choice: 'ultra', status: '目前：極致（由網址指定）',
+    tier: 'ultra',
+    source: 'url',
+    pipeline: 'high',
+    choice: 'ultra',
+    status: '目前：極致（由網址指定）',
   });
   // Only the top tier adds ambient occlusion and contact shadows (TASK-152 step 6).
   assert.equal(
@@ -753,9 +1114,13 @@ try {
   assert.equal(await qualityShell.getAttribute('data-rain'), 'none');
   await quality.locator('[data-light-weather] button[data-weather="rain"]').click();
   await quality.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-rain') === 'glass curtain',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-rain') === 'glass curtain',
   );
-  assert.match(await quality.locator('[data-light-status]').innerText(), /；屋頂玻璃上的雨與低端雨簾（概念示意）/);
+  assert.match(
+    await quality.locator('[data-light-status]').innerText(),
+    /；屋頂玻璃上的雨與低端雨簾（概念示意）/,
+  );
   await quality.locator('[data-light-weather] button[data-weather="clear"]').click();
   assert.equal(await qualityShell.getAttribute('data-rain'), 'none');
   await qualityContext.close();
@@ -765,32 +1130,43 @@ try {
   const sun = await browser.newPage({ viewport: { width: 1100, height: 900 } });
   trackErrors(sun);
   const sunShell = sun.locator('[data-viewer-shell]');
-  const waitForSun = () => sun.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
-    undefined,
-    { timeout: 120_000 },
-  );
-  const sunState = () => sunShell.evaluate((shell) => ({
-    moment: shell.dataset.lightingMoment,
-    weather: shell.dataset.weather,
-    altitude: Number(shell.dataset.sunAltitude),
-    azimuth: Number(shell.dataset.sunAzimuth),
-    key: shell.dataset.keyLight,
-    phase: shell.dataset.dayPhase,
-    scene: shell.dataset.scene,
-  }));
-  const sunParameters = () => sun.evaluate(() => {
-    const parameters = new URLSearchParams(location.search);
-    return { time: parameters.get('time'), weather: parameters.get('weather'), hash: location.hash };
-  });
-  const setRange = (selector, value) => sun.locator(selector).evaluate((input, next) => {
-    input.value = String(next);
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-  }, value);
+  const waitForSun = () =>
+    sun.waitForFunction(
+      () =>
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+      undefined,
+      { timeout: 120_000 },
+    );
+  const sunState = () =>
+    sunShell.evaluate((shell) => ({
+      moment: shell.dataset.lightingMoment,
+      weather: shell.dataset.weather,
+      altitude: Number(shell.dataset.sunAltitude),
+      azimuth: Number(shell.dataset.sunAzimuth),
+      key: shell.dataset.keyLight,
+      phase: shell.dataset.dayPhase,
+      scene: shell.dataset.scene,
+    }));
+  const sunParameters = () =>
+    sun.evaluate(() => {
+      const parameters = new URLSearchParams(location.search);
+      return {
+        time: parameters.get('time'),
+        weather: parameters.get('weather'),
+        hash: location.hash,
+      };
+    });
+  const setRange = (selector, value) =>
+    sun.locator(selector).evaluate((input, next) => {
+      input.value = String(next);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, value);
   // The year is "this year at the school" (UTC+8), whatever time zone the test machine is in.
   const siteNow = () => new Date(Date.now() + 8 * 3_600_000);
   const siteYear = siteNow().getUTCFullYear();
-  await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off#light`, { waitUntil: 'networkidle' });
+  await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off#light`, {
+    waitUntil: 'networkidle',
+  });
   await waitForSun();
   assert.equal(await sunShell.getAttribute('data-real-sun'), 'true');
   // The sky dome is drawn on every enhanced tier; the saver tier has no environment map to regenerate.
@@ -804,8 +1180,14 @@ try {
   assert.equal(winterMorning.key, 'sun');
   assert.equal(winterMorning.phase, 'day');
   // Winter solstice 09:30 at 24.1°N: the sun is about 31° high in the south-east.
-  assert.ok(winterMorning.altitude > 28 && winterMorning.altitude < 34, `altitude ${winterMorning.altitude}`);
-  assert.ok(winterMorning.azimuth > 132 && winterMorning.azimuth < 146, `azimuth ${winterMorning.azimuth}`);
+  assert.ok(
+    winterMorning.altitude > 28 && winterMorning.altitude < 34,
+    `altitude ${winterMorning.altitude}`,
+  );
+  assert.ok(
+    winterMorning.azimuth > 132 && winterMorning.azimuth < 146,
+    `azimuth ${winterMorning.azimuth}`,
+  );
   assert.equal(await sun.locator('[data-light-date-label]').innerText(), '12月21日（冬至）');
   assert.equal(await sun.locator('[data-light-time-label]').innerText(), '09:30');
   // On a winter morning the mirror wall throws sunlight onto the pool (TASK-152 step 4); the
@@ -822,31 +1204,47 @@ try {
   // Even the saver tier, which has no environment map, gives the mirror its own reflection
   // (published with the frame counters, so wait for the next window).
   await sun.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-mirror-reflection') === 'probe',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-mirror-reflection') ===
+      'probe',
     undefined,
     { timeout: 60_000 },
   );
   // Hiding 3F hides the mirror, and the light it throws goes with it.
-  const setLayer = (id, checked) => sun.locator(`[data-layer-list] input[value="${id}"]`).evaluate((input, next) => {
-    input.checked = next;
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-  }, checked);
+  const setLayer = (id, checked) =>
+    sun.locator(`[data-layer-list] input[value="${id}"]`).evaluate((input, next) => {
+      input.checked = next;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }, checked);
   await setLayer('l3', false);
   assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'none');
   assert.match(await sun.locator('[data-light-status]').innerText(), /^太陽高度 \d+°，在東南方$/);
   await setLayer('l3', true);
   assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'pool');
   assert.deepEqual(
-    await sun.locator('[data-light-terms] button').evaluateAll((buttons) => buttons.map(
-      (button) => [button.textContent, button.getAttribute('aria-pressed')],
-    )),
-    [['春分', 'false'], ['夏至', 'false'], ['秋分', 'false'], ['冬至', 'true']],
+    await sun
+      .locator('[data-light-terms] button')
+      .evaluateAll((buttons) =>
+        buttons.map((button) => [button.textContent, button.getAttribute('aria-pressed')]),
+      ),
+    [
+      ['春分', 'false'],
+      ['夏至', 'false'],
+      ['秋分', 'false'],
+      ['冬至', 'true'],
+    ],
   );
   assert.deepEqual(
-    await sun.locator('[data-light-weather] button').evaluateAll((buttons) => buttons.map(
-      (button) => [button.textContent, button.getAttribute('aria-pressed')],
-    )),
-    [['晴', 'true'], ['陰', 'false'], ['雨', 'false']],
+    await sun
+      .locator('[data-light-weather] button')
+      .evaluateAll((buttons) =>
+        buttons.map((button) => [button.textContent, button.getAttribute('aria-pressed')]),
+      ),
+    [
+      ['晴', 'true'],
+      ['陰', 'false'],
+      ['雨', 'false'],
+    ],
   );
   // On the scene's own moment the URL stays clean.
   assert.deepEqual(await sunParameters(), { time: null, weather: null, hash: '#light' });
@@ -855,13 +1253,21 @@ try {
   await setRange('[data-light-time]', 990);
   const winterAfternoon = await sunState();
   assert.equal(winterAfternoon.moment, `${siteYear}-12-21T16:30`);
-  assert.ok(winterAfternoon.azimuth > 225 && winterAfternoon.azimuth < 250, `azimuth ${winterAfternoon.azimuth}`);
-  assert.ok(winterAfternoon.altitude > 3 && winterAfternoon.altitude < 15, `altitude ${winterAfternoon.altitude}`);
+  assert.ok(
+    winterAfternoon.azimuth > 225 && winterAfternoon.azimuth < 250,
+    `azimuth ${winterAfternoon.azimuth}`,
+  );
+  assert.ok(
+    winterAfternoon.altitude > 3 && winterAfternoon.altitude < 15,
+    `altitude ${winterAfternoon.altitude}`,
+  );
   // By late afternoon the reflected patch has left the pool.
   assert.notEqual(await sunShell.getAttribute('data-mirror-bounce'), 'pool');
   assert.equal(await sun.locator('[data-light-time]').getAttribute('aria-valuetext'), '16:30');
   assert.deepEqual(await sunParameters(), {
-    time: `${siteYear}-12-21T16:30`, weather: 'clear', hash: '#light',
+    time: `${siteYear}-12-21T16:30`,
+    weather: 'clear',
+    hash: '#light',
   });
   // The sliders work from the keyboard: one step is ten minutes, or one day.
   await sun.locator('[data-light-time]').focus();
@@ -872,7 +1278,9 @@ try {
   assert.equal((await sunState()).moment, `${siteYear}-12-20T16:40`);
   assert.equal(await sun.locator('[data-light-date-label]').innerText(), '12月20日');
   assert.equal(
-    await sun.locator('[data-light-terms] button[data-term="winter-solstice"]').getAttribute('aria-pressed'),
+    await sun
+      .locator('[data-light-terms] button[data-term="winter-solstice"]')
+      .getAttribute('aria-pressed'),
     'false',
   );
 
@@ -880,9 +1288,18 @@ try {
   await sun.locator('[data-light-terms] button[data-term="summer-solstice"]').click();
   const summerEvening = await sunState();
   assert.equal(summerEvening.moment, `${siteYear}-06-21T16:40`);
-  assert.ok(summerEvening.altitude > winterAfternoon.altitude + 15, `altitude ${summerEvening.altitude}`);
-  assert.ok(summerEvening.azimuth > 275 && summerEvening.azimuth < 295, `azimuth ${summerEvening.azimuth}`);
-  assert.equal(await sun.locator('[data-light-date]').getAttribute('aria-valuetext'), '6月21日（夏至）');
+  assert.ok(
+    summerEvening.altitude > winterAfternoon.altitude + 15,
+    `altitude ${summerEvening.altitude}`,
+  );
+  assert.ok(
+    summerEvening.azimuth > 275 && summerEvening.azimuth < 295,
+    `azimuth ${summerEvening.azimuth}`,
+  );
+  assert.equal(
+    await sun.locator('[data-light-date]').getAttribute('aria-valuetext'),
+    '6月21日（夏至）',
+  );
   await sun.locator('[data-light-weather] button[data-weather="rain"]').click();
   const summerRain = await sunState();
   assert.equal(summerRain.weather, 'rain');
@@ -894,7 +1311,9 @@ try {
   assert.equal(await sunShell.getAttribute('data-rain'), 'none');
   assert.equal(summerRain.altitude, summerEvening.altitude);
   assert.equal(
-    await sun.locator('[data-light-weather] button[data-weather="rain"]').getAttribute('aria-pressed'),
+    await sun
+      .locator('[data-light-weather] button[data-weather="rain"]')
+      .getAttribute('aria-pressed'),
     'true',
   );
 
@@ -904,7 +1323,11 @@ try {
   assert.equal(summerNight.phase, 'night');
   assert.equal(summerNight.key, 'moon');
   assert.ok(summerNight.altitude < -6);
-  assert.equal(await sunShell.getAttribute('data-mirror-bounce'), 'none', 'moonlight is not reflected');
+  assert.equal(
+    await sunShell.getAttribute('data-mirror-bounce'),
+    'none',
+    'moonlight is not reflected',
+  );
   // At night the pool hall's lights are on and light the hall; the status line says so and
   // labels the fixture layout a concept illustration.
   assert.equal(await sunShell.getAttribute('data-fixture-lights'), 'on');
@@ -917,7 +1340,9 @@ try {
 
   // The URL is a deep link: a reload comes back to the same light.
   assert.deepEqual(await sunParameters(), {
-    time: `${siteYear}-06-21T22:00`, weather: 'rain', hash: '#light',
+    time: `${siteYear}-06-21T22:00`,
+    weather: 'rain',
+    hash: '#light',
   });
   await sun.reload({ waitUntil: 'networkidle' });
   await waitForSun();
@@ -962,13 +1387,18 @@ try {
   assert.ok(minutesApart <= 2, `now is ${minutesApart} minutes off`);
 
   // `weather=night` is shorthand for a clear evening; malformed values are ignored, not guessed.
-  await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off&weather=night#overview`, { waitUntil: 'networkidle' });
+  await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off&weather=night#overview`, {
+    waitUntil: 'networkidle',
+  });
   await waitForSun();
   const nightAlias = await sunState();
   assert.equal(nightAlias.moment.slice(11), '21:00');
   assert.equal(nightAlias.weather, 'clear');
   assert.equal(nightAlias.key, 'moon');
-  await sun.goto(`${origin}/?view=3d-viewer&quality=saver&adaptive=off&time=noon&weather=snow#people`, { waitUntil: 'networkidle' });
+  await sun.goto(
+    `${origin}/?view=3d-viewer&quality=saver&adaptive=off&time=noon&weather=snow#people`,
+    { waitUntil: 'networkidle' },
+  );
   await waitForSun();
   const ignored = await sunState();
   assert.equal(ignored.scene, 'people');
@@ -979,9 +1409,12 @@ try {
 
   const explicitBaseline = await browser.newPage({ viewport: { width: 900, height: 700 } });
   trackErrors(explicitBaseline);
-  await explicitBaseline.goto(`${origin}/?view=3d-viewer&rendering=baseline`, { waitUntil: 'networkidle' });
+  await explicitBaseline.goto(`${origin}/?view=3d-viewer&rendering=baseline`, {
+    waitUntil: 'networkidle',
+  });
   await explicitBaseline.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
   );
   assert.equal(
     await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'),
@@ -991,14 +1424,20 @@ try {
     await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-material-registry'),
     'baseline-material-registry',
   );
-  assert.equal(
-    await explicitBaseline.locator('[data-enter-walkthrough]').isEnabled(),
-    true,
-  );
+  assert.equal(await explicitBaseline.locator('[data-enter-walkthrough]').isEnabled(), true);
   // The baseline path keeps its fixed scene moods and offers no time control.
-  assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-real-sun'), 'false');
-  assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-sky'), 'none');
-  assert.equal(await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-shadow-filter'), 'fixed');
+  assert.equal(
+    await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-real-sun'),
+    'false',
+  );
+  assert.equal(
+    await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-sky'),
+    'none',
+  );
+  assert.equal(
+    await explicitBaseline.locator('[data-viewer-shell]').getAttribute('data-shadow-filter'),
+    'fixed',
+  );
   assert.equal(await explicitBaseline.locator('[data-light-control]').isHidden(), true);
   await explicitBaseline.close();
 
@@ -1010,18 +1449,23 @@ try {
     { waitUntil: 'networkidle' },
   );
   await requiredAssetFallback.waitForFunction(
-    () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'true',
   );
   assert.equal(
     await requiredAssetFallback.locator('[data-viewer-shell]').getAttribute('data-rendering-mode'),
     'baseline-fallback',
   );
   assert.match(
-    await requiredAssetFallback.locator('[data-viewer-shell]').getAttribute('data-rendering-diagnostic'),
+    await requiredAssetFallback
+      .locator('[data-viewer-shell]')
+      .getAttribute('data-rendering-diagnostic'),
     /Simulated required material asset failure/,
   );
   assert.equal(
-    await requiredAssetFallback.locator('[data-viewer-shell]').getAttribute('data-material-registry'),
+    await requiredAssetFallback
+      .locator('[data-viewer-shell]')
+      .getAttribute('data-material-registry'),
     'baseline-material-registry',
   );
   assert.equal(requiredAssetPageErrors.length, 0, requiredAssetPageErrors.join('\n'));
@@ -1030,14 +1474,21 @@ try {
   const fallback = await browser.newPage({ viewport: { width: 900, height: 700 } });
   trackErrors(fallback);
   await fallback.goto(`${origin}/?view=3d-viewer&forceFallback=1`, { waitUntil: 'networkidle' });
-  await fallback.waitForFunction(() => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') === 'fallback');
+  await fallback.waitForFunction(
+    () =>
+      document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') ===
+      'fallback',
+  );
   assert.equal(await fallback.locator('[data-webgl-fallback]').isVisible(), true);
   assert.equal(await fallback.locator('[data-scene-nav] button').count(), 5);
   assert.equal(await fallback.locator('[data-scene-nav]').isHidden(), true);
   await activateScene(fallback, '向光');
   assert.equal(await fallback.locator('[data-scene-context]').count(), 0);
 
-  const solarDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+  const solarDesktop = await browser.newPage({
+    viewport: { width: 1440, height: 1000 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(solarDesktop);
   await solarDesktop.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
   assert.match(await solarDesktop.locator('h1').innerText(), /讓建築轉向光/);
@@ -1051,10 +1502,15 @@ try {
   );
   assert.match(
     await solarDesktop.locator('.site-footer-meta').textContent(),
-    new RegExp(`^MODEL ${expectedModelVersion.replaceAll('.', '\\.')} · ${projectModel.activeGeometryRevisionId} · `),
+    new RegExp(
+      `^MODEL ${expectedModelVersion.replaceAll('.', '\\.')} · ${projectModel.activeGeometryRevisionId} · `,
+    ),
   );
   const signedDegrees = (value) => `${value > 0 ? '+' : ''}${value.toFixed(1)}°`;
-  const kilowattHours = new Intl.NumberFormat('zh-TW', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const kilowattHours = new Intl.NumberFormat('zh-TW', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
   const expectedSolar = expectedActiveGeometry.solar;
   assert.equal(
     await solarDesktop.locator('#conclusion-plan-rotation').innerText(),
@@ -1078,8 +1534,14 @@ try {
     await solarDesktop.locator('#conclusion-warm-gain').innerText(),
     `+${expectedSolar.workingResult.warmPoolAddedKWh.toFixed(3)} kWh`,
   );
-  assert.equal(await solarDesktop.locator('#conclusion-warm-note').innerText(), '接近零，但不是零增量');
-  assert.match(await solarDesktop.locator('#azimuthToleranceFan').getAttribute('d'), /^M 280 235 L /);
+  assert.equal(
+    await solarDesktop.locator('#conclusion-warm-note').innerText(),
+    '接近零，但不是零增量',
+  );
+  assert.match(
+    await solarDesktop.locator('#azimuthToleranceFan').getAttribute('d'),
+    /^M 280 235 L /,
+  );
   assert.equal(
     await solarDesktop.locator('#azimuthToleranceLabel').textContent(),
     `池向方位參考 ±${expectedActiveGeometry.solar.azimuthTolerance.value.toFixed(0)}°`,
@@ -1092,17 +1554,29 @@ try {
   assert.equal(await solarDesktop.locator('.live-preview').isVisible(), false);
   assert.equal(await solarDesktop.locator('#mobilePreviewViewport svg').count(), 0);
   assert.equal(
-    await solarDesktop.locator('.stage-figures').evaluate((figures) => getComputedStyle(figures).position),
+    await solarDesktop
+      .locator('.stage-figures')
+      .evaluate((figures) => getComputedStyle(figures).position),
     'sticky',
   );
   // The conclusion comes before the interactive model.
   assert.equal(
-    await solarDesktop.locator('.research-conclusion').evaluate(
-      (conclusion) => Boolean(conclusion.compareDocumentPosition(document.querySelector('.stage')) & Node.DOCUMENT_POSITION_FOLLOWING),
+    await solarDesktop
+      .locator('.research-conclusion')
+      .evaluate((conclusion) =>
+        Boolean(
+          conclusion.compareDocumentPosition(document.querySelector('.stage')) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+        ),
+      ),
+    true,
+  );
+  assert.equal(
+    await solarDesktop.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth + 1,
     ),
     true,
   );
-  assert.equal(await solarDesktop.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
   await solarDesktop.locator('#date').evaluate((input) => {
     input.value = '7';
     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -1111,8 +1585,14 @@ try {
     input.value = '7';
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
-  assert.equal(await solarDesktop.locator('#selectedSun').getAttribute('data-reflection-state'), 'front-lit');
-  assert.ok(Number(await solarDesktop.locator('#selectedSun').getAttribute('data-front-half-space-dot')) > 0);
+  assert.equal(
+    await solarDesktop.locator('#selectedSun').getAttribute('data-reflection-state'),
+    'front-lit',
+  );
+  assert.ok(
+    Number(await solarDesktop.locator('#selectedSun').getAttribute('data-front-half-space-dot')) >
+      0,
+  );
   assert.equal(await solarDesktop.locator('#selectedSun .selected-sun-ray').count(), 1);
   assert.equal(await solarDesktop.locator('#selectedSun .selected-reflected-ray').count(), 1);
   assert.match(
@@ -1181,10 +1661,13 @@ try {
       wallCenter,
       normalStart,
       normalDistance: distance(normalStart, wallCenter),
-      incidentDistance: distance({
-        x: Number(incidentPoint.getAttribute('cx')),
-        y: Number(incidentPoint.getAttribute('cy')),
-      }, wallCenter),
+      incidentDistance: distance(
+        {
+          x: Number(incidentPoint.getAttribute('cx')),
+          y: Number(incidentPoint.getAttribute('cy')),
+        },
+        wallCenter,
+      ),
       incomingDistance: distance(incomingEnd, wallCenter),
       reflectedDistance: distance(reflectedStart, wallCenter),
       raysAboveBuilding: Boolean(
@@ -1204,41 +1687,47 @@ try {
   // Release 0.9.7 draws the sun path and rays above the building outline; the
   // 10-unit gaps asserted above keep the rays from appearing to cross the wall.
   assert.equal(rayGeometry.raysAboveBuilding, true);
-  assert.ok(Math.hypot(
-    rayGeometry.normalStart.x - 280,
-    rayGeometry.normalStart.y - 235,
-  ) > 1);
+  assert.ok(Math.hypot(rayGeometry.normalStart.x - 280, rayGeometry.normalStart.y - 235) > 1);
   assert.equal(rayGeometry.planIncomingWidth, 4.8);
   assert.equal(rayGeometry.planReflectedWidth, 4.8);
   assert.equal(rayGeometry.normalWidth, 4);
   assert.equal(rayGeometry.sectionIncomingWidth, 4);
   assert.equal(rayGeometry.sectionReflectedWidth, 4);
-  assert.equal(await solarDesktop.locator('#reflected').getAttribute('data-reflection-state'), 'misses-pool');
+  assert.equal(
+    await solarDesktop.locator('#reflected').getAttribute('data-reflection-state'),
+    'misses-pool',
+  );
   assert.equal(
     await solarDesktop.locator('#incoming').getAttribute('stroke'),
     await solarDesktop.locator('#reflected').getAttribute('stroke'),
   );
   assert.equal(
-    await solarDesktop.locator('#reflected').evaluate(
-      (line) => Number.parseFloat(getComputedStyle(line).opacity),
-    ),
+    await solarDesktop
+      .locator('#reflected')
+      .evaluate((line) => Number.parseFloat(getComputedStyle(line).opacity)),
     1,
   );
   assert.notEqual(
-    await solarDesktop.locator('#reflected').evaluate(
-      (line) => getComputedStyle(line).strokeDasharray,
-    ),
+    await solarDesktop
+      .locator('#reflected')
+      .evaluate((line) => getComputedStyle(line).strokeDasharray),
     'none',
   );
   assert.equal(await solarDesktop.locator('#rayLabel').textContent(), '反射光（未落在池面）');
-  assert.equal(await solarDesktop.locator('#reflected').getAttribute('aria-label'), '反射光，未落在池面');
+  assert.equal(
+    await solarDesktop.locator('#reflected').getAttribute('aria-label'),
+    '反射光，未落在池面',
+  );
   assert.notEqual(
-    await solarDesktop.locator('#selectedSun .selected-reflected-ray').evaluate(
-      (line) => getComputedStyle(line).strokeDasharray,
-    ),
+    await solarDesktop
+      .locator('#selectedSun .selected-reflected-ray')
+      .evaluate((line) => getComputedStyle(line).strokeDasharray),
     'none',
   );
-  assert.match(await solarDesktop.locator('#resultDetail').innerText(), /方向參考：反射方位與池向差 .*參考範圍/);
+  assert.match(
+    await solarDesktop.locator('#resultDetail').innerText(),
+    /方向參考：反射方位與池向差 .*參考範圍/,
+  );
   await solarDesktop.locator('#time').evaluate((input) => {
     input.value = '18';
     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -1258,7 +1747,10 @@ try {
     input.value = '10';
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
-  assert.equal(await solarDesktop.locator('#reflected').getAttribute('data-reflection-state'), 'hits-pool');
+  assert.equal(
+    await solarDesktop.locator('#reflected').getAttribute('data-reflection-state'),
+    'hits-pool',
+  );
   assert.equal(await solarDesktop.locator('#rayLabel').textContent(), '反射光（落在池面）');
   assert.match(await solarDesktop.locator('#resultTitle').innerText(), /反射光落在池面/);
   await solarDesktop.locator('#planRotation').evaluate((input) => {
@@ -1270,17 +1762,29 @@ try {
     await solarDesktop.locator('#mirrorAz').innerText(),
     `${deriveMirrorNormalAzimuth(projectModel.referenceSystem, 27).toFixed(1)}°`,
   );
-  await solarDesktop.screenshot({ path: resolve(outputDirectory, 'solar-study-desktop.png'), fullPage: true });
+  await solarDesktop.screenshot({
+    path: resolve(outputDirectory, 'solar-study-desktop.png'),
+    fullPage: true,
+  });
 
-  const solarTablet = await browser.newPage({ viewport: { width: 768, height: 900 }, deviceScaleFactor: 1 });
+  const solarTablet = await browser.newPage({
+    viewport: { width: 768, height: 900 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(solarTablet);
   await solarTablet.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
-  assert.equal(await solarTablet.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  assert.equal(
+    await solarTablet.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    true,
+  );
   // Below 1000px the charts scroll away, so a switchable preview mirrors them above the controls.
   assert.equal(await solarTablet.locator('.live-preview').isVisible(), true);
   assert.equal(await solarTablet.locator('.mobile-preview-tabs').isVisible(), true);
   assert.equal(await solarTablet.locator('#mobilePreviewViewport').isVisible(), true);
-  for (const [selector, value] of [['#date', '7'], ['#time', '7']]) {
+  for (const [selector, value] of [
+    ['#date', '7'],
+    ['#time', '7'],
+  ]) {
     await solarTablet.locator(selector).evaluate((input, next) => {
       input.value = next;
       input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -1288,7 +1792,9 @@ try {
   }
   await solarTablet.locator('#previewSection').click();
   assert.equal(
-    await solarTablet.locator('#mobile-preview-section-reflected').getAttribute('data-reflection-state'),
+    await solarTablet
+      .locator('#mobile-preview-section-reflected')
+      .getAttribute('data-reflection-state'),
     await solarTablet.locator('#reflected').getAttribute('data-reflection-state'),
   );
   assert.equal(
@@ -1309,15 +1815,26 @@ try {
   // The seasonal table scrolls sideways from the keyboard and keeps its first column in view.
   assert.equal(await solarTablet.locator('.table-scroll').getAttribute('tabindex'), '0');
   assert.equal(
-    await solarTablet.locator('.table-scroll tbody tr:first-child > :first-child').evaluate((cell) => getComputedStyle(cell).position),
+    await solarTablet
+      .locator('.table-scroll tbody tr:first-child > :first-child')
+      .evaluate((cell) => getComputedStyle(cell).position),
     'sticky',
   );
-  await solarTablet.screenshot({ path: resolve(outputDirectory, 'solar-study-tablet.png'), fullPage: true });
+  await solarTablet.screenshot({
+    path: resolve(outputDirectory, 'solar-study-tablet.png'),
+    fullPage: true,
+  });
 
-  const solarMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const solarMobile = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(solarMobile);
   await solarMobile.goto(`${origin}/?view=solar-study`, { waitUntil: 'networkidle' });
-  assert.equal(await solarMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  assert.equal(
+    await solarMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    true,
+  );
   assert.equal(await solarMobile.locator('.live-preview').isVisible(), true);
   assert.equal(await solarMobile.locator('.mobile-preview-tabs').isVisible(), true);
   assert.equal(await solarMobile.locator('#mobilePreviewViewport').isVisible(), true);
@@ -1331,7 +1848,9 @@ try {
   });
   await solarMobile.locator('#previewSection').click();
   assert.equal(
-    await solarMobile.locator('#mobile-preview-section-reflected').getAttribute('data-reflection-state'),
+    await solarMobile
+      .locator('#mobile-preview-section-reflected')
+      .getAttribute('data-reflection-state'),
     'misses-pool',
   );
   assert.equal(
@@ -1346,23 +1865,38 @@ try {
     await solarMobile.locator('#mobile-preview-section-rayLabel').textContent(),
     '反射光（未落在池面）',
   );
-  await solarMobile.screenshot({ path: resolve(outputDirectory, 'solar-study-mobile.png'), fullPage: true });
+  await solarMobile.screenshot({
+    path: resolve(outputDirectory, 'solar-study-mobile.png'),
+    fullPage: true,
+  });
   await solarDesktop.close();
   await solarTablet.close();
   await solarMobile.close();
 
-  const atlasDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+  const atlasDesktop = await browser.newPage({
+    viewport: { width: 1440, height: 1000 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(atlasDesktop);
   await atlasDesktop.goto(`${origin}/?view=drawings#SITE`, { waitUntil: 'networkidle' });
   assert.equal(await atlasDesktop.locator('[data-sheet]').count(), 5);
   assert.equal(await atlasDesktop.locator('#detail-panel').count(), 0);
-  assert.equal(await atlasDesktop.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
+  assert.equal(
+    await atlasDesktop.locator('#model-version').innerText(),
+    `MODEL ${expectedModelVersion}`,
+  );
   assert.equal(
     await atlasDesktop.locator('.sheet-note').innerText(),
     `MODEL ${expectedModelVersion} · ACTIVE ${projectModel.activeGeometryRevisionId}`,
   );
-  assert.match(await atlasDesktop.locator('#sheet-stage image').getAttribute('href'), /\/site-satellite[^/]*\.webp$/);
-  await atlasDesktop.screenshot({ path: resolve(outputDirectory, 'atlas-site-latest.png'), fullPage: true });
+  assert.match(
+    await atlasDesktop.locator('#sheet-stage image').getAttribute('href'),
+    /\/site-satellite[^/]*\.webp$/,
+  );
+  await atlasDesktop.screenshot({
+    path: resolve(outputDirectory, 'atlas-site-latest.png'),
+    fullPage: true,
+  });
 
   for (const [sheetId, entityId, screenshotName] of [
     ['L1', 'F-L1-Y0-01', 'atlas-l1.png'],
@@ -1371,17 +1905,30 @@ try {
     ['SECTION', 'W-L3-X41-01', 'atlas-section.png'],
   ]) {
     await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).click();
-    assert.equal(await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).getAttribute('aria-current'), 'page');
-    assert.equal(await atlasDesktop.locator(`.review-drawing[data-sheet-id="${sheetId}"]`).count(), 1);
+    assert.equal(
+      await atlasDesktop.locator(`[data-sheet="${sheetId}"]`).getAttribute('aria-current'),
+      'page',
+    );
+    assert.equal(
+      await atlasDesktop.locator(`.review-drawing[data-sheet-id="${sheetId}"]`).count(),
+      1,
+    );
     assert.equal(await atlasDesktop.locator('.review-drawing image').count(), 0);
-    assert.equal(await atlasDesktop.locator(`.review-drawing [data-entity="${entityId}"]`).count(), 1);
+    assert.equal(
+      await atlasDesktop.locator(`.review-drawing [data-entity="${entityId}"]`).count(),
+      1,
+    );
     if (sheetId !== 'SECTION') {
       assert.equal(
-        await atlasDesktop.locator('.review-drawing [data-north-plan-direction]').getAttribute('data-north-plan-direction'),
+        await atlasDesktop
+          .locator('.review-drawing [data-north-plan-direction]')
+          .getAttribute('data-north-plan-direction'),
         expectedSiteOrientation.northPlanDirection,
       );
       assert.equal(
-        await atlasDesktop.locator('.review-drawing [data-north-rotation]').getAttribute('data-north-rotation'),
+        await atlasDesktop
+          .locator('.review-drawing [data-north-rotation]')
+          .getAttribute('data-north-rotation'),
         `${expectedSiteOrientation.svgNorthArrowRotation}`,
       );
     }
@@ -1392,23 +1939,38 @@ try {
       await atlasDesktop.locator('#toggle-pv').check();
       assert.equal(await atlasDesktop.locator('[data-entity="RF-PV-RES-01"]').isVisible(), true);
     }
-    await atlasDesktop.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
-    await atlasDesktop.screenshot({ path: resolve(outputDirectory, screenshotName), fullPage: true });
+    await atlasDesktop.evaluate(
+      () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+    );
+    await atlasDesktop.screenshot({
+      path: resolve(outputDirectory, screenshotName),
+      fullPage: true,
+    });
   }
   await atlasDesktop.close();
 
-  const atlasMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const atlasMobile = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+  });
   trackErrors(atlasMobile);
   // A retired, versioned anchor still opens its sheet and is rewritten to the version-free id (DEC-170).
   await atlasMobile.goto(`${origin}/?view=drawings#V067-L1`, { waitUntil: 'networkidle' });
   assert.equal(await atlasMobile.evaluate(() => location.hash), '#L1');
-  assert.equal(await atlasMobile.locator('#model-version').innerText(), `MODEL ${expectedModelVersion}`);
-  assert.equal(await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true);
+  assert.equal(
+    await atlasMobile.locator('#model-version').innerText(),
+    `MODEL ${expectedModelVersion}`,
+  );
+  assert.equal(
+    await atlasMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    true,
+  );
   assert.equal(await atlasMobile.locator('.review-drawing[data-sheet-id="L1"]').count(), 1);
   assert.equal(await atlasMobile.locator('.review-drawing [data-entity="F-L1-Y0-01"]').count(), 1);
   // 圖面檢視器（TASK-173）：一開始整張圖紙符合畫面，按鈕、鍵盤可縮放平移，「符合畫面」回到全圖。
   const viewport = atlasMobile.locator('.drawing-viewport');
-  const contentTransform = () => atlasMobile.locator('.drawing-wrap').evaluate((wrap) => wrap.style.transform);
+  const contentTransform = () =>
+    atlasMobile.locator('.drawing-wrap').evaluate((wrap) => wrap.style.transform);
   assert.equal(
     await viewport.evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
     true,
@@ -1428,17 +1990,25 @@ try {
   assert.equal(await atlasMobile.locator('#zoom-level').innerText(), '225%');
   await atlasMobile.locator('[data-zoom="fit"]').click();
   assert.equal(await atlasMobile.locator('#zoom-level').innerText(), '100%');
-  assert.equal(await viewport.evaluate((element) => element.classList.contains('is-zoomed')), false);
+  assert.equal(
+    await viewport.evaluate((element) => element.classList.contains('is-zoomed')),
+    false,
+  );
   // 只有一般滾輪時，頁面照常捲動，不會被圖紙攔下來縮放。
   await viewport.hover();
   await atlasMobile.mouse.wheel(0, 200);
   assert.equal(await atlasMobile.locator('#zoom-level').innerText(), '100%');
-  await atlasMobile.screenshot({ path: resolve(outputDirectory, 'atlas-l1-mobile.png'), fullPage: true });
+  await atlasMobile.screenshot({
+    path: resolve(outputDirectory, 'atlas-l1-mobile.png'),
+    fullPage: true,
+  });
   await atlasMobile.close();
 
   assert.equal(browserErrors.length, 0, browserErrors.join('\n'));
 
-  process.stdout.write(`Viewer, solar-study, and atlas browser smoke passed: desktop, mobile, and WebGL fallback.\n`);
+  process.stdout.write(
+    `Viewer, solar-study, and atlas browser smoke passed: desktop, mobile, and WebGL fallback.\n`,
+  );
   process.stdout.write(`Screenshots: ${outputDirectory}\n`);
 } finally {
   await browser?.close();

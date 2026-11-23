@@ -1,9 +1,5 @@
 import type { MovementIntent } from '../types.js';
-import {
-  clampIntentAxis,
-  normalizeMovementAxis,
-  type InputAdapter,
-} from './input-adapter.js';
+import { clampIntentAxis, normalizeMovementAxis, type InputAdapter } from './input-adapter.js';
 
 export interface TouchInputOptions {
   moveSurface: HTMLElement;

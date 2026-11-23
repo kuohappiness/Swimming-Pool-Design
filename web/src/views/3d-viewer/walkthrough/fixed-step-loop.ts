@@ -10,11 +10,7 @@ export class FixedStepLoop {
   readonly maxFrameDeltaSeconds: number;
   readonly maxSubsteps: number;
 
-  constructor(
-    fixedStepSeconds: number,
-    maxFrameDeltaSeconds: number,
-    maxSubsteps: number,
-  ) {
+  constructor(fixedStepSeconds: number, maxFrameDeltaSeconds: number, maxSubsteps: number) {
     if (!Number.isFinite(fixedStepSeconds) || fixedStepSeconds <= 0) {
       throw new TypeError('fixedStepSeconds must be finite and positive.');
     }

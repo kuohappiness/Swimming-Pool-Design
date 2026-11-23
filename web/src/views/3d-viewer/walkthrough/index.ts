@@ -1,9 +1,8 @@
-export { adaptWalkthroughSource, deepFreezeWalkthroughData } from './adapters/viewer-model-adapter.js';
 export {
-  SafeSpawnAreaRegistry,
-  type AreaRegistry,
-  type WalkthroughArea,
-} from './area-registry.js';
+  adaptWalkthroughSource,
+  deepFreezeWalkthroughData,
+} from './adapters/viewer-model-adapter.js';
+export { SafeSpawnAreaRegistry, type AreaRegistry, type WalkthroughArea } from './area-registry.js';
 export { CameraModeManager } from './camera-mode-manager.js';
 export { createCollisionProxies } from './collision/collision-proxies.js';
 export { CollisionWorld } from './collision/collision-world.js';
@@ -26,11 +25,7 @@ export {
   getWalkthroughCapabilityProfile,
   type WalkthroughCapabilityProfile,
 } from './performance-profile.js';
-export type {
-  MovementStrategy,
-  PlayerState,
-  PlayerVector,
-} from './player-controller.js';
+export type { MovementStrategy, PlayerState, PlayerVector } from './player-controller.js';
 export { WALKTHROUGH_CONFIG } from './walkthrough-config.js';
 export type {
   CollisionDescriptor,

@@ -23,7 +23,7 @@ export interface GlossyFilmMaterialOptions {
 
 export const GLOSSY_FILM_PROGRAM_KEY = 'glossy-film-v1';
 
-const FILM_FRAGMENT = /* glsl */`
+const FILM_FRAGMENT = /* glsl */ `
 	float filmFresnel = 0.0;
 	#ifdef USE_ENVMAP
 		float filmCos = saturate( dot( normalize( vViewPosition ), normal ) );
@@ -43,7 +43,9 @@ const FILM_FRAGMENT = /* glsl */`
 export function patchGlossyFilmFragmentShader(fragmentShader: string) {
   const anchor = '#include <opaque_fragment>';
   if (!fragmentShader.includes(anchor)) {
-    throw new TypeError(`Glossy film material expects the three.js fragment shader to contain ${anchor}.`);
+    throw new TypeError(
+      `Glossy film material expects the three.js fragment shader to contain ${anchor}.`,
+    );
   }
   return fragmentShader.replace(anchor, FILM_FRAGMENT);
 }

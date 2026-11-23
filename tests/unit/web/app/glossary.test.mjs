@@ -23,7 +23,12 @@ function glossaryRows() {
   return table
     .split('\n')
     .slice(2)
-    .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim().replaceAll('`', '')))
+    .map((line) =>
+      line
+        .split('|')
+        .slice(1, -1)
+        .map((cell) => cell.trim().replaceAll('`', '')),
+    )
     .map(([label, eyebrow, id, folder]) => ({ id, label, eyebrow, folder }));
 }
 

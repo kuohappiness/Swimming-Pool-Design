@@ -1,14 +1,8 @@
 import * as THREE from 'three';
 import type { ViewerRenderingRuntime } from '../contracts';
-import {
-  assertRenderQualityProfile,
-  type RenderQualityProfile,
-} from '../quality-profile';
+import { assertRenderQualityProfile, type RenderQualityProfile } from '../quality-profile';
 import { EnhancedPbrMaterialRegistry } from './pbr-material-registry';
-import {
-  EnhancedEnvironmentEffect,
-  type EnvironmentTextureLoader,
-} from './environment-effect';
+import { EnhancedEnvironmentEffect, type EnvironmentTextureLoader } from './environment-effect';
 import { EnhancedFrameEffectPipeline } from './frame-effect-pipeline';
 import { ENHANCED_QUALITY_PROFILES } from './quality-profiles';
 import { EnhancedVisualAssetAdapter } from './visual-asset-adapter';
@@ -46,30 +40,35 @@ export async function createEnhancedMaterialPreviewRuntime(
     framePipeline = new EnhancedFrameEffectPipeline(renderer, quality);
     const laneLineMaterial = materials.get('sanitary-dark');
     const railMaterial = materials.get('pool-rail');
-    visualAssets = new EnhancedVisualAssetAdapter(quality, options.poolBasin
-      ? {
-          mirrorReflection: { renderer },
-          realisticWater: {
-            renderer,
-            basin: options.poolBasin,
-            hall: options.poolHall,
-            basinMaterial: materials.get('pool-basin'),
-            // 水面折射看到的池底標線，要和實體標線（sanitary-dark）同色。
-            laneLineColor: laneLineMaterial instanceof THREE.MeshStandardMaterial
-              ? laneLineMaterial.color
-              : undefined,
-            // 水面折射看到的池梯踏階，要和實體踏階（pool-rail）同色。
-            metalColor: railMaterial instanceof THREE.MeshStandardMaterial
-              ? railMaterial.color
-              : undefined,
-          },
-        }
-      : { mirrorReflection: { renderer } });
+    visualAssets = new EnhancedVisualAssetAdapter(
+      quality,
+      options.poolBasin
+        ? {
+            mirrorReflection: { renderer },
+            realisticWater: {
+              renderer,
+              basin: options.poolBasin,
+              hall: options.poolHall,
+              basinMaterial: materials.get('pool-basin'),
+              // 水面折射看到的池底標線，要和實體標線（sanitary-dark）同色。
+              laneLineColor:
+                laneLineMaterial instanceof THREE.MeshStandardMaterial
+                  ? laneLineMaterial.color
+                  : undefined,
+              // 水面折射看到的池梯踏階，要和實體踏階（pool-rail）同色。
+              metalColor:
+                railMaterial instanceof THREE.MeshStandardMaterial ? railMaterial.color : undefined,
+            },
+          }
+        : { mirrorReflection: { renderer } },
+    );
   } catch (error) {
     materials.dispose();
     throw error;
   }
-  framePipeline.setSceneRenderer((scene, camera) => visualAssets.renderFrame(renderer, scene, camera));
+  framePipeline.setSceneRenderer((scene, camera) =>
+    visualAssets.renderFrame(renderer, scene, camera),
+  );
   let disposed = false;
 
   return {

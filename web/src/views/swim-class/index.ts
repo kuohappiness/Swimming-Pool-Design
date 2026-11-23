@@ -74,11 +74,31 @@ const routeMarkers: Marker[] = data.route.map((stop, index) => ({
 
 /** Places of the care section, in the order of its items. */
 const careMarkers: Marker[] = [
-  { key: 'care-1', badge: 'A', at: centre(data.zones.lifeguardChair.bounds), places: ['lifeguardChair'] },
-  { key: 'care-2', badge: 'B', at: centre(data.zones.staffFirstAid.bounds), places: ['staffFirstAid'] },
+  {
+    key: 'care-1',
+    badge: 'A',
+    at: centre(data.zones.lifeguardChair.bounds),
+    places: ['lifeguardChair'],
+  },
+  {
+    key: 'care-2',
+    badge: 'B',
+    at: centre(data.zones.staffFirstAid.bounds),
+    places: ['staffFirstAid'],
+  },
   { key: 'care-3', badge: 'C', at: data.aed, places: [] },
-  { key: 'care-4', badge: 'D', at: centre(data.zones.accessibleChanging.bounds), places: ['accessibleChanging'] },
-  { key: 'care-5', badge: 'E', at: centre(data.zones.poolLift.bounds), places: ['poolLift', 'entryRamp'] },
+  {
+    key: 'care-4',
+    badge: 'D',
+    at: centre(data.zones.accessibleChanging.bounds),
+    places: ['accessibleChanging'],
+  },
+  {
+    key: 'care-5',
+    badge: 'E',
+    at: centre(data.zones.poolLift.bounds),
+    places: ['poolLift', 'entryRamp'],
+  },
 ];
 
 function section(id: string): SwimSection {
@@ -93,31 +113,50 @@ function rect({ x1, x2, y1, y2 }: Bounds, className: string, attributes = ''): s
 }
 
 const position = ([x, y]: Point) =>
-  `left: ${((x - extent.x1) / planWidth * 100).toFixed(3)}%; bottom: ${((y - extent.y1) / planHeight * 100).toFixed(3)}%`;
+  `left: ${(((x - extent.x1) / planWidth) * 100).toFixed(3)}%; bottom: ${(((y - extent.y1) / planHeight) * 100).toFixed(3)}%`;
 
 function renderPlan(mode: 'route' | 'care', markers: Marker[], label: string): string {
   const keysByPlace = new Map<string, string[]>();
   for (const marker of markers) {
-    for (const place of marker.places) keysByPlace.set(place, [...(keysByPlace.get(place) ?? []), marker.key]);
+    for (const place of marker.places)
+      keysByPlace.set(place, [...(keysByPlace.get(place) ?? []), marker.key]);
   }
   const placeRects = Object.entries(places).map(([name, place]) =>
-    rect(place.bounds, `swim-plan-place swim-plan-place--${name}`, `data-swim-keys="${(keysByPlace.get(name) ?? []).join(' ')}"`));
-  const laneLines = data.pool.lanes.slice(1).map(({ y1 }) =>
-    `<line class="swim-plan-lane" x1="${data.pool.bounds.x1 - extent.x1}" x2="${data.pool.bounds.x2 - extent.x1}" y1="${extent.y2 - y1}" y2="${extent.y2 - y1}"/>`);
+    rect(
+      place.bounds,
+      `swim-plan-place swim-plan-place--${name}`,
+      `data-swim-keys="${(keysByPlace.get(name) ?? []).join(' ')}"`,
+    ),
+  );
+  const laneLines = data.pool.lanes
+    .slice(1)
+    .map(
+      ({ y1 }) =>
+        `<line class="swim-plan-lane" x1="${data.pool.bounds.x1 - extent.x1}" x2="${data.pool.bounds.x2 - extent.x1}" y1="${extent.y2 - y1}" y2="${extent.y2 - y1}"/>`,
+    );
   const treadCount = Math.round((data.stair.bounds.x2 - data.stair.bounds.x1) / 0.5);
   const treads = Array.from({ length: treadCount - 1 }, (_, index) => {
     const x = data.stair.bounds.x1 - extent.x1 + (index + 1) * 0.5;
     return `<line class="swim-plan-tread" x1="${x}" x2="${x}" y1="${extent.y2 - data.stair.bounds.y2}" y2="${extent.y2 - data.stair.bounds.y1}"/>`;
   });
-  const routeLine = mode === 'route'
-    ? `<polyline class="swim-plan-route" points="${data.route.map(({ standAt: [x, y] }) => `${x - extent.x1},${extent.y2 - y}`).join(' ')}"/>`
-    : '';
+  const routeLine =
+    mode === 'route'
+      ? `<polyline class="swim-plan-route" points="${data.route.map(({ standAt: [x, y] }) => `${x - extent.x1},${extent.y2 - y}`).join(' ')}"/>`
+      : '';
   const labels: { text: string; at: Point; modifier: string }[] = [
     { text: '泳池', at: centre(data.pool.bounds), modifier: 'pool' },
     { text: '教學平台', at: centre(data.platform.bounds), modifier: 'platform' },
     { text: '樓梯（往二樓更衣）', at: centre(data.stair.bounds), modifier: 'stair' },
-    { text: '服務中心', at: [(data.serviceWing.x1 + data.serviceWing.x2) / 2, data.serviceWing.y1 + 3.75], modifier: 'service' },
-    { text: '入口', at: [(data.entrance.bounds.x1 + data.entrance.bounds.x2) / 2, extent.y1], modifier: 'entrance' },
+    {
+      text: '服務中心',
+      at: [(data.serviceWing.x1 + data.serviceWing.x2) / 2, data.serviceWing.y1 + 3.75],
+      modifier: 'service',
+    },
+    {
+      text: '入口',
+      at: [(data.entrance.bounds.x1 + data.entrance.bounds.x2) / 2, extent.y1],
+      modifier: 'entrance',
+    },
   ];
   return `
     <figure class="swim-plan swim-plan--${mode}" data-swim-revision="${data.revision}">
@@ -135,10 +174,18 @@ function renderPlan(mode: 'route' | 'care', markers: Marker[], label: string): s
             ${rect(data.entrance.bounds, 'swim-plan-entrance')}
             ${routeLine}
           </svg>
-          ${labels.map(({ text, at, modifier }) =>
-            `<span class="swim-plan-label swim-plan-label--${modifier}" style="${position(at)}" aria-hidden="true">${text}</span>`).join('')}
-          ${markers.map(({ key, badge, at }) =>
-            `<span class="swim-plan-marker" data-swim-key="${key}" style="${position(at)}" aria-hidden="true">${badge}</span>`).join('')}
+          ${labels
+            .map(
+              ({ text, at, modifier }) =>
+                `<span class="swim-plan-label swim-plan-label--${modifier}" style="${position(at)}" aria-hidden="true">${text}</span>`,
+            )
+            .join('')}
+          ${markers
+            .map(
+              ({ key, badge, at }) =>
+                `<span class="swim-plan-marker" data-swim-key="${key}" style="${position(at)}" aria-hidden="true">${badge}</span>`,
+            )
+            .join('')}
         </div>
       </div>
       <figcaption>簡化的一樓平面，依模型 ${data.revision} 繪製；圖的上下左右和圖面頁的一樓平面圖相同。</figcaption>
@@ -157,7 +204,9 @@ function renderLocator(marker: Marker, title: string): string {
 
 function pairMarkers(items: SwimItem[], markers: Marker[], sectionId: string): Marker[] {
   if (items.length !== markers.length) {
-    throw new TypeError(`Section ${sectionId} has ${items.length} items for ${markers.length} places on the plan.`);
+    throw new TypeError(
+      `Section ${sectionId} has ${items.length} items for ${markers.length} places on the plan.`,
+    );
   }
   return markers;
 }
@@ -168,7 +217,9 @@ function renderRoute({ items }: SwimSection): string {
     <div class="swim-group" data-swim-group="route">
       ${renderPlan('route', markers, `一樓平面動線圖：${items.map((item, index) => `${index + 1} ${item.title}`).join('、')}。`)}
       <ol class="swim-steps">
-        ${items.map((item, index) => `
+        ${items
+          .map(
+            (item, index) => `
           <li class="swim-step" id="${anchorFor(item.id)}" data-swim-key="${markers[index].key}">
             ${renderLocator(markers[index], item.title)}
             <div class="swim-step-body">
@@ -176,7 +227,9 @@ function renderRoute({ items }: SwimSection): string {
               ${item.html}
             </div>
           </li>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </ol>
     </div>
   `;
@@ -188,7 +241,9 @@ function renderCare({ items }: SwimSection): string {
     <div class="swim-group" data-swim-group="care">
       ${renderPlan('care', markers, `一樓平面圖上的安全與照顧位置：${items.map((item, index) => `${markers[index].badge} ${item.title}`).join('、')}。`)}
       <div class="swim-cards site-cards swim-cards--care">
-        ${items.map((item, index) => `
+        ${items
+          .map(
+            (item, index) => `
           <article class="swim-card site-card swim-card--located" id="${anchorFor(item.id)}" data-swim-key="${markers[index].key}">
             ${renderLocator(markers[index], item.title)}
             <div class="swim-step-body">
@@ -196,7 +251,9 @@ function renderCare({ items }: SwimSection): string {
               ${item.html}
             </div>
           </article>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
     </div>
   `;
@@ -205,12 +262,16 @@ function renderCare({ items }: SwimSection): string {
 function renderCards({ items }: SwimSection, modifier: string): string {
   return `
     <div class="swim-cards site-cards swim-cards--${modifier}">
-      ${items.map((item) => `
+      ${items
+        .map(
+          (item) => `
         <article class="swim-card site-card" id="${anchorFor(item.id)}">
           <h3>${item.title}</h3>
           ${item.html}
         </article>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
   `;
 }
@@ -231,7 +292,8 @@ function bindGroup(group: HTMLElement, signal: AbortSignal): void {
     for (const element of group.querySelectorAll<HTMLElement>('[data-swim-key]')) {
       const active = element.dataset.swimKey === key;
       element.classList.toggle('is-active', active);
-      if (element instanceof HTMLButtonElement) element.setAttribute('aria-pressed', String(active));
+      if (element instanceof HTMLButtonElement)
+        element.setAttribute('aria-pressed', String(active));
     }
     for (const place of group.querySelectorAll<SVGElement>('[data-swim-keys]')) {
       place.classList.toggle('is-active', (place.dataset.swimKeys ?? '').split(' ').includes(key));
@@ -245,19 +307,36 @@ function bindGroup(group: HTMLElement, signal: AbortSignal): void {
     }
   };
   const keyOf = (target: EventTarget | null) =>
-    target instanceof Element ? target.closest<HTMLElement>('.swim-step, .swim-card--located')?.dataset.swimKey : undefined;
-  group.addEventListener('pointerover', (event) => {
-    const key = event.pointerType === 'mouse' ? keyOf(event.target) : undefined;
-    if (key && key !== group.dataset.swimActive) select(key, false);
-  }, { signal });
-  group.addEventListener('focusin', (event) => {
-    const key = keyOf(event.target);
-    if (key && key !== group.dataset.swimActive) select(key, false);
-  }, { signal });
-  group.addEventListener('click', (event) => {
-    const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('.swim-locate') : null;
-    if (button?.dataset.swimKey) select(button.dataset.swimKey, true);
-  }, { signal });
+    target instanceof Element
+      ? target.closest<HTMLElement>('.swim-step, .swim-card--located')?.dataset.swimKey
+      : undefined;
+  group.addEventListener(
+    'pointerover',
+    (event) => {
+      const key = event.pointerType === 'mouse' ? keyOf(event.target) : undefined;
+      if (key && key !== group.dataset.swimActive) select(key, false);
+    },
+    { signal },
+  );
+  group.addEventListener(
+    'focusin',
+    (event) => {
+      const key = keyOf(event.target);
+      if (key && key !== group.dataset.swimActive) select(key, false);
+    },
+    { signal },
+  );
+  group.addEventListener(
+    'click',
+    (event) => {
+      const button =
+        event.target instanceof Element
+          ? event.target.closest<HTMLButtonElement>('.swim-locate')
+          : null;
+      if (button?.dataset.swimKey) select(button.dataset.swimKey, true);
+    },
+    { signal },
+  );
   const first = group.querySelector<HTMLElement>('.swim-locate')?.dataset.swimKey;
   if (first) select(first, false);
 }
@@ -278,7 +357,9 @@ export function mount(container: HTMLElement): MountedView {
       </ol>
     </nav>
     <div class="swim-sections site-chapters" data-content-hash="${content.contentHash}">
-      ${sections.map((current) => `
+      ${sections
+        .map(
+          (current) => `
         <section
           class="swim-section site-chapter swim-section--${current.id}"
           id="${anchorFor(current.id)}"
@@ -290,12 +371,15 @@ export function mount(container: HTMLElement): MountedView {
           </header>
           ${renderSectionBody(current)}
         </section>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
   `;
   markExternalLinks(container, '.swim-section');
   const controller = new AbortController();
-  for (const group of container.querySelectorAll<HTMLElement>('[data-swim-group]')) bindGroup(group, controller.signal);
+  for (const group of container.querySelectorAll<HTMLElement>('[data-swim-group]'))
+    bindGroup(group, controller.signal);
 
   return {
     destroy() {

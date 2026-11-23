@@ -12,8 +12,18 @@ import { resolveActiveGeometry, resolveGeometryEntity } from '../geometry/active
 import { deriveMirrorGeometry } from '../geometry/mirror-geometry.mjs';
 import { rotateSitePointClockwise } from '../geometry/site-orientation.mjs';
 
-export const SUMMER_DATES = [[2026, 5, 21], [2026, 6, 21], [2026, 7, 21], [2026, 8, 21]];
-export const WINTER_DATES = [[2026, 11, 21], [2026, 12, 21], [2027, 1, 21], [2027, 2, 21]];
+export const SUMMER_DATES = [
+  [2026, 5, 21],
+  [2026, 6, 21],
+  [2026, 7, 21],
+  [2026, 8, 21],
+];
+export const WINTER_DATES = [
+  [2026, 11, 21],
+  [2026, 12, 21],
+  [2027, 1, 21],
+  [2027, 2, 21],
+];
 export const WARM_SEASON_START = [2026, 5, 1];
 export const WARM_SEASON_END = [2026, 9, 30];
 
@@ -45,14 +55,14 @@ const nonEmptyString = (value, label) => {
 
 const round = (value, digits = 1) => Number(value.toFixed(digits));
 const pad = (value) => String(value).padStart(2, '0');
-const formatDateTime = (year, month, day, minute) => (
-  `${year}-${pad(month)}-${pad(day)} ${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`
-);
+const formatDateTime = (year, month, day, minute) =>
+  `${year}-${pad(month)}-${pad(day)} ${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`;
 
-function *dateRange(start, end) {
+function* dateRange(start, end) {
   const cursor = new Date(Date.UTC(start[0], start[1] - 1, start[2]));
   const last = new Date(Date.UTC(end[0], end[1] - 1, end[2]));
-  if (cursor > last) throw new RangeError('continuous analysis end date must not precede start date.');
+  if (cursor > last)
+    throw new RangeError('continuous analysis end date must not precede start date.');
   while (cursor <= last) {
     yield [cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, cursor.getUTCDate()];
     cursor.setUTCDate(cursor.getUTCDate() + 1);
@@ -106,7 +116,7 @@ function evaluateContinuousWindow(model, input) {
   return {
     daylightSamples,
     hits,
-    hitRatePercent: round(hits / daylightSamples * 100, 3),
+    hitRatePercent: round((hits / daylightSamples) * 100, 3),
     firstHit,
     lastHit,
     dailyWindows,
@@ -176,7 +186,7 @@ function evaluateWindow(model, input) {
   return {
     total,
     hits,
-    hitRatePercent: round(hits / total * 100),
+    hitRatePercent: round((hits / total) * 100),
     directionWeight: round(directionWeight, 3),
   };
 }
@@ -230,23 +240,28 @@ export function evaluateHorizontalScan(model, options = {}) {
   const results = [];
   for (let index = 0; index <= intervalCount; index += 1) {
     const planRotation = round(minimumPlanRotation + index * increment, 10);
-    results.push(evaluateSolarCandidate(model, {
-      planRotation,
-      mirrorLeanFromVertical,
-      stepMinutes,
-    }));
+    results.push(
+      evaluateSolarCandidate(model, {
+        planRotation,
+        mirrorLeanFromVertical,
+        stepMinutes,
+      }),
+    );
   }
 
   const strictSummerSafe = results.filter((result) => result.summer.hits === 0);
   const minimumSummerHits = Math.min(...results.map((result) => result.summer.hits));
-  const preferred = strictSummerSafe.length > 0
-    ? strictSummerSafe
-    : results.filter((result) => result.summer.hits === minimumSummerHits);
+  const preferred =
+    strictSummerSafe.length > 0
+      ? strictSummerSafe
+      : results.filter((result) => result.summer.hits === minimumSummerHits);
   const maximumWinterHits = Math.max(...preferred.map((result) => result.winter.hits));
-  const maximumHitCandidates = preferred.filter((result) => result.winter.hits === maximumWinterHits);
-  const bestDirectionCandidate = maximumHitCandidates.reduce((best, candidate) => (
-    candidate.winter.directionWeight > best.winter.directionWeight ? candidate : best
-  ));
+  const maximumHitCandidates = preferred.filter(
+    (result) => result.winter.hits === maximumWinterHits,
+  );
+  const bestDirectionCandidate = maximumHitCandidates.reduce((best, candidate) =>
+    candidate.winter.directionWeight > best.winter.directionWeight ? candidate : best,
+  );
 
   return {
     input: {
@@ -270,25 +285,21 @@ export function evaluateHorizontalScan(model, options = {}) {
 
 export function evaluateMirrorEnvelope(model, options = {}) {
   const study = activeSolarStudyGeometry(model);
-  const canonicalPlanRotation = finite(
-    study.planRotation,
-    'activeSolarStudyGeometry.planRotation',
-  );
-  const nominalLean = finite(
-    options.nominalLean ?? study.mirrorLeanFromVertical,
-    'nominalLean',
-  );
+  const canonicalPlanRotation = finite(study.planRotation, 'activeSolarStudyGeometry.planRotation');
+  const nominalLean = finite(options.nominalLean ?? study.mirrorLeanFromVertical, 'nominalLean');
   const results = [];
 
   for (const leanDelta of ENVELOPE_DELTAS) {
     for (const planDelta of ENVELOPE_DELTAS) {
       for (const bearingOffset of BEARING_OFFSETS) {
-        results.push(evaluateSolarCandidate(model, {
-          mirrorLeanFromVertical: nominalLean + leanDelta,
-          planRotation: canonicalPlanRotation + planDelta,
-          bearingOffset,
-          stepMinutes: 1,
-        }));
+        results.push(
+          evaluateSolarCandidate(model, {
+            mirrorLeanFromVertical: nominalLean + leanDelta,
+            planRotation: canonicalPlanRotation + planDelta,
+            bearingOffset,
+            stepMinutes: 1,
+          }),
+        );
       }
     }
   }
@@ -305,10 +316,7 @@ export function evaluateMirrorEnvelope(model, options = {}) {
 
 export function evaluateContinuousWarmSeason(model, options = {}) {
   const study = activeSolarStudyGeometry(model);
-  const planRotation = finite(
-    options.planRotation ?? study.planRotation,
-    'planRotation',
-  );
+  const planRotation = finite(options.planRotation ?? study.planRotation, 'planRotation');
   const mirrorLeanFromVertical = finite(
     options.mirrorLeanFromVertical ?? study.mirrorLeanFromVertical,
     'mirrorLeanFromVertical',
@@ -347,31 +355,30 @@ export function evaluateContinuousWarmSeason(model, options = {}) {
 
 export function evaluateContinuousWarmSeasonEnvelope(model, options = {}) {
   const study = activeSolarStudyGeometry(model);
-  const canonicalPlanRotation = finite(
-    study.planRotation,
-    'activeSolarStudyGeometry.planRotation',
-  );
-  const nominalLean = finite(
-    options.nominalLean ?? study.mirrorLeanFromVertical,
-    'nominalLean',
-  );
+  const canonicalPlanRotation = finite(study.planRotation, 'activeSolarStudyGeometry.planRotation');
+  const nominalLean = finite(options.nominalLean ?? study.mirrorLeanFromVertical, 'nominalLean');
   const results = [];
   for (const leanDelta of ENVELOPE_DELTAS) {
     for (const planDelta of ENVELOPE_DELTAS) {
       for (const bearingOffset of BEARING_OFFSETS) {
-        results.push(evaluateContinuousWarmSeason(model, {
-          ...options,
-          mirrorLeanFromVertical: nominalLean + leanDelta,
-          planRotation: canonicalPlanRotation + planDelta,
-          bearingOffset,
-        }));
+        results.push(
+          evaluateContinuousWarmSeason(model, {
+            ...options,
+            mirrorLeanFromVertical: nominalLean + leanDelta,
+            planRotation: canonicalPlanRotation + planDelta,
+            bearingOffset,
+          }),
+        );
       }
     }
   }
-  const worst = results.reduce((current, candidate) => (
-    candidate.hits > current.hits ? candidate : current
-  ));
-  const firstHits = results.map((result) => result.firstHit).filter(Boolean).sort();
+  const worst = results.reduce((current, candidate) =>
+    candidate.hits > current.hits ? candidate : current,
+  );
+  const firstHits = results
+    .map((result) => result.firstHit)
+    .filter(Boolean)
+    .sort();
   return {
     nominalLean,
     configurationCount: results.length,
@@ -407,9 +414,22 @@ export function activeSolarStudyGeometry(model) {
     revision: active.revision,
     rotatingLevel: active.solar.rotatingLevel,
     planRotation: finite(active.solar.planRotation?.value, 'active.solar.planRotation'),
-    mirrorLeanFromVertical: finite(active.solar.mirrorLeanFromVertical?.value, 'active.solar.mirrorLeanFromVertical'),
-    azimuthTolerance: bounded(active.solar.azimuthTolerance?.value, 0, 180, 'active.solar.azimuthTolerance'),
-    minimumDownwardAngle: bounded(active.solar.minimumDownwardAngle?.value, 0, 90, 'active.solar.minimumDownwardAngle'),
+    mirrorLeanFromVertical: finite(
+      active.solar.mirrorLeanFromVertical?.value,
+      'active.solar.mirrorLeanFromVertical',
+    ),
+    azimuthTolerance: bounded(
+      active.solar.azimuthTolerance?.value,
+      0,
+      180,
+      'active.solar.azimuthTolerance',
+    ),
+    minimumDownwardAngle: bounded(
+      active.solar.minimumDownwardAngle?.value,
+      0,
+      90,
+      'active.solar.minimumDownwardAngle',
+    ),
     analysisMethodRevision: nonEmptyString(
       active.solar.analysisMethodRevision,
       'active.solar.analysisMethodRevision',
@@ -438,7 +458,9 @@ export function activeSolarStudyGeometry(model) {
     mirrorHeight: finite(active.l3.mirror.height, 'active.l3.mirror.height'),
     pivotX: finite(active.l3.planPivot.x, 'active.l3.planPivot.x'),
     pivotY: finite(active.l3.planPivot.y, 'active.l3.planPivot.y'),
-    pivotScenarios: active.solar.pivotSensitivityX.map((value, index) => finite(value, `active.solar.pivotSensitivityX[${index}]`)),
+    pivotScenarios: active.solar.pivotSensitivityX.map((value, index) =>
+      finite(value, `active.solar.pivotSensitivityX[${index}]`),
+    ),
     roof: {
       x1: roof.bounds.x1,
       x2: roof.bounds.x2,
@@ -465,7 +487,8 @@ export function buildReflectingVolumeCorners(model, input) {
     leanFromVertical: input.mirrorLeanFromVertical,
     height: input.mirrorHeight,
     baseElevation: study.baseElevation,
-    positiveXAxisBearingFromTrueNorth: deriveSolarPlanOrientation(model.referenceSystem).buildingAzimuth,
+    positiveXAxisBearingFromTrueNorth: deriveSolarPlanOrientation(model.referenceSystem)
+      .buildingAzimuth,
   });
   // L3 plate seen from above, clockwise; the mirror edge (start X) leans outward at the top.
   const bottomPlan = [
@@ -474,12 +497,9 @@ export function buildReflectingVolumeCorners(model, input) {
     rotateSitePointClockwise({ x: study.endX, y: study.width }, pivot, input.planRotation),
     mirror.lower[1],
   ].map(({ x, y }) => ({ x, y }));
-  const topPlan = [
-    mirror.upper[0],
-    bottomPlan[1],
-    bottomPlan[2],
-    mirror.upper[1],
-  ].map(({ x, y }) => ({ x, y }));
+  const topPlan = [mirror.upper[0], bottomPlan[1], bottomPlan[2], mirror.upper[1]].map(
+    ({ x, y }) => ({ x, y }),
+  );
   return [
     ...bottomPlan.map((point) => ({ ...point, z: study.baseElevation })),
     ...topPlan.map((point) => ({ ...point, z: study.baseElevation + input.mirrorHeight })),
@@ -490,10 +510,7 @@ export const buildL2VolumeCorners = buildReflectingVolumeCorners;
 
 export function evaluatePoolSurfaceScenario(model, options = {}) {
   const study = activeSolarStudyGeometry(model);
-  const planRotation = finite(
-    options.planRotation ?? study.planRotation,
-    'planRotation',
-  );
+  const planRotation = finite(options.planRotation ?? study.planRotation, 'planRotation');
   const mirrorLeanFromVertical = finite(
     options.mirrorLeanFromVertical ?? study.mirrorLeanFromVertical,
     'mirrorLeanFromVertical',
@@ -503,9 +520,7 @@ export function evaluatePoolSurfaceScenario(model, options = {}) {
   const bearingOffset = finite(options.bearingOffset ?? 0, 'bearingOffset');
   const interval = continuousInput(options);
   const orientation = deriveSolarPlanOrientation(model.referenceSystem);
-  const localBearing = normalizeAzimuth(
-    orientation.buildingAzimuth + bearingOffset,
-  );
+  const localBearing = normalizeAzimuth(orientation.buildingAzimuth + bearingOffset);
   const poolAzimuth = normalizeAzimuth(orientation.poolFacingAzimuth + bearingOffset);
   const wallAzimuth = normalizeAzimuth(poolAzimuth + planRotation);
   const geometryInput = {
@@ -561,8 +576,17 @@ export function evaluatePoolSurfaceSensitivity(model, options = {}) {
     heightScenarios,
     minimumHits: Math.min(...results.map((result) => result.hits)),
     maximumHits: Math.max(...results.map((result) => result.hits)),
-    earliestHit: results.map((result) => result.firstHit).filter(Boolean).sort()[0] ?? null,
-    latestHit: results.map((result) => result.lastHit).filter(Boolean).sort().at(-1) ?? null,
+    earliestHit:
+      results
+        .map((result) => result.firstHit)
+        .filter(Boolean)
+        .sort()[0] ?? null,
+    latestHit:
+      results
+        .map((result) => result.lastHit)
+        .filter(Boolean)
+        .sort()
+        .at(-1) ?? null,
     zeroHitScenarioCount: results.filter((result) => result.hits === 0).length,
     results,
   };
@@ -573,19 +597,23 @@ function buildCliReport(model) {
   return {
     confirmed: evaluateSolarCandidate(model),
     horizontalFineScan: evaluateHorizontalScan(model),
-    horizontalComparison: HORIZONTAL_CANDIDATES.map((planRotation) => evaluateSolarCandidate(model, {
-      planRotation,
-      mirrorLeanFromVertical: 9.5,
-      stepMinutes: 5,
-    })),
-    mirrorComparison: MIRROR_CANDIDATES.map((mirrorLeanFromVertical) => evaluateSolarCandidate(model, {
-      planRotation: study.planRotation,
-      mirrorLeanFromVertical,
-      stepMinutes: 1,
-    })),
-    mirrorEnvelopes: MIRROR_ENVELOPE_CANDIDATES.map((nominalLean) => (
-      evaluateMirrorEnvelope(model, { nominalLean })
-    )),
+    horizontalComparison: HORIZONTAL_CANDIDATES.map((planRotation) =>
+      evaluateSolarCandidate(model, {
+        planRotation,
+        mirrorLeanFromVertical: 9.5,
+        stepMinutes: 5,
+      }),
+    ),
+    mirrorComparison: MIRROR_CANDIDATES.map((mirrorLeanFromVertical) =>
+      evaluateSolarCandidate(model, {
+        planRotation: study.planRotation,
+        mirrorLeanFromVertical,
+        stepMinutes: 1,
+      }),
+    ),
+    mirrorEnvelopes: MIRROR_ENVELOPE_CANDIDATES.map((nominalLean) =>
+      evaluateMirrorEnvelope(model, { nominalLean }),
+    ),
     continuousWarmSeason: evaluateContinuousWarmSeason(model),
     continuousWarmSeasonEnvelope: evaluateContinuousWarmSeasonEnvelope(model),
     poolSurfaceSensitivity: evaluatePoolSurfaceSensitivity(model),
@@ -593,6 +621,8 @@ function buildCliReport(model) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const model = JSON.parse(await readFile(new URL('../../model/project-model.json', import.meta.url), 'utf8'));
+  const model = JSON.parse(
+    await readFile(new URL('../../model/project-model.json', import.meta.url), 'utf8'),
+  );
   console.log(JSON.stringify(buildCliReport(model), null, 2));
 }

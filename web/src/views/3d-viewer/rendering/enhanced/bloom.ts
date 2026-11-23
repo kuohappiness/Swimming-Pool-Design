@@ -21,7 +21,7 @@ export const BLOOM = Object.freeze({
   radius: 0,
 });
 
-const HIGH_PASS_FRAGMENT = /* glsl */`
+const HIGH_PASS_FRAGMENT = /* glsl */ `
 uniform sampler2D tDiffuse;
 uniform float luminosityThreshold;
 uniform float smoothWidth;
@@ -42,7 +42,12 @@ void main() {
 
 /** 照上面的設定建一個暈光。 */
 export function createBloomPass(width: number, height: number): UnrealBloomPass {
-  const pass = new UnrealBloomPass(new THREE.Vector2(width, height), BLOOM.strength, BLOOM.radius, BLOOM.threshold);
+  const pass = new UnrealBloomPass(
+    new THREE.Vector2(width, height),
+    BLOOM.strength,
+    BLOOM.radius,
+    BLOOM.threshold,
+  );
   const uniforms = pass.highPassUniforms as Record<string, THREE.IUniform>;
   uniforms.smoothWidth!.value = BLOOM.knee;
   uniforms.luminosityCap = { value: BLOOM.cap };

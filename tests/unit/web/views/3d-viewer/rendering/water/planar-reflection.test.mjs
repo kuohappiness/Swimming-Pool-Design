@@ -63,7 +63,14 @@ function createFixture() {
   camera.lookAt(12, WATER_LEVEL, 8);
   camera.updateMatrixWorld(true);
   const renderer = createRenderer();
-  const input = { renderer, scene, camera, surface, waterLevel: WATER_LEVEL, hidden: [surface, basinMesh] };
+  const input = {
+    renderer,
+    scene,
+    camera,
+    surface,
+    waterLevel: WATER_LEVEL,
+    hidden: [surface, basinMesh],
+  };
   return { scene, surface, basinMesh, camera, renderer, input };
 }
 
@@ -99,7 +106,9 @@ test('a point on the water maps to where the main camera sees it; ripples move i
 
   // 平坦水面上，倒影畫面裡「水面某一點」的位置，就是主鏡頭看那一點的畫面位置。
   const point = new THREE.Vector3(12, WATER_LEVEL, 8);
-  const projected = new THREE.Vector4(point.x, point.y, point.z, 1).applyMatrix4(planar.textureMatrix);
+  const projected = new THREE.Vector4(point.x, point.y, point.z, 1).applyMatrix4(
+    planar.textureMatrix,
+  );
   const expected = point.clone().project(camera);
   assert.ok(Math.abs(projected.x / projected.w - (expected.x * 0.5 + 0.5)) < 1e-6);
   assert.ok(Math.abs(projected.y / projected.w - (expected.y * 0.5 + 0.5)) < 1e-6);
@@ -108,7 +117,9 @@ test('a point on the water maps to where the main camera sees it; ripples move i
   const view = point.clone().sub(camera.position).normalize();
   const reflected = new THREE.Vector3(view.x, -view.y, view.z);
   const along = point.clone().addScaledVector(reflected, 5);
-  const alongProjected = new THREE.Vector4(along.x, along.y, along.z, 1).applyMatrix4(planar.textureMatrix);
+  const alongProjected = new THREE.Vector4(along.x, along.y, along.z, 1).applyMatrix4(
+    planar.textureMatrix,
+  );
   assert.ok(Math.abs(alongProjected.x / alongProjected.w - projected.x / projected.w) < 1e-6);
   assert.ok(Math.abs(alongProjected.y / alongProjected.w - projected.y / projected.w) < 1e-6);
   planar.dispose();

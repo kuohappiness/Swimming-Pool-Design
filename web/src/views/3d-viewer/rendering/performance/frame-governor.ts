@@ -182,26 +182,26 @@ export class FrameGovernor {
     if (gap < 0 || gap > OBSERVATION_GAP_SECONDS) this.clearTimers();
 
     if (
-      timeSeconds < this.settleUntil
-      || observation.samples < this.minimumSamples
-      || !Number.isFinite(observation.intervalP95Milliseconds)
-      || !Number.isFinite(observation.workP95Milliseconds)
+      timeSeconds < this.settleUntil ||
+      observation.samples < this.minimumSamples ||
+      !Number.isFinite(observation.intervalP95Milliseconds) ||
+      !Number.isFinite(observation.workP95Milliseconds)
     ) {
       this.clearTimers();
       return null;
     }
 
     if (
-      this.displayInterval !== null
-      && observation.intervalP95Milliseconds < this.displayInterval * DISPLAY_LIMIT_RELEASE_RATIO
+      this.displayInterval !== null &&
+      observation.intervalP95Milliseconds < this.displayInterval * DISPLAY_LIMIT_RELEASE_RATIO
     ) {
       this.displayInterval = null;
     }
 
-    const over = observation.intervalP95Milliseconds
-      > this.effectiveFloorMilliseconds * OVER_BUDGET_TOLERANCE;
-    const headroom = !over
-      && observation.workP95Milliseconds < this.targetMilliseconds * HEADROOM_WORK_RATIO;
+    const over =
+      observation.intervalP95Milliseconds > this.effectiveFloorMilliseconds * OVER_BUDGET_TOLERANCE;
+    const headroom =
+      !over && observation.workP95Milliseconds < this.targetMilliseconds * HEADROOM_WORK_RATIO;
 
     if (over) {
       this.headroomSince = null;
@@ -227,8 +227,10 @@ export class FrameGovernor {
   }
 
   private isExhausted(): boolean {
-    return this.shedCount >= this.sheddable.length
-      && this.resolutionScale <= this.tier.minimumResolutionScale;
+    return (
+      this.shedCount >= this.sheddable.length &&
+      this.resolutionScale <= this.tier.minimumResolutionScale
+    );
   }
 
   private concludeDisplayLimited(observation: FrameObservation): FrameGovernorChange {
@@ -253,8 +255,8 @@ export class FrameGovernor {
 
   private degrade(timeSeconds: number): FrameGovernorChange {
     if (
-      this.lastRestore !== null
-      && timeSeconds - this.lastRestore < this.requiredHeadroomSeconds * PROBATION_FACTOR
+      this.lastRestore !== null &&
+      timeSeconds - this.lastRestore < this.requiredHeadroomSeconds * PROBATION_FACTOR
     ) {
       this.backoffFactor = Math.min(this.backoffFactor * 2, MAXIMUM_BACKOFF_FACTOR);
     }
@@ -288,9 +290,9 @@ export class FrameGovernor {
   private suggestLowerTier(observation: FrameObservation): FrameGovernorChange | null {
     const lower = lowerRealismTier(this.tier.id);
     if (
-      !lower
-      && observation.workP95Milliseconds
-        < observation.intervalP95Milliseconds * DISPLAY_LIMITED_WORK_RATIO
+      !lower &&
+      observation.workP95Milliseconds <
+        observation.intervalP95Milliseconds * DISPLAY_LIMITED_WORK_RATIO
     ) {
       return this.concludeDisplayLimited(observation);
     }

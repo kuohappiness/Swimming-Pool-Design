@@ -1,14 +1,19 @@
 import type { MovementIntent } from '../types.js';
-import {
-  clampIntentAxis,
-  normalizeMovementAxis,
-  type InputAdapter,
-} from './input-adapter.js';
+import { clampIntentAxis, normalizeMovementAxis, type InputAdapter } from './input-adapter.js';
 
 const WALKTHROUGH_KEYS = new Set([
-  'KeyW', 'KeyA', 'KeyS', 'KeyD',
-  'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-  'Space', 'KeyC', 'ShiftLeft', 'ShiftRight',
+  'KeyW',
+  'KeyA',
+  'KeyS',
+  'KeyD',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'Space',
+  'KeyC',
+  'ShiftLeft',
+  'ShiftRight',
 ]);
 
 const TEXT_ENTRY = 'input, select, textarea, [contenteditable]:not([contenteditable="false"])';
@@ -22,7 +27,9 @@ export function keyBelongsToControl(event: Pick<KeyboardEvent, 'code' | 'target'
   const target = event.target as { closest?: (selector: string) => unknown } | null;
   if (typeof target?.closest !== 'function') return false;
   if (target.closest(TEXT_ENTRY)) return true;
-  return (event.code === 'Space' || event.code === 'Enter') && Boolean(target.closest(ACTIVATES_ON_KEY));
+  return (
+    (event.code === 'Space' || event.code === 'Enter') && Boolean(target.closest(ACTIVATES_ON_KEY))
+  );
 }
 
 export interface DesktopInputOptions {
@@ -181,8 +188,11 @@ export class DesktopInput implements InputAdapter {
   };
 
   private readonly onPointerMove = (event: PointerEvent) => {
-    if (this.documentTarget.pointerLockElement === this.canvas
-      || this.draggingPointerId !== event.pointerId) return;
+    if (
+      this.documentTarget.pointerLockElement === this.canvas ||
+      this.draggingPointerId !== event.pointerId
+    )
+      return;
     this.lookYaw -= (event.clientX - this.previousPointer.x) * this.lookSensitivity;
     this.lookPitch -= (event.clientY - this.previousPointer.y) * this.lookSensitivity;
     this.previousPointer = { x: event.clientX, y: event.clientY };

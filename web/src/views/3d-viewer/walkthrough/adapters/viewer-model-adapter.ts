@@ -63,10 +63,12 @@ function validateBounds(bounds: SiteBounds, path: string) {
 }
 
 function sameBounds(a: SiteBounds, b: SiteBounds) {
-  return Math.abs(a.x1 - b.x1) <= EPSILON
-    && Math.abs(a.x2 - b.x2) <= EPSILON
-    && Math.abs(a.y1 - b.y1) <= EPSILON
-    && Math.abs(a.y2 - b.y2) <= EPSILON;
+  return (
+    Math.abs(a.x1 - b.x1) <= EPSILON &&
+    Math.abs(a.x2 - b.x2) <= EPSILON &&
+    Math.abs(a.y1 - b.y1) <= EPSILON &&
+    Math.abs(a.y2 - b.y2) <= EPSILON
+  );
 }
 
 function equalWithin(a: number, b: number) {
@@ -107,8 +109,8 @@ function requireGeometryMatch(
 }
 
 function buildOpenings(model: ReadonlyViewerModel): OpeningDescriptor[] {
-  const entranceWidth = model.geometry.l1.mainEntranceBounds.x2
-    - model.geometry.l1.mainEntranceBounds.x1;
+  const entranceWidth =
+    model.geometry.l1.mainEntranceBounds.x2 - model.geometry.l1.mainEntranceBounds.x1;
   const mainEntrance: OpeningDescriptor = {
     id: 'main-entrance',
     kind: 'opening',
@@ -140,10 +142,14 @@ function buildOpenings(model: ReadonlyViewerModel): OpeningDescriptor[] {
   });
 
   const changingOpenings = model.geometry.l2.changingRoomEntries.map((opening) => {
-    const zoneKey = opening.zoneId === 'Z-CS-M-01'
-      ? 'maleChangingShower'
-      : opening.zoneId === 'Z-CS-F-01' ? 'femaleChangingShower' : null;
-    if (!zoneKey) throw new TypeError(`${opening.entityId}.zoneId is not a supported changing zone.`);
+    const zoneKey =
+      opening.zoneId === 'Z-CS-M-01'
+        ? 'maleChangingShower'
+        : opening.zoneId === 'Z-CS-F-01'
+          ? 'femaleChangingShower'
+          : null;
+    if (!zoneKey)
+      throw new TypeError(`${opening.entityId}.zoneId is not a supported changing zone.`);
     const y1 = finite(opening.rangeY[0], `${opening.entityId}.rangeY[0]`);
     const y2 = finite(opening.rangeY[1], `${opening.entityId}.rangeY[1]`);
     if (!equalWithin(y2 - y1, opening.clearWidth)) {
@@ -168,15 +174,19 @@ function buildOpenings(model: ReadonlyViewerModel): OpeningDescriptor[] {
   return [mainEntrance, ...toiletOpenings, ...changingOpenings];
 }
 
-export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly<WalkthroughSource> {
+export function adaptWalkthroughSource(
+  input: ReadonlyViewerModel,
+): DeepReadonly<WalkthroughSource> {
   const model = input;
   if (model.schemaVersion !== '1.5.0') {
     throw new TypeError('Walkthrough only accepts Viewer schemaVersion 1.5.0.');
   }
   if (!model.modelVersion) throw new TypeError('Viewer modelVersion is required.');
   if (!model.revision) throw new TypeError('Viewer revision is required.');
-  if (!model.geometryRevision
-    || model.activeGeometryRevisionId !== `GEO-${model.geometryRevision}`) {
+  if (
+    !model.geometryRevision ||
+    model.activeGeometryRevisionId !== `GEO-${model.geometryRevision}`
+  ) {
     throw new TypeError('activeGeometryRevisionId must match geometryRevision.');
   }
   if (!/^[a-f0-9]{64}$/.test(model.modelHash)) {
@@ -189,10 +199,12 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
     throw new TypeError('Walkthrough only accepts metre-based Viewer data.');
   }
   const coordinateAdapter = model.referenceSystem.coordinateAdapter;
-  if (coordinateAdapter.adapterId !== 'SITE-XYZ-TO-THREE-RH'
-    || coordinateAdapter.siteX !== 'threeX'
-    || coordinateAdapter.siteY !== 'negativeThreeZ'
-    || coordinateAdapter.siteZ !== 'threeY') {
+  if (
+    coordinateAdapter.adapterId !== 'SITE-XYZ-TO-THREE-RH' ||
+    coordinateAdapter.siteX !== 'threeX' ||
+    coordinateAdapter.siteY !== 'negativeThreeZ' ||
+    coordinateAdapter.siteZ !== 'threeY'
+  ) {
     throw new TypeError('Walkthrough requires the SITE-XYZ-TO-THREE-RH coordinate adapter.');
   }
 
@@ -217,8 +229,10 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
   requireGeometryMatch(entities, 'Z-L1-ENTRY-01', poolUse.entryVestibule.bounds);
   requireGeometryMatch(entities, 'RMP-L1-ENTRY-01', poolUse.entryRamp.bounds);
   requireGeometryMatch(entities, 'STP-L1-ENTRY-01', poolUse.entrySteps.bounds);
-  if (model.geometry.stair.coordinateSystemId !== 'SITE-XY'
-    || model.geometry.l2.stairToL3.coordinateSystemId !== 'SITE-XY') {
+  if (
+    model.geometry.stair.coordinateSystemId !== 'SITE-XY' ||
+    model.geometry.l2.stairToL3.coordinateSystemId !== 'SITE-XY'
+  ) {
     throw new TypeError('Walkthrough stairs must use SITE-XY.');
   }
 
@@ -231,13 +245,20 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
   const shallowDepth = positive(pool.shallowDepth.value, 'pool.shallowDepth');
   const deepDepth = positive(pool.deepDepth.value, 'pool.deepDepth');
   const poolPresentation = getViewerPoolPresentation(model);
-  if (deepDepth < shallowDepth) throw new TypeError('pool.deepDepth must not be less than pool.shallowDepth.');
+  if (deepDepth < shallowDepth)
+    throw new TypeError('pool.deepDepth must not be less than pool.shallowDepth.');
   const siteBounds = entities['SITE-01'].bounds;
   const buildingBounds = entities['BLDG-01'].bounds;
-  if (pool.bounds.x1 < buildingBounds.x1 || pool.bounds.x2 > buildingBounds.x2
-    || pool.bounds.y1 < buildingBounds.y1 || pool.bounds.y2 > buildingBounds.y2
-    || buildingBounds.x1 < siteBounds.x1 || buildingBounds.x2 > siteBounds.x2
-    || buildingBounds.y1 < siteBounds.y1 || buildingBounds.y2 > siteBounds.y2) {
+  if (
+    pool.bounds.x1 < buildingBounds.x1 ||
+    pool.bounds.x2 > buildingBounds.x2 ||
+    pool.bounds.y1 < buildingBounds.y1 ||
+    pool.bounds.y2 > buildingBounds.y2 ||
+    buildingBounds.x1 < siteBounds.x1 ||
+    buildingBounds.x2 > siteBounds.x2 ||
+    buildingBounds.y1 < siteBounds.y1 ||
+    buildingBounds.y2 > siteBounds.y2
+  ) {
     throw new TypeError('POOL-01 must remain inside BLDG-01 and BLDG-01 inside SITE-01.');
   }
   if (stair1.bounds.y2 > pool.bounds.y1) throw new TypeError('ST-01 must remain outside POOL-01.');
@@ -247,14 +268,18 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
   finite(stair2.lowerElevation, 'ST-02.lowerElevation');
   finite(stair2.midLandingElevation, 'ST-02.midLandingElevation');
   finite(stair2.upperElevation, 'ST-02.upperElevation');
-  if (!equalWithin(stair1.lowerElevation, deckElevation)
-    || !equalWithin(stair1.upperElevation, l2Elevation)
-    || !equalWithin(stair1.upperElevation - stair1.lowerElevation, stair1.totalRise)) {
+  if (
+    !equalWithin(stair1.lowerElevation, deckElevation) ||
+    !equalWithin(stair1.upperElevation, l2Elevation) ||
+    !equalWithin(stair1.upperElevation - stair1.lowerElevation, stair1.totalRise)
+  ) {
     throw new TypeError('ST-01 elevations must connect the pool deck to L2.');
   }
-  if (!equalWithin(stair2.lowerElevation, l2Elevation)
-    || !equalWithin(stair2.upperElevation, l3Elevation)
-    || !equalWithin(stair2.upperElevation - stair2.lowerElevation, stair2.totalRise)) {
+  if (
+    !equalWithin(stair2.lowerElevation, l2Elevation) ||
+    !equalWithin(stair2.upperElevation, l3Elevation) ||
+    !equalWithin(stair2.upperElevation - stair2.lowerElevation, stair2.totalRise)
+  ) {
     throw new TypeError('ST-02 elevations must connect L2 to L3.');
   }
   if (stair2.axis !== '+x') throw new TypeError('ST-02 axis must remain +x.');
@@ -264,8 +289,10 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
     x: finite(model.geometry.l3.planPivot.x, 'l3.planPivot.x'),
     y: finite(model.geometry.l3.planPivot.y, 'l3.planPivot.y'),
   };
-  if (!equalWithin(model.geometry.l3.roof.rotation, l3Rotation)
-    || !equalWithin(model.geometry.l3.pvRoofReserve.rotation, l3Rotation)) {
+  if (
+    !equalWithin(model.geometry.l3.roof.rotation, l3Rotation) ||
+    !equalWithin(model.geometry.l3.pvRoofReserve.rotation, l3Rotation)
+  ) {
     throw new TypeError('L3 floor, roof, and PV reserve must share one plan rotation.');
   }
   if (model.geometry.l3.orthogonalExtension.rotation !== 0) {
@@ -297,16 +324,28 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
   const surfaces: WalkSurfaceDescriptor[] = [
     surface('site-ground', 'SITE-01', 0),
     surface('l1-pool-deck', 'BLDG-01', deckElevation, FIXED_TRANSFORM, [
-      'POOL-01', 'Z-L1-ENTRY-01', 'RMP-L1-ENTRY-01', 'STP-L1-ENTRY-01',
+      'POOL-01',
+      'Z-L1-ENTRY-01',
+      'RMP-L1-ENTRY-01',
+      'STP-L1-ENTRY-01',
     ]),
     // DEC-157: shoes come off at ±0.00 before the ramp or two steps up to the deck.
-    surface('l1-entry-vestibule', 'Z-L1-ENTRY-01', finite(poolUse.entryVestibule.floorElevation, 'entryVestibule.floorElevation')),
+    surface(
+      'l1-entry-vestibule',
+      'Z-L1-ENTRY-01',
+      finite(poolUse.entryVestibule.floorElevation, 'entryVestibule.floorElevation'),
+    ),
     surface('l2-floor', 'L2-PLATE-01', l2Elevation),
     surface('l3-rotated-floor', 'L3-PLATE-01', l3Elevation, l3Transform),
     surface('l3-fixed-extension', 'L3-EXT-01', l3Elevation),
     surface('l3-arrival', 'Z-L3-ARRIVAL-01', l3Elevation),
     surface('l3-terrace', 'Z-L3-TERRACE-01', l3Elevation),
-    surface('roof-inspection', 'RF-PV-RES-01', model.geometry.l3.pvRoofReserve.baseElevation, l3Transform),
+    surface(
+      'roof-inspection',
+      'RF-PV-RES-01',
+      model.geometry.l3.pvRoofReserve.baseElevation,
+      l3Transform,
+    ),
   ];
 
   const stairs: StairRampDescriptor[] = [
@@ -342,10 +381,12 @@ export function adaptWalkthroughSource(input: ReadonlyViewerModel): DeepReadonly
       upperLandingLength: positive(stair2.upperLandingLength, 'ST-02.upperLandingLength'),
       transform: FIXED_TRANSFORM,
     },
-    ...([
-      ['stair-ramp-entry-ramp', 'RMP-L1-ENTRY-01', poolUse.entryRamp],
-      ['stair-ramp-entry-steps', 'STP-L1-ENTRY-01', poolUse.entrySteps],
-    ] as const).map(([id, entityId, entry]): StairRampDescriptor => {
+    ...(
+      [
+        ['stair-ramp-entry-ramp', 'RMP-L1-ENTRY-01', poolUse.entryRamp],
+        ['stair-ramp-entry-steps', 'STP-L1-ENTRY-01', poolUse.entrySteps],
+      ] as const
+    ).map(([id, entityId, entry]): StairRampDescriptor => {
       if (entry.entityId !== entityId) throw new TypeError(`${id} must describe ${entityId}.`);
       if (!equalWithin(entry.toElevation, deckElevation)) {
         throw new TypeError(`${entry.entityId} must climb to the pool deck.`);

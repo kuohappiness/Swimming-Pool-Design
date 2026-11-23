@@ -34,7 +34,8 @@ export const EXPOSURE_ADAPTATION = Object.freeze({
 
 /** 這一格往目標靠近的比例：1 − exp(−Δt ÷ 時間常數)。 */
 export function adaptationRate(deltaSeconds: number, timeConstantSeconds: number): number {
-  if (!(timeConstantSeconds > 0)) throw new RangeError('Adaptation time constant must be positive.');
+  if (!(timeConstantSeconds > 0))
+    throw new RangeError('Adaptation time constant must be positive.');
   const delta = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
   return 1 - Math.exp(-delta / timeConstantSeconds);
 }

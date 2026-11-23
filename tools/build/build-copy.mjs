@@ -20,8 +20,8 @@ const snapshotVersion = /^- 對應網站版本：`([^`]+)`$/m.exec(
 )?.[1];
 if (snapshotVersion === packageJson.version && !process.argv.includes('--force')) {
   process.stderr.write(
-    `content/website-copy.md 已是 ${packageJson.version} 的快照。快照只在發版 PR 改了 package.json 版號後重產（DEC-200）；`
-      + '同一版本內確實需要重產時改用 npm run build:copy -- --force。\n',
+    `content/website-copy.md 已是 ${packageJson.version} 的快照。快照只在發版 PR 改了 package.json 版號後重產（DEC-200）；` +
+      '同一版本內確實需要重產時改用 npm run build:copy -- --force。\n',
   );
   process.exit(1);
 }
@@ -160,12 +160,11 @@ try {
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  }).format(new Date()).replace(' ', 'T')}+08:00`;
+  })
+    .format(new Date())
+    .replace(' ', 'T')}+08:00`;
   const coverageRows = snapshots
-    .map(
-      ({ label, url, hash }) =>
-        `| ${label} | \`${url}\` | \`${hash}\` |`,
-    )
+    .map(({ label, url, hash }) => `| ${label} | \`${url}\` | \`${hash}\` |`)
     .join('\n');
   const copySections = snapshots
     .map(

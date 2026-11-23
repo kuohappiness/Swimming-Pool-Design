@@ -13,7 +13,10 @@ import { chromium } from 'playwright-core';
 import { buildFonts } from './build-fonts.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const emblem = resolve(repoRoot, 'source-materials/site/SRC-SITE-005_school-emblem-transparent.png');
+const emblem = resolve(
+  repoRoot,
+  'source-materials/site/SRC-SITE-005_school-emblem-transparent.png',
+);
 const outDir = resolve(repoRoot, 'web/public');
 const fontsCss = resolve(repoRoot, 'web/src/generated/fonts/fonts.css');
 
@@ -101,8 +104,18 @@ const sharePage = `<!doctype html><meta charset="utf-8">
 </div>`;
 
 const outputs = [
-  { file: 'favicon-32.png', width: 32, height: 32, html: iconPage(32, { background: 'transparent', inset: 0 }) },
-  { file: 'apple-touch-icon.png', width: 180, height: 180, html: iconPage(180, { background: paper, inset: 22 }) },
+  {
+    file: 'favicon-32.png',
+    width: 32,
+    height: 32,
+    html: iconPage(32, { background: 'transparent', inset: 0 }),
+  },
+  {
+    file: 'apple-touch-icon.png',
+    width: 180,
+    height: 180,
+    html: iconPage(180, { background: paper, inset: 22 }),
+  },
   { file: 'share-card.png', width: 1200, height: 630, html: sharePage },
 ];
 

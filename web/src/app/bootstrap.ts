@@ -9,9 +9,9 @@ const loaders: Record<ViewId, () => Promise<ViewModule>> = {
   'water-cycle': () => import('../views/water-cycle'),
   'swim-class': () => import('../views/swim-class'),
   'design-process': () => import('../views/design-process'),
-  'drawings': () => import('../views/drawings'),
+  drawings: () => import('../views/drawings'),
   '3d-viewer': () => import('../views/3d-viewer'),
-  'about': () => import('../views/about'),
+  about: () => import('../views/about'),
 };
 
 function restoreHashTarget(): void {
@@ -45,9 +45,13 @@ async function bootstrap(): Promise<void> {
     shell.destroy();
   };
 
-  window.addEventListener('pagehide', () => {
-    void destroy();
-  }, { once: true });
+  window.addEventListener(
+    'pagehide',
+    () => {
+      void destroy();
+    },
+    { once: true },
+  );
 
   try {
     const viewModule = await loaders[viewId]();

@@ -9,7 +9,12 @@ export interface ViewerMeasure {
   openItemId?: string;
 }
 
-export interface SiteBounds { x1: number; x2: number; y1: number; y2: number }
+export interface SiteBounds {
+  x1: number;
+  x2: number;
+  y1: number;
+  y2: number;
+}
 export type ToiletFixtureType = 'seated' | 'squat';
 export type ToiletFixtureFacing = 'positive-y' | 'negative-y';
 
@@ -42,26 +47,60 @@ export interface ViewerZone {
   [key: string]: unknown;
 }
 
-interface PoolUseItem { entityId: string; bounds: SiteBounds; status: string }
-export interface ViewerRoomDoor { center: [number, number]; clearWidth: number; clearHeight: number; doorType: string }
+interface PoolUseItem {
+  entityId: string;
+  bounds: SiteBounds;
+  status: string;
+}
+export interface ViewerRoomDoor {
+  center: [number, number];
+  clearWidth: number;
+  clearHeight: number;
+  doorType: string;
+}
 
 /** DEC-157: the 1F class route from shoes off to the pool edge. */
 export interface ViewerPoolUse {
   decisionId: 'DEC-157';
   principle: string;
   entryVestibule: PoolUseItem & { floorElevation: number; shoeCubbyPairs: number; bench: boolean };
-  entryRamp: PoolUseItem & { fromElevation: number; toElevation: number; slopeRatio: number; handrails: string };
-  entrySteps: PoolUseItem & { fromElevation: number; toElevation: number; risers: number; riserHeight: number; treadDepth: number };
+  entryRamp: PoolUseItem & {
+    fromElevation: number;
+    toElevation: number;
+    slopeRatio: number;
+    handrails: string;
+  };
+  entrySteps: PoolUseItem & {
+    fromElevation: number;
+    toElevation: number;
+    risers: number;
+    riserHeight: number;
+    treadDepth: number;
+  };
   dryCorridor: PoolUseItem & { floorElevation: number };
   dryCorridorParapet: PoolUseItem & { height: number; curbHeight: number };
-  rinseGate: PoolUseItem & { footBath: boolean; showerHeads: number; onlyRouteFromStairToDeck: boolean; wheelchairBypass: string };
+  rinseGate: PoolUseItem & {
+    footBath: boolean;
+    showerHeads: number;
+    onlyRouteFromStairToDeck: boolean;
+    wheelchairBypass: string;
+  };
   aed: { position: [number, number]; mountedOn: string; status: string };
   assemblyArea: PoolUseItem & { seatedClassCapacity: number };
   lifeguardChair: PoolUseItem & { seatHeight: number };
-  accessibleChanging: PoolUseItem & { floorElevation: number; entrySide: 'x31'; entrance: ViewerRoomDoor; functions: string[] };
+  accessibleChanging: PoolUseItem & {
+    floorElevation: number;
+    entrySide: 'x31';
+    entrance: ViewerRoomDoor;
+    functions: string[];
+  };
   staffFirstAid: PoolUseItem & {
-    floorElevation: number; entrySide: 'x31'; entrance: ViewerRoomDoor; poolViewWindowSide: 'x31';
-    poolViewWindow: { spanY: [number, number]; sillHeight: number; headHeight: number }; evacuationRoute: string;
+    floorElevation: number;
+    entrySide: 'x31';
+    entrance: ViewerRoomDoor;
+    poolViewWindowSide: 'x31';
+    poolViewWindow: { spanY: [number, number]; sillHeight: number; headHeight: number };
+    evacuationRoute: string;
   };
   equipmentParking: PoolUseItem;
   poolLift: PoolUseItem & { type: string };
@@ -160,7 +199,11 @@ export interface ViewerModel {
       y0ExteriorFacade: ViewerZone & {
         materialIntent: 'segmented-safety-glass-and-fair-faced-concrete';
         segments: Array<{
-          x1: number; x2: number; materialIntent: string; appearance?: string; entityId?: string;
+          x1: number;
+          x2: number;
+          materialIntent: string;
+          appearance?: string;
+          entityId?: string;
         }>;
         mainEntranceEntityId: 'EN-01';
         poolHallMaterialIntent: 'safety-glass';
@@ -189,7 +232,11 @@ export interface ViewerModel {
         capacityStatus: 'deferred';
         openItemId: string;
       };
-      playgroundRamp: ViewerZone & { startElevation: number; endElevation: number; workingSlope: string };
+      playgroundRamp: ViewerZone & {
+        startElevation: number;
+        endElevation: number;
+        workingSlope: string;
+      };
       zones: {
         poolMaleToilet: ViewerZone;
         poolFemaleToilet: ViewerZone;
@@ -227,9 +274,18 @@ export interface ViewerModel {
       poolAtriumOverlap: number;
       rightSetbackOverhang: number;
       splitAxisY: number;
-      gridDisplay: { minorSpacing: number; majorSpacing: number; axisLabels: boolean; status: string };
+      gridDisplay: {
+        minorSpacing: number;
+        majorSpacing: number;
+        axisLabels: boolean;
+        status: string;
+      };
       circulationZone: ViewerZone & {
-        polygon: Array<[number, number]>; area: number; use: string; standingOnly: true; seatingAllowed: false;
+        polygon: Array<[number, number]>;
+        area: number;
+        use: string;
+        standingOnly: true;
+        seatingAllowed: false;
       };
       stairZone: ViewerZone & { area: number; y0Facade: string; y2_5Divider: string };
       y0ExteriorFacade: ViewerZone & {
@@ -238,49 +294,106 @@ export interface ViewerModel {
         opaqueSegments: false;
       };
       stairChangingDivider: ViewerZone & {
-        axis: 'y2.5'; spanX: [number, number]; materialIntent: 'fair-faced-exposed-concrete';
-        openings: []; continuous: true;
+        axis: 'y2.5';
+        spanX: [number, number];
+        materialIntent: 'fair-faced-exposed-concrete';
+        openings: [];
+        continuous: true;
       };
       changingRoomEntries: Array<{
-        entityId: string; zoneId: string; side: 'x32'; rangeY: [number, number]; clearWidth: number;
-        openingType: 'doorless-opening'; doorLeaf: false; status: string;
+        entityId: string;
+        zoneId: string;
+        side: 'x32';
+        rangeY: [number, number];
+        clearWidth: number;
+        openingType: 'doorless-opening';
+        doorLeaf: false;
+        status: string;
       }>;
       corridorFeatures: {
-        poolObservationWindow: { entityId: string; wall: 'x29'; spanY: [number, number]; status: string };
-        standingCounter: { entityId: string; planExtent: SiteBounds; suspended: true; chairs: 0; status: string };
+        poolObservationWindow: {
+          entityId: string;
+          wall: 'x29';
+          spanY: [number, number];
+          status: string;
+        };
+        standingCounter: {
+          entityId: string;
+          planExtent: SiteBounds;
+          suspended: true;
+          chairs: 0;
+          status: string;
+        };
         drinkingFountain: { entityId: string; planExtent: SiteBounds; status: string };
         planters: Array<{ center: [number, number]; type: string }>;
       };
-      zones: Record<'maleChangingShower' | 'femaleChangingShower', ViewerZone & {
-        showerCount: number;
-        showerModuleSize: [number, number];
-        showerDimensionBasis: 'inclusive-of-partitions';
-        showerCubicles: Array<{ id: string; planBounds: SiteBounds }>;
-        supportFixtures: {
-          fixtures: { toilets: 1; washbasins: 2 };
-          washbasinWall: 'x32';
-          toiletCubicles: Array<{ planBounds: SiteBounds; doorSide: string; doorLeaf: true }>;
-          washbasins: Array<{ center: [number, number]; facing: 'positive-x' }>;
-        };
-        lockerBanks: Array<{ planExtent: SiteBounds }>;
-        entryEntityId: string;
-      }>;
+      zones: Record<
+        'maleChangingShower' | 'femaleChangingShower',
+        ViewerZone & {
+          showerCount: number;
+          showerModuleSize: [number, number];
+          showerDimensionBasis: 'inclusive-of-partitions';
+          showerCubicles: Array<{ id: string; planBounds: SiteBounds }>;
+          supportFixtures: {
+            fixtures: { toilets: 1; washbasins: 2 };
+            washbasinWall: 'x32';
+            toiletCubicles: Array<{ planBounds: SiteBounds; doorSide: string; doorLeaf: true }>;
+            washbasins: Array<{ center: [number, number]; facing: 'positive-x' }>;
+          };
+          lockerBanks: Array<{ planExtent: SiteBounds }>;
+          entryEntityId: string;
+        }
+      >;
       stairToL3: {
-        entityId: 'ST-02'; coordinateSystemId: 'SITE-XY'; bounds: SiteBounds;
-        lowerElevation: number; upperElevation: number; totalRise: number; clearWidth: number;
-        axis: '+x'; lowerStartX: number; riserCount: number; runs: 2; risersPerRun: [number, number];
-        treadsPerRun: [number, number]; riserHeight: number; treadDepth: number; runLengths: [number, number];
-        flightRuns: [number, number]; midLandingLength: number; upperLandingLength: number;
-        midLandingElevation: number; totalPlanLength: number; yBandLocked: [number, number];
-        upperConnection: string; designIntent: 'suspended-floating-stair'; treadConstruction: string;
-        stringerStrategy: string; stringerCount: 2; midLandingSupport: string; underStairEnclosure: false;
+        entityId: 'ST-02';
+        coordinateSystemId: 'SITE-XY';
+        bounds: SiteBounds;
+        lowerElevation: number;
+        upperElevation: number;
+        totalRise: number;
+        clearWidth: number;
+        axis: '+x';
+        lowerStartX: number;
+        riserCount: number;
+        runs: 2;
+        risersPerRun: [number, number];
+        treadsPerRun: [number, number];
+        riserHeight: number;
+        treadDepth: number;
+        runLengths: [number, number];
+        flightRuns: [number, number];
+        midLandingLength: number;
+        upperLandingLength: number;
+        midLandingElevation: number;
+        totalPlanLength: number;
+        yBandLocked: [number, number];
+        upperConnection: string;
+        designIntent: 'suspended-floating-stair';
+        treadConstruction: string;
+        stringerStrategy: string;
+        stringerCount: 2;
+        midLandingSupport: string;
+        underStairEnclosure: false;
         underStairLandscape: ViewerZone & {
-          planterCount: number; planting: string[]; containers: string; deepSoil: false;
-          waterFeature: false; fixedIrrigationOnStringer: false; openItemId: string;
+          planterCount: number;
+          planting: string[];
+          containers: string;
+          deepSoil: false;
+          waterFeature: false;
+          fixedIrrigationOnStringer: false;
+          openItemId: string;
         };
-        status: string; openItemId: string;
+        status: string;
+        openItemId: string;
       };
-      planPivot: { x: number; y: number; z: number; status: 'working'; strategy: string; openItemId: string };
+      planPivot: {
+        x: number;
+        y: number;
+        z: number;
+        status: 'working';
+        strategy: string;
+        openItemId: string;
+      };
     };
     l3: {
       bounds: SiteBounds;
@@ -291,7 +404,14 @@ export interface ViewerModel {
       baseElevation: number;
       volumeHeight: ViewerMeasure;
       planRotation: ViewerMeasure;
-      planPivot: { x: number; y: number; z: number; status: 'working'; strategy: string; openItemId: string };
+      planPivot: {
+        x: number;
+        y: number;
+        z: number;
+        status: 'working';
+        strategy: string;
+        openItemId: string;
+      };
       mirror: {
         entityId: string;
         height: ViewerMeasure;
@@ -304,12 +424,28 @@ export interface ViewerModel {
       };
       highLevelEquipment: string[];
       equipmentPlacementRule: string;
-      orthogonalExtension: ViewerZone & { polygon: Array<[number, number]>; grossArea: number; totalL3Area: number; rotation: 0 };
-      arrivalWing: ViewerZone & { polygon: Array<[number, number]>; area: number; covered: true; connectsStairToIndoorL3: true };
+      orthogonalExtension: ViewerZone & {
+        polygon: Array<[number, number]>;
+        grossArea: number;
+        totalL3Area: number;
+        rotation: 0;
+      };
+      arrivalWing: ViewerZone & {
+        polygon: Array<[number, number]>;
+        area: number;
+        covered: true;
+        connectsStairToIndoorL3: true;
+      };
       landscapeTerrace: ViewerZone & {
-        outerPolygon: Array<[number, number]>; excludedArrivalWingPolygon: Array<[number, number]>;
-        netLandscapeArea: number; access: 'teachers-and-maintenance-only'; studentsAllowed: false;
-        visitorsAllowed: false; publicGathering: false; primaryEgress: false; accessControl: string[];
+        outerPolygon: Array<[number, number]>;
+        excludedArrivalWingPolygon: Array<[number, number]>;
+        netLandscapeArea: number;
+        access: 'teachers-and-maintenance-only';
+        studentsAllowed: false;
+        visitorsAllowed: false;
+        publicGathering: false;
+        primaryEgress: false;
+        accessControl: string[];
       };
       programStrategy: Record<string, unknown> & {
         wholeClassUse: false;
@@ -320,28 +456,57 @@ export interface ViewerModel {
       };
       /** DEC-173 的三件：範圍是旋轉前的 3F 樓板座標，和樓板一起旋轉。 */
       learningRoom: ViewerZone & {
-        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation'; rotation: number; area: number;
-        uses: string[]; entryFrom: string; screenWall: 'mirror-wall-side'; energyDashboard: 'glass-partition-side';
-        status: string; openItemId: string;
+        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation';
+        rotation: number;
+        area: number;
+        uses: string[];
+        entryFrom: string;
+        screenWall: 'mirror-wall-side';
+        energyDashboard: 'glass-partition-side';
+        status: string;
+        openItemId: string;
       };
       equipmentZone: ViewerZone & {
-        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation'; rotation: number; area: number;
-        access: string; status: string; openItemId: string;
+        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation';
+        rotation: number;
+        area: number;
+        access: string;
+        status: string;
+        openItemId: string;
       };
       glassPartition: ViewerZone & {
-        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation'; rotation: number;
-        type: 'acoustic-glass-partition'; separates: [string, string]; maintenanceDoor: 'locked';
-        status: string; openItemId: string;
+        boundsBasis: 'unrotated-l3-plate-shares-l3-plan-rotation';
+        rotation: number;
+        type: 'acoustic-glass-partition';
+        separates: [string, string];
+        maintenanceDoor: 'locked';
+        status: string;
+        openItemId: string;
       };
       roof: ViewerZone & {
-        baseElevation: number; thickness: number; rotation: number; area: number;
-        continuous: true; extendsToMirrorTopEdge: true; openItemId: string;
+        baseElevation: number;
+        thickness: number;
+        rotation: number;
+        area: number;
+        continuous: true;
+        extendsToMirrorTopEdge: true;
+        openItemId: string;
       };
       pvRoofReserve: ViewerZone & {
-        area: number; roofArea: number; coveragePercent: number; perimeterSetback: number;
-        baseElevation: number; rotation: number; type: string; supportStrategy: string; excludedSupports: string[];
-        reservedInterfaces: string[]; moduleLayoutStatus: 'working-dense-concept-layout'; capacityStatus: 'deferred';
-        generationStatus: 'deferred'; openItemId: string;
+        area: number;
+        roofArea: number;
+        coveragePercent: number;
+        perimeterSetback: number;
+        baseElevation: number;
+        rotation: number;
+        type: string;
+        supportStrategy: string;
+        excludedSupports: string[];
+        reservedInterfaces: string[];
+        moduleLayoutStatus: 'working-dense-concept-layout';
+        capacityStatus: 'deferred';
+        generationStatus: 'deferred';
+        openItemId: string;
       };
       energyStorageStrategy: {
         preferredLocation: 'ground-level-independent-outdoor-enclosure';
@@ -426,14 +591,21 @@ export interface ConceptContent {
 }
 
 const finite = (value: unknown, label: string): number => {
-  if (typeof value !== 'number' || !Number.isFinite(value)) throw new TypeError(`${label} 必須是有限數值。`);
+  if (typeof value !== 'number' || !Number.isFinite(value))
+    throw new TypeError(`${label} 必須是有限數值。`);
   return value;
 };
 
 const sameBounds = (first: SiteBounds, second: SiteBounds) =>
-  first.x1 === second.x1 && first.x2 === second.x2 && first.y1 === second.y1 && first.y2 === second.y2;
+  first.x1 === second.x1 &&
+  first.x2 === second.x2 &&
+  first.y1 === second.y1 &&
+  first.y2 === second.y2;
 
-export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
+export function adaptViewerData(
+  modelInput: unknown,
+  contentInput: unknown,
+): {
   model: ViewerModel;
   content: ConceptContent;
 } {
@@ -444,25 +616,36 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
   if (!/^[a-f0-9]{64}$/.test(model.modelHash) || content.modelHash !== model.modelHash) {
     throw new TypeError('Viewer 模型與理念內容版本不同步。');
   }
-  if (content.modelVersion !== model.modelVersion) throw new TypeError('Viewer modelVersion 不同步。');
-  if (!model.geometryRevision
-    || model.activeGeometryRevisionId !== `GEO-${model.geometryRevision}`
-    || model.coordinateSystemId !== 'SITE-XY') {
+  if (content.modelVersion !== model.modelVersion)
+    throw new TypeError('Viewer modelVersion 不同步。');
+  if (
+    !model.geometryRevision ||
+    model.activeGeometryRevisionId !== `GEO-${model.geometryRevision}` ||
+    model.coordinateSystemId !== 'SITE-XY'
+  ) {
     throw new TypeError('Viewer 缺少唯一 active geometry 或 SITE-XY 座標系。');
   }
   const adapter = model.referenceSystem.coordinateAdapter;
-  if (adapter?.adapterId !== 'SITE-XYZ-TO-THREE-RH'
-    || adapter.siteX !== 'threeX'
-    || adapter.siteY !== 'negativeThreeZ'
-    || adapter.siteZ !== 'threeY') {
+  if (
+    adapter?.adapterId !== 'SITE-XYZ-TO-THREE-RH' ||
+    adapter.siteX !== 'threeX' ||
+    adapter.siteY !== 'negativeThreeZ' ||
+    adapter.siteZ !== 'threeY'
+  ) {
     throw new TypeError('Viewer 必須使用右手座標 SITE-XYZ-TO-THREE-RH adapter。');
   }
   const siteLocation = model.referenceSystem.siteLocation;
-  if (!siteLocation
-    || !Number.isFinite(siteLocation.latitude?.value) || Math.abs(siteLocation.latitude.value) > 90
-    || !Number.isFinite(siteLocation.longitude?.value) || Math.abs(siteLocation.longitude.value) > 180
-    || !Number.isFinite(siteLocation.utcOffsetHours)) {
-    throw new TypeError('Viewer 缺少校址經緯度與時區（referenceSystem.siteLocation），無法計算太陽位置。');
+  if (
+    !siteLocation ||
+    !Number.isFinite(siteLocation.latitude?.value) ||
+    Math.abs(siteLocation.latitude.value) > 90 ||
+    !Number.isFinite(siteLocation.longitude?.value) ||
+    Math.abs(siteLocation.longitude.value) > 180 ||
+    !Number.isFinite(siteLocation.utcOffsetHours)
+  ) {
+    throw new TypeError(
+      'Viewer 缺少校址經緯度與時區（referenceSystem.siteLocation），無法計算太陽位置。',
+    );
   }
   deriveViewerOrientation(model.referenceSystem);
   const stairBounds = model.geometry.stair.bounds;
@@ -473,16 +656,23 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
   if (stairBounds.y2 > model.geometry.pool.bounds.y1) {
     throw new TypeError('ST-01 必須保持在泳池 Y0 側，不得移到 Y14 側。');
   }
-  if (model.geometry.stair.designIntent !== 'suspended-floating-stair'
-    || model.geometry.stair.stringerCount !== 2
-    || model.geometry.stair.underStairEnclosure !== false) {
+  if (
+    model.geometry.stair.designIntent !== 'suspended-floating-stair' ||
+    model.geometry.stair.stringerCount !== 2 ||
+    model.geometry.stair.underStairEnclosure !== false
+  ) {
     throw new TypeError('ST-01 必須維持懸空雙梯梁且梯下開放。');
   }
   const toiletEntrances = model.geometry.l1.toiletEntrances;
-  if (toiletEntrances.length !== 4
-    || toiletEntrances.some((entrance) => entrance.clearWidth !== 1
-      || entrance.openingType !== 'doorless-opening'
-      || entrance.doorLeaf !== false)) {
+  if (
+    toiletEntrances.length !== 4 ||
+    toiletEntrances.some(
+      (entrance) =>
+        entrance.clearWidth !== 1 ||
+        entrance.openingType !== 'doorless-opening' ||
+        entrance.doorLeaf !== false,
+    )
+  ) {
     throw new TypeError('四間廁所必須各有 1.00 m 無門板主入口。');
   }
   if (model.geometry.l1.serviceWingStyle.materialIntent !== 'fair-faced-exposed-concrete') {
@@ -490,25 +680,36 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
   }
   const l1Facade = model.geometry.l1.y0ExteriorFacade;
   const entranceBounds = model.geometry.l1.mainEntranceBounds;
-  if (l1Facade.materialIntent !== 'segmented-safety-glass-and-fair-faced-concrete'
-    || l1Facade.poolHallMaterialIntent !== 'safety-glass'
-    || l1Facade.serviceWingMaterialIntent !== 'fair-faced-exposed-concrete'
-    || l1Facade.mainEntranceEntityId !== 'EN-01'
-    || l1Facade.bounds.x1 !== 0.5 || l1Facade.bounds.x2 !== 39
-    || entranceBounds.x1 !== 1 || entranceBounds.x2 !== 3
-    || model.geometry.l1.westSetbackBounds.x1 !== 0 || model.geometry.l1.westSetbackBounds.x2 !== 0.5
-    || l1Facade.segments.length !== 4
-    || l1Facade.segments.at(-1)?.x1 !== 31
-    || l1Facade.segments.at(-1)?.materialIntent !== 'fair-faced-exposed-concrete') {
-    throw new TypeError('0.6.7 的 L1 Y0 必須為 X0.5～31 泳池端玻璃、X31～39 服務本體清水模，且 EN-01 位於 X1～3。');
+  if (
+    l1Facade.materialIntent !== 'segmented-safety-glass-and-fair-faced-concrete' ||
+    l1Facade.poolHallMaterialIntent !== 'safety-glass' ||
+    l1Facade.serviceWingMaterialIntent !== 'fair-faced-exposed-concrete' ||
+    l1Facade.mainEntranceEntityId !== 'EN-01' ||
+    l1Facade.bounds.x1 !== 0.5 ||
+    l1Facade.bounds.x2 !== 39 ||
+    entranceBounds.x1 !== 1 ||
+    entranceBounds.x2 !== 3 ||
+    model.geometry.l1.westSetbackBounds.x1 !== 0 ||
+    model.geometry.l1.westSetbackBounds.x2 !== 0.5 ||
+    l1Facade.segments.length !== 4 ||
+    l1Facade.segments.at(-1)?.x1 !== 31 ||
+    l1Facade.segments.at(-1)?.materialIntent !== 'fair-faced-exposed-concrete'
+  ) {
+    throw new TypeError(
+      '0.6.7 的 L1 Y0 必須為 X0.5～31 泳池端玻璃、X31～39 服務本體清水模，且 EN-01 位於 X1～3。',
+    );
   }
-  if (model.geometry.l1.westGlassEave.bounds.x1 !== 0
-    || model.geometry.l1.westGlassEave.bounds.x2 !== 0.5
-    || model.geometry.l1.westGlassEave.rainwaterRecoveryEntityId !== 'RW-WEST-01'
-    || model.geometry.l1.rearGlassCanopy.bounds.y1 !== 13.5
-    || model.geometry.l1.rearGlassCanopy.bounds.y2 !== 14.5
-    || model.geometry.l1.rearGlassCanopy.siteBoundsUnchanged !== true) {
-    throw new TypeError('0.6.7 必須保留 X0～0.5 西端玻璃屋簷／雨水回收，並讓服務中心後側玻璃屋簷突出至 Y14.5。');
+  if (
+    model.geometry.l1.westGlassEave.bounds.x1 !== 0 ||
+    model.geometry.l1.westGlassEave.bounds.x2 !== 0.5 ||
+    model.geometry.l1.westGlassEave.rainwaterRecoveryEntityId !== 'RW-WEST-01' ||
+    model.geometry.l1.rearGlassCanopy.bounds.y1 !== 13.5 ||
+    model.geometry.l1.rearGlassCanopy.bounds.y2 !== 14.5 ||
+    model.geometry.l1.rearGlassCanopy.siteBoundsUnchanged !== true
+  ) {
+    throw new TypeError(
+      '0.6.7 必須保留 X0～0.5 西端玻璃屋簷／雨水回收，並讓服務中心後側玻璃屋簷突出至 Y14.5。',
+    );
   }
   const toiletZones = [
     model.geometry.l1.zones.poolMaleToilet,
@@ -516,17 +717,31 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     model.geometry.l1.zones.playgroundMaleToilet,
     model.geometry.l1.zones.playgroundFemaleToilet,
   ];
-  if (toiletZones.some((zone) => zone.privacyScreen !== false || zone.layout?.privacyScreen !== undefined)) {
+  if (
+    toiletZones.some(
+      (zone) => zone.privacyScreen !== false || zone.layout?.privacyScreen !== undefined,
+    )
+  ) {
     throw new TypeError('0.6.3 四間廁所入口不得設置遮擋版。');
   }
-  if (toiletZones.some((zone) => zone.layout?.toiletCubicles.some((cubicle) => cubicle.wallContact !== 'y3.5'))) {
+  if (
+    toiletZones.some((zone) =>
+      zone.layout?.toiletCubicles.some((cubicle) => cubicle.wallContact !== 'y3.5'),
+    )
+  ) {
     throw new TypeError('0.6.3 廁所 WC 隔間必須貼齊 Y3.5 牆面。');
   }
   const l1Cubicles = toiletZones.flatMap((zone) => zone.layout?.toiletCubicles ?? []);
   const seatedCubicles = l1Cubicles.filter(({ fixtureType }) => fixtureType === 'seated');
   const squatCubicles = l1Cubicles.filter(({ fixtureType }) => fixtureType === 'squat');
-  if (l1Cubicles.length !== 8 || seatedCubicles.length !== 4 || squatCubicles.length !== 4
-    || toiletZones.some((zone) => !zone.layout?.toiletCubicles.some(({ fixtureType }) => fixtureType === 'seated'))) {
+  if (
+    l1Cubicles.length !== 8 ||
+    seatedCubicles.length !== 4 ||
+    squatCubicles.length !== 4 ||
+    toiletZones.some(
+      (zone) => !zone.layout?.toiletCubicles.some(({ fixtureType }) => fixtureType === 'seated'),
+    )
+  ) {
     throw new TypeError('0.8.2 四間 L1 廁所必須合計 4 座坐式、4 座蹲式，且每間至少一座坐式。');
   }
   const expectedFixtureTypes: Readonly<Record<string, readonly ToiletFixtureType[]>> = {
@@ -535,118 +750,194 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     'Z-WC-PLAY-M-01': ['seated'],
     'Z-WC-PLAY-F-01': ['squat', 'seated'],
   };
-  if (toiletZones.some((zone) => {
-    const layout = zone.layout;
-    return !layout
-      || zone.fixtures?.toilets !== layout.toiletCubicles.length
-      || layout.toiletCubicles.some(({ fixtureType }, index) =>
-        fixtureType !== expectedFixtureTypes[zone.entityId]?.[index]);
-  })) {
+  if (
+    toiletZones.some((zone) => {
+      const layout = zone.layout;
+      return (
+        !layout ||
+        zone.fixtures?.toilets !== layout.toiletCubicles.length ||
+        layout.toiletCubicles.some(
+          ({ fixtureType }, index) => fixtureType !== expectedFixtureTypes[zone.entityId]?.[index],
+        )
+      );
+    })
+  ) {
     throw new TypeError('0.8.2 每間 L1 廁所必須維持核准的坐式／蹲式順序及 WC 數量。');
   }
-  if (l1Cubicles.some(({ fixtureCenter, fixtureFacing, planBounds }) =>
-    fixtureCenter.length !== 2
-    || fixtureCenter.some((coordinate) => !Number.isFinite(coordinate))
-    || fixtureCenter[0] <= planBounds.x1 || fixtureCenter[0] >= planBounds.x2
-    || fixtureCenter[1] <= planBounds.y1 || fixtureCenter[1] >= planBounds.y2
-    || !['positive-y', 'negative-y'].includes(fixtureFacing))) {
+  if (
+    l1Cubicles.some(
+      ({ fixtureCenter, fixtureFacing, planBounds }) =>
+        fixtureCenter.length !== 2 ||
+        fixtureCenter.some((coordinate) => !Number.isFinite(coordinate)) ||
+        fixtureCenter[0] <= planBounds.x1 ||
+        fixtureCenter[0] >= planBounds.x2 ||
+        fixtureCenter[1] <= planBounds.y1 ||
+        fixtureCenter[1] >= planBounds.y2 ||
+        !['positive-y', 'negative-y'].includes(fixtureFacing),
+    )
+  ) {
     throw new TypeError('0.8.2 每座 L1 WC 必須提供隔間內的有限中心點與正確朝向。');
   }
-  if (model.geometry.l1.zones.playgroundMaleToilet.fixtures?.urinals !== 2
-    || model.geometry.l1.zones.playgroundMaleToilet.fixtures?.washbasins !== 2
-    || model.geometry.l1.zones.playgroundFemaleToilet.fixtures?.washbasins !== 2) {
+  if (
+    model.geometry.l1.zones.playgroundMaleToilet.fixtures?.urinals !== 2 ||
+    model.geometry.l1.zones.playgroundMaleToilet.fixtures?.washbasins !== 2 ||
+    model.geometry.l1.zones.playgroundFemaleToilet.fixtures?.washbasins !== 2
+  ) {
     throw new TypeError('0.6.3 操場男廁須有 2 小便斗與 2 洗手槽，操場女廁須有 2 洗手槽。');
   }
   const showers = Object.values(model.geometry.l2.zones);
-  if (showers.length !== 2 || showers.some((zone) => zone.showerCount !== 15
-    || zone.showerCubicles.length !== 15
-    || zone.showerModuleSize[0] !== 1.2 || zone.showerModuleSize[1] !== 1.2
-    || zone.showerDimensionBasis !== 'inclusive-of-partitions'
-    || zone.showerCubicles.some(({ planBounds }) => Math.abs(planBounds.x2 - planBounds.x1 - 1.2) > 1e-9 || Math.abs(planBounds.y2 - planBounds.y1 - 1.2) > 1e-9)
-    || zone.supportFixtures.fixtures.toilets !== 1 || zone.supportFixtures.fixtures.washbasins !== 2)) {
+  if (
+    showers.length !== 2 ||
+    showers.some(
+      (zone) =>
+        zone.showerCount !== 15 ||
+        zone.showerCubicles.length !== 15 ||
+        zone.showerModuleSize[0] !== 1.2 ||
+        zone.showerModuleSize[1] !== 1.2 ||
+        zone.showerDimensionBasis !== 'inclusive-of-partitions' ||
+        zone.showerCubicles.some(
+          ({ planBounds }) =>
+            Math.abs(planBounds.x2 - planBounds.x1 - 1.2) > 1e-9 ||
+            Math.abs(planBounds.y2 - planBounds.y1 - 1.2) > 1e-9,
+        ) ||
+        zone.supportFixtures.fixtures.toilets !== 1 ||
+        zone.supportFixtures.fixtures.washbasins !== 2,
+    )
+  ) {
     throw new TypeError('2F 男女各須配置 15 間含隔間 1.20 × 1.20 m 淋浴、1 WC 與 2 洗手槽。');
   }
-  if (model.geometry.l2.circulationZone.area !== 41.75
-    || model.geometry.l2.circulationZone.standingOnly !== true
-    || model.geometry.l2.circulationZone.seatingAllowed !== false
-    || model.geometry.l2.changingRoomEntries.length !== 2
-    || model.geometry.l2.changingRoomEntries.some(({ clearWidth, doorLeaf }) => clearWidth !== 1 || doorLeaf !== false)) {
+  if (
+    model.geometry.l2.circulationZone.area !== 41.75 ||
+    model.geometry.l2.circulationZone.standingOnly !== true ||
+    model.geometry.l2.circulationZone.seatingAllowed !== false ||
+    model.geometry.l2.changingRoomEntries.length !== 2 ||
+    model.geometry.l2.changingRoomEntries.some(
+      ({ clearWidth, doorLeaf }) => clearWidth !== 1 || doorLeaf !== false,
+    )
+  ) {
     throw new TypeError('2F 必須保留 L 形面池走道與男女各一個 1.00 m 無門片入口。');
   }
   const l2Divider = model.geometry.l2.stairChangingDivider;
   const l2SplitAxisY = finite(model.geometry.l2.splitAxisY, 'l2.splitAxisY');
   const maleChangingBounds = model.geometry.l2.zones.maleChangingShower.bounds;
   const femaleChangingBounds = model.geometry.l2.zones.femaleChangingShower.bounds;
-  if (l2SplitAxisY !== maleChangingBounds.y2
-    || l2SplitAxisY !== femaleChangingBounds.y1
-    || l2SplitAxisY <= model.geometry.l2.y0ExteriorFacade.bounds.y2
-    || l2SplitAxisY <= model.geometry.l2.stairZone.bounds.y2) {
-    throw new TypeError('L2 splitAxisY must equal the changing-room boundary and must not overlap the Y0 facade or stair zone.');
+  if (
+    l2SplitAxisY !== maleChangingBounds.y2 ||
+    l2SplitAxisY !== femaleChangingBounds.y1 ||
+    l2SplitAxisY <= model.geometry.l2.y0ExteriorFacade.bounds.y2 ||
+    l2SplitAxisY <= model.geometry.l2.stairZone.bounds.y2
+  ) {
+    throw new TypeError(
+      'L2 splitAxisY must equal the changing-room boundary and must not overlap the Y0 facade or stair zone.',
+    );
   }
-  if (model.geometry.l2.y0ExteriorFacade.materialIntent !== 'full-width-safety-glass'
-    || model.geometry.l2.y0ExteriorFacade.viewerMaterialSystem !== 'shared-safety-glass-facade'
-    || model.geometry.l2.y0ExteriorFacade.opaqueSegments !== false
-    || l2Divider.axis !== 'y2.5'
-    || l2Divider.spanX[0] !== 32 || l2Divider.spanX[1] !== 41
-    || l2Divider.openings.length !== 0 || l2Divider.continuous !== true
-    || model.geometry.l2.ceiling.continuous !== true
-    || !sameBounds(model.geometry.l2.ceiling.bounds, model.geometry.l2.bounds)) {
-    throw new TypeError('0.6.7 的 L2 必須以共用玻璃材質保留 Y0 全玻璃、X32～41 無開口 Y2.5 分隔牆與完整天花板。');
+  if (
+    model.geometry.l2.y0ExteriorFacade.materialIntent !== 'full-width-safety-glass' ||
+    model.geometry.l2.y0ExteriorFacade.viewerMaterialSystem !== 'shared-safety-glass-facade' ||
+    model.geometry.l2.y0ExteriorFacade.opaqueSegments !== false ||
+    l2Divider.axis !== 'y2.5' ||
+    l2Divider.spanX[0] !== 32 ||
+    l2Divider.spanX[1] !== 41 ||
+    l2Divider.openings.length !== 0 ||
+    l2Divider.continuous !== true ||
+    model.geometry.l2.ceiling.continuous !== true ||
+    !sameBounds(model.geometry.l2.ceiling.bounds, model.geometry.l2.bounds)
+  ) {
+    throw new TypeError(
+      '0.6.7 的 L2 必須以共用玻璃材質保留 Y0 全玻璃、X32～41 無開口 Y2.5 分隔牆與完整天花板。',
+    );
   }
-  if (model.viewerPresentation.selectionOutline !== 'none'
-    || model.viewerPresentation.glassFacadeMaterialSystem !== 'shared-safety-glass-facade') {
+  if (
+    model.viewerPresentation.selectionOutline !== 'none' ||
+    model.viewerPresentation.glassFacadeMaterialSystem !== 'shared-safety-glass-facade'
+  ) {
     throw new TypeError('0.6.7 Viewer 必須取消外接選取框，並統一安全玻璃外牆材質系統。');
   }
   const stairToL3 = model.geometry.l2.stairToL3;
   const canonicalStairToL3 = model.entityBounds[stairToL3.entityId]?.bounds;
-  if (!canonicalStairToL3 || !sameBounds(stairToL3.bounds, canonicalStairToL3)
-    || stairToL3.lowerStartX !== 32.5 || stairToL3.axis !== '+x'
-    || stairToL3.bounds.y1 !== 0.5 || stairToL3.bounds.y2 !== 2) {
+  if (
+    !canonicalStairToL3 ||
+    !sameBounds(stairToL3.bounds, canonicalStairToL3) ||
+    stairToL3.lowerStartX !== 32.5 ||
+    stairToL3.axis !== '+x' ||
+    stairToL3.bounds.y1 !== 0.5 ||
+    stairToL3.bounds.y2 !== 2
+  ) {
     throw new TypeError('ST-02 必須由 X32.5 起步並固定於 Y0.5～2 朝 +X 上行。');
   }
-  if (stairToL3.designIntent !== 'suspended-floating-stair'
-    || stairToL3.stringerCount !== 2
-    || stairToL3.underStairEnclosure !== false
-    || stairToL3.underStairLandscape.planterCount !== 3
-    || stairToL3.underStairLandscape.containers !== 'removable-lightweight-planters') {
+  if (
+    stairToL3.designIntent !== 'suspended-floating-stair' ||
+    stairToL3.stringerCount !== 2 ||
+    stairToL3.underStairEnclosure !== false ||
+    stairToL3.underStairLandscape.planterCount !== 3 ||
+    stairToL3.underStairLandscape.containers !== 'removable-lightweight-planters'
+  ) {
     throw new TypeError('ST-02 必須維持懸空雙梯梁、梯下開放及三組可移除輕量植栽。');
   }
   const terrace = model.geometry.l3.landscapeTerrace;
-  if (model.geometry.l3.arrivalWing.covered !== true
-    || model.geometry.l3.arrivalWing.connectsStairToIndoorL3 !== true
-    || terrace.access !== 'teachers-and-maintenance-only'
-    || terrace.studentsAllowed !== false || terrace.visitorsAllowed !== false
-    || terrace.primaryEgress !== false) {
+  if (
+    model.geometry.l3.arrivalWing.covered !== true ||
+    model.geometry.l3.arrivalWing.connectsStairToIndoorL3 !== true ||
+    terrace.access !== 'teachers-and-maintenance-only' ||
+    terrace.studentsAllowed !== false ||
+    terrace.visitorsAllowed !== false ||
+    terrace.primaryEgress !== false
+  ) {
     throw new TypeError('3F 到達翼須為有頂室內動線；景觀區只限教師與維修人員且不得作主要逃生。');
   }
   const pv = model.geometry.l3.pvRoofReserve;
   const l3Roof = model.geometry.l3.roof;
   const storage = model.geometry.l3.energyStorageStrategy;
-  if (l3Roof.continuous !== true || l3Roof.extendsToMirrorTopEdge !== true
-    || model.geometry.l3.mirror.sideWallEndGapsFilled !== true
-    || model.geometry.l3.mirror.roofEdgeContinuous !== true
-    || pv.area !== 169.364 || pv.coveragePercent !== 92.74 || pv.perimeterSetback !== 0.25
-    || pv.moduleLayoutStatus !== 'working-dense-concept-layout'
-    || pv.capacityStatus !== 'deferred'
-    || pv.rotation !== model.geometry.l3.planRotation.value
-    || storage.preferredLocation !== 'ground-level-independent-outdoor-enclosure'
-    || storage.batteryObjectsOnGeneralL3Interior !== false
-    || storage.fireApproval !== false) {
-    throw new TypeError('0.6.7 的 L3 必須有完整屋頂、鏡牆端部收邊與高覆蓋率光電排布；儲能仍以地面獨立戶外優先。');
+  if (
+    l3Roof.continuous !== true ||
+    l3Roof.extendsToMirrorTopEdge !== true ||
+    model.geometry.l3.mirror.sideWallEndGapsFilled !== true ||
+    model.geometry.l3.mirror.roofEdgeContinuous !== true ||
+    pv.area !== 169.364 ||
+    pv.coveragePercent !== 92.74 ||
+    pv.perimeterSetback !== 0.25 ||
+    pv.moduleLayoutStatus !== 'working-dense-concept-layout' ||
+    pv.capacityStatus !== 'deferred' ||
+    pv.rotation !== model.geometry.l3.planRotation.value ||
+    storage.preferredLocation !== 'ground-level-independent-outdoor-enclosure' ||
+    storage.batteryObjectsOnGeneralL3Interior !== false ||
+    storage.fireApproval !== false
+  ) {
+    throw new TypeError(
+      '0.6.7 的 L3 必須有完整屋頂、鏡牆端部收邊與高覆蓋率光電排布；儲能仍以地面獨立戶外優先。',
+    );
   }
   const { learningRoom, equipmentZone, glassPartition, programStrategy } = model.geometry.l3;
   const l3Bounds = model.geometry.l3.bounds;
-  const withinL3 = (bounds: SiteBounds) => bounds.x1 >= l3Bounds.x1 && bounds.x2 <= l3Bounds.x2
-    && bounds.y1 >= l3Bounds.y1 && bounds.y2 <= l3Bounds.y2;
-  if (!learningRoom || !equipmentZone || !glassPartition
-    || [learningRoom, equipmentZone, glassPartition].some((part) => part.rotation !== model.geometry.l3.planRotation.value
-      || part.boundsBasis !== 'unrotated-l3-plate-shares-l3-plan-rotation' || !withinL3(part.bounds))
-    || learningRoom.entryFrom !== model.geometry.l3.arrivalWing.entityId
-    || glassPartition.separates[0] !== learningRoom.entityId || glassPartition.separates[1] !== equipmentZone.entityId
-    || !(glassPartition.bounds.y1 < learningRoom.bounds.y2 && glassPartition.bounds.y2 > equipmentZone.bounds.y1)
-    || glassPartition.maintenanceDoor !== 'locked'
-    || programStrategy.wholeClassUse !== false || programStrategy.mirrorOpenings !== false) {
-    throw new TypeError('3F 須以玻璃隔間分成到達翼那側的觀課與環境教育室和設備區，三者隨 3F 樓板旋轉；不作整班教室、鏡牆不開窗（DEC-173）。');
+  const withinL3 = (bounds: SiteBounds) =>
+    bounds.x1 >= l3Bounds.x1 &&
+    bounds.x2 <= l3Bounds.x2 &&
+    bounds.y1 >= l3Bounds.y1 &&
+    bounds.y2 <= l3Bounds.y2;
+  if (
+    !learningRoom ||
+    !equipmentZone ||
+    !glassPartition ||
+    [learningRoom, equipmentZone, glassPartition].some(
+      (part) =>
+        part.rotation !== model.geometry.l3.planRotation.value ||
+        part.boundsBasis !== 'unrotated-l3-plate-shares-l3-plan-rotation' ||
+        !withinL3(part.bounds),
+    ) ||
+    learningRoom.entryFrom !== model.geometry.l3.arrivalWing.entityId ||
+    glassPartition.separates[0] !== learningRoom.entityId ||
+    glassPartition.separates[1] !== equipmentZone.entityId ||
+    !(
+      glassPartition.bounds.y1 < learningRoom.bounds.y2 &&
+      glassPartition.bounds.y2 > equipmentZone.bounds.y1
+    ) ||
+    glassPartition.maintenanceDoor !== 'locked' ||
+    programStrategy.wholeClassUse !== false ||
+    programStrategy.mirrorOpenings !== false
+  ) {
+    throw new TypeError(
+      '3F 須以玻璃隔間分成到達翼那側的觀課與環境教育室和設備區，三者隨 3F 樓板旋轉；不作整班教室、鏡牆不開窗（DEC-173）。',
+    );
   }
   if (model.referenceSystem.unit !== 'm') throw new TypeError('Viewer 只接受公尺模型。');
   for (const [label, value] of [
@@ -667,12 +958,14 @@ export function adaptViewerData(modelInput: unknown, contentInput: unknown): {
     ['landscapeTerrace.netLandscapeArea', model.geometry.l3.landscapeTerrace.netLandscapeArea],
     ['pvRoofReserve.area', model.geometry.l3.pvRoofReserve.area],
     ['pvRoofReserve.baseElevation', model.geometry.l3.pvRoofReserve.baseElevation],
-  ] as const) finite(value, label);
+  ] as const)
+    finite(value, label);
   const ids = content.scenes.map((scene) => scene.id);
   if (new Set(ids).size !== ids.length) throw new TypeError('理念場景 ID 不可重複。');
   return { model, content };
 }
 
-export const formatMetres = (value: number) => `${value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')} m`;
+export const formatMetres = (value: number) =>
+  `${value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')} m`;
 export const formatElevation = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(3)} m`;
 export const formatDegrees = (value: number) => `${value.toFixed(1)}°`;

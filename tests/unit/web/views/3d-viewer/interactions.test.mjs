@@ -37,10 +37,17 @@ test('a hit on a detail mesh added after tagging still selects its building elem
   stair.add(tread);
   pool.add(stair);
   const unrelated = new THREE.Mesh();
-  const index = new Map([[pool, 0], [stair, 1]]);
+  const index = new Map([
+    [pool, 0],
+    [stair, 1],
+  ]);
 
   assert.equal(owningSelectableIndex(tagged, index), 0);
-  assert.equal(owningSelectableIndex(rung, index), 0, 'untagged child resolves through its parents');
+  assert.equal(
+    owningSelectableIndex(rung, index),
+    0,
+    'untagged child resolves through its parents',
+  );
   assert.equal(owningSelectableIndex(tread, index), 1, 'the innermost selectable wins');
   assert.equal(owningSelectableIndex(unrelated, index), -1);
 });

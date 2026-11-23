@@ -23,8 +23,10 @@ function sampleBilinear(field, size, x, y) {
   const xb = wrap(x0 + 1);
   const ya = wrap(y0) * size;
   const yb = wrap(y0 + 1) * size;
-  return (field[ya + xa] * (1 - fx) + field[ya + xb] * fx) * (1 - fy)
-    + (field[yb + xa] * (1 - fx) + field[yb + xb] * fx) * fy;
+  return (
+    (field[ya + xa] * (1 - fx) + field[ya + xb] * fx) * (1 - fy) +
+    (field[yb + xa] * (1 - fx) + field[yb + xb] * fx) * fy
+  );
 }
 
 /** 回傳每個像素相對於平均照度的倍率（Float64Array，平均為 1）。 */
@@ -76,7 +78,8 @@ export const waterCaustics = Object.freeze({
   manifest: Object.freeze({
     id: 'material-water-caustics-v1',
     kind: 'texture',
-    purpose: 'Seamless pool-floor caustic irradiance traced through the ripple field; grey value 255 is four times the mean.',
+    purpose:
+      'Seamless pool-floor caustic irradiance traced through the ripple field; grey value 255 is four times the mean.',
     localPath: 'assets/materials/water/caustics.ktx2',
     source: 'project-authored:tools/build/textures/water-caustics.mjs',
     author: 'Swimming Pool Design contributors',

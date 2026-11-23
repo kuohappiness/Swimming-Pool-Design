@@ -25,19 +25,25 @@ export interface EnhancedEnvironmentEffectOptions {
   readonly mapFactory?: EnvironmentMapFactory;
 }
 
-const ENVIRONMENT_URL = new URL('../../assets/environments/courtyard-sky.svg', import.meta.url).href;
+const ENVIRONMENT_URL = new URL('../../assets/environments/courtyard-sky.svg', import.meta.url)
+  .href;
 
-const ENVIRONMENT_PROFILES: Readonly<Record<EnvironmentId, {
-  readonly background: number;
-  readonly fogNear: number;
-  readonly fogFar: number;
-  readonly sunColor: number;
-  readonly sunIntensity: number;
-  readonly sunPosition: readonly [number, number, number];
-  readonly skyColor: number;
-  readonly groundColor: number;
-  readonly ambientIntensity: number;
-}>> = Object.freeze({
+const ENVIRONMENT_PROFILES: Readonly<
+  Record<
+    EnvironmentId,
+    {
+      readonly background: number;
+      readonly fogNear: number;
+      readonly fogFar: number;
+      readonly sunColor: number;
+      readonly sunIntensity: number;
+      readonly sunPosition: readonly [number, number, number];
+      readonly skyColor: number;
+      readonly groundColor: number;
+      readonly ambientIntensity: number;
+    }
+  >
+> = Object.freeze({
   day: Object.freeze({
     background: 0xd3dde0,
     fogNear: 72,
@@ -166,7 +172,8 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
       sourceTexture.colorSpace = THREE.SRGBColorSpace;
       environmentMap = mapFactory.create(sourceTexture);
     } catch (error) {
-      diagnostic = error instanceof Error ? error.message : 'Local environment asset failed to load.';
+      diagnostic =
+        error instanceof Error ? error.message : 'Local environment asset failed to load.';
       sourceTexture?.dispose();
       sourceTexture = null;
       environmentMap = null;
@@ -187,9 +194,8 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     this.currentEnvironment = environment;
     this.currentTarget = target;
     target.scene.background = new THREE.Color(profile.background);
-    target.scene.environment = this.quality.id === 'low'
-      ? null
-      : this.skyEnvironment?.map ?? this.environmentMap;
+    target.scene.environment =
+      this.quality.id === 'low' ? null : (this.skyEnvironment?.map ?? this.environmentMap);
     target.scene.environmentIntensity = this.environmentIntensity();
     target.scene.fog = new THREE.Fog(profile.background, profile.fogNear, profile.fogFar);
     target.scene.userData.environmentId = environment;
@@ -198,10 +204,7 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
     target.lights.sun.intensity = profile.sunIntensity;
     target.lights.sun.position.set(...profile.sunPosition);
     target.lights.sun.castShadow = this.quality.shadows;
-    target.lights.sun.shadow.mapSize.set(
-      this.quality.shadowMapSize,
-      this.quality.shadowMapSize,
-    );
+    target.lights.sun.shadow.mapSize.set(this.quality.shadowMapSize, this.quality.shadowMapSize);
     target.lights.sun.shadow.radius = PLAIN_SHADOW_RADIUS_TEXELS;
     target.lights.sun.shadow.bias = -0.00015;
     target.lights.sun.shadow.normalBias = this.quality.id === 'high' ? 0.025 : 0.04;
@@ -226,7 +229,8 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
   setSoftShadows(available: boolean) {
     if (this.disposed || this.softShadows === available) return;
     this.softShadows = available;
-    if (this.currentLighting && this.currentTarget) this.writeLighting(this.currentLighting, this.currentTarget);
+    if (this.currentLighting && this.currentTarget)
+      this.writeLighting(this.currentLighting, this.currentTarget);
   }
 
   private environmentIntensity() {
@@ -299,7 +303,8 @@ export class EnhancedEnvironmentEffect implements EnvironmentEffect {
   refreshEnvironment(): boolean {
     const target = this.currentTarget;
     const lighting = this.currentLighting;
-    if (this.disposed || !target || !lighting || !this.sky || !this.skyEnvironmentStale) return false;
+    if (this.disposed || !target || !lighting || !this.sky || !this.skyEnvironmentStale)
+      return false;
     if (this.quality.id === 'low' || !this.mapFactory.createFromScene) return false;
     this.skyEnvironmentStale = false;
     this.skyEnvironment = {

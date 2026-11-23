@@ -27,12 +27,15 @@ const sample = `# 文件
 
 test('headings skip fenced code and know where each section ends', () => {
   const found = headings(sample);
-  assert.deepEqual(found.map(({ level, title, line, end }) => [level, title, line, end]), [
-    [1, '文件', 1, 18],
-    [2, '1. 甲', 3, 12],
-    [3, '甲之一', 11, 12],
-    [2, '2. 乙', 13, 18],
-  ]);
+  assert.deepEqual(
+    found.map(({ level, title, line, end }) => [level, title, line, end]),
+    [
+      [1, '文件', 1, 18],
+      [2, '1. 甲', 3, 12],
+      [3, '甲之一', 11, 12],
+      [2, '2. 乙', 13, 18],
+    ],
+  );
 });
 
 test('sections match exact titles first, then unique partial titles', () => {
@@ -47,16 +50,24 @@ test('ID lookup returns only rows whose first cell is that ID', () => {
 });
 
 test('the command prints one section of a repo document', () => {
-  const output = execFileSync(process.execPath, ['tools/section.mjs', 'docs/roadmap.md', '現在在哪裡'], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-  });
+  const output = execFileSync(
+    process.execPath,
+    ['tools/section.mjs', 'docs/roadmap.md', '現在在哪裡'],
+    {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    },
+  );
   assert.match(output, /^docs\/roadmap\.md:\d+-\d+\n## 現在在哪裡\n/);
   assert.doesNotMatch(output, /## 等觸發點/);
 
-  const row = execFileSync(process.execPath, ['tools/section.mjs', 'docs/decisions.md', 'DEC-147'], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-  });
+  const row = execFileSync(
+    process.execPath,
+    ['tools/section.mjs', 'docs/decisions.md', 'DEC-147'],
+    {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    },
+  );
   assert.match(row, /^docs\/decisions\.md:\d+\n\| DEC-147 \|/);
 });

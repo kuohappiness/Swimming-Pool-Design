@@ -1,7 +1,4 @@
-import {
-  REALISM_TIER_IDS,
-  RENDER_BUDGETS,
-} from '../../../../../../core/viewer/render-budgets.mjs';
+import { REALISM_TIER_IDS, RENDER_BUDGETS } from '../../../../../../core/viewer/render-budgets.mjs';
 import type { RenderQualityTier } from '../quality-profile';
 
 /** 寫實版的四級畫質（DEC-190）。順序由高到低，數字上限在 core/viewer/render-budgets.mjs。 */
@@ -63,13 +60,16 @@ export interface RealismTier {
  * 幀率底線：電腦 60 fps；手機底線 30 fps、目標 45 fps。
  * 調節器以 target 判斷是否有餘裕，以 floor 判斷是否必須卸載。
  */
-export const FRAME_TARGETS: Readonly<Record<DeviceClass, { readonly floorFps: number; readonly targetFps: number }>> =
-  Object.freeze({
-    desktop: Object.freeze({ floorFps: 60, targetFps: 60 }),
-    mobile: Object.freeze({ floorFps: 30, targetFps: 45 }),
-  });
+export const FRAME_TARGETS: Readonly<
+  Record<DeviceClass, { readonly floorFps: number; readonly targetFps: number }>
+> = Object.freeze({
+  desktop: Object.freeze({ floorFps: 60, targetFps: 60 }),
+  mobile: Object.freeze({ floorFps: 30, targetFps: 45 }),
+});
 
-function tier(definition: Omit<RealismTier, 'drawCallBudget' | 'triangleBudget' | 'downloadBudgetBytes'>): RealismTier {
+function tier(
+  definition: Omit<RealismTier, 'drawCallBudget' | 'triangleBudget' | 'downloadBudgetBytes'>,
+): RealismTier {
   const budget = RENDER_BUDGETS[definition.id];
   return Object.freeze({
     ...definition,
@@ -164,9 +164,9 @@ export const REALISM_TIERS: Readonly<Record<RealismTierId, RealismTier>> = Objec
   }),
 });
 
-export const REALISM_TIER_ORDER: readonly RealismTierId[] = Object.freeze(
-  [...REALISM_TIER_IDS] as RealismTierId[],
-);
+export const REALISM_TIER_ORDER: readonly RealismTierId[] = Object.freeze([
+  ...REALISM_TIER_IDS,
+] as RealismTierId[]);
 
 /** 這一級開著、因此在幀率吃緊時可以卸載的效果，依 SHED_ORDER 排序。 */
 export function sheddableSteps(definition: RealismTier): readonly ShedStep[] {
@@ -222,7 +222,12 @@ export function assertRealismTiers(
           throw new TypeError(`Realism tier ${key} must not grow from ${previous.id} to ${id}.`);
         }
       }
-      for (const key of ['waterRefraction', 'ambientOcclusion', 'bloom', 'exposureAdaptation'] as const) {
+      for (const key of [
+        'waterRefraction',
+        'ambientOcclusion',
+        'bloom',
+        'exposureAdaptation',
+      ] as const) {
         if (current[key] && !previous[key]) {
           throw new TypeError(`Realism tier ${key} must not turn on below ${previous.id}.`);
         }

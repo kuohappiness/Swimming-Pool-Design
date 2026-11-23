@@ -87,11 +87,17 @@ test('active reflection criteria drive current analysis while legacy decoys are 
 test('active solar contract fails closed when assumptions or method identity are missing', () => {
   const noMethod = structuredClone(model);
   delete resolveActiveGeometry(noMethod).solar.analysisMethodRevision;
-  assert.throws(() => activeSolarStudyGeometry(noMethod), /analysisMethodRevision must be a non-empty string/);
+  assert.throws(
+    () => activeSolarStudyGeometry(noMethod),
+    /analysisMethodRevision must be a non-empty string/,
+  );
 
   const invalidOptics = structuredClone(model);
   resolveActiveGeometry(invalidOptics).solar.energyAssumptions.mirrorReflectance = 1.1;
-  assert.throws(() => activeSolarStudyGeometry(invalidOptics), /mirrorReflectance must be within 0\.\.1/);
+  assert.throws(
+    () => activeSolarStudyGeometry(invalidOptics),
+    /mirrorReflectance must be within 0\.\.1/,
+  );
 });
 
 test('horizontal direction scan remains reproducible at the new mirror lean', () => {
@@ -114,5 +120,8 @@ test('finite-surface proxy still reports all five pivot scenarios', () => {
 });
 
 test('rejects a non-positive analysis interval', () => {
-  assert.throws(() => evaluateSolarCandidate(model, { stepMinutes: 0 }), /stepMinutes must be greater than zero/);
+  assert.throws(
+    () => evaluateSolarCandidate(model, { stepMinutes: 0 }),
+    /stepMinutes must be greater than zero/,
+  );
 });

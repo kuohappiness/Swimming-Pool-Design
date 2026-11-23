@@ -1,5 +1,10 @@
 import * as THREE from 'three';
-import { SKY_NOON_INTENSITY, type LinearColor, type SiteVector, type SunLighting } from './sun-lighting';
+import {
+  SKY_NOON_INTENSITY,
+  type LinearColor,
+  type SiteVector,
+  type SunLighting,
+} from './sun-lighting';
 
 /**
  * 把 `SunLighting`（SITE 座標、與繪圖無關）換成場景可以直接套用的數值（three.js 世界座標）。
@@ -31,22 +36,36 @@ export interface SceneLighting {
 
 export interface ShadowFocusSource {
   /** SITE 座標的範圍（公尺）。 */
-  readonly bounds: { readonly x1: number; readonly x2: number; readonly y1: number; readonly y2: number };
+  readonly bounds: {
+    readonly x1: number;
+    readonly x2: number;
+    readonly y1: number;
+    readonly y2: number;
+  };
   readonly height: number;
   /** 往外多留的距離：旋轉後超出基地的樓層、雨庇與地面上的影子。 */
   readonly margin: number;
 }
 
 /** SITE 座標（Z 向上）的方向換成世界座標。siteRoot 的子座標是 X、高度、SITE-Y。 */
-export function siteDirectionToWorld(direction: SiteVector, siteRoot: THREE.Object3D, out = new THREE.Vector3()) {
+export function siteDirectionToWorld(
+  direction: SiteVector,
+  siteRoot: THREE.Object3D,
+  out = new THREE.Vector3(),
+) {
   siteRoot.updateWorldMatrix(true, false);
   return out.set(direction.x, direction.z, direction.y).transformDirection(siteRoot.matrixWorld);
 }
 
 export function deriveShadowFocus(source: ShadowFocusSource, siteRoot: THREE.Object3D) {
   const { bounds, height, margin } = source;
-  if (![bounds.x1, bounds.x2, bounds.y1, bounds.y2, height, margin].every(Number.isFinite)
-    || bounds.x2 <= bounds.x1 || bounds.y2 <= bounds.y1 || height <= 0 || margin < 0) {
+  if (
+    ![bounds.x1, bounds.x2, bounds.y1, bounds.y2, height, margin].every(Number.isFinite) ||
+    bounds.x2 <= bounds.x1 ||
+    bounds.y2 <= bounds.y1 ||
+    height <= 0 ||
+    margin < 0
+  ) {
     throw new TypeError('Shadow focus bounds are invalid.');
   }
   siteRoot.updateWorldMatrix(true, false);

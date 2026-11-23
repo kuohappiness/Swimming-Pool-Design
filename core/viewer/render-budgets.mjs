@@ -106,12 +106,16 @@ export function findAssetBudgetErrors(files, limits = ASSET_FILE_LIMITS) {
     }
     const limit = limits[KIND_LIMIT_KEYS[kind]];
     if (file.byteSize > limit) {
-      errors.push(`${file.path}：${formatBytes(file.byteSize)} 超過單檔上限 ${formatBytes(limit)}。`);
+      errors.push(
+        `${file.path}：${formatBytes(file.byteSize)} 超過單檔上限 ${formatBytes(limit)}。`,
+      );
     }
   }
 
   if (totalBytes > limits.totalBytes) {
-    errors.push(`3D 資產合計 ${formatBytes(totalBytes)} 超過上限 ${formatBytes(limits.totalBytes)}。`);
+    errors.push(
+      `3D 資產合計 ${formatBytes(totalBytes)} 超過上限 ${formatBytes(limits.totalBytes)}。`,
+    );
   }
   return errors;
 }

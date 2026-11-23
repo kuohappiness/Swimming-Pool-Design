@@ -22,12 +22,20 @@ test('interval and work percentiles are tracked separately', () => {
   const observation = statistics.snapshot();
   assert.equal(observation.samples, 100);
   assert.equal(observation.intervalP95Milliseconds, 16.7);
-  assert.equal(observation.workP95Milliseconds, 4, 'five slow frames out of 100 sit just above p95');
+  assert.equal(
+    observation.workP95Milliseconds,
+    4,
+    'five slow frames out of 100 sit just above p95',
+  );
   // The first new frame pushes out slow frame 0, the second pushes out a fast one.
   statistics.observe(100 / 60, 16.7, 14);
   assert.equal(statistics.snapshot().workP95Milliseconds, 4);
   statistics.observe(101 / 60, 16.7, 14);
-  assert.equal(statistics.snapshot().workP95Milliseconds, 14, 'a sixth slow frame in the window lifts p95');
+  assert.equal(
+    statistics.snapshot().workP95Milliseconds,
+    14,
+    'a sixth slow frame in the window lifts p95',
+  );
   assert.equal(statistics.snapshot().timeSeconds, 101 / 60);
 });
 

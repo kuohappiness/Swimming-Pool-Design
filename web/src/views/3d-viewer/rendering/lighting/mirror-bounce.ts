@@ -44,7 +44,12 @@ export interface MirrorWallSource {
   readonly baseElevation: number;
   readonly positiveXAxisBearingFromTrueNorth: number;
   /** 泳池範圍；用來判斷光斑有沒有落在池面上。 */
-  readonly poolRectangle: { readonly x1: number; readonly x2: number; readonly y1: number; readonly y2: number };
+  readonly poolRectangle: {
+    readonly x1: number;
+    readonly x2: number;
+    readonly y1: number;
+    readonly y2: number;
+  };
 }
 
 /** 鏡牆的輸入全部取自網站的模型（和日照研究頁 `activeMirrorFootprintGeometry` 同一份來源）。 */
@@ -58,12 +63,17 @@ export function mirrorWallFromViewerModel(model: ViewerModel): MirrorWallSource 
     leanFromVertical: l3.mirror.leanFromVertical.value,
     height: l3.mirror.height.value,
     baseElevation: l3.baseElevation,
-    positiveXAxisBearingFromTrueNorth: model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
+    positiveXAxisBearingFromTrueNorth:
+      model.referenceSystem.siteOrientation.positiveXAxisBearingFromTrueNorth,
     poolRectangle: { ...pool.bounds },
   };
 }
 
-export interface SitePoint { readonly x: number; readonly y: number; readonly z: number }
+export interface SitePoint {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+}
 
 export interface MirrorBounce {
   /** 鏡面的四個角點（SITE）：下緣兩點、上緣兩點，依序繞一圈。 */
@@ -98,18 +108,20 @@ export function computeMirrorBounce(lighting: SunLighting, wall: MirrorWallSourc
     Object.freeze({ ...mirror.upper[1] }),
     Object.freeze({ ...mirror.upper[0] }),
   ]) as MirrorBounce['corners'];
-  const inactive = (incidenceAngle: number | null): MirrorBounce => Object.freeze({
-    corners,
-    active: false,
-    direction: null,
-    footprint: INACTIVE_FOOTPRINT,
-    hitsPool: false,
-    incidenceAngle,
-    color: lighting.key.color,
-    intensity: 0,
-    angularRadius: lighting.key.angularRadius,
-  });
-  if (lighting.key.source !== 'sun' || lighting.altitude <= 0 || lighting.key.intensity <= 0) return inactive(null);
+  const inactive = (incidenceAngle: number | null): MirrorBounce =>
+    Object.freeze({
+      corners,
+      active: false,
+      direction: null,
+      footprint: INACTIVE_FOOTPRINT,
+      hitsPool: false,
+      incidenceAngle,
+      color: lighting.key.color,
+      intensity: 0,
+      angularRadius: lighting.key.angularRadius,
+    });
+  if (lighting.key.source !== 'sun' || lighting.altitude <= 0 || lighting.key.intensity <= 0)
+    return inactive(null);
 
   const reflection = reflectSolarRay({
     solarAltitude: lighting.altitude,
@@ -120,12 +132,17 @@ export function computeMirrorBounce(lighting: SunLighting, wall: MirrorWallSourc
   if (!reflection.frontLit) return inactive(null);
   const projected = projectMirrorReflectionFootprint({ ...wall, reflection });
   if (!projected.reachesPoolPlane) return inactive(reflection.incidenceAngle);
-  const direction = reflectionDirectionInLocalCoordinates(reflection, wall.positiveXAxisBearingFromTrueNorth);
+  const direction = reflectionDirectionInLocalCoordinates(
+    reflection,
+    wall.positiveXAxisBearingFromTrueNorth,
+  );
   return Object.freeze({
     corners,
     active: true,
     direction: Object.freeze(direction),
-    footprint: Object.freeze(projected.footprint.map((point) => Object.freeze({ x: point.x, y: point.y }))),
+    footprint: Object.freeze(
+      projected.footprint.map((point) => Object.freeze({ x: point.x, y: point.y })),
+    ),
     hitsPool: projected.hitsPool,
     incidenceAngle: reflection.incidenceAngle,
     color: lighting.key.color,
@@ -164,7 +181,9 @@ const MIRROR_BOUNCE_UNIFORM_NAMES = Object.freeze(
 );
 
 /** 從一支著色器材質的 uniforms 取出反射光那一組（同一批物件，不複製）。 */
-export function pickMirrorBounceUniforms(uniforms: Readonly<Record<string, THREE.IUniform>>): MirrorBounceUniforms {
+export function pickMirrorBounceUniforms(
+  uniforms: Readonly<Record<string, THREE.IUniform>>,
+): MirrorBounceUniforms {
   const picked: Partial<Record<keyof MirrorBounceUniforms, THREE.IUniform>> = {};
   for (const name of MIRROR_BOUNCE_UNIFORM_NAMES) {
     const uniform = uniforms[name];
@@ -189,18 +208,26 @@ const sitePointToWorld = (point: SitePoint, siteRoot: THREE.Object3D, out: THREE
   siteRoot.localToWorld(out.set(point.x, point.z, point.y));
 
 /** SITE 座標的反射光換到世界座標（只經過場景自己的 SITE 根節點）。 */
-export function mirrorBounceToWorld(bounce: MirrorBounce, siteRoot: THREE.Object3D): WorldMirrorBounce {
+export function mirrorBounceToWorld(
+  bounce: MirrorBounce,
+  siteRoot: THREE.Object3D,
+): WorldMirrorBounce {
   siteRoot.updateWorldMatrix(true, false);
   const origin = sitePointToWorld(bounce.corners[0], siteRoot, new THREE.Vector3());
   const edgeU = sitePointToWorld(bounce.corners[1], siteRoot, new THREE.Vector3()).sub(origin);
   const edgeV = sitePointToWorld(bounce.corners[3], siteRoot, new THREE.Vector3()).sub(origin);
   const direction = bounce.direction
-    ? new THREE.Vector3(bounce.direction.x, bounce.direction.z, bounce.direction.y)
-      .transformDirection(siteRoot.matrixWorld)
+    ? new THREE.Vector3(
+        bounce.direction.x,
+        bounce.direction.z,
+        bounce.direction.y,
+      ).transformDirection(siteRoot.matrixWorld)
     : new THREE.Vector3(0, -1, 0);
   return Object.freeze({
     enabled: bounce.active && bounce.intensity > 0,
-    color: new THREE.Color().setRGB(...bounce.color).multiplyScalar(bounce.active ? bounce.intensity : 0),
+    color: new THREE.Color()
+      .setRGB(...bounce.color)
+      .multiplyScalar(bounce.active ? bounce.intensity : 0),
     direction,
     origin,
     edgeU,
@@ -213,7 +240,10 @@ export function mirrorBounceToWorld(bounce: MirrorBounce, siteRoot: THREE.Object
  * 場景上目前的反射光放在 `scene.userData.mirrorBounce`（和半球光的 `skyIrradiance` 同一種做法），
  * 水的著色器從這裡讀同一份，不另算。
  */
-export function publishSceneMirrorBounce(scene: THREE.Scene, bounce: WorldMirrorBounce | null): void {
+export function publishSceneMirrorBounce(
+  scene: THREE.Scene,
+  bounce: WorldMirrorBounce | null,
+): void {
   scene.userData.mirrorBounce = bounce;
 }
 
@@ -222,14 +252,14 @@ export function readSceneMirrorBounce(scene: THREE.Scene): WorldMirrorBounce | n
   if (!bounce || typeof bounce !== 'object') return null;
   const candidate = bounce as Partial<WorldMirrorBounce>;
   const isVector = (value: unknown) => (value as THREE.Vector3 | undefined)?.isVector3 === true;
-  return typeof candidate.enabled === 'boolean'
-    && candidate.color?.isColor === true
-    && isVector(candidate.direction)
-    && isVector(candidate.origin)
-    && isVector(candidate.edgeU)
-    && isVector(candidate.edgeV)
-    && typeof candidate.softness === 'number'
-    ? candidate as WorldMirrorBounce
+  return typeof candidate.enabled === 'boolean' &&
+    candidate.color?.isColor === true &&
+    isVector(candidate.direction) &&
+    isVector(candidate.origin) &&
+    isVector(candidate.edgeU) &&
+    isVector(candidate.edgeV) &&
+    typeof candidate.softness === 'number'
+    ? (candidate as WorldMirrorBounce)
     : null;
 }
 
@@ -245,9 +275,13 @@ export function writeMirrorBounceUniforms(
   }
   uniforms.uMirrorBounceColor.value.set(bounce.color.r, bounce.color.g, bounce.color.b, 1);
   uniforms.uMirrorBounceOrigin.value.copy(bounce.origin).applyMatrix4(toSpace);
-  uniforms.uMirrorBounceEdgeU.value.copy(bounce.edgeU).transformDirection(toSpace)
+  uniforms.uMirrorBounceEdgeU.value
+    .copy(bounce.edgeU)
+    .transformDirection(toSpace)
     .multiplyScalar(bounce.edgeU.length() * scaleAlong(toSpace, bounce.edgeU));
-  uniforms.uMirrorBounceEdgeV.value.copy(bounce.edgeV).transformDirection(toSpace)
+  uniforms.uMirrorBounceEdgeV.value
+    .copy(bounce.edgeV)
+    .transformDirection(toSpace)
     .multiplyScalar(bounce.edgeV.length() * scaleAlong(toSpace, bounce.edgeV));
   uniforms.uMirrorBounceDirection.value.copy(bounce.direction).transformDirection(toSpace);
   uniforms.uMirrorBounceSoftness.value = bounce.softness;
@@ -262,7 +296,8 @@ function scaleAlong(matrix: THREE.Matrix4, direction: THREE.Vector3): number {
   const elements = matrix.elements;
   const x = elements[0]! * scaleProbe.x + elements[4]! * scaleProbe.y + elements[8]! * scaleProbe.z;
   const y = elements[1]! * scaleProbe.x + elements[5]! * scaleProbe.y + elements[9]! * scaleProbe.z;
-  const z = elements[2]! * scaleProbe.x + elements[6]! * scaleProbe.y + elements[10]! * scaleProbe.z;
+  const z =
+    elements[2]! * scaleProbe.x + elements[6]! * scaleProbe.y + elements[10]! * scaleProbe.z;
   return Math.hypot(x, y, z);
 }
 
@@ -271,7 +306,7 @@ function scaleAlong(matrix: THREE.Matrix4, direction: THREE.Vector3): number {
  * 碰到鏡面所在的平面時落在平行四邊形裡面就收得到；鏡面後方（3F 裡面、屋頂）的點不算。
  * 邊緣依到鏡面的距離與光源大小變柔，和陽光的影子同一個道理。
  */
-export const MIRROR_BOUNCE_GLSL = /* glsl */`
+export const MIRROR_BOUNCE_GLSL = /* glsl */ `
 uniform vec4 uMirrorBounceColor;
 uniform vec3 uMirrorBounceDirection;
 uniform vec3 uMirrorBounceOrigin;
@@ -310,7 +345,7 @@ const COMMON = '#include <common>';
  * 遮罩在世界座標算（uniform 是世界座標），所以水面倒影、反射探針這些用別的鏡頭畫的畫面
  * 也正確；光的方向再換回這一次的 view 座標給 BRDF。
  */
-const MIRROR_BOUNCE_APPLY = /* glsl */`
+const MIRROR_BOUNCE_APPLY = /* glsl */ `
 #if defined( RE_Direct )
 	if ( uMirrorBounceColor.w > 0.0 ) {
 		vec3 mirrorBounceWorld = ( vec4( geometryPosition - viewMatrix[ 3 ].xyz, 0.0 ) * viewMatrix ).xyz;
@@ -329,7 +364,10 @@ const MIRROR_BOUNCE_APPLY = /* glsl */`
  * 把反射光裝進一個 three.js 內建的受光材質（標準、物理）。uniform 是共用的同一組物件、
  * 世界座標，只在光線改變時更新。回傳 false 代表這不是會受光的標準材質，不裝。
  */
-export function installMirrorBounce(material: THREE.Material, uniforms: MirrorBounceUniforms): boolean {
+export function installMirrorBounce(
+  material: THREE.Material,
+  uniforms: MirrorBounceUniforms,
+): boolean {
   // 用旗標而不是 instanceof：標準與物理材質都有 isMeshStandardMaterial，不受打包出幾份 three.js 影響。
   if ((material as THREE.MeshStandardMaterial).isMeshStandardMaterial !== true) return false;
   if (material.userData.mirrorBounce === uniforms) return true;
@@ -337,7 +375,8 @@ export function installMirrorBounce(material: THREE.Material, uniforms: MirrorBo
   const previousKey = material.customProgramCacheKey;
   material.onBeforeCompile = function onBeforeCompile(shader, renderer) {
     previous.call(this, shader, renderer);
-    if (!shader.fragmentShader.includes(LIGHTS_MAPS) || !shader.fragmentShader.includes(COMMON)) return;
+    if (!shader.fragmentShader.includes(LIGHTS_MAPS) || !shader.fragmentShader.includes(COMMON))
+      return;
     Object.assign(shader.uniforms, uniforms);
     shader.fragmentShader = shader.fragmentShader
       .replace(COMMON, `${COMMON}\n${MIRROR_BOUNCE_GLSL}`)
@@ -391,7 +430,8 @@ export class MirrorBounceLight {
 
   /** 圖層改變時呼叫：鏡面藏起來或重新出現。 */
   sync(): void {
-    const world = this.bounce && this.mirrorVisible() ? mirrorBounceToWorld(this.bounce, this.siteRoot) : null;
+    const world =
+      this.bounce && this.mirrorVisible() ? mirrorBounceToWorld(this.bounce, this.siteRoot) : null;
     writeMirrorBounceUniforms(this.uniforms, world, this.identity);
     publishSceneMirrorBounce(this.scene, world);
   }

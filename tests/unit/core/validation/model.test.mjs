@@ -3,9 +3,16 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveActiveGeometry, resolveGeometryEntity, sitePointToThree } from '../../../../core/geometry/active-geometry.mjs';
+import {
+  resolveActiveGeometry,
+  resolveGeometryEntity,
+  sitePointToThree,
+} from '../../../../core/geometry/active-geometry.mjs';
 import { deriveReferenceGeometry } from '../../../../core/geometry/drawing-geometry.mjs';
-import { validateModel, validateSourceFiles } from '../../../../core/validation/model-validation.mjs';
+import {
+  validateModel,
+  validateSourceFiles,
+} from '../../../../core/validation/model-validation.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const readJson = async (path) => JSON.parse(await readFile(resolve(repoRoot, path), 'utf8'));
@@ -33,7 +40,12 @@ test('active revision is the only geometry source and uses SITE-XY', () => {
   assert.equal(active.id, `GEO-${active.revision}`);
   assert.equal(active.modelVersion, active.revision);
   assert.equal(active.coordinateSystemId, 'SITE-XY');
-  assert.deepEqual(resolveGeometryEntity(active, 'ST-01').bounds, { x1: 20.5, x2: 29, y1: 0.5, y2: 2 });
+  assert.deepEqual(resolveGeometryEntity(active, 'ST-01').bounds, {
+    x1: 20.5,
+    x2: 29,
+    y1: 0.5,
+    y2: 2,
+  });
   assert.deepEqual(sitePointToThree([20.5, 0.5, 0.3]), [20.5, 0.3, -0.5]);
 });
 
@@ -73,11 +85,17 @@ test('active resolver fails closed when the selector is missing, unknown, duplic
   assert.throws(() => resolveActiveGeometry(duplicate), /must resolve exactly once; found 2/);
 
   const drifted = structuredClone(model);
-  drifted.geometryRevisions.find(({ id }) => id === drifted.activeGeometryRevisionId).modelVersion = '0.6.1';
-  assert.throws(() => resolveActiveGeometry(drifted), /id, revision, and geometry modelVersion must match/);
+  drifted.geometryRevisions.find(({ id }) => id === drifted.activeGeometryRevisionId).modelVersion =
+    '0.6.1';
+  assert.throws(
+    () => resolveActiveGeometry(drifted),
+    /id, revision, and geometry modelVersion must match/,
+  );
 
   const futureGeometry = structuredClone(model);
-  const future = futureGeometry.geometryRevisions.find(({ id }) => id === futureGeometry.activeGeometryRevisionId);
+  const future = futureGeometry.geometryRevisions.find(
+    ({ id }) => id === futureGeometry.activeGeometryRevisionId,
+  );
   future.id = 'GEO-9.0.0';
   future.revision = '9.0.0';
   future.modelVersion = '9.0.0';
@@ -91,14 +109,21 @@ test('active resolver rejects missing frames, duplicate entity IDs, and unframed
   assert.throws(() => resolveActiveGeometry(noFrame), /SITE-XY must be declared exactly once/);
 
   const duplicateEntity = structuredClone(model);
-  const activeDuplicate = duplicateEntity.geometryRevisions.find(({ id }) => id === duplicateEntity.activeGeometryRevisionId);
+  const activeDuplicate = duplicateEntity.geometryRevisions.find(
+    ({ id }) => id === duplicateEntity.activeGeometryRevisionId,
+  );
   activeDuplicate.l1.pool.entityId = activeDuplicate.stair.entityId;
   assert.throws(() => resolveActiveGeometry(duplicateEntity), /duplicate entityId ST-01/);
 
   const missingFrame = structuredClone(model);
-  const activeMissingFrame = missingFrame.geometryRevisions.find(({ id }) => id === missingFrame.activeGeometryRevisionId);
+  const activeMissingFrame = missingFrame.geometryRevisions.find(
+    ({ id }) => id === missingFrame.activeGeometryRevisionId,
+  );
   delete activeMissingFrame.l1.pool.coordinateSystemId;
-  assert.throws(() => resolveActiveGeometry(missingFrame), /must declare coordinateSystemId SITE-XY/);
+  assert.throws(
+    () => resolveActiveGeometry(missingFrame),
+    /must declare coordinateSystemId SITE-XY/,
+  );
 });
 
 test('derived geometry exposes the confirmed pool, floors, roof, and stair', () => {
@@ -121,7 +146,10 @@ test('L1 keeps four independent toilets, equipment rooms, and separated entrance
   const active = resolveActiveGeometry(model);
   const zones = active.l1.zones;
   assert.equal(active.l1.y0ExteriorFacade.entityId, 'F-L1-Y0-01');
-  assert.equal(active.l1.y0ExteriorFacade.materialIntent, 'segmented-safety-glass-and-fair-faced-concrete');
+  assert.equal(
+    active.l1.y0ExteriorFacade.materialIntent,
+    'segmented-safety-glass-and-fair-faced-concrete',
+  );
   assert.equal(active.l1.y0ExteriorFacade.mainEntranceEntityId, 'EN-01');
   assert.equal(active.l1.y0ExteriorFacade.poolHallMaterialIntent, 'safety-glass');
   assert.equal(active.l1.y0ExteriorFacade.serviceWingMaterialIntent, 'fair-faced-exposed-concrete');
@@ -140,18 +168,62 @@ test('L1 keeps four independent toilets, equipment rooms, and separated entrance
   assert.equal(zones.playgroundMaleToilet.layout.washbasinWall, 'y0');
   assert.equal(zones.poolFemaleToilet.layout.washbasinWall, 'y7.5');
   assert.equal(zones.playgroundFemaleToilet.layout.washbasinWall, 'y7.5');
-  assert.ok(Object.values(zones).filter(({ layout }) => layout).every(({ layout }) => layout.toiletCubicles.every(({ doorLeaf }) => doorLeaf)));
-  assert.ok(Object.values(zones).filter(({ layout }) => layout).every(({ layout, privacyScreen }) => privacyScreen === false && layout.privacyScreen === undefined));
-  assert.ok(Object.values(zones).filter(({ layout }) => layout).every(({ layout }) => layout.toiletCubicles.every(({ wallContact }) => wallContact === 'y3.5')));
-  assert.ok(zones.poolMaleToilet.layout.urinals.some(({ center, wallContact }) => center[0] === 31.18 && wallContact === 'x31'));
+  assert.ok(
+    Object.values(zones)
+      .filter(({ layout }) => layout)
+      .every(({ layout }) => layout.toiletCubicles.every(({ doorLeaf }) => doorLeaf)),
+  );
+  assert.ok(
+    Object.values(zones)
+      .filter(({ layout }) => layout)
+      .every(
+        ({ layout, privacyScreen }) =>
+          privacyScreen === false && layout.privacyScreen === undefined,
+      ),
+  );
+  assert.ok(
+    Object.values(zones)
+      .filter(({ layout }) => layout)
+      .every(({ layout }) =>
+        layout.toiletCubicles.every(({ wallContact }) => wallContact === 'y3.5'),
+      ),
+  );
+  assert.ok(
+    zones.poolMaleToilet.layout.urinals.some(
+      ({ center, wallContact }) => center[0] === 31.18 && wallContact === 'x31',
+    ),
+  );
   assert.deepEqual(zones.playgroundMaleToilet.fixtures, { toilets: 1, urinals: 2, washbasins: 2 });
-  assert.deepEqual(zones.playgroundFemaleToilet.fixtures, { toilets: 2, urinals: 0, washbasins: 2 });
-  assert.equal(zones.playgroundMaleToilet.layout.washbasins.filter(({ addedIn }) => addedIn === '0.6.3').length, 1);
-  assert.equal(zones.playgroundMaleToilet.layout.urinals.filter(({ addedIn }) => addedIn === '0.6.3').length, 1);
-  assert.equal(zones.playgroundFemaleToilet.layout.washbasins.filter(({ addedIn }) => addedIn === '0.6.3').length, 1);
+  assert.deepEqual(zones.playgroundFemaleToilet.fixtures, {
+    toilets: 2,
+    urinals: 0,
+    washbasins: 2,
+  });
+  assert.equal(
+    zones.playgroundMaleToilet.layout.washbasins.filter(({ addedIn }) => addedIn === '0.6.3')
+      .length,
+    1,
+  );
+  assert.equal(
+    zones.playgroundMaleToilet.layout.urinals.filter(({ addedIn }) => addedIn === '0.6.3').length,
+    1,
+  );
+  assert.equal(
+    zones.playgroundFemaleToilet.layout.washbasins.filter(({ addedIn }) => addedIn === '0.6.3')
+      .length,
+    1,
+  );
   assert.equal(active.l1.toiletEntrances.length, 4);
-  assert.ok(active.l1.toiletEntrances.every(({ clearWidth, doorLeaf, openingType }) => clearWidth === 1 && doorLeaf === false && openingType === 'doorless-opening'));
-  assert.equal(active.l1.serviceWing.architecturalStyle.materialIntent, 'fair-faced-exposed-concrete');
+  assert.ok(
+    active.l1.toiletEntrances.every(
+      ({ clearWidth, doorLeaf, openingType }) =>
+        clearWidth === 1 && doorLeaf === false && openingType === 'doorless-opening',
+    ),
+  );
+  assert.equal(
+    active.l1.serviceWing.architecturalStyle.materialIntent,
+    'fair-faced-exposed-concrete',
+  );
   assert.equal(zones.chemicalRoom.publicAccess, false);
   assert.equal(zones.chemicalRoom.separateVentilation, true);
   assert.equal(active.l1.structuralStrategy.isolatedColumnsAllowed, false);
@@ -168,7 +240,10 @@ test('DEC-157 pool-use route and DEC-158 teaching platform are complete and fail
   assert.equal(use.dryCorridorParapet.height, 1.1);
   assert.deepEqual(active.l1.zones.waterTreatment.bounds, { x1: 34, x2: 39, y1: 7.5, y2: 14 });
   assert.equal('storage' in active.l1.zones, false);
-  assert.deepEqual(use.classRoute.map(({ id }) => id), ['route-entry', 'route-corridor', 'route-stair', 'route-rinse', 'route-assembly']);
+  assert.deepEqual(
+    use.classRoute.map(({ id }) => id),
+    ['route-entry', 'route-corridor', 'route-stair', 'route-rinse', 'route-assembly'],
+  );
   assert.equal(active.l1.pool.teachingPlatform.removable, true);
   assert.ok(active.l1.pool.teachingPlatform.topWaterDepth < active.l1.pool.shallowDepth);
 
@@ -177,21 +252,100 @@ test('DEC-157 pool-use route and DEC-158 teaching platform are complete and fail
     change(resolveActiveGeometry(copy));
     return validateModel(copy).join('\n');
   };
-  assert.match(mutate((g) => { g.l1.poolUse.entryVestibule.floorElevation = 0.3; }), /L1 base elevation/);
-  assert.match(mutate((g) => { g.l1.poolUse.entryVestibule.shoeCubbyPairs = 30; }), /60 shoe cubbies/);
-  assert.match(mutate((g) => { g.l1.poolUse.entryRamp.bounds.x2 = 7; }), /1:12 or gentler/);
-  assert.match(mutate((g) => { g.l1.poolUse.entrySteps.riserHeight = 0.18; }), /entry steps must rise exactly/);
-  assert.match(mutate((g) => { g.l1.poolUse.dryCorridorParapet.height = 0.9; }), /1\.1 m low wall/);
-  assert.match(mutate((g) => { g.l1.poolUse.rinseGate.onlyRouteFromStairToDeck = false; }), /only through the foot bath/);
-  assert.match(mutate((g) => { g.l1.poolUse.lifeguardChair.bounds = { x1: 22, x2: 22.8, y1: 2.4, y2: 3.6 }; }), /lifeguard chair must stand on the assembly deck/);
-  assert.match(mutate((g) => { g.l1.poolUse.accessibleChanging.bounds.y1 = 7; }), /must not overlap each other or the four toilets/);
-  assert.match(mutate((g) => { g.l1.poolUse.accessibleChanging.entrance.clearWidth = 0.8; }), /Z-L1-ACC-01 needs a door of at least 0\.90 m/);
-  assert.match(mutate((g) => { g.l1.poolUse.staffFirstAid.poolViewWindow.spanY = [12.5, 13.5]; }), /without overlapping its door/);
-  assert.match(mutate((g) => { g.l1.zones.storage = { entityId: 'Z-STOR-01', coordinateSystemId: 'SITE-XY', bounds: { x1: 31, x2: 32.5, y1: 7.5, y2: 14 } }; }), /replaces the dry storage room/);
-  assert.match(mutate((g) => { g.l1.poolUse.poolLift.type = 'fixed'; }), /mobile lift/);
-  assert.match(mutate((g) => { g.l1.poolUse.classRoute.reverse(); }), /entry, corridor, stair, rinse, assembly/);
-  assert.match(mutate((g) => { g.l1.pool.teachingPlatform.topWaterDepth = 1.3; }), /below the water surface/);
-  assert.match(mutate((g) => { g.l1.pool.teachingPlatform.bounds.x1 = 4; }), /fill the teaching band from the shallow end/);
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.entryVestibule.floorElevation = 0.3;
+    }),
+    /L1 base elevation/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.entryVestibule.shoeCubbyPairs = 30;
+    }),
+    /60 shoe cubbies/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.entryRamp.bounds.x2 = 7;
+    }),
+    /1:12 or gentler/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.entrySteps.riserHeight = 0.18;
+    }),
+    /entry steps must rise exactly/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.dryCorridorParapet.height = 0.9;
+    }),
+    /1\.1 m low wall/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.rinseGate.onlyRouteFromStairToDeck = false;
+    }),
+    /only through the foot bath/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.lifeguardChair.bounds = { x1: 22, x2: 22.8, y1: 2.4, y2: 3.6 };
+    }),
+    /lifeguard chair must stand on the assembly deck/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.accessibleChanging.bounds.y1 = 7;
+    }),
+    /must not overlap each other or the four toilets/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.accessibleChanging.entrance.clearWidth = 0.8;
+    }),
+    /Z-L1-ACC-01 needs a door of at least 0\.90 m/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.staffFirstAid.poolViewWindow.spanY = [12.5, 13.5];
+    }),
+    /without overlapping its door/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.zones.storage = {
+        entityId: 'Z-STOR-01',
+        coordinateSystemId: 'SITE-XY',
+        bounds: { x1: 31, x2: 32.5, y1: 7.5, y2: 14 },
+      };
+    }),
+    /replaces the dry storage room/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.poolLift.type = 'fixed';
+    }),
+    /mobile lift/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.poolUse.classRoute.reverse();
+    }),
+    /entry, corridor, stair, rinse, assembly/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.pool.teachingPlatform.topWaterDepth = 1.3;
+    }),
+    /below the water surface/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l1.pool.teachingPlatform.bounds.x1 = 4;
+    }),
+    /fill the teaching band from the shallow end/,
+  );
 });
 
 test('L2 Review A provides 30 inclusive 1.2 m showers, support fixtures, corridor, and floating ST-02', () => {
@@ -211,13 +365,25 @@ test('L2 Review A provides 30 inclusive 1.2 m showers, support fixtures, corrido
     assert.equal(zone.showerCubicles.length, 15);
     assert.deepEqual(zone.showerModuleSize, [1.2, 1.2]);
     assert.equal(zone.showerDimensionBasis, 'inclusive-of-partitions');
-    assert.ok(zone.showerCubicles.every(({ planBounds }) => Math.abs(planBounds.x2 - planBounds.x1 - 1.2) < 1e-9 && Math.abs(planBounds.y2 - planBounds.y1 - 1.2) < 1e-9));
+    assert.ok(
+      zone.showerCubicles.every(
+        ({ planBounds }) =>
+          Math.abs(planBounds.x2 - planBounds.x1 - 1.2) < 1e-9 &&
+          Math.abs(planBounds.y2 - planBounds.y1 - 1.2) < 1e-9,
+      ),
+    );
     assert.deepEqual(zone.supportFixtures.fixtures, { toilets: 1, washbasins: 2 });
   }
   assert.equal(l2.circulationZone.area, 41.75);
   assert.equal(l2.circulationZone.standingOnly, true);
   assert.equal(l2.circulationZone.seatingAllowed, false);
-  assert.deepEqual(l2.changingRoomEntries.map(({ rangeY }) => rangeY), [[6.7, 7.7], [12.2, 13.2]]);
+  assert.deepEqual(
+    l2.changingRoomEntries.map(({ rangeY }) => rangeY),
+    [
+      [6.7, 7.7],
+      [12.2, 13.2],
+    ],
+  );
   assert.deepEqual(l2.stairToL3.bounds, { x1: 32.5, x2: 41, y1: 0.5, y2: 2 });
   assert.equal(l2.stairToL3.axis, '+x');
   assert.equal(l2.stairToL3.riserCount, 23);
@@ -234,7 +400,12 @@ test('L2 Review A provides 30 inclusive 1.2 m showers, support fixtures, corrido
 test('L3 holds the DEC-173 learning room and adds a complete roof with dense PV and ground-level outdoor ESS strategy', () => {
   const l3 = resolveActiveGeometry(model).l3;
   assert.equal(l3.planRotation, 25.5);
-  assert.deepEqual(l3.planPivot, { x: 35, y: 6.75, strategy: 'floor-plate-centroid-and-fixed-core-proxy', status: 'working' });
+  assert.deepEqual(l3.planPivot, {
+    x: 35,
+    y: 6.75,
+    strategy: 'floor-plate-centroid-and-fixed-core-proxy',
+    status: 'working',
+  });
   assert.equal(l3.orthogonalExtension.grossArea, 6.935);
   assert.equal(l3.arrivalWing.covered, true);
   assert.equal(l3.arrivalWing.connectsStairToIndoorL3, true);
@@ -243,15 +414,24 @@ test('L3 holds the DEC-173 learning room and adds a complete roof with dense PV 
   assert.equal(l3.landscapeTerrace.visitorsAllowed, false);
   assert.equal(l3.landscapeTerrace.primaryEgress, false);
   assert.equal(l3.programStrategy.teacherObservationRoom, 'built-in-l3-learning-room');
-  assert.equal(l3.programStrategy.environmentalEducationDisplay, 'glass-partition-equipment-view-and-energy-dashboard');
+  assert.equal(
+    l3.programStrategy.environmentalEducationDisplay,
+    'glass-partition-equipment-view-and-energy-dashboard',
+  );
   assert.equal(l3.programStrategy.wholeClassUse, false);
   assert.equal(l3.programStrategy.mirrorOpenings, false);
   assert.equal(l3.programStrategy.dryMaintenanceStorage, 'under-consideration-not-built');
   assert.deepEqual(l3.learningRoom.bounds, { x1: 29, x2: 41, y1: 0, y2: 5.5 });
   assert.deepEqual(l3.equipmentZone.bounds, { x1: 29, x2: 41, y1: 5.5, y2: 13.5 });
-  assert.equal(l3.learningRoom.area + l3.equipmentZone.area, l3.orthogonalExtension.mainRotatedPlateArea);
+  assert.equal(
+    l3.learningRoom.area + l3.equipmentZone.area,
+    l3.orthogonalExtension.mainRotatedPlateArea,
+  );
   assert.equal(l3.learningRoom.entryFrom, l3.arrivalWing.entityId);
-  assert.deepEqual(l3.glassPartition.separates, [l3.learningRoom.entityId, l3.equipmentZone.entityId]);
+  assert.deepEqual(l3.glassPartition.separates, [
+    l3.learningRoom.entityId,
+    l3.equipmentZone.entityId,
+  ]);
   assert.deepEqual(l3.roof.bounds, { x1: 27.472, x2: 41, y1: 0, y2: 13.5 });
   assert.equal(l3.roof.area, 182.628);
   assert.equal(l3.roof.continuous, true);
@@ -263,7 +443,10 @@ test('L3 holds the DEC-173 learning room and adds a complete roof with dense PV 
   assert.equal(l3.pvRoofReserve.coveragePercent, 92.74);
   assert.equal(l3.pvRoofReserve.perimeterSetback, 0.25);
   assert.equal(l3.pvRoofReserve.capacityStatus, 'deferred');
-  assert.equal(l3.energyStorageStrategy.preferredLocation, 'ground-level-independent-outdoor-enclosure');
+  assert.equal(
+    l3.energyStorageStrategy.preferredLocation,
+    'ground-level-independent-outdoor-enclosure',
+  );
   assert.equal(l3.energyStorageStrategy.batteryObjectsOnGeneralL3Interior, false);
 });
 
@@ -273,15 +456,58 @@ test('L3 program validation rejects whole-class use, mirror openings and an unev
     change(resolveActiveGeometry(copy));
     return validateModel(copy).join('\n');
   };
-  assert.equal(mutate(() => {}), '');
-  assert.match(mutate((g) => { g.l3.programStrategy.wholeClassUse = true; }), /not whole classes/);
-  assert.match(mutate((g) => { g.l3.programStrategy.mirrorOpenings = true; }), /without openings or reflective glass/);
-  assert.match(mutate((g) => { g.l3.mirror.materialIntent = 'reflective-glass'; }), /without openings or reflective glass/);
-  assert.match(mutate((g) => { g.l3.learningRoom.area = 80; }), /66 m²/);
-  assert.match(mutate((g) => { g.l3.learningRoom.entryFrom = 'Z-L3-MEP-01'; }), /arrival side/);
-  assert.match(mutate((g) => { g.l3.equipmentZone.access = 'open'; }), /maintenance-only/);
-  assert.match(mutate((g) => { g.l3.glassPartition.maintenanceDoor = 'open'; }), /locked maintenance door/);
-  assert.match(mutate((g) => { g.l3.glassPartition.bounds.y1 = 5.3; }), /W-L3-GLASS-01 bounds/);
+  assert.equal(
+    mutate(() => {}),
+    '',
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.programStrategy.wholeClassUse = true;
+    }),
+    /not whole classes/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.programStrategy.mirrorOpenings = true;
+    }),
+    /without openings or reflective glass/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.mirror.materialIntent = 'reflective-glass';
+    }),
+    /without openings or reflective glass/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.learningRoom.area = 80;
+    }),
+    /66 m²/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.learningRoom.entryFrom = 'Z-L3-MEP-01';
+    }),
+    /arrival side/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.equipmentZone.access = 'open';
+    }),
+    /maintenance-only/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.glassPartition.maintenanceDoor = 'open';
+    }),
+    /locked maintenance door/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.glassPartition.bounds.y1 = 5.3;
+    }),
+    /W-L3-GLASS-01 bounds/,
+  );
 });
 
 test('ST-02 keeps 23 risers within art. 33 and opens the L3 plate where headroom runs out (DEC-174)', () => {
@@ -295,15 +521,56 @@ test('ST-02 keeps 23 risers within art. 33 and opens the L3 plate where headroom
     change(resolveActiveGeometry(copy));
     return validateModel(copy).join('\n');
   };
-  assert.match(mutate((g) => {
-    Object.assign(g.l2.stairToL3, { riserCount: 22, risersPerRun: [11, 11], treadsPerRun: [10, 10], riserHeight: 0.162727, treadDepth: 0.275, runLengths: [2.75, 2.75], midLandingElevation: 5.09 });
-  }), /at or below 0\.16 m/);
-  assert.match(mutate((g) => { g.l2.stairToL3.runLengths = [2.75, 2.75]; }), /run lengths and mid-landing elevation/);
-  assert.match(mutate((g) => { g.l3.stairOpening.bounds.x1 = 35.5; }), /headroom to the slab underside/);
-  assert.match(mutate((g) => { g.l3.stairOpening.bounds.x2 = 38.666; }), /top of the stair/);
-  assert.match(mutate((g) => { g.l3.learningRoom.netArea = 66; }), /net area must deduct/);
-  assert.match(mutate((g) => { g.l3.arrivalWing.walkableArea = 2.964; }), /walkable area must deduct/);
-  assert.match(mutate((g) => { g.l3.stairOpening.edgeProtection = 'none'; }), /guardrails on the learning room edges/);
+  assert.match(
+    mutate((g) => {
+      Object.assign(g.l2.stairToL3, {
+        riserCount: 22,
+        risersPerRun: [11, 11],
+        treadsPerRun: [10, 10],
+        riserHeight: 0.162727,
+        treadDepth: 0.275,
+        runLengths: [2.75, 2.75],
+        midLandingElevation: 5.09,
+      });
+    }),
+    /at or below 0\.16 m/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l2.stairToL3.runLengths = [2.75, 2.75];
+    }),
+    /run lengths and mid-landing elevation/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.stairOpening.bounds.x1 = 35.5;
+    }),
+    /headroom to the slab underside/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.stairOpening.bounds.x2 = 38.666;
+    }),
+    /top of the stair/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.learningRoom.netArea = 66;
+    }),
+    /net area must deduct/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.arrivalWing.walkableArea = 2.964;
+    }),
+    /walkable area must deduct/,
+  );
+  assert.match(
+    mutate((g) => {
+      g.l3.stairOpening.edgeProtection = 'none';
+    }),
+    /guardrails on the learning room edges/,
+  );
 });
 
 test('ST-01 scheme E connects the +0.30 m deck directly to L2', () => {
@@ -322,11 +589,27 @@ test('ST-01 scheme E connects the +0.30 m deck directly to L2', () => {
 
 test('current sheet registry uses version-free sheet ids and the atlas keeps the retired anchors', async () => {
   // DEC-170: sheet ids and titles carry no version; old #REF-001／#V067-* links redirect.
-  assert.deepEqual(model.sheets.map(({ id }) => id), ['SITE', 'L1', 'L2', 'L3', 'SECTION']);
-  assert.deepEqual(model.sheets.map(({ title }) => title), ['基地衛星與方位圖', '1F 平面圖', '2F 平面圖', '3F 平面圖', '縱向剖面圖']);
-  const sheetsSource = await readFile(resolve(repoRoot, 'web/src/views/drawings/sheets.ts'), 'utf8');
-  for (const id of ['L1', 'L2', 'L3', 'SECTION']) assert.match(sheetsSource, new RegExp(`reviewDrawing\\('${id}'`));
-  for (const [retired, current] of [['REF-001', 'SITE'], ['V067-L1', 'L1'], ['V067-L2', 'L2'], ['V067-L3', 'L3'], ['V067-SECTION', 'SECTION']]) {
+  assert.deepEqual(
+    model.sheets.map(({ id }) => id),
+    ['SITE', 'L1', 'L2', 'L3', 'SECTION'],
+  );
+  assert.deepEqual(
+    model.sheets.map(({ title }) => title),
+    ['基地衛星與方位圖', '1F 平面圖', '2F 平面圖', '3F 平面圖', '縱向剖面圖'],
+  );
+  const sheetsSource = await readFile(
+    resolve(repoRoot, 'web/src/views/drawings/sheets.ts'),
+    'utf8',
+  );
+  for (const id of ['L1', 'L2', 'L3', 'SECTION'])
+    assert.match(sheetsSource, new RegExp(`reviewDrawing\\('${id}'`));
+  for (const [retired, current] of [
+    ['REF-001', 'SITE'],
+    ['V067-L1', 'L1'],
+    ['V067-L2', 'L2'],
+    ['V067-L3', 'L3'],
+    ['V067-SECTION', 'SECTION'],
+  ]) {
     assert.match(sheetsSource, new RegExp(`'${retired}': '${current}'`));
   }
   assert.doesNotMatch(sheetsSource, /V23-|v0\.5\.0\/DRAW/);
@@ -344,7 +627,10 @@ test('all four reproducible drawings carry active revision and SITE-XY metadata'
     const svg = await readFile(`${base}.svg`, 'utf8');
     // Regenerated drawings must carry the current model and active geometry, not a stale release.
     assert.ok(svg.includes(`data-model-version="${model.modelVersion}"`), `${name} model version`);
-    assert.ok(svg.includes(`data-active-geometry="${model.activeGeometryRevisionId}"`), `${name} active geometry`);
+    assert.ok(
+      svg.includes(`data-active-geometry="${model.activeGeometryRevisionId}"`),
+      `${name} active geometry`,
+    );
     assert.match(svg, /data-coordinate-system="SITE-XY"/);
     assert.match(svg, /非施工圖/);
     if (name !== 'DRAW-LONGITUDINAL-SECTION') {
@@ -377,7 +663,10 @@ test('all four reproducible drawings carry active revision and SITE-XY metadata'
       assert.match(svg, /data-entity="RF-L3-01" data-area="182\.628" data-complete-roof="true"/);
       assert.match(svg, /data-entity="RF-PV-RES-01"/);
       assert.match(svg, /data-coverage-percent="92\.74"/);
-      assert.match(svg, /data-entity="L3-ROTATED-ASSEMBLY" data-shared-plan-rotation="25\.5" transform="rotate\(25\.5 /);
+      assert.match(
+        svg,
+        /data-entity="L3-ROTATED-ASSEMBLY" data-shared-plan-rotation="25\.5" transform="rotate\(25\.5 /,
+      );
       assert.doesNotMatch(svg, /transform="rotate\(-25\.5 /);
     }
     if (name === 'DRAW-LONGITUDINAL-SECTION') {
@@ -411,7 +700,10 @@ test('active geometry consumers do not hardcode a legacy study selector', async 
 
 test('conceptual coordination never implies professional approval', () => {
   const review = resolveActiveGeometry(model).integrationReview;
-  assert.equal(review.status, 'conceptual-coordination-complete-professional-approvals-outstanding');
+  assert.equal(
+    review.status,
+    'conceptual-coordination-complete-professional-approvals-outstanding',
+  );
   assert.ok(Object.values(review.professionalApprovals).every((value) => value === false));
   assert.ok(review.openItemIds.includes('OPEN-011'));
   assert.ok(review.openItemIds.includes('OPEN-018'));

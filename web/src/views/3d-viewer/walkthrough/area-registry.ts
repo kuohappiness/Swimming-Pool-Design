@@ -33,11 +33,13 @@ export class SafeSpawnAreaRegistry implements AreaRegistry {
 
   constructor(safeSpawns: SafeSpawnRegistry) {
     this.safeSpawns = safeSpawns;
-    this.areas = Object.freeze(safeSpawns.ids.map((id) => {
-      const area = Object.freeze({ id, label: AREA_LABELS[id] });
-      this.byId.set(id, area);
-      return area;
-    }));
+    this.areas = Object.freeze(
+      safeSpawns.ids.map((id) => {
+        const area = Object.freeze({ id, label: AREA_LABELS[id] });
+        this.byId.set(id, area);
+        return area;
+      }),
+    );
   }
 
   get(id: SpawnDescriptor['id']) {

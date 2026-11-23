@@ -113,13 +113,18 @@ export class FrameGrade {
     const defines = this.material.defines;
     const occlusion = options.occlusion ? 1 : 0;
     const adaptation = options.adaptation ? 1 : 0;
-    if (defines.SCREEN_SPACE_OCCLUSION === occlusion && defines.EXPOSURE_ADAPTATION === adaptation) return;
+    if (defines.SCREEN_SPACE_OCCLUSION === occlusion && defines.EXPOSURE_ADAPTATION === adaptation)
+      return;
     defines.SCREEN_SPACE_OCCLUSION = occlusion;
     defines.EXPOSURE_ADAPTATION = adaptation;
     this.material.needsUpdate = true;
   }
 
-  render(renderer: THREE.WebGLRenderer, inputs: FrameGradeInputs, target: THREE.WebGLRenderTarget): void {
+  render(
+    renderer: THREE.WebGLRenderer,
+    inputs: FrameGradeInputs,
+    target: THREE.WebGLRenderTarget,
+  ): void {
     if (this.disposed) return;
     const uniforms = this.material.uniforms;
     uniforms.tScene.value = inputs.color;
@@ -163,8 +168,10 @@ export class FrameGrade {
       this.sun = null;
       this.ambient = null;
       scene.traverse((object) => {
-        if (!this.sun && (object as THREE.DirectionalLight).isDirectionalLight) this.sun = object as THREE.DirectionalLight;
-        if (!this.ambient && (object as THREE.HemisphereLight).isHemisphereLight) this.ambient = object as THREE.HemisphereLight;
+        if (!this.sun && (object as THREE.DirectionalLight).isDirectionalLight)
+          this.sun = object as THREE.DirectionalLight;
+        if (!this.ambient && (object as THREE.HemisphereLight).isHemisphereLight)
+          this.ambient = object as THREE.HemisphereLight;
       });
     }
     const uniforms = this.material.uniforms;
@@ -208,9 +215,9 @@ export class FrameGrade {
     if (ambient?.visible) {
       // 整片天空的照度（半球光只是其中一部分，其餘在環境貼圖裡），和水的著色器相同。
       const skyIrradiance = ambient.userData.skyIrradiance;
-      this.skyColor.copy(ambient.color).multiplyScalar(
-        typeof skyIrradiance === 'number' ? skyIrradiance : ambient.intensity,
-      );
+      this.skyColor
+        .copy(ambient.color)
+        .multiplyScalar(typeof skyIrradiance === 'number' ? skyIrradiance : ambient.intensity);
       uniforms.uSkyIrradiance.value = luminance(this.skyColor);
     } else {
       uniforms.uSkyIrradiance.value = 0;
@@ -219,9 +226,10 @@ export class FrameGrade {
     const fixtures = readSceneFixtureLights(scene);
     uniforms.uFixtureIrradiance.value = fixtures ? luminance(fixtures.ceilingIrradiance) : 0;
 
-    this.lightLevel = uniforms.uSkyIrradiance.value
-      + uniforms.uSunIrradiance.value * Math.max(0, this.towardSunWorld.y)
-      + uniforms.uFixtureIrradiance.value;
+    this.lightLevel =
+      uniforms.uSkyIrradiance.value +
+      uniforms.uSunIrradiance.value * Math.max(0, this.towardSunWorld.y) +
+      uniforms.uFixtureIrradiance.value;
     uniforms.uLightLevelLog2.value = Math.log2(Math.max(this.lightLevel, 1e-6));
   }
 }

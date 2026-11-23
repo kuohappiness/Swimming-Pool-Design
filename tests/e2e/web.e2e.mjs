@@ -18,7 +18,16 @@ const chromeCandidates = [
 ].filter(Boolean);
 
 // Registry order (router.ts viewDefinitions), which the footer's previous/next links follow.
-const pageOrder = ['design-concept', 'solar-study', 'water-cycle', 'swim-class', 'design-process', 'drawings', '3d-viewer', 'about'];
+const pageOrder = [
+  'design-concept',
+  'solar-study',
+  'water-cycle',
+  'swim-class',
+  'design-process',
+  'drawings',
+  '3d-viewer',
+  'about',
+];
 
 const routes = [
   { id: 'design-concept', url: '/' },
@@ -78,10 +87,14 @@ function trackErrors(page, errors) {
 }
 
 async function waitForView(page, viewId) {
-  await page.locator(`[data-view-root][data-view-mounted="${viewId}"]`).waitFor({ state: 'attached' });
+  await page
+    .locator(`[data-view-root][data-view-mounted="${viewId}"]`)
+    .waitFor({ state: 'attached' });
   if (viewId === '3d-viewer') {
     await page.waitForFunction(
-      () => document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') !== 'false',
+      () =>
+        document.querySelector('[data-viewer-shell]')?.getAttribute('data-viewer-ready') !==
+        'false',
     );
   }
 }
@@ -91,7 +104,10 @@ async function openMenuIfFolded(page) {
   const menuButton = page.locator('.site-menu-button');
   if (!(await menuButton.isVisible())) return false;
   await menuButton.click();
-  assert.equal(await page.locator('#site-navigation').evaluate((nav) => nav.matches(':popover-open')), true);
+  assert.equal(
+    await page.locator('#site-navigation').evaluate((nav) => nav.matches(':popover-open')),
+    true,
+  );
   return true;
 }
 
@@ -99,15 +115,24 @@ async function assertCommonShell(page, route, viewport) {
   // DEC-170: five main items; 四向專題 is a group, not a page.
   assert.equal(await page.locator('[data-site-nav]').count(), 5);
   const folded = await openMenuIfFolded(page);
-  assert.equal(folded, viewport.width <= 900, `${route.id} menu button visibility is wrong at ${viewport.width}px`);
+  assert.equal(
+    folded,
+    viewport.width <= 900,
+    `${route.id} menu button visibility is wrong at ${viewport.width}px`,
+  );
   if (folded) {
     const button = await page.locator('.site-menu-button').boundingBox();
-    assert.ok(button.width >= 44 && button.height >= 44, `${route.id} menu button is smaller than 44px at ${viewport.width}px`);
+    assert.ok(
+      button.width >= 44 && button.height >= 44,
+      `${route.id} menu button is smaller than 44px at ${viewport.width}px`,
+    );
     assert.equal(
       await page.locator('[data-site-nav]').evaluateAll((links) =>
         links.every((link) => {
           const rect = link.getBoundingClientRect();
-          return rect.left >= 0 && rect.right <= window.innerWidth && rect.bottom <= window.innerHeight;
+          return (
+            rect.left >= 0 && rect.right <= window.innerWidth && rect.bottom <= window.innerHeight
+          );
         }),
       ),
       true,
@@ -130,27 +155,52 @@ async function assertCommonShell(page, route, viewport) {
   assert.equal(await page.locator('[data-site-nav][aria-current]').count(), 1);
   if (folded) {
     await page.keyboard.press('Escape');
-    assert.equal(await page.locator('#site-navigation').evaluate((nav) => nav.matches(':popover-open')), false);
+    assert.equal(
+      await page.locator('#site-navigation').evaluate((nav) => nav.matches(':popover-open')),
+      false,
+    );
   }
-  const label = await page.locator(route.group ? `[data-site-subnav="${route.id}"]` : `[data-site-nav="${route.id}"]`).textContent();
+  const label = await page
+    .locator(route.group ? `[data-site-subnav="${route.id}"]` : `[data-site-nav="${route.id}"]`)
+    .textContent();
   assert.equal(await page.title(), `${label.trim()}｜實小泳池改建概念設計`);
   if (route.group) {
-    assert.equal(await page.locator(`[data-site-nav="${route.group}"]`).getAttribute('aria-current'), 'true');
-    assert.equal(await page.locator(`[data-site-subnav="${route.id}"]`).getAttribute('aria-current'), 'page');
+    assert.equal(
+      await page.locator(`[data-site-nav="${route.group}"]`).getAttribute('aria-current'),
+      'true',
+    );
+    assert.equal(
+      await page.locator(`[data-site-subnav="${route.id}"]`).getAttribute('aria-current'),
+      'page',
+    );
     assert.equal(await page.locator('[data-site-subnav][aria-current="page"]').count(), 1);
     const layout = await page.evaluate(() => {
       const masthead = document.querySelector('.site-masthead').getBoundingClientRect();
       const subnavigation = document.querySelector('.site-subnavigation').getBoundingClientRect();
-      const tabs = [...document.querySelectorAll('[data-site-subnav]')].map((tab) => tab.getBoundingClientRect());
+      const tabs = [...document.querySelectorAll('[data-site-subnav]')].map((tab) =>
+        tab.getBoundingClientRect(),
+      );
       return {
-        inside: subnavigation.top >= masthead.top - 1 && subnavigation.bottom <= masthead.bottom + 1,
+        inside:
+          subnavigation.top >= masthead.top - 1 && subnavigation.bottom <= masthead.bottom + 1,
         targets: tabs.every(({ height, width }) => height >= 44 && width >= 44),
       };
     });
-    assert.equal(layout.inside, true, `${route.id} second-level tabs fall outside the masthead at ${viewport.width}px`);
-    assert.equal(layout.targets, true, `${route.id} second-level tab is smaller than 44px at ${viewport.width}px`);
+    assert.equal(
+      layout.inside,
+      true,
+      `${route.id} second-level tabs fall outside the masthead at ${viewport.width}px`,
+    );
+    assert.equal(
+      layout.targets,
+      true,
+      `${route.id} second-level tab is smaller than 44px at ${viewport.width}px`,
+    );
   } else {
-    assert.equal(await page.locator(`[data-site-nav="${route.id}"]`).getAttribute('aria-current'), 'page');
+    assert.equal(
+      await page.locator(`[data-site-nav="${route.id}"]`).getAttribute('aria-current'),
+      'page',
+    );
     assert.equal(await page.locator('.site-subnavigation').count(), 0);
   }
   // Sticky elements and anchors offset by --site-header-height, so it must equal the masthead
@@ -161,7 +211,10 @@ async function assertCommonShell(page, route, viewport) {
     document.body.append(probe);
     const token = probe.getBoundingClientRect().height;
     probe.remove();
-    return { masthead: document.querySelector('.site-masthead').getBoundingClientRect().height, token };
+    return {
+      masthead: document.querySelector('.site-masthead').getBoundingClientRect().height,
+      token,
+    };
   });
   assert.ok(
     Math.abs(header.masthead - header.token) <= 0.5,
@@ -203,21 +256,33 @@ async function assertCommonShell(page, route, viewport) {
     index < pageOrder.length - 1 && { rel: 'next', view: pageOrder[index + 1] },
   ].filter(Boolean);
   assert.deepEqual(
-    pager.map(({ rel, href }) => ({ rel, view: new URL(href, origin).searchParams.get('view') ?? 'design-concept' })),
+    pager.map(({ rel, href }) => ({
+      rel,
+      view: new URL(href, origin).searchParams.get('view') ?? 'design-concept',
+    })),
     expectedPager,
     `${route.id} footer previous/next links are wrong`,
   );
-  assert.equal(pager.every(({ height }) => height >= 44), true, `${route.id} footer pager target is smaller than 44px`);
-
-  const resourceOrigins = await page.evaluate(() =>
-    [...new Set(performance.getEntriesByType('resource').map(({ name }) => new URL(name).origin))],
+  assert.equal(
+    pager.every(({ height }) => height >= 44),
+    true,
+    `${route.id} footer pager target is smaller than 44px`,
   );
-  assert.deepEqual(resourceOrigins, [origin], `${route.id} requested a runtime asset from another origin`);
+
+  const resourceOrigins = await page.evaluate(() => [
+    ...new Set(performance.getEntriesByType('resource').map(({ name }) => new URL(name).origin)),
+  ]);
+  assert.deepEqual(
+    resourceOrigins,
+    [origin],
+    `${route.id} requested a runtime asset from another origin`,
+  );
 }
 
 async function scriptMetrics(page) {
   return page.evaluate(() =>
-    performance.getEntriesByType('resource')
+    performance
+      .getEntriesByType('resource')
       .filter(({ initiatorType, name }) => initiatorType === 'script' || name.endsWith('.js'))
       .map(({ name, decodedBodySize }) => ({ name, decodedBodySize })),
   );
@@ -285,11 +350,21 @@ try {
     assert.equal(response.headers()['content-type'], 'image/png');
   }
   const shareImage = await iconPage.locator('meta[property="og:image"]').getAttribute('content');
-  const shareResponse = await iconPage.request.get(`${origin}/${new URL(shareImage).pathname.split('/').pop()}`);
+  const shareResponse = await iconPage.request.get(
+    `${origin}/${new URL(shareImage).pathname.split('/').pop()}`,
+  );
   assert.equal(shareResponse.ok(), true, 'share card is not published next to index.html');
   await iconPage.close();
 
-  for (const viewId of ['design-concept', 'solar-study', 'water-cycle', 'swim-class', 'design-process', 'drawings', 'about']) {
+  for (const viewId of [
+    'design-concept',
+    'solar-study',
+    'water-cycle',
+    'swim-class',
+    'design-process',
+    'drawings',
+    'about',
+  ]) {
     const metrics = routeScriptMetrics.get(viewId) ?? [];
     assert.equal(
       metrics.some(({ decodedBodySize }) => decodedBodySize > 500_000),
@@ -298,7 +373,9 @@ try {
     );
   }
   assert.equal(
-    (routeScriptMetrics.get('3d-viewer') ?? []).some(({ decodedBodySize }) => decodedBodySize > 500_000),
+    (routeScriptMetrics.get('3d-viewer') ?? []).some(
+      ({ decodedBodySize }) => decodedBodySize > 500_000,
+    ),
     true,
     '3D route did not load its isolated heavy runtime chunk',
   );
@@ -310,9 +387,9 @@ try {
   assert.equal(await concept.locator('.concept-chapter').count(), 4);
   // 首頁（TASK-173）：每章只有一個 H2，編號在標題裡；設計細節與結語各一個 H2。
   assert.deepEqual(
-    await concept.locator('.concept-chapters h2').evaluateAll((headings) =>
-      headings.map((heading) => heading.textContent?.trim()),
-    ),
+    await concept
+      .locator('.concept-chapters h2')
+      .evaluateAll((headings) => headings.map((heading) => heading.textContent?.trim())),
     ['01向光而轉', '02向雨而生', '03向人而開', '04向時間延續', '設計細節', '結語'],
   );
   for (const sceneId of ['light', 'rain', 'people', 'time']) {
@@ -322,27 +399,37 @@ try {
       `concept-${sceneId}-title`,
     );
   }
-  assert.equal(await concept.locator('.concept-hero-figure[data-source-id="SRC-CONCEPT-020"] img').count(), 1);
+  assert.equal(
+    await concept.locator('.concept-hero-figure[data-source-id="SRC-CONCEPT-020"] img').count(),
+    1,
+  );
   assert.equal(await concept.locator('.concept-intro h2').innerText(), '設計從保留開始');
-  assert.equal(await concept.locator('#concept-light .concept-plan-figure svg.concept-drawing').count(), 1);
+  assert.equal(
+    await concept.locator('#concept-light .concept-plan-figure svg.concept-drawing').count(),
+    1,
+  );
   assert.equal(await concept.locator('.concept-detail-card').count(), 11);
   assert.deepEqual(
     await concept.locator('.concept-detail-grid').evaluate((grid) => {
       const cards = [...grid.children];
       return {
         columns: getComputedStyle(grid).gridTemplateColumns.split(' ').length,
-        wide: cards.filter((card) => card.classList.contains('concept-detail-card--wide'))
+        wide: cards
+          .filter((card) => card.classList.contains('concept-detail-card--wide'))
           .map((card) => card.querySelector('h3')?.textContent),
       };
     }),
     { columns: 2, wide: ['尚未完成的專業檢核'] },
   );
-  assert.match(await concept.locator('.concept-overview').innerText(), /不是替舊游泳池換上一張新的臉/);
+  assert.match(
+    await concept.locator('.concept-overview').innerText(),
+    /不是替舊游泳池換上一張新的臉/,
+  );
   assert.equal(await concept.locator('.concept-origin-figure').count(), 7);
   assert.deepEqual(
-    await concept.locator('.concept-origin-figure').evaluateAll((figures) =>
-      figures.map((figure) => figure.getAttribute('data-source-id')),
-    ),
+    await concept
+      .locator('.concept-origin-figure')
+      .evaluateAll((figures) => figures.map((figure) => figure.getAttribute('data-source-id'))),
     [
       'SRC-CONCEPT-013',
       'SRC-CONCEPT-017',
@@ -354,7 +441,7 @@ try {
     ],
   );
   const originFigures = concept.locator('.concept-origin-figure');
-  for (let index = 0; index < await originFigures.count(); index += 1) {
+  for (let index = 0; index < (await originFigures.count()); index += 1) {
     const figure = originFigures.nth(index);
     await figure.scrollIntoViewIfNeeded();
     await figure.locator('img').evaluate((image) => {
@@ -362,38 +449,47 @@ try {
     });
   }
   await concept.waitForFunction(() =>
-    [...document.querySelectorAll('.concept-origin-figure img')]
-      .every((image) => image.complete && image.naturalWidth > 0),
+    [...document.querySelectorAll('.concept-origin-figure img')].every(
+      (image) => image.complete && image.naturalWidth > 0,
+    ),
   );
   assert.equal(
-    await concept.locator('.concept-origin-figure img').evaluateAll((images) =>
-      images.every((image) => image.complete && image.naturalWidth > 0),
-    ),
+    await concept
+      .locator('.concept-origin-figure img')
+      .evaluateAll((images) => images.every((image) => image.complete && image.naturalWidth > 0)),
     true,
   );
-  await concept.locator('.concept-origin-stage').nth(0).screenshot({
-    path: resolve(outputDirectory, 'public-origin-survey-desktop.png'),
-  });
-  await concept.locator('.concept-origin-stage').nth(1).screenshot({
-    path: resolve(outputDirectory, 'public-origin-sketches-desktop.png'),
-  });
+  await concept
+    .locator('.concept-origin-stage')
+    .nth(0)
+    .screenshot({
+      path: resolve(outputDirectory, 'public-origin-survey-desktop.png'),
+    });
+  await concept
+    .locator('.concept-origin-stage')
+    .nth(1)
+    .screenshot({
+      path: resolve(outputDirectory, 'public-origin-sketches-desktop.png'),
+    });
   await concept.setViewportSize({ width: 390, height: 844 });
   assert.equal(
-    await concept.locator('.concept-chapter-title').evaluateAll((titles) =>
-      titles.every((title) => getComputedStyle(title).display !== 'none'),
-    ),
+    await concept
+      .locator('.concept-chapter-title')
+      .evaluateAll((titles) => titles.every((title) => getComputedStyle(title).display !== 'none')),
     true,
   );
   assert.equal(
-    await concept.locator('.concept-detail-grid').evaluate((grid) =>
-      getComputedStyle(grid).gridTemplateColumns.split(' ').length,
-    ),
+    await concept
+      .locator('.concept-detail-grid')
+      .evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(' ').length),
     1,
   );
   assert.equal(
-    await concept.locator('.concept-index strong').evaluateAll((titles) =>
-      titles.every((title) => getComputedStyle(title).whiteSpace === 'nowrap'),
-    ),
+    await concept
+      .locator('.concept-index strong')
+      .evaluateAll((titles) =>
+        titles.every((title) => getComputedStyle(title).whiteSpace === 'nowrap'),
+      ),
     true,
   );
   assert.equal(
@@ -403,26 +499,41 @@ try {
       if (!paragraph || !quote) return false;
       const paragraphStyle = getComputedStyle(paragraph);
       const quoteStyle = getComputedStyle(quote);
-      return quoteStyle.fontFamily === paragraphStyle.fontFamily
-        && Math.abs(Number.parseFloat(quoteStyle.fontSize) - Number.parseFloat(paragraphStyle.fontSize)) <= 0.2
-        && quoteStyle.borderLeftWidth === '2px';
+      return (
+        quoteStyle.fontFamily === paragraphStyle.fontFamily &&
+        Math.abs(
+          Number.parseFloat(quoteStyle.fontSize) - Number.parseFloat(paragraphStyle.fontSize),
+        ) <= 0.2 &&
+        quoteStyle.borderLeftWidth === '2px'
+      );
     }),
     true,
   );
-  await concept.locator('.concept-origin-stage').nth(0).screenshot({
-    path: resolve(outputDirectory, 'public-origin-survey-mobile.png'),
-  });
-  await concept.locator('.concept-origin-stage').nth(1).screenshot({
-    path: resolve(outputDirectory, 'public-origin-sketches-mobile.png'),
-  });
+  await concept
+    .locator('.concept-origin-stage')
+    .nth(0)
+    .screenshot({
+      path: resolve(outputDirectory, 'public-origin-survey-mobile.png'),
+    });
+  await concept
+    .locator('.concept-origin-stage')
+    .nth(1)
+    .screenshot({
+      path: resolve(outputDirectory, 'public-origin-sketches-mobile.png'),
+    });
   assert.equal(
-    await concept.locator(
-      '[data-source-id="SRC-CONCEPT-012"], [data-source-id="SRC-CONCEPT-014"], [data-source-id="SRC-CONCEPT-015"], [data-source-id="SRC-CONCEPT-023"]',
-    ).count(),
+    await concept
+      .locator(
+        '[data-source-id="SRC-CONCEPT-012"], [data-source-id="SRC-CONCEPT-014"], [data-source-id="SRC-CONCEPT-015"], [data-source-id="SRC-CONCEPT-023"]',
+      )
+      .count(),
     0,
   );
   await concept.keyboard.press('Tab');
-  assert.equal(await concept.locator('.site-skip-link').evaluate((link) => link === document.activeElement), true);
+  assert.equal(
+    await concept.locator('.site-skip-link').evaluate((link) => link === document.activeElement),
+    true,
+  );
   await concept.close();
 
   const drawings = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -435,8 +546,10 @@ try {
   assert.equal(
     await drawings.locator('.sheet-stage').evaluate((stage) => {
       const catalogue = document.querySelector('.drawings-catalogue');
-      return catalogue !== null
-        && Math.abs(stage.getBoundingClientRect().width - catalogue.getBoundingClientRect().width) <= 1;
+      return (
+        catalogue !== null &&
+        Math.abs(stage.getBoundingClientRect().width - catalogue.getBoundingClientRect().width) <= 1
+      );
     }),
     true,
   );
@@ -450,7 +563,9 @@ try {
   });
   await drawings.waitForFunction(() => {
     const shell = document.querySelector('.sheet-tabs-shell');
-    return shell?.classList.contains('can-scroll-left') && shell.classList.contains('can-scroll-right');
+    return (
+      shell?.classList.contains('can-scroll-left') && shell.classList.contains('can-scroll-right')
+    );
   });
   await drawings.locator('.sheet-tabs').evaluate((tabs) => {
     tabs.scrollLeft = tabs.scrollWidth;
@@ -458,7 +573,9 @@ try {
   });
   await drawings.waitForFunction(() => {
     const shell = document.querySelector('.sheet-tabs-shell');
-    return shell?.classList.contains('can-scroll-left') && !shell.classList.contains('can-scroll-right');
+    return (
+      shell?.classList.contains('can-scroll-left') && !shell.classList.contains('can-scroll-right')
+    );
   });
   await drawings.close();
 
@@ -467,13 +584,19 @@ try {
   await waterCycle.goto(`${origin}/?view=water-cycle`, { waitUntil: 'networkidle' });
   await waitForView(waterCycle, 'water-cycle');
   assert.match(await waterCycle.title(), /^水循環｜.+概念設計$/);
-  const waterSectionIds = ['rainfall', 'roof', 'path', 'seasons', 'open'].map((id) => `water-${id}`);
+  const waterSectionIds = ['rainfall', 'roof', 'path', 'seasons', 'open'].map(
+    (id) => `water-${id}`,
+  );
   assert.deepEqual(
-    await waterCycle.locator('.water-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    await waterCycle
+      .locator('.water-section')
+      .evaluateAll((sections) => sections.map((section) => section.id)),
     waterSectionIds,
   );
   assert.deepEqual(
-    await waterCycle.locator('.water-index a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    await waterCycle
+      .locator('.water-index a')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
     waterSectionIds.map((id) => `#${id}`),
   );
   assert.equal(await waterCycle.locator('h1').count(), 1);
@@ -494,7 +617,9 @@ try {
         label: column.querySelector('.water-chart-value')?.textContent.trim() ?? null,
       };
     });
-    const ticks = [...figure.querySelectorAll('.water-chart-axis span')].map((tick) => Number(tick.textContent));
+    const ticks = [...figure.querySelectorAll('.water-chart-axis span')].map((tick) =>
+      Number(tick.textContent),
+    );
     return {
       sourceId: figure.dataset.sourceId,
       plotLabel: figure.querySelector('.water-chart-plot').getAttribute('aria-label'),
@@ -506,31 +631,52 @@ try {
     };
   });
   assert.equal(chart.sourceId, 'SRC-DATA-001');
-  assert.match(chart.plotLabel, /^長條圖：.+最多是 \d+ 月 .+ mm，最少是 \d+ 月 .+ mm，全年 .+ mm。$/);
-  assert.deepEqual(chart.rows.map(({ month }) => month), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-  assert.deepEqual(chart.columns.map(({ month }) => month), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  assert.match(
+    chart.plotLabel,
+    /^長條圖：.+最多是 \d+ 月 .+ mm，最少是 \d+ 月 .+ mm，全年 .+ mm。$/,
+  );
+  assert.deepEqual(
+    chart.rows.map(({ month }) => month),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  );
+  assert.deepEqual(
+    chart.columns.map(({ month }) => month),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  );
   const axisTop = chart.ticks.at(-1);
   assert.equal(chart.ticks[0], 0);
   assert.ok(axisTop >= Math.max(...chart.rows.map(({ millimetres }) => millimetres)));
   for (const [index, column] of chart.columns.entries()) {
-    const expected = chart.rows[index].millimetres / axisTop * chart.areaHeight;
-    assert.ok(Math.abs(column.height - expected) <= 1.5, `month ${column.month} bar is ${column.height}px, expected ${expected}px`);
+    const expected = (chart.rows[index].millimetres / axisTop) * chart.areaHeight;
+    assert.ok(
+      Math.abs(column.height - expected) <= 1.5,
+      `month ${column.month} bar is ${column.height}px, expected ${expected}px`,
+    );
     assert.ok(column.baseline <= 1, `month ${column.month} bar does not sit on the baseline`);
     assert.ok(column.width <= 24, `month ${column.month} bar is wider than 24px`);
   }
   const sortedRows = [...chart.rows].sort((left, right) => left.millimetres - right.millimetres);
   assert.deepEqual(
-    chart.columns.filter(({ label }) => label !== null).map(({ month }) => month).sort((left, right) => left - right),
+    chart.columns
+      .filter(({ label }) => label !== null)
+      .map(({ month }) => month)
+      .sort((left, right) => left - right),
     [sortedRows[0].month, sortedRows.at(-1).month].sort((left, right) => left - right),
   );
   const monthlySum = chart.rows.reduce((total, { millimetres }) => total + millimetres, 0);
-  assert.ok(Math.abs(monthlySum - Number.parseFloat(chart.total.replace(',', ''))) <= 0.05, 'table months must add up to the annual row');
+  assert.ok(
+    Math.abs(monthlySum - Number.parseFloat(chart.total.replace(',', ''))) <= 0.05,
+    'table months must add up to the annual row',
+  );
   // Hover shows one month's values; the table is the text alternative and opens from the keyboard.
   const august = waterCycle.locator('.water-chart-column[data-water-month="8"]');
   assert.equal(await august.locator('.water-chart-tip').isVisible(), false);
   await august.hover();
   assert.equal(await august.locator('.water-chart-tip').isVisible(), true);
-  assert.match(await august.locator('.water-chart-tip').innerText(), /8 月\s+降水量 [\d.,]+ mm\s+落在屋頂約 [\d,]+ m³/);
+  assert.match(
+    await august.locator('.water-chart-tip').innerText(),
+    /8 月\s+降水量 [\d.,]+ mm\s+落在屋頂約 [\d,]+ m³/,
+  );
   await waterCycle.mouse.move(0, 0);
   assert.equal(await august.locator('.water-chart-tip').isVisible(), false);
   const tableToggle = waterCycle.locator('.water-chart-table summary');
@@ -542,22 +688,36 @@ try {
   assert.match(await waterCycle.locator('.water-estimate-note').innerText(), /概念估算/);
   assert.equal(await waterCycle.locator('.water-step').count(), 8);
   assert.equal(
-    await waterCycle.locator('.water-section a[href^="http"]').evaluateAll((links) =>
-      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener')),
+    await waterCycle
+      .locator('.water-section a[href^="http"]')
+      .evaluateAll(
+        (links) =>
+          links.length > 0 &&
+          links.every((link) => link.target === '_blank' && link.rel === 'noopener'),
+      ),
     true,
   );
   assert.deepEqual(
-    await waterCycle.locator('.water-section a:not([href^="http"])').evaluateAll((links) =>
-      links.map((link) => link.getAttribute('href'))),
+    await waterCycle
+      .locator('.water-section a:not([href^="http"])')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
     ['?view=3d-viewer#rain'],
     'water-cycle in-site links must point to registered views',
   );
-  await waterCycle.screenshot({ path: resolve(outputDirectory, 'public-water-cycle-desktop.png'), fullPage: true });
+  await waterCycle.screenshot({
+    path: resolve(outputDirectory, 'public-water-cycle-desktop.png'),
+    fullPage: true,
+  });
   await waterCycle.close();
 
-  const waterCycleMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  const waterCycleMobile = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+  });
   trackErrors(waterCycleMobile, errors);
-  await waterCycleMobile.goto(`${origin}/?view=water-cycle#water-rainfall`, { waitUntil: 'networkidle' });
+  await waterCycleMobile.goto(`${origin}/?view=water-cycle#water-rainfall`, {
+    waitUntil: 'networkidle',
+  });
   await waitForView(waterCycleMobile, 'water-cycle');
   await waterCycleMobile.waitForFunction(() => {
     const target = document.querySelector('#water-rainfall');
@@ -567,8 +727,15 @@ try {
     return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
   });
   assert.equal(
-    await waterCycleMobile.locator('.water-index a, .water-chart-table summary').evaluateAll((targets) =>
-      targets.every((target) => target.getBoundingClientRect().height >= 44 && target.getBoundingClientRect().width >= 44)),
+    await waterCycleMobile
+      .locator('.water-index a, .water-chart-table summary')
+      .evaluateAll((targets) =>
+        targets.every(
+          (target) =>
+            target.getBoundingClientRect().height >= 44 &&
+            target.getBoundingClientRect().width >= 44,
+        ),
+      ),
     true,
     'water-cycle tap targets are smaller than 44px at 390px',
   );
@@ -580,17 +747,26 @@ try {
     assert.equal(await tip.isVisible(), true, `month ${month} tooltip did not open on tap`);
     const box = await tip.boundingBox();
     assert.ok(box.x >= 0 && box.x + box.width <= 390, `month ${month} tooltip leaves the screen`);
-    assert.equal(await waterCycleMobile.locator('.water-chart-column[data-water-active]').count(), 1);
+    assert.equal(
+      await waterCycleMobile.locator('.water-chart-column[data-water-active]').count(),
+      1,
+    );
     await column.tap();
-    assert.equal(await waterCycleMobile.locator('.water-chart-column[data-water-active]').count(), 0);
+    assert.equal(
+      await waterCycleMobile.locator('.water-chart-column[data-water-active]').count(),
+      0,
+    );
   }
   assert.equal(
-    await waterCycleMobile.locator('.water-path').evaluate((list) =>
-      getComputedStyle(list).gridTemplateColumns.trim().split(/\s+/).length),
+    await waterCycleMobile
+      .locator('.water-path')
+      .evaluate((list) => getComputedStyle(list).gridTemplateColumns.trim().split(/\s+/).length),
     1,
     'the path of a raindrop should stack into one column on a phone',
   );
-  await waterCycleMobile.screenshot({ path: resolve(outputDirectory, 'public-water-cycle-mobile.png') });
+  await waterCycleMobile.screenshot({
+    path: resolve(outputDirectory, 'public-water-cycle-mobile.png'),
+  });
   await waterCycleMobile.close();
 
   const swimClass = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -600,67 +776,115 @@ try {
   assert.match(await swimClass.title(), /^一堂游泳課｜.+概念設計$/);
   const swimSectionIds = ['route', 'water', 'care', 'open'].map((id) => `swim-${id}`);
   assert.deepEqual(
-    await swimClass.locator('.swim-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    await swimClass
+      .locator('.swim-section')
+      .evaluateAll((sections) => sections.map((section) => section.id)),
     swimSectionIds,
   );
   assert.deepEqual(
-    await swimClass.locator('.swim-index a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    await swimClass
+      .locator('.swim-index a')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
     swimSectionIds.map((id) => `#${id}`),
   );
   assert.equal(await swimClass.locator('h1').count(), 1);
   // Both plans are drawn from the active geometry, and every marker sits inside the place it stands for.
-  const plans = await swimClass.locator('.swim-group').evaluateAll((groups) => groups.map((group) => {
-    const canvas = group.querySelector('.swim-plan-canvas').getBoundingClientRect();
-    const boxOf = (element) => {
-      const box = element.getBoundingClientRect();
-      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, x: box.left + box.width / 2, y: box.top + box.height / 2 };
-    };
-    return {
-      group: group.dataset.swimGroup,
-      revision: group.querySelector('.swim-plan').dataset.swimRevision,
-      label: group.querySelector('.swim-plan svg').getAttribute('aria-label'),
-      ratio: canvas.width / canvas.height,
-      canvas: { left: canvas.left, right: canvas.right, top: canvas.top, bottom: canvas.bottom },
-      pool: boxOf(group.querySelector('.swim-plan-pool')),
-      platform: boxOf(group.querySelector('.swim-plan-platform')),
-      markers: [...group.querySelectorAll('.swim-plan-marker')].map((marker) => {
-        const places = [...group.querySelectorAll('.swim-plan-place')]
-          .filter((place) => (place.dataset.swimKeys ?? '').split(' ').includes(marker.dataset.swimKey))
-          .map(boxOf);
-        return { key: marker.dataset.swimKey, badge: marker.textContent.trim(), ...boxOf(marker), places };
-      }),
-      locators: [...group.querySelectorAll('.swim-locate')].map((button) => ({
-        key: button.dataset.swimKey,
-        badge: button.querySelector('[aria-hidden]').textContent.trim(),
-        pressed: button.getAttribute('aria-pressed'),
-        name: button.textContent.replace(/\s+/g, ' ').trim(),
-      })),
-      routePoints: group.querySelector('.swim-plan-route')?.points.length ?? 0,
-    };
-  }));
-  assert.deepEqual(plans.map(({ group }) => group), ['route', 'care']);
+  const plans = await swimClass.locator('.swim-group').evaluateAll((groups) =>
+    groups.map((group) => {
+      const canvas = group.querySelector('.swim-plan-canvas').getBoundingClientRect();
+      const boxOf = (element) => {
+        const box = element.getBoundingClientRect();
+        return {
+          left: box.left,
+          right: box.right,
+          top: box.top,
+          bottom: box.bottom,
+          x: box.left + box.width / 2,
+          y: box.top + box.height / 2,
+        };
+      };
+      return {
+        group: group.dataset.swimGroup,
+        revision: group.querySelector('.swim-plan').dataset.swimRevision,
+        label: group.querySelector('.swim-plan svg').getAttribute('aria-label'),
+        ratio: canvas.width / canvas.height,
+        canvas: { left: canvas.left, right: canvas.right, top: canvas.top, bottom: canvas.bottom },
+        pool: boxOf(group.querySelector('.swim-plan-pool')),
+        platform: boxOf(group.querySelector('.swim-plan-platform')),
+        markers: [...group.querySelectorAll('.swim-plan-marker')].map((marker) => {
+          const places = [...group.querySelectorAll('.swim-plan-place')]
+            .filter((place) =>
+              (place.dataset.swimKeys ?? '').split(' ').includes(marker.dataset.swimKey),
+            )
+            .map(boxOf);
+          return {
+            key: marker.dataset.swimKey,
+            badge: marker.textContent.trim(),
+            ...boxOf(marker),
+            places,
+          };
+        }),
+        locators: [...group.querySelectorAll('.swim-locate')].map((button) => ({
+          key: button.dataset.swimKey,
+          badge: button.querySelector('[aria-hidden]').textContent.trim(),
+          pressed: button.getAttribute('aria-pressed'),
+          name: button.textContent.replace(/\s+/g, ' ').trim(),
+        })),
+        routePoints: group.querySelector('.swim-plan-route')?.points.length ?? 0,
+      };
+    }),
+  );
+  assert.deepEqual(
+    plans.map(({ group }) => group),
+    ['route', 'care'],
+  );
   // The model line sits in the collapsed 技術資料 block, so read its text rather than the rendered text.
   const footerGeometry = await swimClass.locator('.site-footer-meta').textContent();
   for (const plan of plans) {
     assert.match(plan.revision, /^GEO-\d+\.\d+\.\d+$/);
-    assert.ok(footerGeometry.includes(plan.revision), `${plan.group} plan revision ${plan.revision} differs from the footer`);
+    assert.ok(
+      footerGeometry.includes(plan.revision),
+      `${plan.group} plan revision ${plan.revision} differs from the footer`,
+    );
     assert.ok(plan.label.length > 20);
     assert.equal(plan.markers.length, 5);
-    assert.deepEqual(plan.locators.map(({ badge }) => badge), plan.markers.map(({ badge }) => badge));
-    assert.deepEqual(plan.locators.map(({ pressed }) => pressed), ['true', 'false', 'false', 'false', 'false']);
+    assert.deepEqual(
+      plan.locators.map(({ badge }) => badge),
+      plan.markers.map(({ badge }) => badge),
+    );
+    assert.deepEqual(
+      plan.locators.map(({ pressed }) => pressed),
+      ['true', 'false', 'false', 'false', 'false'],
+    );
     assert.ok(plan.locators.every(({ name }) => /在平面圖上標出「.+」$/.test(name)));
     // The teaching platform is inside the pool, and the pool is inside the plan.
-    assert.ok(plan.platform.left >= plan.pool.left - 1 && plan.platform.right <= plan.pool.right + 1);
-    assert.ok(plan.platform.top >= plan.pool.top - 1 && plan.platform.bottom <= plan.pool.bottom + 1);
+    assert.ok(
+      plan.platform.left >= plan.pool.left - 1 && plan.platform.right <= plan.pool.right + 1,
+    );
+    assert.ok(
+      plan.platform.top >= plan.pool.top - 1 && plan.platform.bottom <= plan.pool.bottom + 1,
+    );
     assert.ok(plan.pool.left > plan.canvas.left && plan.pool.right < plan.canvas.right);
     for (const marker of plan.markers) {
-      assert.ok(marker.x >= plan.canvas.left && marker.x <= plan.canvas.right, `${marker.key} leaves the plan`);
-      assert.ok(marker.y >= plan.canvas.top && marker.y <= plan.canvas.bottom, `${marker.key} leaves the plan`);
+      assert.ok(
+        marker.x >= plan.canvas.left && marker.x <= plan.canvas.right,
+        `${marker.key} leaves the plan`,
+      );
+      assert.ok(
+        marker.y >= plan.canvas.top && marker.y <= plan.canvas.bottom,
+        `${marker.key} leaves the plan`,
+      );
     }
   }
   const [routePlan, carePlan] = plans;
-  assert.deepEqual(routePlan.markers.map(({ badge }) => badge), ['1', '2', '3', '4', '5']);
-  assert.deepEqual(carePlan.markers.map(({ badge }) => badge), ['A', 'B', 'C', 'D', 'E']);
+  assert.deepEqual(
+    routePlan.markers.map(({ badge }) => badge),
+    ['1', '2', '3', '4', '5'],
+  );
+  assert.deepEqual(
+    carePlan.markers.map(({ badge }) => badge),
+    ['A', 'B', 'C', 'D', 'E'],
+  );
   assert.equal(routePlan.routePoints, 5);
   assert.equal(carePlan.routePoints, 0);
   // Stops that stand inside their own place: entry, corridor, rinse gate and assembly area.
@@ -669,38 +893,65 @@ try {
     assert.equal(marker.places.length, 1);
     const [place] = marker.places;
     assert.ok(
-      marker.x >= place.left - 1 && marker.x <= place.right + 1 && marker.y >= place.top - 1 && marker.y <= place.bottom + 1,
+      marker.x >= place.left - 1 &&
+        marker.x <= place.right + 1 &&
+        marker.y >= place.top - 1 &&
+        marker.y <= place.bottom + 1,
       `route marker ${marker.badge} is drawn outside its place`,
     );
   }
   // Pointing at a step, or pressing its button, selects the marker and the place on the same plan only.
   await swimClass.locator('.swim-step').nth(3).hover();
   assert.deepEqual(
-    await swimClass.locator('[data-swim-group="route"] .is-active').evaluateAll((elements) =>
-      elements.map((element) => element.dataset.swimKey ?? element.dataset.swimKeys).sort()),
+    await swimClass
+      .locator('[data-swim-group="route"] .is-active')
+      .evaluateAll((elements) =>
+        elements.map((element) => element.dataset.swimKey ?? element.dataset.swimKeys).sort(),
+      ),
     ['route-4', 'route-4', 'route-4', 'route-4'],
   );
   await swimClass.locator('[data-swim-group="care"] .swim-locate').nth(1).focus();
   await swimClass.keyboard.press('Tab');
   await swimClass.keyboard.press('Enter');
-  assert.equal(await swimClass.locator('[data-swim-group="care"]').getAttribute('data-swim-active'), 'care-3');
-  assert.equal(await swimClass.locator('[data-swim-group="route"]').getAttribute('data-swim-active'), 'route-4');
-  assert.equal(await swimClass.locator('[data-swim-group="care"] .swim-locate[aria-pressed="true"]').count(), 1);
   assert.equal(
-    await swimClass.locator('.swim-section a[href^="http"]').evaluateAll((links) =>
-      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener')),
+    await swimClass.locator('[data-swim-group="care"]').getAttribute('data-swim-active'),
+    'care-3',
+  );
+  assert.equal(
+    await swimClass.locator('[data-swim-group="route"]').getAttribute('data-swim-active'),
+    'route-4',
+  );
+  assert.equal(
+    await swimClass.locator('[data-swim-group="care"] .swim-locate[aria-pressed="true"]').count(),
+    1,
+  );
+  assert.equal(
+    await swimClass
+      .locator('.swim-section a[href^="http"]')
+      .evaluateAll(
+        (links) =>
+          links.length > 0 &&
+          links.every((link) => link.target === '_blank' && link.rel === 'noopener'),
+      ),
     true,
   );
   assert.deepEqual(
-    await swimClass.locator('.swim-section a:not([href^="http"])').evaluateAll((links) =>
-      links.map((link) => link.getAttribute('href'))),
+    await swimClass
+      .locator('.swim-section a:not([href^="http"])')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
     ['?view=drawings', '?view=3d-viewer#people', './'],
     'swim-class in-site links must point to registered views',
   );
-  await swimClass.screenshot({ path: resolve(outputDirectory, 'public-swim-class-desktop.png'), fullPage: true });
+  await swimClass.screenshot({
+    path: resolve(outputDirectory, 'public-swim-class-desktop.png'),
+    fullPage: true,
+  });
   await swimClass.close();
 
-  const swimClassMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  const swimClassMobile = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+  });
   trackErrors(swimClassMobile, errors);
   await swimClassMobile.goto(`${origin}/?view=swim-class#swim-route`, { waitUntil: 'networkidle' });
   await waitForView(swimClassMobile, 'swim-class');
@@ -712,14 +963,22 @@ try {
     return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
   });
   assert.equal(
-    await swimClassMobile.locator('.swim-index a, .swim-locate').evaluateAll((targets) =>
-      targets.every((target) => target.getBoundingClientRect().height >= 44 && target.getBoundingClientRect().width >= 44)),
+    await swimClassMobile
+      .locator('.swim-index a, .swim-locate')
+      .evaluateAll((targets) =>
+        targets.every(
+          (target) =>
+            target.getBoundingClientRect().height >= 44 &&
+            target.getBoundingClientRect().width >= 44,
+        ),
+      ),
     true,
     'swim-class tap targets are smaller than 44px at 390px',
   );
   assert.equal(
-    await swimClassMobile.locator('.swim-steps').evaluate((list) =>
-      getComputedStyle(list).gridTemplateColumns.trim().split(/\s+/).length),
+    await swimClassMobile
+      .locator('.swim-steps')
+      .evaluate((list) => getComputedStyle(list).gridTemplateColumns.trim().split(/\s+/).length),
     1,
     'route steps should stack into one column on a phone',
   );
@@ -729,27 +988,35 @@ try {
     const button = swimClassMobile.locator('[data-swim-group="route"] .swim-locate').nth(index);
     await button.scrollIntoViewIfNeeded();
     await button.tap();
-    const state = await swimClassMobile.locator('[data-swim-group="route"]').evaluate((group, key) => {
-      const scroller = group.querySelector('.swim-plan-scroll').getBoundingClientRect();
-      const marker = group.querySelector(`.swim-plan-marker[data-swim-key="${key}"]`);
-      const box = marker.getBoundingClientRect();
-      const masthead = document.querySelector('.site-masthead').getBoundingClientRect();
-      const plan = group.querySelector('.swim-plan').getBoundingClientRect();
-      return {
-        active: marker.classList.contains('is-active'),
-        visible: box.left >= scroller.left - 1 && box.right <= scroller.right + 1,
-        planTop: plan.top,
-        planBottom: plan.bottom,
-        mastheadBottom: masthead.bottom,
-        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      };
-    }, `route-${index + 1}`);
+    const state = await swimClassMobile.locator('[data-swim-group="route"]').evaluate(
+      (group, key) => {
+        const scroller = group.querySelector('.swim-plan-scroll').getBoundingClientRect();
+        const marker = group.querySelector(`.swim-plan-marker[data-swim-key="${key}"]`);
+        const box = marker.getBoundingClientRect();
+        const masthead = document.querySelector('.site-masthead').getBoundingClientRect();
+        const plan = group.querySelector('.swim-plan').getBoundingClientRect();
+        return {
+          active: marker.classList.contains('is-active'),
+          visible: box.left >= scroller.left - 1 && box.right <= scroller.right + 1,
+          planTop: plan.top,
+          planBottom: plan.bottom,
+          mastheadBottom: masthead.bottom,
+          pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        };
+      },
+      `route-${index + 1}`,
+    );
     assert.equal(state.active, true, `step ${index + 1} did not select its marker`);
     assert.equal(state.visible, true, `marker ${index + 1} is scrolled out of the plan box`);
-    assert.ok(state.planTop >= state.mastheadBottom - 1 && state.planBottom < 844, `plan is not visible while step ${index + 1} is tapped`);
+    assert.ok(
+      state.planTop >= state.mastheadBottom - 1 && state.planBottom < 844,
+      `plan is not visible while step ${index + 1} is tapped`,
+    );
     assert.equal(state.pageOverflow, 0);
   }
-  await swimClassMobile.screenshot({ path: resolve(outputDirectory, 'public-swim-class-mobile.png') });
+  await swimClassMobile.screenshot({
+    path: resolve(outputDirectory, 'public-swim-class-mobile.png'),
+  });
   await swimClassMobile.close();
 
   const designProcess = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -757,30 +1024,46 @@ try {
   await designProcess.goto(`${origin}/?view=design-process`, { waitUntil: 'networkidle' });
   await waitForView(designProcess, 'design-process');
   assert.match(await designProcess.title(), /^設計歷程｜.+概念設計$/);
-  const processSectionIds = ['timeline', 'versions', 'pivots', 'corrections', 'open'].map((id) => `process-${id}`);
+  const processSectionIds = ['timeline', 'versions', 'pivots', 'corrections', 'open'].map(
+    (id) => `process-${id}`,
+  );
   assert.deepEqual(
-    await designProcess.locator('.process-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    await designProcess
+      .locator('.process-section')
+      .evaluateAll((sections) => sections.map((section) => section.id)),
     processSectionIds,
   );
   assert.deepEqual(
-    await designProcess.locator('.process-index a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    await designProcess
+      .locator('.process-index a')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
     processSectionIds.map((id) => `#${id}`),
   );
   assert.equal(await designProcess.locator('h1').count(), 1);
-  assert.equal(await designProcess.locator('.process-milestone').count() >= 6, true);
+  assert.equal((await designProcess.locator('.process-milestone').count()) >= 6, true);
   assert.equal(
-    await designProcess.locator('.process-milestone').evaluateAll((items) =>
-      items.every((item) => item.querySelector('.process-when')?.textContent.trim() && item.querySelector('h3')?.textContent.trim())),
+    await designProcess
+      .locator('.process-milestone')
+      .evaluateAll((items) =>
+        items.every(
+          (item) =>
+            item.querySelector('.process-when')?.textContent.trim() &&
+            item.querySelector('h3')?.textContent.trim(),
+        ),
+      ),
     true,
     'every milestone needs a date label and a name',
   );
   // 兩張圖各三個版本：第一版手繪、第二版手繪、現行圖面，手繪稿要標出來源編號。
   assert.deepEqual(
     await designProcess.locator('.process-version').evaluateAll((versions) =>
-      versions.map((version) => [...version.querySelectorAll('.process-version-figure')].map((figure) => ({
-        stage: figure.querySelector('.process-stage')?.textContent.trim(),
-        sourceId: figure.dataset.sourceId ?? null,
-      })))),
+      versions.map((version) =>
+        [...version.querySelectorAll('.process-version-figure')].map((figure) => ({
+          stage: figure.querySelector('.process-stage')?.textContent.trim(),
+          sourceId: figure.dataset.sourceId ?? null,
+        })),
+      ),
+    ),
     [
       [
         { stage: '第一版手繪', sourceId: 'SRC-CONCEPT-003' },
@@ -796,16 +1079,25 @@ try {
   );
   const versionImages = designProcess.locator('.process-version-figure img');
   assert.equal(await versionImages.count(), 6);
-  for (let index = 0; index < 6; index += 1) await versionImages.nth(index).scrollIntoViewIfNeeded();
+  for (let index = 0; index < 6; index += 1)
+    await versionImages.nth(index).scrollIntoViewIfNeeded();
   await designProcess.waitForFunction(() =>
-    [...document.querySelectorAll('.process-version-figure img')].every((image) => image.complete && image.naturalWidth > 0));
+    [...document.querySelectorAll('.process-version-figure img')].every(
+      (image) => image.complete && image.naturalWidth > 0,
+    ),
+  );
   assert.equal(
-    await versionImages.evaluateAll((images) => images.every((image) => image.alt.trim().length >= 8)),
+    await versionImages.evaluateAll((images) =>
+      images.every((image) => image.alt.trim().length >= 8),
+    ),
     true,
     'every version image needs a descriptive alt text',
   );
-  const sketchLinks = await designProcess.locator('a.process-version-media').evaluateAll((links) =>
-    links.map((link) => ({ href: link.href, target: link.target, rel: link.rel })));
+  const sketchLinks = await designProcess
+    .locator('a.process-version-media')
+    .evaluateAll((links) =>
+      links.map((link) => ({ href: link.href, target: link.target, rel: link.rel })),
+    );
   assert.equal(sketchLinks.length, 4);
   for (const { href, target, rel } of sketchLinks) {
     assert.equal(target, '_blank');
@@ -815,24 +1107,45 @@ try {
     assert.match(response.headers()['content-type'] ?? '', /^image\/jpeg/);
   }
   assert.equal(
-    await designProcess.locator('.process-section a[href^="http"]').evaluateAll((links) =>
-      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener')),
+    await designProcess
+      .locator('.process-section a[href^="http"]')
+      .evaluateAll(
+        (links) =>
+          links.length > 0 &&
+          links.every((link) => link.target === '_blank' && link.rel === 'noopener'),
+      ),
     true,
   );
   assert.equal(
-    await designProcess.locator('.process-section a:not([href^="http"]):not(.process-version-media)').evaluateAll((links) =>
-      links.every((link) => ['./', '?view=solar-study', '?view=swim-class', '?view=drawings', '?view=3d-viewer', '?view=about']
-        .includes(link.getAttribute('href')))),
+    await designProcess
+      .locator('.process-section a:not([href^="http"]):not(.process-version-media)')
+      .evaluateAll((links) =>
+        links.every((link) =>
+          [
+            './',
+            '?view=solar-study',
+            '?view=swim-class',
+            '?view=drawings',
+            '?view=3d-viewer',
+            '?view=about',
+          ].includes(link.getAttribute('href')),
+        ),
+      ),
     true,
     'design-process in-site links must point to registered views',
   );
-  assert.equal(await designProcess.locator('.process-card').count() >= 12, true);
-  await designProcess.screenshot({ path: resolve(outputDirectory, 'public-design-process-desktop.png'), fullPage: true });
+  assert.equal((await designProcess.locator('.process-card').count()) >= 12, true);
+  await designProcess.screenshot({
+    path: resolve(outputDirectory, 'public-design-process-desktop.png'),
+    fullPage: true,
+  });
   await designProcess.close();
 
   const designProcessMobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   trackErrors(designProcessMobile, errors);
-  await designProcessMobile.goto(`${origin}/?view=design-process#process-versions`, { waitUntil: 'networkidle' });
+  await designProcessMobile.goto(`${origin}/?view=design-process#process-versions`, {
+    waitUntil: 'networkidle',
+  });
   await waitForView(designProcessMobile, 'design-process');
   await designProcessMobile.waitForFunction(() => {
     const target = document.querySelector('#process-versions');
@@ -842,18 +1155,29 @@ try {
     return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
   });
   assert.equal(
-    await designProcessMobile.locator('.process-index a, a.process-version-media').evaluateAll((targets) =>
-      targets.every((target) => target.getBoundingClientRect().height >= 44 && target.getBoundingClientRect().width >= 44)),
+    await designProcessMobile
+      .locator('.process-index a, a.process-version-media')
+      .evaluateAll((targets) =>
+        targets.every(
+          (target) =>
+            target.getBoundingClientRect().height >= 44 &&
+            target.getBoundingClientRect().width >= 44,
+        ),
+      ),
     true,
     'design-process tap targets are smaller than 44px at 390px',
   );
   assert.equal(
-    await designProcessMobile.locator('.process-version-row').first().evaluate((row) =>
-      getComputedStyle(row).gridTemplateColumns.trim().split(/\s+/).length),
+    await designProcessMobile
+      .locator('.process-version-row')
+      .first()
+      .evaluate((row) => getComputedStyle(row).gridTemplateColumns.trim().split(/\s+/).length),
     1,
     'version comparison should stack into one column on a phone',
   );
-  await designProcessMobile.screenshot({ path: resolve(outputDirectory, 'public-design-process-mobile.png') });
+  await designProcessMobile.screenshot({
+    path: resolve(outputDirectory, 'public-design-process-mobile.png'),
+  });
   await designProcessMobile.close();
 
   const about = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -862,33 +1186,50 @@ try {
   await waitForView(about, 'about');
   // The page name before the separator comes from the route registry (DEC-170 one page, one name).
   assert.match(await about.title(), /^關於｜.+概念設計$/);
-  const aboutSectionIds = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'].map((id) => `about-${id}`);
+  const aboutSectionIds = ['project', 'reading', 'sources', 'glossary', 'faq', 'downloads'].map(
+    (id) => `about-${id}`,
+  );
   assert.deepEqual(
-    await about.locator('.about-section').evaluateAll((sections) => sections.map((section) => section.id)),
+    await about
+      .locator('.about-section')
+      .evaluateAll((sections) => sections.map((section) => section.id)),
     aboutSectionIds,
   );
   assert.deepEqual(
-    await about.locator('.about-contents a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+    await about
+      .locator('.about-contents a')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
     aboutSectionIds.map((id) => `#${id}`),
   );
   assert.equal(await about.locator('h1').count(), 1);
-  assert.equal(await about.locator('.about-term').count() >= 20, true);
+  assert.equal((await about.locator('.about-term').count()) >= 20, true);
   assert.equal(
-    await about.locator('.about-section a[href^="http"]').evaluateAll((links) =>
-      links.length > 0 && links.every((link) => link.target === '_blank' && link.rel === 'noopener'),
-    ),
+    await about
+      .locator('.about-section a[href^="http"]')
+      .evaluateAll(
+        (links) =>
+          links.length > 0 &&
+          links.every((link) => link.target === '_blank' && link.rel === 'noopener'),
+      ),
     true,
   );
   assert.equal(
-    await about.locator('.about-section a:not([href^="http"]):not([download])').evaluateAll((links) =>
-      links.length > 0
-        && links.every((link) => ['./', '?view=solar-study', '?view=drawings', '?view=3d-viewer'].includes(link.getAttribute('href'))),
-    ),
+    await about
+      .locator('.about-section a:not([href^="http"]):not([download])')
+      .evaluateAll(
+        (links) =>
+          links.length > 0 &&
+          links.every((link) =>
+            ['./', '?view=solar-study', '?view=drawings', '?view=3d-viewer'].includes(
+              link.getAttribute('href'),
+            ),
+          ),
+      ),
     true,
   );
 
   const questions = about.locator('.about-question');
-  assert.equal(await questions.count() >= 8, true);
+  assert.equal((await questions.count()) >= 8, true);
   assert.equal(await questions.evaluateAll((items) => items.every((item) => !item.open)), true);
   await questions.nth(0).locator('summary').click();
   assert.equal(await questions.nth(0).evaluate((item) => item.open), true);
@@ -897,9 +1238,11 @@ try {
   await about.keyboard.press('Enter');
   assert.equal(await questions.nth(1).evaluate((item) => item.open), true);
 
-  const downloadLinks = await about.locator('[data-about-download]').evaluateAll((links) =>
-    links.map((link) => ({ href: link.href, fileName: link.getAttribute('download') })),
-  );
+  const downloadLinks = await about
+    .locator('[data-about-download]')
+    .evaluateAll((links) =>
+      links.map((link) => ({ href: link.href, fileName: link.getAttribute('download') })),
+    );
   assert.deepEqual(
     downloadLinks.map(({ fileName }) => fileName),
     ['DRAW-L1-PLAN.svg', 'DRAW-L2-PLAN.svg', 'DRAW-L3-PLAN.svg', 'DRAW-LONGITUDINAL-SECTION.svg'],
@@ -910,7 +1253,10 @@ try {
     assert.match(response.headers.get('content-type') ?? '', /image\/svg\+xml/);
     assert.match(await response.text(), /<svg[\s>]/);
   }
-  await about.screenshot({ path: resolve(outputDirectory, 'public-about-desktop.png'), fullPage: true });
+  await about.screenshot({
+    path: resolve(outputDirectory, 'public-about-desktop.png'),
+    fullPage: true,
+  });
   await about.close();
 
   const aboutDeepLink = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -926,42 +1272,72 @@ try {
     return top >= masthead.getBoundingClientRect().bottom - 1 && top < window.innerHeight / 2;
   });
   assert.equal(
-    await aboutDeepLink.locator('.about-contents a, .about-question summary, [data-about-download]').evaluateAll((targets) =>
-      targets.every((target) => target.getBoundingClientRect().height >= 44),
-    ),
+    await aboutDeepLink
+      .locator('.about-contents a, .about-question summary, [data-about-download]')
+      .evaluateAll((targets) =>
+        targets.every((target) => target.getBoundingClientRect().height >= 44),
+      ),
     true,
   );
   await aboutDeepLink.screenshot({ path: resolve(outputDirectory, 'public-about-mobile.png') });
   await aboutDeepLink.close();
 
   // 分節說明頁共用同一組目錄列、章節與卡片（TASK-174）：章標同一字級，頁內文字不小於 12px。
-  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  for (const viewport of [
+    { width: 1280, height: 800 },
+    { width: 390, height: 844 },
+  ]) {
     const chapterPage = await browser.newPage({ viewport });
     trackErrors(chapterPage, errors);
     const h2Sizes = new Set();
     for (const viewId of ['water-cycle', 'swim-class', 'design-process', 'about']) {
       await chapterPage.goto(`${origin}/?view=${viewId}`, { waitUntil: 'networkidle' });
       await waitForView(chapterPage, viewId);
-      assert.equal(await chapterPage.locator('.site-chapter-index').count(), 1, `${viewId} chapter index`);
-      assert.equal(await chapterPage.locator('.site-chapter').count() >= 4, true, `${viewId} chapters`);
+      assert.equal(
+        await chapterPage.locator('.site-chapter-index').count(),
+        1,
+        `${viewId} chapter index`,
+      );
+      assert.equal(
+        (await chapterPage.locator('.site-chapter').count()) >= 4,
+        true,
+        `${viewId} chapters`,
+      );
       const report = await chapterPage.locator('main').evaluate((main) => {
-        const sizes = [...main.querySelectorAll('.site-chapter h2')].map((heading) => getComputedStyle(heading).fontSize);
+        const sizes = [...main.querySelectorAll('.site-chapter h2')].map(
+          (heading) => getComputedStyle(heading).fontSize,
+        );
         const tiny = [];
         const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT);
         while (walker.nextNode()) {
           const element = walker.currentNode.parentElement;
-          if (!walker.currentNode.textContent?.trim() || !element || element.closest('svg, .site-visually-hidden')) continue;
+          if (
+            !walker.currentNode.textContent?.trim() ||
+            !element ||
+            element.closest('svg, .site-visually-hidden')
+          )
+            continue;
           const style = getComputedStyle(element);
           // 字級 0 是刻意藏起原文、改由 ::before 顯示替代說明的寫法。
-          if (style.display === 'none' || style.fontSize === '0px' || element.getClientRects().length === 0) continue;
-          if (Number.parseFloat(style.fontSize) < 12) tiny.push(`${element.className || element.tagName} ${style.fontSize}`);
+          if (
+            style.display === 'none' ||
+            style.fontSize === '0px' ||
+            element.getClientRects().length === 0
+          )
+            continue;
+          if (Number.parseFloat(style.fontSize) < 12)
+            tiny.push(`${element.className || element.tagName} ${style.fontSize}`);
         }
         return { sizes, tiny };
       });
       for (const size of report.sizes) h2Sizes.add(size);
       assert.deepEqual(report.tiny, [], `${viewId} has text below 12px at ${viewport.width}px`);
     }
-    assert.equal(h2Sizes.size, 1, `chapter H2 sizes differ at ${viewport.width}px: ${[...h2Sizes].join(', ')}`);
+    assert.equal(
+      h2Sizes.size,
+      1,
+      `chapter H2 sizes differ at ${viewport.width}px: ${[...h2Sizes].join(', ')}`,
+    );
     await chapterPage.close();
   }
 

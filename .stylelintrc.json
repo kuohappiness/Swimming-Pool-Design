@@ -1,10 +1,6 @@
 {
-  "extends": [
-    "stylelint-config-recommended"
-  ],
-  "plugins": [
-    "./tools/check/stylelint-view-scope.mjs"
-  ],
+  "extends": ["stylelint-config-recommended"],
+  "plugins": ["./tools/check/stylelint-view-scope.mjs"],
   "rules": {
     "no-descending-specificity": null,
     "no-duplicate-selectors": [
@@ -22,25 +18,17 @@
     "max-nesting-depth": [
       1,
       {
-        "ignoreAtRules": [
-          "media",
-          "supports",
-          "container"
-        ]
+        "ignoreAtRules": ["media", "supports", "container"]
       }
     ]
   },
   "overrides": [
     {
-      "files": [
-        "web/src/views/!(3d-viewer)/**/*.css"
-      ],
+      "files": ["web/src/views/!(3d-viewer)/**/*.css"],
       "rules": {
         "swimming-pool/view-scope": true
       }
     }
   ],
-  "ignoreFiles": [
-    "web/src/generated/**"
-  ]
+  "ignoreFiles": ["web/src/generated/**"]
 }

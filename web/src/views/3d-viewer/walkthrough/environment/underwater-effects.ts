@@ -31,11 +31,7 @@ export class UnderwaterEffects {
   private fogApplied = false;
   private disposed = false;
 
-  constructor(
-    shell: HTMLElement,
-    scene: THREE.Scene,
-    options: UnderwaterEffectsOptions,
-  ) {
+  constructor(shell: HTMLElement, scene: THREE.Scene, options: UnderwaterEffectsOptions) {
     this.shell = shell;
     this.scene = scene;
     this.options = options;

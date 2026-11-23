@@ -32,7 +32,8 @@ const {
   describeSunLighting,
   relativeAirMass,
 } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/lighting/sun-lighting.ts');
-const { calculateSolarPosition } = await import('../../../../../../../core/solar/solar-reflection.mjs');
+const { calculateSolarPosition } =
+  await import('../../../../../../../core/solar/solar-reflection.mjs');
 
 const model = JSON.parse(readFileSync(resolve(repoRoot, 'model/project-model.json'), 'utf8'));
 const siteLocation = model.referenceSystem.siteLocation;
@@ -58,13 +59,25 @@ test('a solar moment round-trips through the URL form and rejects impossible dat
   const moment = { year: 2026, month: 12, day: 21, minutes: 9 * 60 + 30 };
   assert.equal(formatSolarMoment(moment), '2026-12-21T09:30');
   assert.deepEqual(parseSolarMoment('2026-12-21T09:30'), moment);
-  for (const bad of [null, '', '2026-12-21', '2026-02-30T10:00', '2026-13-01T10:00', '2026-12-21T24:00', '2026-12-21T09:60', '2026-12-21T09:30Z']) {
+  for (const bad of [
+    null,
+    '',
+    '2026-12-21',
+    '2026-02-30T10:00',
+    '2026-13-01T10:00',
+    '2026-12-21T24:00',
+    '2026-12-21T09:60',
+    '2026-12-21T09:30Z',
+  ]) {
     assert.equal(parseSolarMoment(bad), null, String(bad));
   }
   assert.throws(() => assertSolarMoment({ ...moment, minutes: 1440 }), RangeError);
   assert.throws(() => assertSolarMoment({ ...moment, day: 21.5 }), TypeError);
   assert.deepEqual(describeSolarMoment(moment), { date: '12月21日（冬至）', time: '09:30' });
-  assert.deepEqual(describeSolarMoment({ ...moment, day: 20, minutes: 5 }), { date: '12月20日', time: '00:05' });
+  assert.deepEqual(describeSolarMoment({ ...moment, day: 20, minutes: 5 }), {
+    date: '12月20日',
+    time: '00:05',
+  });
 });
 
 test('day-of-year conversion covers every day of a normal and a leap year', () => {
@@ -77,20 +90,33 @@ test('day-of-year conversion covers every day of a normal and a leap year', () =
   }
   assert.deepEqual(dateFromDayOfYear(2026, 0), { month: 1, day: 1 });
   assert.deepEqual(dateFromDayOfYear(2026, 999), { month: 12, day: 31 });
-  assert.deepEqual(SOLAR_TERMS.map(({ label, month, day }) => [label, month, day]), [
-    ['春分', 3, 20], ['夏至', 6, 21], ['秋分', 9, 23], ['冬至', 12, 21],
-  ]);
+  assert.deepEqual(
+    SOLAR_TERMS.map(({ label, month, day }) => [label, month, day]),
+    [
+      ['春分', 3, 20],
+      ['夏至', 6, 21],
+      ['秋分', 9, 23],
+      ['冬至', 12, 21],
+    ],
+  );
 });
 
 test('the sun position is the solar study function, not a second calculation', () => {
   const lighting = at(12, 21, '09:30');
-  const solar = calculateSolarPosition({ year: 2026, month: 12, day: 21, hour: 9, minute: 30, ...location });
+  const solar = calculateSolarPosition({
+    year: 2026,
+    month: 12,
+    day: 21,
+    hour: 9,
+    minute: 30,
+    ...location,
+  });
   assert.equal(lighting.altitude, solar.altitude);
   assert.equal(lighting.azimuth, solar.azimuth);
   assert.equal(lighting.phase, 'day');
   assert.equal(lighting.key.source, 'sun');
   assert.ok(Math.abs(length(lighting.sunDirection) - 1) < 1e-9);
-  assert.ok(Math.abs(lighting.sunDirection.z - Math.sin(solar.altitude * Math.PI / 180)) < 1e-9);
+  assert.ok(Math.abs(lighting.sunDirection.z - Math.sin((solar.altitude * Math.PI) / 180)) < 1e-9);
 });
 
 test('noon altitudes at this latitude follow the seasons', () => {
@@ -98,12 +124,15 @@ test('noon altitudes at this latitude follow the seasons', () => {
   const highest = (month, day) => {
     let altitude = -90;
     for (let minutes = 11 * 60 + 30; minutes <= 12 * 60 + 30; minutes += 1) {
-      altitude = Math.max(altitude, computeSunLighting({
-        moment: { year: 2026, month, day, minutes },
-        location,
-        positiveXAxisBearingFromTrueNorth: bearing,
-        weather: 'clear',
-      }).altitude);
+      altitude = Math.max(
+        altitude,
+        computeSunLighting({
+          moment: { year: 2026, month, day, minutes },
+          location,
+          positiveXAxisBearingFromTrueNorth: bearing,
+          weather: 'clear',
+        }).altitude,
+      );
     }
     return altitude;
   };
@@ -162,14 +191,18 @@ test('night switches the key light to a dim moon above the horizon', () => {
 
 test('the key light never points from below the horizon or grazes it', () => {
   for (let minutes = 0; minutes < 1440; minutes += 10) {
-    for (const [month, day] of [[3, 20], [6, 21], [12, 21]]) {
+    for (const [month, day] of [
+      [3, 20],
+      [6, 21],
+      [12, 21],
+    ]) {
       const lighting = computeSunLighting({
         moment: { year: 2026, month, day, minutes },
         location,
         positiveXAxisBearingFromTrueNorth: bearing,
         weather: 'clear',
       });
-      assert.ok(lighting.key.direction.z >= Math.sin(2 * Math.PI / 180) - 1e-9);
+      assert.ok(lighting.key.direction.z >= Math.sin((2 * Math.PI) / 180) - 1e-9);
       assert.ok(Math.abs(length(lighting.key.direction) - 1) < 1e-9);
       assert.ok(lighting.key.intensity >= 0);
       assert.ok(lighting.sky.intensity > 0);
@@ -190,13 +223,25 @@ test('lighting changes smoothly through the day, with no jump at sunrise or suns
       weather: 'clear',
     });
     if (previous) {
-      assert.ok(Math.abs(lighting.sky.intensity - previous.sky.intensity) < 0.2, `sky jump at ${minutes}`);
-      assert.ok(Math.abs(luminance(lighting.horizon) - luminance(previous.horizon)) < 0.15, `horizon jump at ${minutes}`);
+      assert.ok(
+        Math.abs(lighting.sky.intensity - previous.sky.intensity) < 0.2,
+        `sky jump at ${minutes}`,
+      );
+      assert.ok(
+        Math.abs(luminance(lighting.horizon) - luminance(previous.horizon)) < 0.15,
+        `horizon jump at ${minutes}`,
+      );
       if (lighting.key.source === previous.key.source) {
-        assert.ok(Math.abs(lighting.key.intensity - previous.key.intensity) < 0.5, `key jump at ${minutes}`);
+        assert.ok(
+          Math.abs(lighting.key.intensity - previous.key.intensity) < 0.5,
+          `key jump at ${minutes}`,
+        );
       } else {
         // 太陽與月光交接時兩者都很暗，畫面上看不到切換。
-        assert.ok(lighting.key.intensity < 0.35 && previous.key.intensity < 0.35, `handover at ${minutes}`);
+        assert.ok(
+          lighting.key.intensity < 0.35 && previous.key.intensity < 0.35,
+          `handover at ${minutes}`,
+        );
       }
     }
     previous = lighting;
@@ -238,7 +283,7 @@ test('direct sun outweighs the sky by a few times, so shade reads as shade', () 
 });
 
 test('the light source grows from the sun disc to a glowing patch of cloud', () => {
-  const degrees = (lighting) => lighting.key.angularRadius * 180 / Math.PI;
+  const degrees = (lighting) => (lighting.key.angularRadius * 180) / Math.PI;
   // 晴天的光源比真實的日面（半徑 0.27°）略大一點，邊緣的半影才大於一格陰影貼圖。
   const clear = degrees(at(6, 21, '12:00'));
   assert.ok(clear > 0.27 && clear < 0.6, `clear source radius was ${clear}`);
@@ -263,8 +308,11 @@ test('surfaces facing down are lit by the ground the sun and sky light up', () =
   assert.ok(bounce(night) > 0);
   // 地面只反射一部分：朝下的面一定比朝上的面暗。
   for (const lighting of [noon, morning, overcast, night]) {
-    const facingUp = lighting.sky.intensity * luminance(lighting.sky.color)
-      + lighting.key.intensity * luminance(lighting.key.color) * Math.max(0, lighting.key.direction.z);
+    const facingUp =
+      lighting.sky.intensity * luminance(lighting.sky.color) +
+      lighting.key.intensity *
+        luminance(lighting.key.color) *
+        Math.max(0, lighting.key.direction.z);
     assert.ok(bounce(lighting) < facingUp * 0.35, `bounce ${bounce(lighting)} of ${facingUp}`);
     assert.ok(bounce(lighting) > facingUp * 0.2);
   }

@@ -25,10 +25,16 @@ async function firstExisting(paths) {
   throw new Error('Chrome or Edge executable was not found.');
 }
 
-const browser = await chromium.launch({ executablePath: await firstExisting(browserCandidates), headless: true });
+const browser = await chromium.launch({
+  executablePath: await firstExisting(browserCandidates),
+  headless: true,
+});
 try {
   for (const input of inputs) {
-    const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({
+      viewport: { width: 1920, height: 1080 },
+      deviceScaleFactor: 1,
+    });
     await page.goto(pathToFileURL(input).href, { waitUntil: 'load' });
     const output = resolve(dirname(input), basename(input, '.svg') + '.png');
     await page.screenshot({ path: output, fullPage: false });

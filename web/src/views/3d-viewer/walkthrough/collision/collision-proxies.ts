@@ -46,9 +46,7 @@ export interface SolidCollisionProxy {
 }
 
 export type GroundCollisionProxy =
-  | SurfaceCollisionProxy
-  | StairCollisionProxy
-  | PoolBottomCollisionProxy;
+  SurfaceCollisionProxy | StairCollisionProxy | PoolBottomCollisionProxy;
 
 export interface CollisionProxySet {
   readonly siteFrame: CollisionFrame;
@@ -81,15 +79,14 @@ export function createPlanTransformMatrix(transform: PlanTransform): THREE.Matri
     .multiply(new THREE.Matrix4().makeTranslation(-pivot.x, 0, -pivot.y));
 }
 
-export function applyPlanTransform(
-  point: THREE.Vector3,
-  transform: PlanTransform,
-): THREE.Vector3 {
+export function applyPlanTransform(point: THREE.Vector3, transform: PlanTransform): THREE.Vector3 {
   return point.clone().applyMatrix4(createPlanTransformMatrix(transform));
 }
 
 function surfaceFrame(siteToWorld: THREE.Matrix4, surface: WalkSurfaceDescriptor): CollisionFrame {
-  return frameFromMatrix(siteToWorld.clone().multiply(createPlanTransformMatrix(surface.transform)));
+  return frameFromMatrix(
+    siteToWorld.clone().multiply(createPlanTransformMatrix(surface.transform)),
+  );
 }
 
 function cloneBounds(bounds: SiteBounds): SiteBounds {
@@ -122,39 +119,70 @@ function createBuildingPerimeter(
   if (!entrance) throw new TypeError('Main entrance bounds are required for collision proxies.');
   const halfWall = WALL_THICKNESS / 2;
   const l2Elevation = source.surfaces.find(({ id }) => id === 'l2-floor')?.elevation;
-  if (l2Elevation === undefined) throw new TypeError('L2 floor is required for perimeter collision.');
+  if (l2Elevation === undefined)
+    throw new TypeError('L2 floor is required for perimeter collision.');
   const maximumElevation = l2Elevation - 0.05;
   const walls: SolidCollisionProxy[] = [
-    wall('building-y0-left', siteFrame, {
-      x1: building.x1 - halfWall,
-      x2: entrance.x1,
-      y1: building.y1 - halfWall,
-      y2: building.y1 + halfWall,
-    }, 0, maximumElevation),
-    wall('building-y0-right', siteFrame, {
-      x1: entrance.x2,
-      x2: building.x2 + halfWall,
-      y1: building.y1 - halfWall,
-      y2: building.y1 + halfWall,
-    }, 0, maximumElevation),
-    wall('building-y14', siteFrame, {
-      x1: building.x1 - halfWall,
-      x2: building.x2 + halfWall,
-      y1: building.y2 - halfWall,
-      y2: building.y2 + halfWall,
-    }, 0, maximumElevation),
-    wall('building-x-min', siteFrame, {
-      x1: building.x1 - halfWall,
-      x2: building.x1 + halfWall,
-      y1: building.y1 + halfWall,
-      y2: building.y2 - halfWall,
-    }, 0, maximumElevation),
-    wall('building-x-max', siteFrame, {
-      x1: building.x2 - halfWall,
-      x2: building.x2 + halfWall,
-      y1: building.y1 + halfWall,
-      y2: building.y2 - halfWall,
-    }, 0, maximumElevation),
+    wall(
+      'building-y0-left',
+      siteFrame,
+      {
+        x1: building.x1 - halfWall,
+        x2: entrance.x1,
+        y1: building.y1 - halfWall,
+        y2: building.y1 + halfWall,
+      },
+      0,
+      maximumElevation,
+    ),
+    wall(
+      'building-y0-right',
+      siteFrame,
+      {
+        x1: entrance.x2,
+        x2: building.x2 + halfWall,
+        y1: building.y1 - halfWall,
+        y2: building.y1 + halfWall,
+      },
+      0,
+      maximumElevation,
+    ),
+    wall(
+      'building-y14',
+      siteFrame,
+      {
+        x1: building.x1 - halfWall,
+        x2: building.x2 + halfWall,
+        y1: building.y2 - halfWall,
+        y2: building.y2 + halfWall,
+      },
+      0,
+      maximumElevation,
+    ),
+    wall(
+      'building-x-min',
+      siteFrame,
+      {
+        x1: building.x1 - halfWall,
+        x2: building.x1 + halfWall,
+        y1: building.y1 + halfWall,
+        y2: building.y2 - halfWall,
+      },
+      0,
+      maximumElevation,
+    ),
+    wall(
+      'building-x-max',
+      siteFrame,
+      {
+        x1: building.x2 - halfWall,
+        x2: building.x2 + halfWall,
+        y1: building.y1 + halfWall,
+        y2: building.y2 - halfWall,
+      },
+      0,
+      maximumElevation,
+    ),
   ];
   return walls;
 }
@@ -168,30 +196,54 @@ function createPoolWalls(
   // Stop below the rim so TASK-056 can transition naturally from deck to water.
   const top = pool.rimElevation - 0.04;
   return [
-    wall('pool-wall-x-min', siteFrame, {
-      x1: pool.bounds.x1 - halfWall,
-      x2: pool.bounds.x1 + halfWall,
-      y1: pool.bounds.y1,
-      y2: pool.bounds.y2,
-    }, bottom, top),
-    wall('pool-wall-x-max', siteFrame, {
-      x1: pool.bounds.x2 - halfWall,
-      x2: pool.bounds.x2 + halfWall,
-      y1: pool.bounds.y1,
-      y2: pool.bounds.y2,
-    }, bottom, top),
-    wall('pool-wall-y-min', siteFrame, {
-      x1: pool.bounds.x1,
-      x2: pool.bounds.x2,
-      y1: pool.bounds.y1 - halfWall,
-      y2: pool.bounds.y1 + halfWall,
-    }, bottom, top),
-    wall('pool-wall-y-max', siteFrame, {
-      x1: pool.bounds.x1,
-      x2: pool.bounds.x2,
-      y1: pool.bounds.y2 - halfWall,
-      y2: pool.bounds.y2 + halfWall,
-    }, bottom, top),
+    wall(
+      'pool-wall-x-min',
+      siteFrame,
+      {
+        x1: pool.bounds.x1 - halfWall,
+        x2: pool.bounds.x1 + halfWall,
+        y1: pool.bounds.y1,
+        y2: pool.bounds.y2,
+      },
+      bottom,
+      top,
+    ),
+    wall(
+      'pool-wall-x-max',
+      siteFrame,
+      {
+        x1: pool.bounds.x2 - halfWall,
+        x2: pool.bounds.x2 + halfWall,
+        y1: pool.bounds.y1,
+        y2: pool.bounds.y2,
+      },
+      bottom,
+      top,
+    ),
+    wall(
+      'pool-wall-y-min',
+      siteFrame,
+      {
+        x1: pool.bounds.x1,
+        x2: pool.bounds.x2,
+        y1: pool.bounds.y1 - halfWall,
+        y2: pool.bounds.y1 + halfWall,
+      },
+      bottom,
+      top,
+    ),
+    wall(
+      'pool-wall-y-max',
+      siteFrame,
+      {
+        x1: pool.bounds.x1,
+        x2: pool.bounds.x2,
+        y1: pool.bounds.y2 - halfWall,
+        y2: pool.bounds.y2 + halfWall,
+      },
+      bottom,
+      top,
+    ),
   ];
 }
 
@@ -201,18 +253,30 @@ function createStairSides(
 ): SolidCollisionProxy[] {
   const halfWall = WALL_THICKNESS / 2;
   return [
-    wall(`${stair.entityId}-side-y-min`, siteFrame, {
-      x1: stair.bounds.x1,
-      x2: stair.bounds.x2,
-      y1: stair.bounds.y1 - halfWall,
-      y2: stair.bounds.y1 + halfWall,
-    }, stair.lowerElevation, stair.upperElevation + 1.2),
-    wall(`${stair.entityId}-side-y-max`, siteFrame, {
-      x1: stair.bounds.x1,
-      x2: stair.bounds.x2,
-      y1: stair.bounds.y2 - halfWall,
-      y2: stair.bounds.y2 + halfWall,
-    }, stair.lowerElevation, stair.upperElevation + 1.2),
+    wall(
+      `${stair.entityId}-side-y-min`,
+      siteFrame,
+      {
+        x1: stair.bounds.x1,
+        x2: stair.bounds.x2,
+        y1: stair.bounds.y1 - halfWall,
+        y2: stair.bounds.y1 + halfWall,
+      },
+      stair.lowerElevation,
+      stair.upperElevation + 1.2,
+    ),
+    wall(
+      `${stair.entityId}-side-y-max`,
+      siteFrame,
+      {
+        x1: stair.bounds.x1,
+        x2: stair.bounds.x2,
+        y1: stair.bounds.y2 - halfWall,
+        y2: stair.bounds.y2 + halfWall,
+      },
+      stair.lowerElevation,
+      stair.upperElevation + 1.2,
+    ),
   ];
 }
 
@@ -235,14 +299,15 @@ export function createCollisionProxies(
       // the site plane under it would create an invisible floor across the pool.
       exclusionBounds.push(cloneBounds(source.entities['BLDG-01'].bounds));
     }
-    const proxyBounds = surface.id === 'site-ground'
-      ? {
-          x1: surface.bounds.x1 - SITE_GROUND_MARGIN,
-          x2: surface.bounds.x2 + SITE_GROUND_MARGIN,
-          y1: surface.bounds.y1 - SITE_GROUND_MARGIN,
-          y2: surface.bounds.y2 + SITE_GROUND_MARGIN,
-        }
-      : surface.bounds;
+    const proxyBounds =
+      surface.id === 'site-ground'
+        ? {
+            x1: surface.bounds.x1 - SITE_GROUND_MARGIN,
+            x2: surface.bounds.x2 + SITE_GROUND_MARGIN,
+            y1: surface.bounds.y1 - SITE_GROUND_MARGIN,
+            y2: surface.bounds.y2 + SITE_GROUND_MARGIN,
+          }
+        : surface.bounds;
     return Object.freeze({
       id: surface.id,
       kind: 'surface' as const,
@@ -252,18 +317,26 @@ export function createCollisionProxies(
       exclusions: Object.freeze(exclusionBounds),
     });
   });
-  grounds.push(...source.stairs.map((descriptor) => Object.freeze({
-    id: descriptor.id,
-    kind: 'stair' as const,
-    frame: siteFrame,
-    descriptor,
-  })));
-  grounds.push(...source.poolShells.map((descriptor) => Object.freeze({
-    id: `${descriptor.id}-bottom`,
-    kind: 'pool-bottom' as const,
-    frame: siteFrame,
-    descriptor,
-  })));
+  grounds.push(
+    ...source.stairs.map((descriptor) =>
+      Object.freeze({
+        id: descriptor.id,
+        kind: 'stair' as const,
+        frame: siteFrame,
+        descriptor,
+      }),
+    ),
+  );
+  grounds.push(
+    ...source.poolShells.map((descriptor) =>
+      Object.freeze({
+        id: `${descriptor.id}-bottom`,
+        kind: 'pool-bottom' as const,
+        frame: siteFrame,
+        descriptor,
+      }),
+    ),
+  );
 
   const solids = [
     ...createBuildingPerimeter(source, siteFrame),

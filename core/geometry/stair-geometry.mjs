@@ -9,7 +9,9 @@ const finite = (value, label) => {
 };
 
 const flightRisers = (stair) => {
-  const risers = Array.isArray(stair?.risersPerRun) ? stair.risersPerRun : [stair?.risersPerRun, stair?.risersPerRun];
+  const risers = Array.isArray(stair?.risersPerRun)
+    ? stair.risersPerRun
+    : [stair?.risersPerRun, stair?.risersPerRun];
   if (risers.length !== 2 || !risers.every((count) => Number.isInteger(count) && count > 1)) {
     throw new TypeError('A two-flight stair needs two whole riser counts above 1.');
   }
@@ -64,7 +66,10 @@ export function deriveStairNosings(stair) {
       points.push({ x: run.x1 + (index - 1) * tread, z: run.z1 + index * rise });
     }
   }
-  points.push({ x: midLanding.x1, z: midLanding.elevation }, { x: midLanding.x2, z: midLanding.elevation });
+  points.push(
+    { x: midLanding.x1, z: midLanding.elevation },
+    { x: midLanding.x2, z: midLanding.elevation },
+  );
   return points.sort((a, b) => a.x - b.x || a.z - b.z);
 }
 
@@ -80,25 +85,31 @@ export function firstHeadroomShortfallX(stair, slabUndersideElevation, requiredH
   return shortfall ? shortfall.x : null;
 }
 
-const polygonArea = (points) => Math.abs(points.reduce((sum, [x, y], index) => {
-  const [nextX, nextY] = points[(index + 1) % points.length];
-  return sum + x * nextY - nextX * y;
-}, 0)) / 2;
+const polygonArea = (points) =>
+  Math.abs(
+    points.reduce((sum, [x, y], index) => {
+      const [nextX, nextY] = points[(index + 1) % points.length];
+      return sum + x * nextY - nextX * y;
+    }, 0),
+  ) / 2;
 
 // Sutherland–Hodgman against a convex, counter-clockwise clip polygon.
-const clipConvex = (subject, clip) => clip.reduce((output, [ax, ay], index) => {
-  const [bx, by] = clip[(index + 1) % clip.length];
-  const inside = ([x, y]) => (bx - ax) * (y - ay) - (by - ay) * (x - ax) >= -1e-12;
-  const cross = ([px, py], [qx, qy]) => {
-    const t = ((ax - px) * (by - ay) - (ay - py) * (bx - ax)) / ((qx - px) * (by - ay) - (qy - py) * (bx - ax));
-    return [px + t * (qx - px), py + t * (qy - py)];
-  };
-  return output.flatMap((point, pointIndex) => {
-    const previous = output[(pointIndex + output.length - 1) % output.length];
-    if (inside(point)) return inside(previous) ? [point] : [cross(previous, point), point];
-    return inside(previous) ? [cross(previous, point)] : [];
-  });
-}, subject);
+const clipConvex = (subject, clip) =>
+  clip.reduce((output, [ax, ay], index) => {
+    const [bx, by] = clip[(index + 1) % clip.length];
+    const inside = ([x, y]) => (bx - ax) * (y - ay) - (by - ay) * (x - ax) >= -1e-12;
+    const cross = ([px, py], [qx, qy]) => {
+      const t =
+        ((ax - px) * (by - ay) - (ay - py) * (bx - ax)) /
+        ((qx - px) * (by - ay) - (qy - py) * (bx - ax));
+      return [px + t * (qx - px), py + t * (qy - py)];
+    };
+    return output.flatMap((point, pointIndex) => {
+      const previous = output[(pointIndex + output.length - 1) % output.length];
+      if (inside(point)) return inside(previous) ? [point] : [cross(previous, point), point];
+      return inside(previous) ? [cross(previous, point)] : [];
+    });
+  }, subject);
 
 const counterClockwise = (points) => {
   const signed = points.reduce((sum, [x, y], index) => {
@@ -108,7 +119,12 @@ const counterClockwise = (points) => {
   return signed >= 0 ? points : [...points].reverse();
 };
 
-const boundsPolygon = ({ x1, x2, y1, y2 }) => [[x1, y1], [x2, y1], [x2, y2], [x1, y2]];
+const boundsPolygon = ({ x1, x2, y1, y2 }) => [
+  [x1, y1],
+  [x2, y1],
+  [x2, y2],
+  [x1, y2],
+];
 
 /**
  * Area of an axis-aligned SITE-XY rectangle that falls inside a convex polygon.

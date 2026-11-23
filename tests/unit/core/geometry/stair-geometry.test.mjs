@@ -8,7 +8,8 @@ import {
   rotatedBoundsPolygon,
 } from '../../../../core/geometry/stair-geometry.mjs';
 
-const close = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1e-6, `${label}: ${actual} ≠ ${expected}`);
+const close = (actual, expected, label) =>
+  assert.ok(Math.abs(actual - expected) < 1e-6, `${label}: ${actual} ≠ ${expected}`);
 const stair = (overrides = {}) => ({
   lowerStartX: 10,
   lowerElevation: 0,
@@ -20,7 +21,8 @@ const stair = (overrides = {}) => ({
 });
 
 test('equal flights: each flight has one tread fewer than risers and the landing takes the last riser', () => {
-  const { flights, midLanding, topX, upperElevation, riserCount, treadCount } = deriveStairFlights(stair());
+  const { flights, midLanding, topX, upperElevation, riserCount, treadCount } =
+    deriveStairFlights(stair());
   close(flights[0].run, 2.7, 'first run');
   close(midLanding.x1, 12.7, 'landing start');
   close(midLanding.elevation, 1.5, 'landing elevation');
@@ -32,7 +34,9 @@ test('equal flights: each flight has one tread fewer than risers and the landing
 });
 
 test('unequal flights keep their own riser counts and the landing sits at the first flight height', () => {
-  const { flights, midLanding, topX, upperElevation, riserCount, treadCount } = deriveStairFlights(stair({ risersPerRun: [12, 11] }));
+  const { flights, midLanding, topX, upperElevation, riserCount, treadCount } = deriveStairFlights(
+    stair({ risersPerRun: [12, 11] }),
+  );
   close(flights[0].run, 3.3, 'first run');
   close(flights[1].run, 3, 'second run');
   close(midLanding.elevation, 1.8, 'landing elevation');
@@ -46,8 +50,14 @@ test('unequal flights keep their own riser counts and the landing sits at the fi
 
 test('nosings rise one riser per tread and include both landing edges', () => {
   const nosings = deriveStairNosings(stair({ risersPerRun: 3 }));
-  assert.deepEqual(nosings.map(({ x }) => Number(x.toFixed(3))), [10, 10.3, 10.6, 12.1, 12.1, 12.4]);
-  assert.deepEqual(nosings.map(({ z }) => Number(z.toFixed(3))), [0.15, 0.3, 0.45, 0.45, 0.6, 0.75]);
+  assert.deepEqual(
+    nosings.map(({ x }) => Number(x.toFixed(3))),
+    [10, 10.3, 10.6, 12.1, 12.1, 12.4],
+  );
+  assert.deepEqual(
+    nosings.map(({ z }) => Number(z.toFixed(3))),
+    [0.15, 0.3, 0.45, 0.45, 0.6, 0.75],
+  );
 });
 
 test('headroom shortfall starts at the first nosing closer than the required height to the slab', () => {
@@ -57,10 +67,19 @@ test('headroom shortfall starts at the first nosing closer than the required hei
 });
 
 test('rectangle overlap with a rotated convex polygon matches hand-computed areas', () => {
-  const square = [[0, 0], [2, 0], [2, 2], [0, 2]];
+  const square = [
+    [0, 0],
+    [2, 0],
+    [2, 2],
+    [0, 2],
+  ];
   close(boundsOverlapArea({ x1: 1, x2: 3, y1: 1, y2: 3 }, square), 1, 'quarter overlap');
   close(boundsOverlapArea({ x1: 5, x2: 6, y1: 5, y2: 6 }, square), 0, 'disjoint');
-  close(boundsOverlapArea({ x1: 0, x2: 2, y1: 0, y2: 2 }, [...square].reverse()), 4, 'clockwise clip polygon');
+  close(
+    boundsOverlapArea({ x1: 0, x2: 2, y1: 0, y2: 2 }, [...square].reverse()),
+    4,
+    'clockwise clip polygon',
+  );
   const diamond = rotatedBoundsPolygon({ x1: -1, x2: 1, y1: -1, y2: 1 }, { x: 0, y: 0 }, 45);
   close(boundsOverlapArea({ x1: 0, x2: 5, y1: -5, y2: 5 }, diamond), 2, 'half of a rotated square');
 });

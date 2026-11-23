@@ -13,22 +13,21 @@ const vite = await createServer({
 });
 test.after(async () => vite.close());
 const THREE = await vite.ssrLoadModule('three');
-const {
-  adaptationRate,
-  EXPOSURE_ADAPTATION,
-  meterLevel,
-} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/exposure-adaptation.ts');
-const { FrameGrade } = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/frame-grade.ts');
-const {
-  ScreenSpaceOcclusion,
-} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/screen-space-occlusion.ts');
+const { adaptationRate, EXPOSURE_ADAPTATION, meterLevel } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/enhanced/exposure-adaptation.ts',
+);
+const { FrameGrade } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/enhanced/frame-grade.ts',
+);
+const { ScreenSpaceOcclusion } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/enhanced/screen-space-occlusion.ts',
+);
 const { BLOOM, createBloomPass, disposeBloomPass } = await vite.ssrLoadModule(
   '/src/views/3d-viewer/rendering/enhanced/bloom.ts',
 );
-const {
-  EnhancedFrameEffectPipeline,
-  ENHANCED_QUALITY_PROFILES,
-} = await vite.ssrLoadModule('/src/views/3d-viewer/rendering/enhanced/index.ts');
+const { EnhancedFrameEffectPipeline, ENHANCED_QUALITY_PROFILES } = await vite.ssrLoadModule(
+  '/src/views/3d-viewer/rendering/enhanced/index.ts',
+);
 
 const TOP_TIER = Object.freeze({
   ...ENHANCED_QUALITY_PROFILES.high,
@@ -56,16 +55,23 @@ function createRenderer({ floatTargets = true } = {}) {
     pixelRatio: 1,
     width: 1,
     height: 1,
-    setPixelRatio(value) { this.pixelRatio = value; },
+    setPixelRatio(value) {
+      this.pixelRatio = value;
+    },
     setSize(width, height) {
       this.width = width;
       this.height = height;
     },
     getDrawingBufferSize(size) {
-      return size.set(Math.round(this.width * this.pixelRatio), Math.round(this.height * this.pixelRatio));
+      return size.set(
+        Math.round(this.width * this.pixelRatio),
+        Math.round(this.height * this.pixelRatio),
+      );
     },
     getRenderTarget: () => target,
-    setRenderTarget(next) { target = next; },
+    setRenderTarget(next) {
+      target = next;
+    },
     getClearColor: (color) => color.copy(clearColor),
     setClearColor(color, alpha = 1) {
       clearColor.set(color);
@@ -102,8 +108,8 @@ test('exposure adapts at the rate of its time constant and meters down to one pi
   assert.ok(Math.abs(adaptationRate(0.5, 0.5) - (1 - Math.exp(-1))) < 1e-12);
   // Brightening (the pupil closing) is faster than darkening.
   assert.ok(
-    adaptationRate(0.1, EXPOSURE_ADAPTATION.brightenSeconds)
-      > adaptationRate(0.1, EXPOSURE_ADAPTATION.darkenSeconds),
+    adaptationRate(0.1, EXPOSURE_ADAPTATION.brightenSeconds) >
+      adaptationRate(0.1, EXPOSURE_ADAPTATION.darkenSeconds),
   );
   assert.equal(adaptationRate(Number.NaN, 1), 0);
   assert.equal(adaptationRate(-1, 1), 0);
@@ -150,9 +156,19 @@ test('ambient occlusion and contact shadows share one depth pass, and only the o
     const { occlusionMaterial, denoiseMaterial } = occlusion;
     // The contact shadows are patched into three.js' GTAO shader; this fails when the
     // installed version no longer has the functions they use.
-    assert.match(occlusionMaterial.fragmentShader, /float contactVisibility\(vec3 position, vec3 normal\)/);
-    assert.equal(occlusionMaterial.defines.FRAGMENT_OUTPUT, 'vec4(ao, contactVisibility(viewPos, viewNormal), 0.0, 1.0)');
-    assert.equal(occlusionMaterial.defines.NORMAL_VECTOR_TYPE, 0, 'normals come from the depth buffer');
+    assert.match(
+      occlusionMaterial.fragmentShader,
+      /float contactVisibility\(vec3 position, vec3 normal\)/,
+    );
+    assert.equal(
+      occlusionMaterial.defines.FRAGMENT_OUTPUT,
+      'vec4(ao, contactVisibility(viewPos, viewNormal), 0.0, 1.0)',
+    );
+    assert.equal(
+      occlusionMaterial.defines.NORMAL_VECTOR_TYPE,
+      0,
+      'normals come from the depth buffer',
+    );
     assert.equal(denoiseMaterial.defines.FRAGMENT_OUTPUT, 'vec4(denoised.r, texel.g, 0.0, 1.0)');
     assert.equal(denoiseMaterial.defines.SAMPLE_LUMINANCE, 'a.r');
 
@@ -193,28 +209,39 @@ test('the top tiers light the frame in linear values and tone-map once, at the v
   pipeline.resize(800, 500, 1);
   assert.equal(pipeline.usesPostProcessing, true);
   assert.deepEqual(pipeline.activeEffects, [
-    'multisample', 'exposure-adaptation', 'bloom', 'ambient-occlusion', 'contact-shadows',
+    'multisample',
+    'exposure-adaptation',
+    'bloom',
+    'ambient-occlusion',
+    'contact-shadows',
   ]);
 
   pipeline.render(scene, camera);
-  const own = renderer.draws.filter(({ material }) => material === 'scene' || material.startsWith('realistic:'));
-  assert.deepEqual(own.map(({ target, material }) => [target, material]), [
-    ['realistic:frame-scene', 'scene'],
-    ['realistic:exposure-meter', 'realistic:exposure-meter'],
-    ['realistic:exposure-adaptation', 'realistic:exposure-adaptation'],
-    ['realistic:screen-space-occlusion', 'realistic:screen-space-occlusion'],
-    ['realistic:screen-space-occlusion-denoised', 'realistic:screen-space-occlusion-denoise'],
-    ['realistic:frame-graded', 'realistic:frame-grade'],
-    // The bloom keeps only what is brighter than its threshold, capped per pixel.
-    ['UnrealBloomPass.bright', 'realistic:bloom-high-pass'],
-  ]);
+  const own = renderer.draws.filter(
+    ({ material }) => material === 'scene' || material.startsWith('realistic:'),
+  );
+  assert.deepEqual(
+    own.map(({ target, material }) => [target, material]),
+    [
+      ['realistic:frame-scene', 'scene'],
+      ['realistic:exposure-meter', 'realistic:exposure-meter'],
+      ['realistic:exposure-adaptation', 'realistic:exposure-adaptation'],
+      ['realistic:screen-space-occlusion', 'realistic:screen-space-occlusion'],
+      ['realistic:screen-space-occlusion-denoised', 'realistic:screen-space-occlusion-denoise'],
+      ['realistic:frame-graded', 'realistic:frame-grade'],
+      // The bloom keeps only what is brighter than its threshold, capped per pixel.
+      ['UnrealBloomPass.bright', 'realistic:bloom-high-pass'],
+    ],
+  );
   const scenePass = renderer.draws[0].renderTarget;
   assert.equal(scenePass.samples, 4, 'multisampled anti-aliasing');
   assert.equal(scenePass.texture.type, THREE.HalfFloatType);
   assert.ok(scenePass.depthTexture, 'occlusion reads the scene depth');
   assert.equal(scenePass.width, 800);
   // The bloom adds onto the graded frame, then the output pass tone-maps it to the screen.
-  const afterGrade = renderer.draws.slice(renderer.draws.findIndex(({ material }) => material === 'realistic:frame-grade') + 1);
+  const afterGrade = renderer.draws.slice(
+    renderer.draws.findIndex(({ material }) => material === 'realistic:frame-grade') + 1,
+  );
   assert.equal(afterGrade.at(-2).target, 'realistic:frame-graded');
   assert.deepEqual(afterGrade.at(-1), {
     target: 'screen',
@@ -231,9 +258,16 @@ test('the top tiers light the frame in linear values and tone-map once, at the v
   pipeline.setQuality({ ...TOP_TIER, bloom: false, ambientOcclusion: false });
   assert.deepEqual(pipeline.activeEffects, ['multisample', 'exposure-adaptation']);
   pipeline.render(scene, camera);
-  assert.deepEqual(renderer.draws.map(({ material }) => material), [
-    'scene', 'realistic:exposure-meter', 'realistic:exposure-adaptation', 'realistic:frame-grade', 'OutputShader',
-  ]);
+  assert.deepEqual(
+    renderer.draws.map(({ material }) => material),
+    [
+      'scene',
+      'realistic:exposure-meter',
+      'realistic:exposure-adaptation',
+      'realistic:frame-grade',
+      'OutputShader',
+    ],
+  );
 
   // The underwater view takes the whole frame over, drawing into the pipeline's scene texture.
   renderer.draws.length = 0;
@@ -244,7 +278,10 @@ test('the top tiers light the frame in linear values and tone-map once, at the v
   });
   pipeline.render(scene, camera);
   assert.deepEqual(takenInto, ['realistic:frame-scene']);
-  assert.equal(renderer.draws.some(({ material }) => material === 'scene'), false);
+  assert.equal(
+    renderer.draws.some(({ material }) => material === 'scene'),
+    false,
+  );
   assert.equal(renderer.draws.at(-1).material, 'OutputShader');
   pipeline.setSceneRenderer(null);
 
@@ -253,7 +290,9 @@ test('the top tiers light the frame in linear values and tone-map once, at the v
   pipeline.setQuality(ENHANCED_QUALITY_PROFILES.medium);
   assert.deepEqual(pipeline.activeEffects, []);
   pipeline.render(scene, camera);
-  assert.deepEqual(renderer.draws, [{ target: 'screen', renderTarget: null, material: 'scene', exposure: 0.8 }]);
+  assert.deepEqual(renderer.draws, [
+    { target: 'screen', renderTarget: null, material: 'scene', exposure: 0.8 },
+  ]);
 
   pipeline.dispose();
   pipeline.render(scene, camera);
@@ -262,7 +301,11 @@ test('the top tiers light the frame in linear values and tone-map once, at the v
 
 test('a frame rendered into another target goes back into that target', () => {
   const renderer = createRenderer();
-  const pipeline = new EnhancedFrameEffectPipeline(renderer, { ...TOP_TIER, bloom: false, ambientOcclusion: false });
+  const pipeline = new EnhancedFrameEffectPipeline(renderer, {
+    ...TOP_TIER,
+    bloom: false,
+    ambientOcclusion: false,
+  });
   const { scene } = litScene();
   const camera = new THREE.PerspectiveCamera();
   const capture = new THREE.WebGLRenderTarget(64, 64);

@@ -31,11 +31,10 @@ const [sourceModel, registry] = await Promise.all([
   readFile(resolve(repoRoot, 'model/analysis-registry.json'), 'utf8').then(JSON.parse),
 ]);
 const viewerModel = buildViewerModel(sourceModel, registry);
-const buildScene = (batchStaticGeometry) => createViewerScene(
-  viewerModel,
-  createBaselineSceneRenderingDependencies(),
-  { batchStaticGeometry },
-);
+const buildScene = (batchStaticGeometry) =>
+  createViewerScene(viewerModel, createBaselineSceneRenderingDependencies(), {
+    batchStaticGeometry,
+  });
 
 const DETAIL_RANK = { essential: 0, reduced: 1, full: 2 };
 
@@ -56,7 +55,9 @@ const compareCorner = (a, b) => {
 function triangles(graph) {
   graph.scene.updateMatrixWorld(true);
   const index = new Map(graph.selectables.map(({ object }, position) => [object, position]));
-  const cutaway = new Map(graph.cutaway.hiddenObjects.map((object, position) => [object, position]));
+  const cutaway = new Map(
+    graph.cutaway.hiddenObjects.map((object, position) => [object, position]),
+  );
   const result = new Map();
   const corner = new THREE.Vector3();
   graph.siteRoot.traverse((object) => {
@@ -79,7 +80,9 @@ function triangles(graph) {
     for (let triangle = 0; triangle * 3 + 2 < count; triangle += 1) {
       const owner = faceOwners ? faceOwners[triangle] : owningSelectableIndex(object, index);
       const corners = [0, 1, 2].map((offset) => {
-        corner.fromBufferAttribute(position, vertexAt(triangle * 3 + offset)).applyMatrix4(object.matrixWorld);
+        corner
+          .fromBufferAttribute(position, vertexAt(triangle * 3 + offset))
+          .applyMatrix4(object.matrixWorld);
         return [corner.x, corner.y, corner.z];
       });
       let start = 0;
@@ -95,7 +98,8 @@ function triangles(graph) {
   return result;
 }
 
-const sameTriangle = (a, b) => a.every((corner, position) => compareCorner(corner, b[position]) === 0);
+const sameTriangle = (a, b) =>
+  a.every((corner, position) => compareCorner(corner, b[position]) === 0);
 
 /** Greedy tolerant multiset comparison; returns a few unmatched triangles per side. */
 function unmatchedTriangles(before, after) {
@@ -106,7 +110,8 @@ function unmatchedTriangles(before, after) {
     const used = new Uint8Array(right.length);
     let windowStart = 0;
     for (const triangle of left) {
-      while (windowStart < right.length && right[windowStart][0][0] < triangle[0][0] - TOLERANCE) windowStart += 1;
+      while (windowStart < right.length && right[windowStart][0][0] < triangle[0][0] - TOLERANCE)
+        windowStart += 1;
       let match = -1;
       for (let candidate = windowStart; candidate < right.length; candidate += 1) {
         if (right[candidate][0][0] > triangle[0][0] + TOLERANCE) break;
@@ -141,14 +146,19 @@ test('static batching cuts the mesh count and leaves looked-up objects alone', (
   const graph = buildScene(true);
   const { sourceMeshes, meshesAfter, batches } = graph.staticBatch;
   assert.ok(batches > 0);
-  assert.ok(meshesAfter * 4 < sourceMeshes, `expected at least 4× fewer meshes, got ${sourceMeshes} → ${meshesAfter}`);
+  assert.ok(
+    meshesAfter * 4 < sourceMeshes,
+    `expected at least 4× fewer meshes, got ${sourceMeshes} → ${meshesAfter}`,
+  );
   assert.equal(graph.siteRoot.getObjectByName('POOL-01-WATER-SURFACE'), graph.water.surface);
   assert.ok(graph.siteRoot.getObjectByName('CUTAWAY-HIDE-SITE-GROUND')?.isMesh);
   const caustics = [];
   graph.siteRoot.traverse((object) => {
     if (object.name.startsWith('visual-only:POOL-01-caustic:')) caustics.push(object);
   });
-  assert.ok(caustics.length > 0 && caustics.every((object) => object.isMesh && !object.userData.batched));
+  assert.ok(
+    caustics.length > 0 && caustics.every((object) => object.isMesh && !object.userData.batched),
+  );
   for (const object of graph.cutaway.hiddenObjects) {
     assert.ok(object.parent, `${object.name} must stay in the scene for the cutaway toggle`);
   }
@@ -165,7 +175,8 @@ test('every selectable can still be picked and framed after batching', () => {
   });
   const index = new Map(graph.selectables.map(({ object }, position) => [object, position]));
   graph.siteRoot.traverse((object) => {
-    if (object.isMesh && !object.userData.faceOwners) owned.add(owningSelectableIndex(object, index));
+    if (object.isMesh && !object.userData.faceOwners)
+      owned.add(owningSelectableIndex(object, index));
   });
   const plain = buildScene(false);
   const expected = new Set();
@@ -173,9 +184,15 @@ test('every selectable can still be picked and framed after batching', () => {
   plain.siteRoot.traverse((object) => {
     if (object.isMesh) expected.add(owningSelectableIndex(object, plainIndex));
   });
-  assert.deepEqual([...owned].sort((a, b) => a - b), [...expected].sort((a, b) => a - b));
+  assert.deepEqual(
+    [...owned].sort((a, b) => a - b),
+    [...expected].sort((a, b) => a - b),
+  );
   for (const selectable of graph.selectables) {
-    assert.ok(selectable.bounds instanceof THREE.Box3, `${selectable.entityId} has no frame bounds`);
+    assert.ok(
+      selectable.bounds instanceof THREE.Box3,
+      `${selectable.entityId} has no frame bounds`,
+    );
   }
   const plainBounds = plain.selectables.map(({ bounds }) => bounds);
   graph.selectables.forEach(({ bounds, entityId }, position) => {
@@ -211,7 +228,12 @@ test('a mirrored transform keeps front faces facing outwards', () => {
   assert.ok(batch, 'the two boxes must merge');
   const position = batch.geometry.getAttribute('position');
   const normal = batch.geometry.getAttribute('normal');
-  const [a, b, c, n] = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+  const [a, b, c, n] = [
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+  ];
   for (let vertex = 0; vertex < position.count; vertex += 3) {
     a.fromBufferAttribute(position, vertex);
     b.fromBufferAttribute(position, vertex + 1);
@@ -245,7 +267,11 @@ test('merging never crosses a toggle unit, a material or a detail level', () => 
   layerB.add(fixture);
   add(fixture, concrete);
   add(fixture, concrete);
-  const report = batchStaticMeshes(root, { toggleUnits: [layerA, layerB], exclude: [], selectionOwners: [] });
+  const report = batchStaticMeshes(root, {
+    toggleUnits: [layerA, layerB],
+    exclude: [],
+    selectionOwners: [],
+  });
   assert.equal(report.batches, 3);
   const batchesIn = (parent) => parent.children.filter((child) => child.userData.batched);
   assert.equal(batchesIn(layerA).length, 1);
@@ -254,19 +280,26 @@ test('merging never crosses a toggle unit, a material or a detail level', () => 
   assert.equal(container.userData.minimumVisualDetail, 'full');
   assert.equal(container.visible, false, 'a full-detail container starts hidden like its source');
   assert.equal(batchesIn(container).length, 1);
-  assert.equal(layerA.children.filter((child) => child.isMesh && child.material === steel).length, 1);
+  assert.equal(
+    layerA.children.filter((child) => child.isMesh && child.material === steel).length,
+    1,
+  );
 });
 
 test('render categories come from the material unless set explicitly', () => {
-  const mesh = (name, options = {}) => new THREE.Mesh(
-    new THREE.BufferGeometry(),
-    new THREE.MeshStandardMaterial({ name, ...options }),
-  );
+  const mesh = (name, options = {}) =>
+    new THREE.Mesh(
+      new THREE.BufferGeometry(),
+      new THREE.MeshStandardMaterial({ name, ...options }),
+    );
   assert.equal(renderCategoryOf(mesh('enhanced:roof-glass')), 'glass');
   assert.equal(renderCategoryOf(mesh('SHARED-SAFETY-GLASS-FACADE-MATERIAL')), 'glass');
   assert.equal(renderCategoryOf(mesh('baseline:mirror')), 'mirror');
   assert.equal(renderCategoryOf(mesh('baseline:water')), 'water-surface');
-  assert.equal(renderCategoryOf(mesh('baseline:interior-light', { emissive: 0xffe9bd })), 'emissive-fixture');
+  assert.equal(
+    renderCategoryOf(mesh('baseline:interior-light', { emissive: 0xffe9bd })),
+    'emissive-fixture',
+  );
   assert.equal(renderCategoryOf(mesh('baseline:exposed-concrete-l1')), 'structure');
   const tree = mesh('baseline:exposed-concrete-l1');
   const group = new THREE.Group();
