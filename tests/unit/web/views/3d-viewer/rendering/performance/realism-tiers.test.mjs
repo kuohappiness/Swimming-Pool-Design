@@ -66,6 +66,10 @@ test('tier validation rejects a lower tier that costs more or turns an effect ba
     /bloom must not turn on below medium/,
   );
   assert.throws(
+    () => assertRealismTiers({ ...REALISM_TIERS, saver: { ...REALISM_TIERS.saver, exposureAdaptation: true } }),
+    /exposureAdaptation must not turn on below medium/,
+  );
+  assert.throws(
     () => assertRealismTiers({ ...REALISM_TIERS, saver: { ...REALISM_TIERS.saver, shadowMapSize: 512 } }),
     /shadow cascades and map size must agree/,
   );

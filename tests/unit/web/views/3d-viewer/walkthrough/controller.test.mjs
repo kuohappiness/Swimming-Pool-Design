@@ -355,8 +355,11 @@ test('lowering the pipeline profile only changes rendering capabilities', () => 
     ambientOcclusion: true,
     enhancedWater: true,
     postProcessing: true,
+    bloom: true,
+    exposureAdaptation: true,
   };
   const low = adaptRenderQualityProfile(high, 'low');
+  // Every frame effect goes with the post-processing it needs.
   assert.deepEqual(low, {
     id: 'low',
     pixelRatioCap: 1,
@@ -366,7 +369,10 @@ test('lowering the pipeline profile only changes rendering capabilities', () => 
     ambientOcclusion: false,
     enhancedWater: false,
     postProcessing: false,
+    bloom: false,
+    exposureAdaptation: false,
   });
+  assert.deepEqual(adaptRenderQualityProfile(high, 'high'), high);
   assert.deepEqual(getWalkthroughCapabilityProfile('low', false), {
     id: 'low',
     pixelRatioCap: 1,

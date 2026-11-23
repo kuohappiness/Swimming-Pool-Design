@@ -43,8 +43,11 @@ export interface RealismTier {
   readonly caustics: 'realtime' | 'scrolling' | 'baked';
   /** 鏡牆倒影：即時平面反射，或只取反射探針。 */
   readonly mirrorReflection: 'planar' | 'probe';
+  /** 環境遮蔽與接觸陰影（同一張畫面深度，一起卸載）。 */
   readonly ambientOcclusion: boolean;
   readonly bloom: boolean;
+  /** 依畫面亮度的曝光適應（室外進室內、看向亮處與暗處）。 */
+  readonly exposureAdaptation: boolean;
   readonly textureMaxSize: 2048 | 1024 | 512;
   readonly anisotropyCap: number;
   /** 同時播放動畫的人物上限。 */
@@ -91,6 +94,7 @@ export const REALISM_TIERS: Readonly<Record<RealismTierId, RealismTier>> = Objec
     mirrorReflection: 'planar',
     ambientOcclusion: true,
     bloom: true,
+    exposureAdaptation: true,
     textureMaxSize: 2048,
     anisotropyCap: 16,
     animatedPeople: 12,
@@ -110,6 +114,7 @@ export const REALISM_TIERS: Readonly<Record<RealismTierId, RealismTier>> = Objec
     mirrorReflection: 'planar',
     ambientOcclusion: false,
     bloom: true,
+    exposureAdaptation: true,
     textureMaxSize: 2048,
     anisotropyCap: 8,
     animatedPeople: 8,
@@ -131,6 +136,7 @@ export const REALISM_TIERS: Readonly<Record<RealismTierId, RealismTier>> = Objec
     mirrorReflection: 'probe',
     ambientOcclusion: false,
     bloom: false,
+    exposureAdaptation: false,
     textureMaxSize: 1024,
     anisotropyCap: 4,
     animatedPeople: 4,
@@ -150,6 +156,7 @@ export const REALISM_TIERS: Readonly<Record<RealismTierId, RealismTier>> = Objec
     mirrorReflection: 'probe',
     ambientOcclusion: false,
     bloom: false,
+    exposureAdaptation: false,
     textureMaxSize: 512,
     anisotropyCap: 2,
     animatedPeople: 0,
@@ -215,7 +222,7 @@ export function assertRealismTiers(
           throw new TypeError(`Realism tier ${key} must not grow from ${previous.id} to ${id}.`);
         }
       }
-      for (const key of ['waterRefraction', 'ambientOcclusion', 'bloom'] as const) {
+      for (const key of ['waterRefraction', 'ambientOcclusion', 'bloom', 'exposureAdaptation'] as const) {
         if (current[key] && !previous[key]) {
           throw new TypeError(`Realism tier ${key} must not turn on below ${previous.id}.`);
         }
