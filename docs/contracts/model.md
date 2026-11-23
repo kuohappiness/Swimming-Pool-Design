@@ -7,9 +7,9 @@
 現行版本契約：
 
 - `schemaVersion = 1.5.0`
-- `modelVersion = designTargetVersion = 0.10.0`
-- `activeGeometryRevisionId = GEO-0.10.0`
-- active revision 的 `id` 必須只出現一次，且其 `id = GEO-${revision}`、幾何 `modelVersion = revision = 0.10.0`；頂層 `modelVersion` 是發布版號，可在不改幾何的展示層 release 高於 active geometry，但不得選取比發布版更新的幾何。
+- `modelVersion = designTargetVersion = 0.11.0`
+- `activeGeometryRevisionId = GEO-0.11.0`
+- active revision 的 `id` 必須只出現一次，且其 `id = GEO-${revision}`、幾何 `modelVersion = revision = 0.11.0`；頂層 `modelVersion` 是發布版號，可在不改幾何的展示層 release 高於 active geometry，但不得選取比發布版更新的幾何。
 - legacy revision 可保存歷史，但不得有任何 `activeForViewer` 或隱含最新版語意。
 
 ## 2. SITE-XY

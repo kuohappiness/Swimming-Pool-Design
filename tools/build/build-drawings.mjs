@@ -303,6 +303,11 @@ function l3Plan() {
   const terrace = active.l3.landscapeTerrace;
   const roof = active.l3.roof;
   const pv = active.l3.pvRoofReserve;
+  const room = active.l3.learningRoom;
+  const equipment = active.l3.equipmentZone;
+  const glass = active.l3.glassPartition;
+  const glassY = (glass.bounds.y1 + glass.bounds.y2) / 2;
+  const doorX = [39.5, 40.5];
   const extensionPoints = extension.polygon.map(([x, y]) => `${planX(x)},${planY(y)}`).join(' ');
   const arrivalPoints = arrival.polygon.map(([x, y]) => `${planX(x)},${planY(y)}`).join(' ');
   const rotationTransform = `rotate(${active.l3.planRotation} ${planX(pivot.x)} ${planY(pivot.y)})`;
@@ -313,6 +318,9 @@ function l3Plan() {
     <polygon points="${arrivalPoints}" class="arrival" data-entity="Z-L3-ARRIVAL-01" data-covered="true"/><text x="${planX(40.05)}" y="${planY(1.25)+4}" text-anchor="middle" class="tiny">有頂室內到達翼 ${arrival.area.toFixed(3)} m²</text><line x1="${planX(39.65)}" y1="${planY(1.25)}" x2="${planX(40.75)}" y2="${planY(1.25)}" stroke="#9a4e2d" stroke-width="2.5"/><path d="M${planX(40.75)} ${planY(1.25)}l-10 -5v10z" fill="#9a4e2d"/>
     <g data-entity="L3-ROTATED-ASSEMBLY" data-shared-plan-rotation="${active.l3.planRotation}" transform="${rotationTransform}">
       <g data-entity="L3-PLATE-01" data-coordinate-system="SITE-XY" data-bounds="${boundsData(active.l3.floorPlate)}"><rect x="${planX(b.x1)}" y="${planY(b.y2)}" width="${(b.x2-b.x1)*scale}" height="${(b.y2-b.y1)*scale}" class="working"/></g>
+      <g data-entity="${room.entityId}" data-area="${room.area}" data-bounds="${boundsData(room)}"><rect x="${planX(room.bounds.x1)}" y="${planY(room.bounds.y2)}" width="${(room.bounds.x2-room.bounds.x1)*scale}" height="${(room.bounds.y2-room.bounds.y1)*scale}" class="corridor"/><text x="${planX(35)}" y="${planY(3.1)}" text-anchor="middle" class="small" style="font-weight:700">觀課與環境教育室 ${room.area} m²</text><text x="${planX(35)}" y="${planY(2.5)}" text-anchor="middle" class="tiny">教師與預約小組；攝影機觀課，螢幕靠鏡牆</text></g>
+      <g data-entity="${equipment.entityId}" data-area="${equipment.area}" data-bounds="${boundsData(equipment)}"><text x="${planX(38.2)}" y="${planY(9)}" text-anchor="middle" class="small" style="font-weight:700">設備區 ${equipment.area} m²</text><text x="${planX(38.2)}" y="${planY(8.4)}" text-anchor="middle" class="tiny">維修人員經上鎖門進出</text></g>
+      <g data-entity="${glass.entityId}" data-maintenance-door="${glass.maintenanceDoor}"><line x1="${planX(glass.bounds.x1)}" y1="${planY(glassY)}" x2="${planX(doorX[0])}" y2="${planY(glassY)}" class="windowLine"/><line x1="${planX(doorX[1])}" y1="${planY(glassY)}" x2="${planX(glass.bounds.x2)}" y2="${planY(glassY)}" class="windowLine"/><text x="${planX(31.6)}" y="${planY(glassY)-8}" text-anchor="middle" class="tiny">隔音玻璃隔間</text></g>
       <g class="structure"><rect x="${planX(active.l1.poolUse.accessibleChanging.bounds.x2)-5}" y="${planY(12)}" width="10" height="${4 * scale}"/><rect x="${planX(35.5)-5}" y="${planY(7.5)}" width="10" height="${7.5 * scale}"/></g>
       <g><rect x="${planX(33)}" y="${planY(10)}" width="${2.2*scale}" height="${1.6*scale}" class="service"/><circle cx="${planX(34)}" cy="${planY(6.8)}" r="22" class="service"/><text x="${planX(34.1)}" y="${planY(11)}" text-anchor="middle" class="tiny">除濕／熱回收</text><text x="${planX(34)}" y="${planY(6.8)+4}" text-anchor="middle" class="tiny">水塔</text></g>
       <g data-entity="${roof.entityId}" data-area="${roof.area}" data-complete-roof="true"><rect x="${planX(roof.bounds.x1)}" y="${planY(roof.bounds.y2)}" width="${(roof.bounds.x2-roof.bounds.x1)*scale}" height="${(roof.bounds.y2-roof.bounds.y1)*scale}" class="roof"/></g>
@@ -323,7 +331,7 @@ function l3Plan() {
     <circle cx="${planX(pivot.x)}" cy="${planY(pivot.y)}" r="7" fill="#a95c25"/><text x="${planX(pivot.x)+10}" y="${planY(pivot.y)-12}" class="tiny">支點 X35／Y6.75</text>
     ${grid()}
     <text x="${planX(34)}" y="${planY(13.4)}" text-anchor="middle" class="tiny">完整 3F 屋頂；太陽能板為淡藍透明圖層，可在 HTML 獨立顯示／隱藏</text></g>
-    <rect x="60" y="845" width="1610" height="82" rx="9" class="note"/><text x="82" y="875" class="small">L3 樓板、完整屋頂、鏡牆與太陽能板共用同一 +${active.l3.planRotation.toFixed(1)}° SITE-XY transform；不再對光電圖層施加反向或額外旋轉。</text><text x="82" y="902" class="small">太陽能板改為淡藍透明填色以閱讀下方結構；周邊保留 ${pv.perimeterSetback.toFixed(2)} m，概念覆蓋 ${pv.area.toFixed(1)}／${pv.roofArea.toFixed(1)} m²（${pv.coveragePercent.toFixed(2)}%），容量與專業核定仍待定。</text>`, 'DRAW-L3-PLAN');
+    <rect x="60" y="845" width="1610" height="104" rx="9" class="note"/><text x="82" y="872" class="small">L3 樓板、完整屋頂、鏡牆與太陽能板共用同一 +${active.l3.planRotation.toFixed(1)}° SITE-XY transform；不再對光電圖層施加反向或額外旋轉。</text><text x="82" y="924" class="small">3F 分為觀課與環境教育室 ${room.area} m² 與設備區 ${equipment.area} m²，以隔音玻璃與上鎖維修門分隔；限教師與預約小組，以攝影機觀課，鏡牆不開窗（DEC-173）。人數上限、電梯與逃生待專業確認。</text><text x="82" y="898" class="small">太陽能板改為淡藍透明填色以閱讀下方結構；周邊保留 ${pv.perimeterSetback.toFixed(2)} m，概念覆蓋 ${pv.area.toFixed(1)}／${pv.roofArea.toFixed(1)} m²（${pv.coveragePercent.toFixed(2)}%），容量與專業核定仍待定。</text>`, 'DRAW-L3-PLAN');
 }
 
 function sectionDrawing() {
