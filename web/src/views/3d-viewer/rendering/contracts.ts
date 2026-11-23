@@ -10,6 +10,10 @@ export const MIRROR_SURFACE_NAME = 'F-MIR-01-SURFACE';
 /** 鏡面網格 `userData` 裡反光那一面的法線（網格的物件座標，`[x, y, z]`）。 */
 export const MIRROR_FRONT_NORMAL_KEY = 'mirrorFrontNormal';
 
+/** 屋頂低端雨簾的網格（平時藏著，雨天由 `water/rain.ts` 換上材質並顯示）與它取代的示意線。 */
+export const RAIN_CURTAIN_NAME = 'RC-RF-01-CURTAIN';
+export const RAIN_CURTAIN_SCHEMATIC_NAME = 'RC-RF-01-SCHEMATIC';
+
 export type SemanticMaterialId =
   | 'ground'
   | 'planting'
