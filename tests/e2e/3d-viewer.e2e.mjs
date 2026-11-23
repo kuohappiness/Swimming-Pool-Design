@@ -14,6 +14,8 @@ const repoRoot = resolve(import.meta.dirname, '../..');
 const port = 4173;
 const origin = `http://127.0.0.1:${port}`;
 const outputDirectory = resolve(repoRoot, 'test-results');
+// Simulated seconds a sprint from the pool-deck spawn may take to reach the water (it takes about 0.8 s).
+const WATER_ENTRY_SIMULATED_SECONDS = 2;
 const projectModel = JSON.parse(
   await readFile(resolve(repoRoot, 'model/project-model.json'), 'utf8'),
 );
@@ -282,11 +284,28 @@ try {
   await desktop.keyboard.down('w');
   let desktopWaterEntryError = null;
   try {
+    // Movement advances at most 0.1 s of simulated time per rendered frame, and the software
+    // renderer takes about half a second per frame, so a wall-clock limit measures the CI
+    // machine rather than the walk. Count simulated time the same way the viewer does instead:
+    // see WATER_ENTRY_SIMULATED_SECONDS.
+    await desktop.evaluate(() => {
+      window.__waterEntryClock = { last: performance.now(), simulated: 0 };
+    });
     await desktop.waitForFunction(
-      () => document.querySelector('[data-viewer-shell]')
-        ?.getAttribute('data-movement-mode')?.startsWith('swimming-'),
-      undefined,
-      { timeout: 8_000 },
+      (budgetSeconds) => {
+        const mode = document.querySelector('[data-viewer-shell]')?.getAttribute('data-movement-mode');
+        if (mode?.startsWith('swimming-')) return true;
+        const clock = window.__waterEntryClock;
+        const now = performance.now();
+        clock.simulated += Math.min((now - clock.last) / 1000, 0.1);
+        clock.last = now;
+        if (clock.simulated > budgetSeconds) {
+          throw new Error(`still ${mode} after ${clock.simulated.toFixed(1)} s of simulated time`);
+        }
+        return false;
+      },
+      WATER_ENTRY_SIMULATED_SECONDS,
+      { polling: 'raf', timeout: 60_000 },
     );
   } catch (error) {
     desktopWaterEntryError = new Error(
