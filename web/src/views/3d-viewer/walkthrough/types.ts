@@ -84,6 +84,8 @@ export interface StairRampDescriptor {
   readonly secondFlightRun: number;
   readonly midLandingLength: number;
   readonly upperLandingLength: number;
+  /** 上平台這一側沒有牆，直接走進到達的樓地板（ST-02 北側接延伸的到達翼，DEC-175）。 */
+  readonly openUpperLandingSide?: 'y-max';
   readonly transform: FixedPlanTransform;
 }
 
