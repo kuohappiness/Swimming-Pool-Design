@@ -39,8 +39,9 @@ import {
 import { deriveShadowFocus, toSceneLighting } from './rendering/lighting/scene-lighting';
 import { MirrorBounceLight, mirrorWallFromViewerModel } from './rendering/lighting/mirror-bounce';
 import { FixtureLights } from './rendering/lighting/fixture-lights';
+import { RainEffects } from './rendering/water/rain';
 import { getViewerFixtureLayout } from './fixture-layout';
-import { MIRROR_SURFACE_NAME } from './rendering/contracts';
+import { MIRROR_SURFACE_NAME, RAIN_CURTAIN_NAME, RAIN_CURTAIN_SCHEMATIC_NAME } from './rendering/contracts';
 import { installSoftShadows } from './rendering/lighting/soft-shadows';
 import { formatSolarMoment } from './rendering/lighting/solar-moment';
 import { computeSunLighting, describeSunLighting } from './rendering/lighting/sun-lighting';
@@ -558,6 +559,14 @@ try {
     const fixtureLights = realSunAvailable
       ? new FixtureLights(getViewerFixtureLayout(model), graph.scene, graph.siteRoot)
       : null;
+    // 雨（TASK-152 步驟 7）：雨天時屋頂玻璃上的水珠與水痕、屋頂低端的雨簾；水量與水花是概念示意。
+    const rainCurtain = graph.siteRoot.getObjectByName(RAIN_CURTAIN_NAME);
+    const rain = realSunAvailable && rainCurtain instanceof THREE.Mesh
+      ? new RainEffects({
+          curtain: rainCurtain,
+          schematic: graph.siteRoot.getObjectByName(RAIN_CURTAIN_SCHEMATIC_NAME) ?? null,
+        })
+      : null;
     let lightingDescription = '';
     /**
      * 「日照時刻」的說明：反射光落在池面、燈具開著時各多一句。
@@ -573,10 +582,12 @@ try {
         shell.dataset.fixtureLights = fixtureLights.state;
         shell.dataset.fixtureSurfaceLighting = fixtureLights.surfaceLighting.toFixed(2);
       }
+      if (rain) shell.dataset.rain = rain.state;
       if (lightingState && lightingControl) {
         const notes = [
           ...(mirrorBounce?.landing === 'pool' ? ['鏡牆反射光落在池面（概念示意）'] : []),
           ...(fixtureLights?.state === 'on' ? ['池館燈具開啟（燈具配置為概念示意）'] : []),
+          ...(rain?.state === 'glass curtain' ? ['屋頂玻璃上的雨與低端雨簾（概念示意）'] : []),
         ];
         lightingControl.show(lightingState, [lightingDescription, ...notes].join('；'));
       }
@@ -644,6 +655,7 @@ try {
       // 水的著色器自己算反射光照在池底與池壁的部分，從場景讀同一份。
       mirrorBounce?.setLighting(lighting);
       fixtureLights?.setLighting(lighting);
+      rain?.setLighting(lighting);
       requestLightingRefresh(settled);
       shell.dataset.lightingMoment = formatSolarMoment(state.moment);
       shell.dataset.weather = state.weather;
@@ -1039,6 +1051,9 @@ try {
       mirrorBounce?.install(graph.scene);
       fixtureLights?.install(graph.scene);
       fixtureLights?.setQuality(rendering.quality.id);
+      rain?.install(rendering.materials.get('roof-glass'));
+      rain?.setQuality(rendering.quality.id);
+      publishMirrorBounce();
       renderer.shadowMap.enabled = rendering.quality.shadows;
       requestShadowRefresh();
       controls.enableDamping = capability.cameraMotion;
@@ -1185,6 +1200,7 @@ try {
       } else {
         controls.update();
       }
+      rain?.update(elapsedFrameTime, reducedMotion);
       rendering.visualAssets.updateFrame?.({
         deltaSeconds: Math.min(frameDelta, 0.1),
         elapsedSeconds: elapsedFrameTime,
@@ -1256,6 +1272,7 @@ try {
       touchInput.dispose();
       selectionController.dispose();
       underwaterEffects.dispose();
+      rain?.dispose();
       controls.dispose();
       rendering.dispose();
       renderer.dispose();

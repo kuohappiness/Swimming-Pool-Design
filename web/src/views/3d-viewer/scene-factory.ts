@@ -16,6 +16,8 @@ import { createPoolUseDeck, createPoolUseDetails } from './pool-use-details';
 import {
   MIRROR_FRONT_NORMAL_KEY,
   MIRROR_SURFACE_NAME,
+  RAIN_CURTAIN_NAME,
+  RAIN_CURTAIN_SCHEMATIC_NAME,
   type SceneRenderingDependencies,
 } from './rendering/contracts';
 import { batchStaticMeshes, type StaticBatchReport } from './scene-batcher';
@@ -1403,14 +1405,31 @@ export function createViewerScene(
 
   const rainGroup = new THREE.Group();
   const rainMaterial = materials.get('rain');
+  const rainSchematic = new THREE.Group();
+  rainSchematic.name = RAIN_CURTAIN_SCHEMATIC_NAME;
   for (let index = 0; index <= 18; index += 1) {
     const z = roof.width * index / 18;
-    rainGroup.add(line([
+    rainSchematic.add(line([
       new THREE.Vector3(roof.startX, roof.lowElevation, z),
       new THREE.Vector3(roof.startX, 0.12, z),
     ], rainMaterial));
   }
-  rainGroup.add(box([0.38, 0.14, roof.width], [roof.startX, 0.07, roof.width / 2], deferred));
+  rainGroup.add(rainSchematic);
+  const catchTrenchTop = 0.14;
+  rainGroup.add(box([0.38, catchTrenchTop, roof.width], [roof.startX, catchTrenchTop / 2, roof.width / 2], deferred));
+  // 雨天的雨簾：從屋頂低端落進承接溝；平時藏著，材質由 rendering 換上（基本繪圖路徑一直藏著）。
+  const rainCurtain = quad([
+    roof.startX, roof.lowElevation, 0,
+    roof.startX, roof.lowElevation, roof.width,
+    roof.startX, catchTrenchTop, roof.width,
+    roof.startX, catchTrenchTop, 0,
+  ], rainMaterial);
+  rainCurtain.name = RAIN_CURTAIN_NAME;
+  rainCurtain.userData.batchExclude = true;
+  rainCurtain.visible = false;
+  rainCurtain.castShadow = false;
+  rainCurtain.receiveShadow = false;
+  rainGroup.add(rainCurtain);
   const waterPath = line([
     new THREE.Vector3(roof.startX, 0.16, centreZ),
     new THREE.Vector3(-1.35, 0.16, centreZ),
@@ -1540,6 +1559,8 @@ export function createViewerScene(
           ...layerGroups.values(),
           ...layerDependents.map(({ object }) => object),
           ...cutawayHiddenObjects,
+          // 雨天時換成雨簾的示意線：自成一組，才能整組藏起來。
+          rainSchematic,
         ],
         exclude: [waterSurface, cutawayAnnotations],
         selectionOwners: selectables.map(({ object }) => object),
