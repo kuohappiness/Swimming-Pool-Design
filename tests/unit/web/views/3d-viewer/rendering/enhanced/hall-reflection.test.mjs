@@ -24,7 +24,9 @@ const THREE_REFLECTION = 'reflectVec = normalize( mix( reflectVec, normal, pow4(
 
 test('the hall probe replaces the environment reflection after three.js computes it', () => {
   assert.ok(THREE.ShaderChunk.envmap_physical_pars_fragment.includes(THREE_REFLECTION));
-  assert.match(THREE.ShaderChunk.lights_fragment_maps, /radiance \+= getIBLRadiance\(/);
+  // three 0.187 起先算進 iblRadiance（可能再混入回射）才加到 radiance；池廳反射接在加完之後。
+  assert.match(THREE.ShaderChunk.lights_fragment_maps, /vec3 iblRadiance = getIBLRadiance\(/);
+  assert.match(THREE.ShaderChunk.lights_fragment_maps, /radiance \+= iblRadiance;/);
   const uniforms = createHallReflectionUniforms();
   const material = new THREE.MeshPhysicalMaterial();
   assert.equal(installHallReflection(material, uniforms), true);
