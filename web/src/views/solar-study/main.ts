@@ -11,6 +11,32 @@ import {
 } from '../../../../core/solar/solar-reflection.mjs';
 import { deriveMirrorNormalAzimuth } from '../../../../core/geometry/site-orientation.mjs';
 import { projectPoolFootprint } from '../../../../core/solar/pool-footprint.mjs';
+import { clonePreviewSvg } from './mobile-preview';
+import {
+  pointFromAzimuth,
+  pointFromOriginToward,
+  polar,
+  rotateSvgPoint,
+  signed,
+  skyPoint,
+} from './plan-geometry';
+import {
+  DIAGNOSTIC_END_HOUR,
+  DIAGNOSTIC_START_HOUR,
+  dateStops,
+  formatStudyDate,
+  formatTime,
+  initialDateStopIndex,
+  initialHour,
+  minutesFromTime,
+  periodFor,
+  sampleTimes,
+  solstices,
+  studyDate,
+  type SolsticeKey,
+  type ZonedNow,
+  zonedNow,
+} from './study-calendar';
 
 const model = rawModel as unknown as ProjectModel;
 
@@ -49,52 +75,7 @@ const study = activeStudy.solar;
 const optimization = study;
 const defaultPlanRotation = optimization.planRotation.value;
 const defaultWallLean = optimization.mirrorLeanFromVertical.value;
-const diagnosticStartHour = 7;
-const diagnosticEndHour = 18;
-const sampleHours = Array.from(
-  { length: diagnosticEndHour - diagnosticStartHour + 1 },
-  (_, index) => index + diagnosticStartHour,
-);
-const sampleTimes = sampleHours.map((hour) => String(hour).padStart(2, '0') + ':00');
-const dateStops = [
-  { month: 1, day: 1 },
-  { month: 2, day: 1 },
-  { month: 3, day: 1 },
-  { month: 4, day: 1 },
-  { month: 5, day: 1 },
-  { month: 6, day: 1 },
-  { month: 6, day: 21, milestone: '夏至' },
-  { month: 7, day: 1 },
-  { month: 8, day: 1 },
-  { month: 9, day: 1 },
-  { month: 10, day: 1 },
-  { month: 11, day: 1 },
-  { month: 12, day: 1 },
-  { month: 12, day: 21, milestone: '冬至' },
-] as const;
-const solstices = {
-  winter: { name: '冬至', month: 12, day: 21, color: '#e5a23d' },
-  summer: { name: '夏至', month: 6, day: 21, color: '#e15a4f' },
-} as const;
-type SolsticeKey = keyof typeof solstices;
-
-function taipeiNow(): { year: number; month: number; day: number; hour: number } {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: location.timeZone,
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    hourCycle: 'h23',
-  }).formatToParts(new Date());
-  const values = Object.fromEntries(parts.map((part) => [part.type, Number(part.value)]));
-  return {
-    year: values.year,
-    month: values.month,
-    day: values.day,
-    hour: values.hour,
-  };
-}
+const taipeiNow = (): ZonedNow => zonedNow(location.timeZone);
 
 let studyYear = taipeiNow().year;
 let followsCurrentYear = true;
@@ -154,43 +135,6 @@ type MobilePreviewMode = 'plan' | 'section';
 const mobilePreviewMedia = window.matchMedia('(max-width: 999px)');
 let mobilePreviewMode: MobilePreviewMode = 'plan';
 
-function clonePreviewSvg(source: SVGSVGElement, idPrefix: string): SVGSVGElement {
-  const clone = source.cloneNode(true) as SVGSVGElement;
-  clone.removeAttribute('id');
-  clone.removeAttribute('role');
-  clone.removeAttribute('aria-labelledby');
-  clone.removeAttribute('aria-describedby');
-  clone.setAttribute('aria-hidden', 'true');
-  clone.setAttribute('focusable', 'false');
-
-  const idMap = new Map<string, string>();
-  Array.from(clone.querySelectorAll<SVGElement>('[id]')).forEach((element) => {
-    const oldId = element.id;
-    const newId = idPrefix + '-' + oldId;
-    idMap.set(oldId, newId);
-    element.id = newId;
-  });
-
-  Array.from(clone.querySelectorAll<SVGElement>('*')).forEach((element) => {
-    Array.from(element.attributes).forEach((attribute) => {
-      let value = attribute.value;
-      idMap.forEach((newId, oldId) => {
-        value = value.replaceAll('url(#' + oldId + ')', 'url(#' + newId + ')');
-        if (value === '#' + oldId) value = '#' + newId;
-        if (attribute.name === 'aria-labelledby' || attribute.name === 'aria-describedby') {
-          value = value
-            .split(/\s+/)
-            .map((token) => (token === oldId ? newId : token))
-            .join(' ');
-        }
-      });
-      if (value !== attribute.value) element.setAttribute(attribute.name, value);
-    });
-  });
-
-  return clone;
-}
-
 function renderLivePreview(): void {
   if (mobilePreviewMedia.matches) {
     const source = mobilePreviewMode === 'plan' ? planSvg : sectionSvg;
@@ -248,66 +192,16 @@ rotationControl.value = String(defaultPlanRotation);
 leanControl.value = String(defaultWallLean);
 yearControl.value = String(studyYear);
 
-function initialDateStopIndex(month: number, day: number): number {
-  const exactSolstice = dateStops.findIndex((stop) => stop.month === month && stop.day === day);
-  if (exactSolstice >= 0) return exactSolstice;
-  return Math.max(
-    0,
-    dateStops.findIndex((stop) => stop.month === month && stop.day === 1),
-  );
-}
-
 const initialNow = taipeiNow();
 dateControl.value = String(initialDateStopIndex(initialNow.month, initialNow.day));
-timeControl.value = String(
-  Math.max(diagnosticStartHour, Math.min(diagnosticEndHour, initialNow.hour)),
-);
+timeControl.value = String(initialHour(initialNow.hour));
 
 function dateAt(month: number, day = 1): Date {
-  return new Date(Date.UTC(studyYear, month - 1, day));
-}
-
-function minutesFromTime(value: string): number {
-  const parts = value.split(':').map(Number);
-  return parts[0] * 60 + parts[1];
-}
-
-function formatTime(totalMinutes: number): string {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-}
-
-function periodFor(date: Date): { key: 'warm' | 'cool'; name: '暖季' | '冷季'; color: string } {
-  const month = date.getUTCMonth() + 1;
-  return month >= 5 && month <= 9
-    ? { key: 'warm', name: '暖季', color: '#e15a4f' }
-    : { key: 'cool', name: '冷季', color: '#e5a23d' };
-}
-
-function dateMilestone(date: Date): string {
-  const key =
-    String(date.getUTCMonth() + 1).padStart(2, '0') +
-    '-' +
-    String(date.getUTCDate()).padStart(2, '0');
-  const milestones: Record<string, string> = {
-    '03-20': '春分',
-    '06-21': '夏至',
-    '09-23': '秋分',
-    '12-21': '冬至',
-  };
-  return milestones[key] ?? '';
+  return studyDate(studyYear, month, day);
 }
 
 function formatDate(date: Date, includeYear = false): string {
-  const base =
-    (includeYear ? studyYear + '年' : '') +
-    (date.getUTCMonth() + 1) +
-    '月' +
-    date.getUTCDate() +
-    '日';
-  const milestone = dateMilestone(date);
-  return base + (milestone ? '（' + milestone + '）' : '');
+  return formatStudyDate(date, includeYear ? studyYear : undefined);
 }
 
 function solarAt(month: number, day: number, totalMinutes: number) {
@@ -321,45 +215,6 @@ function solarAt(month: number, day: number, totalMinutes: number) {
     longitude: location.longitude.value,
     utcOffsetHours: location.utcOffsetHours,
   });
-}
-
-function polar(azimuth: number, radius: number): [number, number] {
-  return pointFromAzimuth([280, 235], azimuth, radius);
-}
-
-function pointFromAzimuth(
-  origin: [number, number],
-  azimuth: number,
-  radius: number,
-): [number, number] {
-  const radians = (azimuth * Math.PI) / 180;
-  return [origin[0] + radius * Math.sin(radians), origin[1] - radius * Math.cos(radians)];
-}
-
-function pointFromOriginToward(
-  origin: [number, number],
-  target: [number, number],
-  distance: number,
-): [number, number] {
-  const deltaX = target[0] - origin[0];
-  const deltaY = target[1] - origin[1];
-  const length = Math.hypot(deltaX, deltaY);
-  if (length <= 1e-9) return origin;
-  return [origin[0] + (deltaX / length) * distance, origin[1] + (deltaY / length) * distance];
-}
-
-function rotateSvgPoint(
-  point: [number, number],
-  pivot: [number, number],
-  degrees: number,
-): [number, number] {
-  const radians = (degrees * Math.PI) / 180;
-  const x = point[0] - pivot[0];
-  const y = point[1] - pivot[1];
-  return [
-    pivot[0] + x * Math.cos(radians) - y * Math.sin(radians),
-    pivot[1] + x * Math.sin(radians) + y * Math.cos(radians),
-  ];
 }
 
 function mirrorWallCenter(rotation: number): [number, number] {
@@ -421,16 +276,6 @@ function renderPlanTolerance(): void {
   azimuthToleranceLabel.setAttribute('y', label[1].toFixed(1));
   azimuthToleranceLabel.setAttribute('text-anchor', label[0] >= 280 ? 'start' : 'end');
   azimuthToleranceLabel.textContent = '池向方位參考 ±' + tolerance.toFixed(0) + '°';
-}
-
-function signed(value: number): string {
-  return (value > 0 ? '+' : '') + value.toFixed(1) + '°';
-}
-
-function skyPoint(solar: ReturnType<typeof calculateSolarPosition>): [number, number] {
-  const altitude = Math.max(0, Math.min(90, solar.altitude));
-  const radius = 42 + 136 * Math.cos((altitude * Math.PI) / 180);
-  return polar(solar.azimuth, radius);
 }
 
 function drawPlanPath(date: Date, selectedMinutes: number, color: string): void {
@@ -679,9 +524,9 @@ function update(): void {
   // counts roof-redirected hours during school use.
   timeScope.textContent =
     '逐時診斷 ' +
-    String(diagnosticStartHour).padStart(2, '0') +
+    String(DIAGNOSTIC_START_HOUR).padStart(2, '0') +
     ':00–' +
-    String(diagnosticEndHour).padStart(2, '0') +
+    String(DIAGNOSTIC_END_HOUR).padStart(2, '0') +
     ':00 · 年度能量逐時加總全天直射';
 
   buildingPlan.setAttribute(
