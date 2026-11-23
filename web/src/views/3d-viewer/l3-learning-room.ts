@@ -2,9 +2,15 @@ import * as THREE from 'three';
 import type { ViewerModel } from './model-adapter';
 import type { MaterialRegistry } from './rendering/contracts';
 import { markVisualDetail } from './rendering/visual-detail';
+import {
+  createStairOpeningGuardrail,
+  l3RectMinusStairOpening,
+  slabGeometry,
+} from './l3-stair-opening';
 
 /**
- * 3F 觀課與環境教育室（DEC-173，TASK-153）：玻璃隔間、兩個分區、入口與教室裡的示意家具。
+ * 3F 觀課與環境教育室（DEC-173，TASK-153）：玻璃隔間、兩個分區、教室裡的示意家具，
+ * 以及 ST-02 樓梯口在教室那一側的防墜欄杆（DEC-174，TASK-154）。
  *
  * 全部畫在 3F 旋轉群組的座標裡：x = 旋轉前的 X − 支點 X，z = 旋轉前的 Y − 支點 Y，y 從 3F 樓板面算起。
  * 分區與玻璃隔間的位置只取自模型；維修門的位置照 3F 平面圖（模型還沒有門的資料）。
@@ -17,8 +23,6 @@ export const L3_LEARNING_ROOM_FURNITURE_NAME = 'visual-only:L3-learning-room-fur
 /** 玻璃隔間上鎖維修門的位置（旋轉前的 X），與 3F 平面圖相同。 */
 const MAINTENANCE_DOOR_X: readonly [number, number] = [39.5, 40.5];
 const DOOR_HEIGHT = 2.1;
-/** 到達翼進教室的門寬：和 3F 景觀區的門同寬，位置在到達翼貼著 3F 端牆那一段的中間。 */
-const ENTRY_DOOR_WIDTH = 0.9;
 const GLASS_THICKNESS = 0.03;
 const FRAME_WIDTH = 0.05;
 const MULLION_SPACING = 1.75;
@@ -50,30 +54,6 @@ function l3LocalBounds(l3: L3Geometry, bounds: { x1: number; x2: number; y1: num
   };
 }
 
-/**
- * 到達翼貼著 3F 端牆的那一段（旋轉群組座標的 z 範圍）。到達翼不旋轉、3F 樓板旋轉，
- * 兩者只在端牆這一段相接；找不到就是模型改了，教室的入口要重新對。
- */
-export function arrivalContactOnEndWall(l3: L3Geometry): [number, number] {
-  const radians = THREE.MathUtils.degToRad(l3.planRotation.value);
-  const cos = Math.cos(radians);
-  const sin = Math.sin(radians);
-  const halfLength = l3.length / 2;
-  const touching = l3.arrivalWing.polygon
-    .map(([x, y]) => {
-      const dx = x - l3.planPivot.x;
-      const dy = y - l3.planPivot.y;
-      // SITE 順時針旋轉的反向：把 SITE 點轉回旋轉前的樓板座標。
-      return { x: dx * cos - dy * sin, z: dx * sin + dy * cos };
-    })
-    .filter(({ x }) => Math.abs(x - halfLength) < 0.05)
-    .map(({ z }) => z);
-  if (touching.length < 2) {
-    throw new TypeError('3F 到達翼必須貼著旋轉後的 3F 端牆，教室才有入口（DEC-173）。');
-  }
-  return [Math.min(...touching), Math.max(...touching)];
-}
-
 /** 隔間玻璃的外形：從鏡牆（下緣在樓板邊、上緣隨外傾往外）到端牆內側，挖掉維修門。 */
 function partitionGlassShape(
   left: number,
@@ -102,10 +82,12 @@ export interface L3LearningRoomParts {
   readonly learningZone: THREE.Mesh;
   /** Z-L3-MEP-01 的地面範圍。 */
   readonly equipmentZone: THREE.Mesh;
-  /** 鏡牆那一側的觀課螢幕、隔間這一側的能源看板與到達翼的入口門。 */
+  /** 鏡牆那一側的觀課螢幕與隔間這一側的能源看板。 */
   readonly fixtures: THREE.Group;
-  /** 可移動桌椅（中級以上才畫）。 */
+  /** 可移動桌椅（中級以上才畫），排在樓梯口西側。 */
   readonly furniture: THREE.Group;
+  /** OP-L3-ST-02-01 在教室那一側的防墜欄杆。 */
+  readonly stairGuardrail: THREE.Group;
 }
 
 export function createL3LearningRoom(
@@ -184,18 +166,24 @@ export function createL3LearningRoom(
   // 門鎖在教室那一側（z 較小的一側），和框同一種材質，不多一次繪製。
   partition.add(box([0.05, 0.16, 0.04], [door[0] + 0.12, 1.05, partitionZ - 0.045], frame));
 
+  // 分區的地面範圍扣掉樓梯口（教室被切掉一角，設備區沒有碰到）。
   const zone = (
     bounds: { x1: number; x2: number; y1: number; y2: number },
     material: THREE.Material,
     inset: [number, number],
   ) => {
     const local = l3LocalBounds(l3, bounds);
-    const z1 = Math.max(local.z1, -sideWallInside) + inset[0];
-    const z2 = Math.min(local.z2, sideWallInside) - inset[1];
-    const x1 = local.x1;
-    const x2 = Math.min(local.x2, endWallInside);
-    const mesh = box([x2 - x1, 0.02, z2 - z1], [(x1 + x2) / 2, 0.012, (z1 + z2) / 2], material);
-    mesh.castShadow = false;
+    const rect = {
+      x1: local.x1,
+      x2: Math.min(local.x2, endWallInside),
+      z1: Math.max(local.z1, -sideWallInside) + inset[0],
+      z2: Math.min(local.z2, sideWallInside) - inset[1],
+    };
+    const mesh = new THREE.Mesh(
+      slabGeometry(l3RectMinusStairOpening(l3, rect), 0.002, 0.022),
+      material,
+    );
+    mesh.receiveShadow = true;
     return mesh;
   };
   const learningZone = zone(l3.learningRoom.bounds, materials.get('program-zone'), [
@@ -231,28 +219,18 @@ export function createL3LearningRoom(
   const dashboard = box([1.3, 0.76, 0.05], [dashboardX, 1.55, glass.z1 - 0.07], screenMaterial);
   dashboard.name = `${l3.learningRoom.entityId}:ENERGY-DASHBOARD`;
   fixtures.add(dashboard, box([1.38, 0.84, 0.03], [dashboardX, 1.55, glass.z1 - 0.035], frame));
-  // 從到達翼進教室的門：穿過端牆，兩面都看得到。
-  const [contactZ1, contactZ2] = arrivalContactOnEndWall(l3);
-  const entryZ = (contactZ1 + contactZ2) / 2;
-  if (!(
-    contactZ2 - contactZ1 >= ENTRY_DOOR_WIDTH &&
-    entryZ - ENTRY_DOOR_WIDTH / 2 >= roomZ1 &&
-    entryZ + ENTRY_DOOR_WIDTH / 2 <= roomZ2
-  )) {
-    throw new TypeError('3F 到達翼要從教室那一段端牆進入（DEC-173）。');
-  }
-  const entry = box(
-    [END_WALL_THICKNESS + 0.04, DOOR_HEIGHT, ENTRY_DOOR_WIDTH],
-    [halfLength - END_WALL_THICKNESS / 2, DOOR_HEIGHT / 2, entryZ],
-    doorMaterial,
-  );
-  entry.name = `${l3.learningRoom.entityId}:ENTRY-DOOR`;
-  fixtures.add(entry);
+  // 樓梯口在教室那一側的防墜欄杆，沿教室範圍（側牆與端牆內側、玻璃隔間以內）裁切。
+  const stairGuardrail = createStairOpeningGuardrail(model, materials, {
+    x1: -halfLength,
+    x2: endWallInside,
+    z1: roomZ1,
+    z2: roomZ2,
+  });
 
-  // 可移動桌椅：三排、每排兩張桌子五張凳子，面向螢幕；教師桌在螢幕旁的角落。
+  // 可移動桌椅：三排、每排兩張桌子五張凳子，面向螢幕，排在樓梯口西側；教師桌在螢幕旁的角落。
   const furniture = markVisualDetail(new THREE.Group(), 'reduced');
   furniture.name = L3_LEARNING_ROOM_FURNITURE_NAME;
-  const rows = [screenX + 3.4, screenX + 5.2, screenX + 7.0];
+  const rows = [screenX + 2.4, screenX + 4.2, screenX + 6.0];
   const tables: Array<[number, number, number, number]> = rows.flatMap((x) => [
     [x, roomCentreZ - 0.65, 0.6, 1.2] as [number, number, number, number],
     [x, roomCentreZ + 0.65, 0.6, 1.2] as [number, number, number, number],
@@ -306,5 +284,5 @@ export function createL3LearningRoom(
   }
   furniture.userData.castVisualShadow = true;
 
-  return { partition, learningZone, equipmentZone, fixtures, furniture };
+  return { partition, learningZone, equipmentZone, fixtures, furniture, stairGuardrail };
 }

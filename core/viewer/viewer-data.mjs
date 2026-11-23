@@ -271,6 +271,7 @@ export function buildViewerModel(model, analysisRegistry = {}) {
         arrivalWing: structuredClone(l3Data.arrivalWing),
         landscapeTerrace: structuredClone(l3Data.landscapeTerrace),
         programStrategy: structuredClone(l3Data.programStrategy),
+        stairOpening: structuredClone(l3Data.stairOpening),
         learningRoom: structuredClone(l3Data.learningRoom),
         equipmentZone: structuredClone(l3Data.equipmentZone),
         glassPartition: structuredClone(l3Data.glassPartition),

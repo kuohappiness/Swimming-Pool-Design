@@ -13,6 +13,14 @@ import { createArchitecturalDetails } from './architectural-details';
 import { createPoolHallDetails } from './pool-hall-details';
 import { createL2InteriorDetails } from './interior-details';
 import { createL3LearningRoom } from './l3-learning-room';
+import {
+  flatSurfaceGeometry,
+  l3RectMinusStairOpening,
+  l3RectWithinStairOpening,
+  slabGeometry,
+  STAIR_OPENING_GUARDRAIL_HEIGHT,
+  subtractBounds,
+} from './l3-stair-opening';
 import { createPoolUseDeck, createPoolUseDetails } from './pool-use-details';
 import {
   MIRROR_FRONT_NORMAL_KEY,
@@ -94,6 +102,8 @@ function box(
 
 /** 開口比池體每邊多留這麼寬（公尺），開口的側面就藏在池壁後面，不會和池壁重疊閃爍。 */
 const GROUND_OPENING_MARGIN = 0.05;
+/** 3F 到達翼的屋頂高度（從 3F 樓板面算起），端牆跨過樓梯口的那一段只留這個高度以上。 */
+const ARRIVAL_ROOF_HEIGHT = 2.85;
 
 /**
  * 中間開一個矩形口的方盒，做成單一網格。外框與 `box()` 相同（包圍盒不變），
@@ -1092,13 +1102,16 @@ export function createViewerScene(
     l2Material,
   );
   l2Group.add(l2Slab);
-  const l2Ceiling = box(
+  // DEC-174：ST-02 穿過 3F 的那一段在 2F 天花開樓梯口，樓梯上方才有淨高。
+  const stairOpening = model.geometry.l3.stairOpening.bounds;
+  const l2Ceiling = boxWithOpening(
     [l2Data.length, l2Data.ceiling.thickness, l2Data.width],
     [
       (l2Data.startX + l2Data.endX) / 2,
       l2Data.ceiling.elevation - l2Data.ceiling.thickness / 2,
       upperCentreZ,
     ],
+    { x1: stairOpening.x1, x2: stairOpening.x2, z1: stairOpening.y1, z2: stairOpening.y2 },
     l2Material,
   );
   l2Group.add(l2Ceiling);
@@ -1496,20 +1509,38 @@ export function createViewerScene(
   // siteRoot applies the SITE-to-Three reflection, so the child keeps the
   // SITE clockwise angle used by the canonical plan drawing.
   l3RotationGroup.rotation.y = THREE.MathUtils.degToRad(l3Data.planRotation.value);
-  const l3Slab = box(
-    [l3Data.length, slabThickness, l3Data.width],
-    [0, -slabThickness / 2, 0],
-    l3Material,
-  );
-  l3RotationGroup.add(l3Slab);
   const l3Height = l3Data.volumeHeight.value;
   const halfL3X = l3Data.length / 2;
   const halfL3Z = l3Data.width / 2;
+  const staticMesh = (geometry: THREE.BufferGeometry, material: THREE.Material) => {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return mesh;
+  };
+  // DEC-174：旋轉的 3F 樓板在 ST-02 上方開樓梯口（樓梯口是 SITE 矩形，樓板是旋轉的）。
+  const l3Slab = staticMesh(
+    slabGeometry(
+      l3RectMinusStairOpening(l3Data, { x1: -halfL3X, x2: halfL3X, z1: -halfL3Z, z2: halfL3Z }),
+      -slabThickness,
+      0,
+    ),
+    l3Material,
+  );
+  l3RotationGroup.add(l3Slab);
+  // 端牆斜斜跨過樓梯口：洞口那一段下面沒有樓板，牆也會擋住樓梯的淨高，只留到達翼屋頂以上的一段。
+  const endWall = { x1: halfL3X - 0.18, x2: halfL3X, z1: -halfL3Z, z2: halfL3Z };
+  const endWallOverOpening = l3RectWithinStairOpening(l3Data, endWall);
   l3RotationGroup.add(
-    box([0.18, l3Height, l3Data.width], [halfL3X - 0.09, l3Height / 2, 0], l3Material),
+    staticMesh(slabGeometry(l3RectMinusStairOpening(l3Data, endWall), 0, l3Height), l3Material),
     box([l3Data.length, l3Height, 0.16], [0, l3Height / 2, -halfL3Z + 0.08], l3Material),
     box([l3Data.length, l3Height, 0.16], [0, l3Height / 2, halfL3Z - 0.08], l3Material),
   );
+  if (endWallOverOpening.length > 0) {
+    l3RotationGroup.add(
+      staticMesh(slabGeometry([endWallOverOpening], ARRIVAL_ROOF_HEIGHT, l3Height), l3Material),
+    );
+  }
   layer('l3').add(l3RotationGroup);
   tag(
     l3Slab,
@@ -1532,14 +1563,20 @@ export function createViewerScene(
   const equipmentZoneGroup = new THREE.Group();
   equipmentZoneGroup.name = l3Data.equipmentZone.entityId;
   equipmentZoneGroup.add(l3Room.equipmentZone);
-  l3RotationGroup.add(learningRoomGroup, equipmentZoneGroup, l3Room.partition, l3Room.furniture);
+  l3RotationGroup.add(
+    learningRoomGroup,
+    equipmentZoneGroup,
+    l3Room.partition,
+    l3Room.furniture,
+    l3Room.stairGuardrail,
+  );
   tag(
     learningRoomGroup,
     {
       entityId: learningRoom.entityId,
       label: '3F 觀課與環境教育室',
       status: 'working',
-      description: `旋轉前 X${learningRoom.bounds.x1}～X${learningRoom.bounds.x2}／Y${learningRoom.bounds.y1}～Y${learningRoom.bounds.y2}，約 ${learningRoom.area} m²，從有頂到達翼進入；教師與預約小組（約半班）使用，不作整班教室。池上與水下攝影機接到鏡牆那一側的螢幕觀課，鏡牆不開窗；能源看板在玻璃隔間這一側。桌椅可移動、教室內不設固定隔間；畫面上的 15 個座位、螢幕與看板是示意。人數上限、電梯、隔音與攝影機位置待專業確認（DEC-173）。`,
+      description: `旋轉前 X${learningRoom.bounds.x1}～X${learningRoom.bounds.x2}／Y${learningRoom.bounds.y1}～Y${learningRoom.bounds.y2}，約 ${learningRoom.area} m²，扣掉 ST-02 樓梯口後淨 ${learningRoom.netArea} m²，從有頂到達翼進入；教師與預約小組（約半班）使用，不作整班教室。池上與水下攝影機接到鏡牆那一側的螢幕觀課，鏡牆不開窗；能源看板在玻璃隔間這一側。桌椅可移動、教室內不設固定隔間；畫面上的 15 個座位、螢幕與看板是示意。人數上限、電梯、隔音與攝影機位置待專業確認（DEC-173）。`,
       openItemId: learningRoom.openItemId,
     },
     selectables,
@@ -1552,6 +1589,18 @@ export function createViewerScene(
       status: 'working',
       description: `旋轉前 Y${l3Data.equipmentZone.bounds.y1}～Y${l3Data.equipmentZone.bounds.y2}，約 ${l3Data.equipmentZone.area} m²；水塔與除濕熱回收留在玻璃後作為教材，只有維修人員經上鎖維修門進出。設備荷重、振動與維修淨空待專業確認（DEC-173）。`,
       openItemId: l3Data.equipmentZone.openItemId,
+    },
+    selectables,
+  );
+  const opening = l3Data.stairOpening;
+  tag(
+    l3Room.stairGuardrail,
+    {
+      entityId: opening.entityId,
+      label: '3F 樓梯口（ST-02）',
+      status: 'working',
+      description: `ST-02 穿過旋轉 3F 樓板的 X${opening.bounds.x1}～X${opening.bounds.x2}／Y${opening.bounds.y1}～Y${opening.bounds.y2} 一路開到樓梯頂端，切開 2F 天花、3F 樓板與到達翼，約 ${opening.area} m²；樓梯口外的踏面外緣到板底保持 ${opening.requiredHeadroom.toFixed(2)} m 以上淨高。教室那一側的邊緣設防墜欄杆，畫面上的 ${STAIR_OPENING_GUARDRAIL_HEIGHT.toFixed(2)} m 欄杆是示意。樓梯口邊梁、旋轉樓板被切角後的結構、欄杆高度與防火區劃待專業確認（DEC-174）。`,
+      openItemId: opening.openItemId,
     },
     selectables,
   );
@@ -1574,24 +1623,26 @@ export function createViewerScene(
   const arrival = l3Data.arrivalWing;
   const terrace = l3Data.landscapeTerrace;
   const extensionGroup = new THREE.Group();
-  const extensionSlab = horizontalPolygon(
-    extension.polygon,
-    l3Data.baseElevation - 0.03,
-    extensionMaterial,
-  );
-  const terraceSurface = horizontalPolygon(
+  // 擴板、景觀區與到達翼的地面都不旋轉，扣掉樓梯口後畫；到達翼的屋頂不切。
+  const cutFloor = (
+    polygon: Array<[number, number]>,
+    elevation: number,
+    material: THREE.Material,
+  ) =>
+    staticMesh(
+      flatSurfaceGeometry(subtractBounds(polygon, l3Data.stairOpening.bounds), elevation),
+      material,
+    );
+  const extensionSlab = cutFloor(extension.polygon, l3Data.baseElevation - 0.03, extensionMaterial);
+  const terraceSurface = cutFloor(
     terrace.outerPolygon,
     l3Data.baseElevation + 0.015,
     terraceMaterial,
   );
-  const arrivalFloor = horizontalPolygon(
-    arrival.polygon,
-    l3Data.baseElevation + 0.035,
-    arrivalMaterial,
-  );
+  const arrivalFloor = cutFloor(arrival.polygon, l3Data.baseElevation + 0.035, arrivalMaterial);
   const arrivalRoof = horizontalPolygon(
     arrival.polygon,
-    l3Data.baseElevation + 2.85,
+    l3Data.baseElevation + ARRIVAL_ROOF_HEIGHT,
     arrivalMaterial,
   );
   extensionGroup.add(extensionSlab, terraceSurface, arrivalFloor, arrivalRoof);
