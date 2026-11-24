@@ -40,7 +40,7 @@ export interface SunLightingInput {
   readonly weather: Weather;
 }
 
-export type DayPhase = 'day' | 'twilight' | 'night';
+type DayPhase = 'day' | 'twilight' | 'night';
 
 export interface SunLighting {
   readonly moment: SolarMoment;
@@ -110,6 +110,7 @@ const luminance = (color: LinearColor) => 0.2126 * color[0] + 0.7152 * color[1] 
 /**
  * 相對光學空氣質量（Kasten 與 Young 1989）：陽光穿過的大氣厚度是垂直入射時的幾倍。
  * 太陽在天頂是 1，在地平線約 38。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function relativeAirMass(altitudeDegrees: number): number {
   const altitude = Math.max(altitudeDegrees, -0.5);
@@ -126,7 +127,10 @@ const VERTICAL_OPTICAL_DEPTH: LinearColor = [
   0.2428 + 0.291 + 0.001,
 ];
 
-/** 陽光穿過大氣後剩下的比例（紅、綠、藍）。 */
+/**
+ * 陽光穿過大氣後剩下的比例（紅、綠、藍）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function atmosphericTransmittance(altitudeDegrees: number): LinearColor {
   const airMass = relativeAirMass(altitudeDegrees);
   return [
@@ -340,7 +344,10 @@ export function computeSunLighting(input: SunLightingInput): SunLighting {
 
 const COMPASS_POINTS = ['北', '東北', '東', '東南', '南', '西南', '西', '西北'] as const;
 
-/** 方位角換成八方位的中文說法。 */
+/**
+ * 方位角換成八方位的中文說法。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function compassPoint(azimuthDegrees: number): string {
   const index = Math.round((((azimuthDegrees % 360) + 360) % 360) / 45) % 8;
   return COMPASS_POINTS[index] ?? '北';

@@ -22,7 +22,10 @@ export interface SelectionController {
   dispose(): void;
 }
 
-/** True when the object and every ancestor are visible, so a hidden layer cannot be picked. */
+/**
+ * True when the object and every ancestor are visible, so a hidden layer cannot be picked.
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function isRendered(object: THREE.Object3D): boolean {
   for (let current: THREE.Object3D | null = object; current; current = current.parent) {
     if (!current.visible) return false;
@@ -33,6 +36,7 @@ export function isRendered(object: THREE.Object3D): boolean {
 /**
  * The selectable that owns a hit mesh. Detail meshes added after tagging carry no
  * owner of their own, so walk up the parents until a selectable is found.
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function owningSelectableIndex(
   object: THREE.Object3D,

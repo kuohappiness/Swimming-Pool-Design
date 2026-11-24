@@ -20,7 +20,10 @@ import * as THREE from 'three';
 const CHUNK_NAME = 'shadowmap_pars_fragment';
 const FUNCTION_START = 'float getShadow( sampler2DShadow shadowMap,';
 
-/** 估遮蔽距離時把比較深度往光源推多遠（公尺），以及超過最後一層之後假設還有多遠。 */
+/**
+ * 估遮蔽距離時把比較深度往光源推多遠（公尺），以及超過最後一層之後假設還有多遠。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const SOFT_SHADOW_PROBE_METRES = Object.freeze([0.35, 1.5, 5] as const);
 const SOFT_SHADOW_TAIL_METRES = 6;
 /** 找遮蔽物的範圍假設遮蔽物最遠這麼遠（公尺）：約等於建築全高在低角度陽光下的斜距。 */
@@ -64,6 +67,7 @@ function functionRange(source: string, start: string): { from: number; to: numbe
 /**
  * 把 three.js 陰影著色器片段裡的 PCF `getShadow` 換成距離柔化的版本。
  * three.js 改版後若找不到那個函式就回傳 null，呼叫端維持原本的陰影。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function createSoftShadowChunk(source: string, options: SoftShadowOptions): string | null {
   if (!(options.depthRangeMetres > 0)) {

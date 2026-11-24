@@ -85,9 +85,15 @@ export interface FrameGovernorOptions {
   readonly displayIntervalMilliseconds?: number | null;
 }
 
-/** 幀間隔超過底線這個比例才算掉幀，容許計時抖動。 */
+/**
+ * 幀間隔超過底線這個比例才算掉幀，容許計時抖動。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const OVER_BUDGET_TOLERANCE = 1.08;
-/** 實際工作時間低於幀預算這個比例才算有餘裕。 */
+/**
+ * 實際工作時間低於幀預算這個比例才算有餘裕。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const HEADROOM_WORK_RATIO = 0.5;
 /** 恢復後在這個倍數的 headroomSeconds 內又掉幀，視為恢復失敗。 */
 const PROBATION_FACTOR = 2;
@@ -96,7 +102,7 @@ const MAXIMUM_BACKOFF_FACTOR = 16;
 /** 兩次觀測相隔超過這個秒數（分頁被切到背景）就重新計時。 */
 const OBSERVATION_GAP_SECONDS = 1;
 /** 每幀工作時間佔幀間隔不到這個比例，才可能是更新率被鎖住（而不是真的忙不過來）。 */
-export const DISPLAY_LIMITED_WORK_RATIO = 0.4;
+const DISPLAY_LIMITED_WORK_RATIO = 0.4;
 /** 幀間隔比放寬後的底線短到這個比例以下，代表限制解除，底線收回原值。 */
 const DISPLAY_LIMIT_RELEASE_RATIO = 0.9;
 

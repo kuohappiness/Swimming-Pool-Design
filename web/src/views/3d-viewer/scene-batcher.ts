@@ -9,6 +9,7 @@ import type { VisualDetailLevel } from './rendering/visual-detail';
  * main camera, raycaster and shadow cameras still see everything; a pass that
  * wants a subset disables layer 0 on its own camera and enables the category
  * layers it needs.
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export const RENDER_CATEGORY_LAYERS = Object.freeze({
   structure: 1,
@@ -22,9 +23,9 @@ export const RENDER_CATEGORY_LAYERS = Object.freeze({
   'site-context': 9,
 } as const);
 
-export type RenderCategory = keyof typeof RENDER_CATEGORY_LAYERS;
+type RenderCategory = keyof typeof RENDER_CATEGORY_LAYERS;
 
-export function isRenderCategory(value: unknown): value is RenderCategory {
+function isRenderCategory(value: unknown): value is RenderCategory {
   return typeof value === 'string' && Object.hasOwn(RENDER_CATEGORY_LAYERS, value);
 }
 
@@ -38,7 +39,10 @@ function materialsOf(mesh: THREE.Mesh) {
   return Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 }
 
-/** Explicit `userData.renderCategory` on the mesh or an ancestor wins; otherwise inferred from the material. */
+/**
+ * Explicit `userData.renderCategory` on the mesh or an ancestor wins; otherwise inferred from the material.
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function renderCategoryOf(mesh: THREE.Mesh): RenderCategory {
   for (let current: THREE.Object3D | null = mesh; current; current = current.parent) {
     const explicit: unknown = current.userData.renderCategory;
@@ -67,7 +71,7 @@ export function renderCategoryOf(mesh: THREE.Mesh): RenderCategory {
 }
 
 /** Adds the render-category layer to every mesh under `root`, keeping layer 0. */
-export function assignRenderCategoryLayers(root: THREE.Object3D) {
+function assignRenderCategoryLayers(root: THREE.Object3D) {
   root.traverse((object) => {
     if (!isMesh(object)) return;
     const category = renderCategoryOf(object);

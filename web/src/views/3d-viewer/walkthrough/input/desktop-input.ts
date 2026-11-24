@@ -22,6 +22,7 @@ const ACTIVATES_ON_KEY = 'button, a[href], summary, [role="button"], [role="link
 /**
  * Whether a focused on-screen control should handle this key itself: form fields
  * keep every key, buttons and links keep Space and Enter.
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function keyBelongsToControl(event: Pick<KeyboardEvent, 'code' | 'target'>): boolean {
   const target = event.target as { closest?: (selector: string) => unknown } | null;

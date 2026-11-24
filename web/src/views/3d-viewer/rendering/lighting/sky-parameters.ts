@@ -49,7 +49,7 @@ const CLEAR_SKY = Object.freeze({
   mieDirectionalG: 0.8,
 });
 /** 晴空模型的輸出換成場景亮度的倍率：讓晴天正午的天空平均亮度和天光（半球光）的照度相稱。 */
-export const ATMOSPHERE_SCALE = 0.5;
+const ATMOSPHERE_SCALE = 0.5;
 const SUN_DISC_GAIN = 28;
 const MOON_DISC: LinearColor = [1.5, 1.6, 1.8];
 const TWILIGHT: LinearColor = [0.62, 0.3, 0.14];

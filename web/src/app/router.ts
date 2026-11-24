@@ -1,3 +1,4 @@
+/** @internal tools/check/check-docs.mjs 讀這段原始碼核對分頁清單，不是給其他模組用的匯出。 */
 export const viewIds = [
   'design-concept',
   'solar-study',

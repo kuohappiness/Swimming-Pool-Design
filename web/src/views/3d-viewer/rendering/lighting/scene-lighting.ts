@@ -47,7 +47,10 @@ export interface ShadowFocusSource {
   readonly margin: number;
 }
 
-/** SITE 座標（Z 向上）的方向換成世界座標。siteRoot 的子座標是 X、高度、SITE-Y。 */
+/**
+ * SITE 座標（Z 向上）的方向換成世界座標。siteRoot 的子座標是 X、高度、SITE-Y。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function siteDirectionToWorld(
   direction: SiteVector,
   siteRoot: THREE.Object3D,

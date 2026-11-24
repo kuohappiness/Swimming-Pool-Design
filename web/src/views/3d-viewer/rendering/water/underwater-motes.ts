@@ -24,6 +24,7 @@ const SHARED_UNIFORM_NAMES = Object.freeze([
   'uSunShadow',
 ] as const);
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const UNDERWATER_MOTES_NAME = 'realistic:underwater-motes';
 
 /** 可重現的亂數（mulberry32）：每次載入微粒都在同樣的位置，截圖比對才穩定。 */
@@ -37,6 +38,7 @@ function createRandom(seed: number): () => number {
   };
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function createUnderwaterMotesGeometry(count: number): THREE.BufferGeometry {
   if (!Number.isInteger(count) || count < 0) {
     throw new RangeError('Underwater mote count must be a non-negative integer.');

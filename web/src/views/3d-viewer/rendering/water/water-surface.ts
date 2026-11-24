@@ -44,6 +44,7 @@ export interface SubmergedBox {
   readonly finish: 'metal' | 'tile';
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const MAXIMUM_SUBMERGED_BOXES = 12;
 
 /** 池體形狀，全部來自模型；座標是水面網格的物件座標（x 沿池長、y 向上、z 沿池寬）。 */
@@ -84,6 +85,7 @@ export interface PoolHallShape {
   readonly roofAtMaxX: number;
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function assertPoolHallShape(hall: PoolHallShape, basin: PoolBasinShape): PoolHallShape {
   const values = [
     hall.minX,
@@ -109,7 +111,7 @@ export function assertPoolHallShape(hall: PoolHallShape, basin: PoolBasinShape):
   return hall;
 }
 
-export interface WaterWave {
+interface WaterWave {
   /** 前進方向與 +x 的夾角（度），在水平面上量。 */
   readonly directionDegrees: number;
   readonly wavelength: number;
@@ -189,10 +191,14 @@ function createFallbackShadowMap(): THREE.DepthTexture {
  */
 const PLANAR_REACH = Object.freeze({ roof: 6, wall: 8 });
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const MAXIMUM_LANE_LINES = 8;
 const UNUSED_LANE_LINE = 1e6;
 
-/** 室內泳池的靜水面：水循環與少數泳者造成的低矮長波，最高約 1 公分。 */
+/**
+ * 室內泳池的靜水面：水循環與少數泳者造成的低矮長波，最高約 1 公分。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const CALM_POOL_WAVES: readonly WaterWave[] = Object.freeze([
   Object.freeze({ directionDegrees: 12, wavelength: 3.1, amplitude: 0.006 }),
   Object.freeze({ directionDegrees: 103, wavelength: 2.2, amplitude: 0.004 }),
@@ -200,6 +206,7 @@ export const CALM_POOL_WAVES: readonly WaterWave[] = Object.freeze([
   Object.freeze({ directionDegrees: 318, wavelength: 0.8, amplitude: 0.0015 }),
 ]);
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function assertPoolBasinShape(basin: PoolBasinShape): PoolBasinShape {
   const values = [
     basin.minX,
@@ -255,7 +262,10 @@ export function assertPoolBasinShape(basin: PoolBasinShape): PoolBasinShape {
   return basin;
 }
 
-/** 貼齊池壁的水面網格。格數取整，所以實際格距會略小於 cellSize。 */
+/**
+ * 貼齊池壁的水面網格。格數取整，所以實際格距會略小於 cellSize。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function createWaterSurfaceGeometry(
   basin: PoolBasinShape,
   cellSize: number,
@@ -312,6 +322,7 @@ function waveUniforms(waves: readonly WaterWave[]): THREE.Vector4[] {
   });
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function createWaterSurfaceMaterial(options: WaterSurfaceOptions): THREE.ShaderMaterial {
   const basin = assertPoolBasinShape(options.basin);
   const laneLineZ = Array.from(

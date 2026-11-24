@@ -7,7 +7,7 @@ export interface WalkthroughArea {
   readonly label: string;
 }
 
-export interface AreaRegistry {
+interface AreaRegistry {
   readonly id: string;
   readonly areas: readonly WalkthroughArea[];
   get(id: SpawnDescriptor['id']): WalkthroughArea;

@@ -4,7 +4,10 @@
 
 export type PlanPoint = [number, number];
 
-/** 平面圖上的方位圓心（SVG 座標）。 */
+/**
+ * 平面圖上的方位圓心（SVG 座標）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const PLAN_CENTER: PlanPoint = [280, 235];
 
 /** 從 `origin` 沿方位角（正北 0°、順時針）走 `radius`。 */

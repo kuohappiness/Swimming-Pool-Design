@@ -27,19 +27,19 @@ const POOL_HALL_FIXTURE_DROP = 0.12;
  * 池廳每盞燈的光通量（lm）。12 盞讓池畔與水面的平均直射照度約 300 lux，
  * 學校訓練池常見的範圍；不是照度計算。
  */
-export const POOL_HALL_FIXTURE_LUMENS = 16_000;
+const POOL_HALL_FIXTURE_LUMENS = 16_000;
 
 const L2_FIXTURE_X = Object.freeze([33.2, 36.2, 39.2]);
 const L2_FIXTURE_Y = Object.freeze([4, 6.4, 9.6, 12]);
 /** 2F 每盞平板燈的光通量（lm），更衣淋浴空間的平均直射照度約 300 lux。 */
-export const L2_FIXTURE_LUMENS = 5_500;
+const L2_FIXTURE_LUMENS = 5_500;
 
 /** 水下燈：兩道長池壁各 6 盞，燈心在水面下 0.6 m，被教學平台蓋住的位置不裝。 */
 const POOL_LIGHTS_PER_WALL = 6;
 const POOL_LIGHT_DEPTH = 0.6;
-export const POOL_LIGHT_LENS_RADIUS = 0.14;
+const POOL_LIGHT_LENS_RADIUS = 0.14;
 /** 每盞水下燈的光通量（lm）。 */
-export const POOL_LIGHT_LUMENS = 2_200;
+const POOL_LIGHT_LUMENS = 2_200;
 
 /** 池廳光線溢出玻璃牆的距離（公尺）；朝服務核心那一側（+X）是實牆，不溢出。 */
 const POOL_HALL_SPILL = 6;
@@ -68,7 +68,7 @@ export function getL2CeilingFixtureCentres(model: ViewerModel): Point[] {
 }
 
 /** 水下燈：位置在池壁面上，朝池內打光。 */
-export function getPoolUnderwaterLights(model: ViewerModel): PoolLight[] {
+function getPoolUnderwaterLights(model: ViewerModel): PoolLight[] {
   const basin = getViewerPoolBasinShape(model);
   const platform = model.geometry.pool.teachingPlatform?.bounds;
   const length = basin.maxX - basin.minX;

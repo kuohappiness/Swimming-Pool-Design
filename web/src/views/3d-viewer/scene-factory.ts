@@ -49,7 +49,7 @@ export interface ViewerSceneOptions {
   readonly batchStaticGeometry?: boolean;
 }
 
-export interface LayerDependent {
+interface LayerDependent {
   readonly object: THREE.Object3D;
   /** 這些圖層全部顯示時才顯示 `object`；`object` 本身掛在其中一個圖層底下。 */
   readonly layers: readonly string[];

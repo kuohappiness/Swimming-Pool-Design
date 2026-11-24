@@ -27,7 +27,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && npm run lint:css && npm run lint:unused && npm run format:check",
     "lint:css": "stylelint \"web/**/*.css\"",
-    "lint:unused": "knip --no-progress --exclude exports,types,duplicates",
+    "lint:unused": "knip --no-progress",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "node tests/e2e/web.e2e.mjs && node tests/e2e/3d-viewer.e2e.mjs",

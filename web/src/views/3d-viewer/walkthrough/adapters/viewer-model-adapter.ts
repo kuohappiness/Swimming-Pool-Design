@@ -547,5 +547,3 @@ export function adaptWalkthroughSource(
 
   return deepFreeze(result);
 }
-
-export { deepFreeze as deepFreezeWalkthroughData };

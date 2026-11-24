@@ -2,7 +2,7 @@ import { deriveViewerOrientation } from './orientation';
 
 export type DesignStatus = 'confirmed' | 'working' | 'deferred';
 
-export interface ViewerMeasure {
+interface ViewerMeasure {
   value: number;
   status: DesignStatus;
   sourceIds: string[];
@@ -15,8 +15,8 @@ export interface SiteBounds {
   y1: number;
   y2: number;
 }
-export type ToiletFixtureType = 'seated' | 'squat';
-export type ToiletFixtureFacing = 'positive-y' | 'negative-y';
+type ToiletFixtureType = 'seated' | 'squat';
+type ToiletFixtureFacing = 'positive-y' | 'negative-y';
 
 export interface ViewerToiletCubicle {
   planBounds: SiteBounds;
@@ -52,7 +52,7 @@ interface PoolUseItem {
   bounds: SiteBounds;
   status: string;
 }
-export interface ViewerRoomDoor {
+interface ViewerRoomDoor {
   center: [number, number];
   clearWidth: number;
   clearHeight: number;
@@ -60,7 +60,7 @@ export interface ViewerRoomDoor {
 }
 
 /** DEC-157: the 1F class route from shoes off to the pool edge. */
-export interface ViewerPoolUse {
+interface ViewerPoolUse {
   decisionId: 'DEC-157';
   principle: string;
   entryVestibule: PoolUseItem & { floorElevation: number; shoeCubbyPairs: number; bench: boolean };
@@ -592,7 +592,7 @@ export interface ViewerModel {
   };
 }
 
-export interface ConceptScene {
+interface ConceptScene {
   id: string;
   label: string;
   title: string;
@@ -1004,7 +1004,5 @@ export function adaptViewerData(
   return { model, content };
 }
 
-export const formatMetres = (value: number) =>
-  `${value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')} m`;
 export const formatElevation = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(3)} m`;
 export const formatDegrees = (value: number) => `${value.toFixed(1)}°`;

@@ -22,6 +22,7 @@ const GUARDRAIL_POST = 0.05;
 const GUARDRAIL_GLASS = 0.02;
 const EPSILON = 1e-9;
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function polygonArea(polygon: readonly PlanPoint[]) {
   let twice = 0;
   polygon.forEach(([x, y], index) => {
@@ -80,7 +81,7 @@ export function subtractBounds(polygon: readonly PlanPoint[], bounds: SiteBounds
 }
 
 /** 凸多邊形與軸向矩形的交集；沒有交集時回傳空陣列。 */
-export function intersectBounds(polygon: readonly PlanPoint[], bounds: SiteBounds): PlanPoint[] {
+function intersectBounds(polygon: readonly PlanPoint[], bounds: SiteBounds): PlanPoint[] {
   const clipped = clipAxis(
     clipAxis(
       clipAxis(clipAxis(polygon, 0, bounds.x1, 'above'), 0, bounds.x2, 'below'),
@@ -95,7 +96,10 @@ export function intersectBounds(polygon: readonly PlanPoint[], bounds: SiteBound
   return isPiece(clipped) ? clipped : [];
 }
 
-/** SITE 點轉成 3F 旋轉群組的座標（旋轉前的樓板座標減去支點）。 */
+/**
+ * SITE 點轉成 3F 旋轉群組的座標（旋轉前的樓板座標減去支點）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function siteToL3Plan(l3: L3Geometry, [x, y]: PlanPoint): PlanPoint {
   const radians = THREE.MathUtils.degToRad(l3.planRotation.value);
   const dx = x - l3.planPivot.x;
@@ -106,7 +110,10 @@ export function siteToL3Plan(l3: L3Geometry, [x, y]: PlanPoint): PlanPoint {
   ];
 }
 
-/** 3F 旋轉群組的座標轉回 SITE（繞支點順時針旋轉，和 3F 平面圖相同）。 */
+/**
+ * 3F 旋轉群組的座標轉回 SITE（繞支點順時針旋轉，和 3F 平面圖相同）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function l3PlanToSite(l3: L3Geometry, [x, z]: PlanPoint): PlanPoint {
   const radians = THREE.MathUtils.degToRad(l3.planRotation.value);
   return [
@@ -292,7 +299,7 @@ export function flatSurfaceGeometry(
   return geometry;
 }
 
-export interface StairOpeningGuardrailSegment {
+interface StairOpeningGuardrailSegment {
   /** SITE 座標，欄杆中心線的兩端（已從洞口邊往外退半個欄杆厚，欄杆整個站在樓板上）。 */
   readonly from: PlanPoint;
   readonly to: PlanPoint;
@@ -301,6 +308,7 @@ export interface StairOpeningGuardrailSegment {
 /**
  * 防墜欄杆的位置：樓梯口除了樓梯頂端（X 較大、接到達翼平台的那一邊）以外的三邊，
  * 跨過旋轉的教室與不旋轉的到達翼，所以畫在 SITE 座標、不跟 3F 旋轉（DEC-175）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function stairOpeningGuardrailSegments(l3: L3Geometry): StairOpeningGuardrailSegment[] {
   const { x1, x2, y1, y2 } = l3.stairOpening.bounds;

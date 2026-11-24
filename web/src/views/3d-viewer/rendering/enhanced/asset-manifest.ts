@@ -1,9 +1,9 @@
 import manifestData from '../../assets/asset-manifest.json';
 import type { RenderQualityTier } from '../quality-profile';
 
-export type VisualAssetKind = 'texture' | 'environment' | 'model';
-export type VisualAssetRequirement = 'required' | 'optional';
-export type VisualAssetLoadingPriority = 'viewer-ready' | 'scene-ready' | 'deferred';
+type VisualAssetKind = 'texture' | 'environment' | 'model';
+type VisualAssetRequirement = 'required' | 'optional';
+type VisualAssetLoadingPriority = 'viewer-ready' | 'scene-ready' | 'deferred';
 
 export interface VisualAssetManifestEntry {
   readonly id: string;
@@ -22,7 +22,7 @@ export interface VisualAssetManifestEntry {
   readonly conversion?: VisualAssetConversion;
 }
 
-export interface VisualAssetConversion {
+interface VisualAssetConversion {
   readonly encoder: string;
   readonly format: 'uastc' | 'etc1s';
   readonly width: number;
@@ -123,7 +123,7 @@ export function assertVisualAssetManifest(
   return manifest;
 }
 
-export function getVisualAssetsForTier(
+function getVisualAssetsForTier(
   tier: RenderQualityTier,
   manifest: readonly VisualAssetManifestEntry[] = VISUAL_ASSET_MANIFEST,
 ): readonly VisualAssetManifestEntry[] {

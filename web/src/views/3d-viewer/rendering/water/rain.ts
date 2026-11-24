@@ -17,7 +17,10 @@ import rainOnGlassGlsl from './shaders/rain-on-glass.glsl?raw';
 export type RainQualityTier = 'high' | 'medium' | 'low';
 export type RainState = 'none' | 'glass curtain';
 
-/** 每一種天氣的雨量（0 到 1）。 */
+/**
+ * 每一種天氣的雨量（0 到 1）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const RAIN_AMOUNT: Readonly<Record<Weather, number>> = Object.freeze({
   clear: 0,
   overcast: 0,
@@ -35,6 +38,7 @@ export interface RainUniforms {
   readonly uRainTime: THREE.IUniform<number>;
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function createRainUniforms(): RainUniforms {
   return { uRainAmount: { value: 0 }, uRainTime: { value: 0 } };
 }
@@ -79,7 +83,10 @@ if ( uRainAmount > 0.0 ) {
 }
 `;
 
-/** 只有標準材質、而且三段錨點都在才裝；找不到錨點（three.js 改版）就不裝，回報 false。 */
+/**
+ * 只有標準材質、而且三段錨點都在才裝；找不到錨點（three.js 改版）就不裝，回報 false。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function patchRainOnGlassShader(shader: {
   vertexShader: string;
   fragmentShader: string;
@@ -104,6 +111,7 @@ export function patchRainOnGlassShader(shader: {
 /**
  * 把雨裝進玻璃材質。`program.compiled` 為 false（省電級）時不改著色器、也不改程式的快取鍵，
  * 屋頂玻璃就和其他玻璃共用同一支程式，省電級不多編任何一支。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function installRainOnGlass(
   material: THREE.Material,
@@ -128,7 +136,7 @@ export function installRainOnGlass(
   return true;
 }
 
-export function createRainCurtainMaterial(uniforms: RainUniforms, top: number, bottom: number) {
+function createRainCurtainMaterial(uniforms: RainUniforms, top: number, bottom: number) {
   return new THREE.ShaderMaterial({
     name: 'realistic:rain-curtain',
     uniforms: {
@@ -147,7 +155,10 @@ export function createRainCurtainMaterial(uniforms: RainUniforms, top: number, b
   });
 }
 
-/** 雨簾照到的光（線性色、場景單位）。 */
+/**
+ * 雨簾照到的光（線性色、場景單位）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function rainCurtainRadiance(
   lighting: SunLighting,
   target = new THREE.Color(),

@@ -11,9 +11,9 @@ import {
 } from './quality-profile';
 
 export * from './contracts';
-export * from './enhanced';
 export * from './quality-profile';
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function createBaselineSceneRenderingDependencies(): SceneRenderingDependencies {
   return {
     materials: new BaselineMaterialRegistry(),

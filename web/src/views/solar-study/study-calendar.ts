@@ -105,7 +105,7 @@ export function periodFor(date: Date): {
     : { key: 'cool', name: '冷季', color: '#e5a23d' };
 }
 
-export function dateMilestone(date: Date): string {
+function dateMilestone(date: Date): string {
   const key =
     String(date.getUTCMonth() + 1).padStart(2, '0') +
     '-' +

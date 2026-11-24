@@ -32,7 +32,10 @@ export const EXPOSURE_ADAPTATION = Object.freeze({
   targetLog2: -2.73,
 });
 
-/** 這一格往目標靠近的比例：1 − exp(−Δt ÷ 時間常數)。 */
+/**
+ * 這一格往目標靠近的比例：1 − exp(−Δt ÷ 時間常數)。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function adaptationRate(deltaSeconds: number, timeConstantSeconds: number): number {
   if (!(timeConstantSeconds > 0))
     throw new RangeError('Adaptation time constant must be positive.');
@@ -40,7 +43,10 @@ export function adaptationRate(deltaSeconds: number, timeConstantSeconds: number
   return 1 - Math.exp(-delta / timeConstantSeconds);
 }
 
-/** 測光圖最小一層（1×1）的層號。 */
+/**
+ * 測光圖最小一層（1×1）的層號。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function meterLevel(width: number, height: number): number {
   return Math.ceil(Math.log2(Math.max(width, height, 1)));
 }

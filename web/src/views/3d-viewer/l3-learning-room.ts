@@ -14,6 +14,7 @@ import { l3RectMinusStairOpening, slabGeometry } from './l3-stair-opening';
  * 人數上限、隔音、攝影機與螢幕的規格待專業確認（`OPEN-009`）。
  */
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const L3_LEARNING_ROOM_FURNITURE_NAME = 'visual-only:L3-learning-room-furniture';
 
 /** 玻璃隔間上鎖維修門的位置（旋轉前的 X），與 3F 平面圖相同。 */
@@ -56,6 +57,7 @@ function l3LocalBounds(l3: L3Geometry, bounds: { x1: number; x2: number; y1: num
  * 教室門所在的端牆段（旋轉群組座標的 z 範圍）。到達翼不旋轉、3F 樓板旋轉，兩者沿端牆相接，
  * 但靠樓梯的那一段在 ST-02 樓梯口裡；門用模型 `learningRoom.entryDoor` 指定的那一段（DEC-175）。
  * 不在端牆上就是模型改了，教室的入口要重新對。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function arrivalContactOnEndWall(l3: L3Geometry): [number, number] {
   const radians = THREE.MathUtils.degToRad(l3.planRotation.value);

@@ -25,6 +25,7 @@ import type { LinearColor, SiteVector, SunLighting } from './sun-lighting';
 /**
  * 鏡面的反射率（視覺用）。一般鍍銀玻璃鏡約 0.85 至 0.9，戶外鏡面不鏽鋼或鋁板約 0.6 至 0.8；
  * 鏡牆的材料尚未定案，取中間偏保守的值。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export const MIRROR_REFLECTANCE = 0.75;
 
@@ -69,7 +70,7 @@ export function mirrorWallFromViewerModel(model: ViewerModel): MirrorWallSource 
   };
 }
 
-export interface SitePoint {
+interface SitePoint {
   readonly x: number;
   readonly y: number;
   readonly z: number;
@@ -100,6 +101,7 @@ export interface MirrorBounce {
 
 const INACTIVE_FOOTPRINT: readonly { x: number; y: number }[] = Object.freeze([]);
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function computeMirrorBounce(lighting: SunLighting, wall: MirrorWallSource): MirrorBounce {
   const mirror = deriveMirrorGeometry(wall);
   const corners = Object.freeze([
@@ -207,7 +209,10 @@ export interface WorldMirrorBounce {
 const sitePointToWorld = (point: SitePoint, siteRoot: THREE.Object3D, out: THREE.Vector3) =>
   siteRoot.localToWorld(out.set(point.x, point.z, point.y));
 
-/** SITE 座標的反射光換到世界座標（只經過場景自己的 SITE 根節點）。 */
+/**
+ * SITE 座標的反射光換到世界座標（只經過場景自己的 SITE 根節點）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function mirrorBounceToWorld(
   bounce: MirrorBounce,
   siteRoot: THREE.Object3D,
@@ -239,6 +244,7 @@ export function mirrorBounceToWorld(
 /**
  * 場景上目前的反射光放在 `scene.userData.mirrorBounce`（和半球光的 `skyIrradiance` 同一種做法），
  * 水的著色器從這裡讀同一份，不另算。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function publishSceneMirrorBounce(
   scene: THREE.Scene,
@@ -362,6 +368,7 @@ const MIRROR_BOUNCE_APPLY = /* glsl */ `
 /**
  * 把反射光裝進一個 three.js 內建的受光材質（標準、物理）。uniform 是共用的同一組物件、
  * 世界座標，只在光線改變時更新。回傳 false 代表這不是會受光的標準材質，不裝。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function installMirrorBounce(
   material: THREE.Material,

@@ -1,5 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["tools/**/*.mjs", "tests/unit/**/*.test.mjs", "tests/e2e/*.mjs"],
-  "project": ["web/src/**/*.ts", "core/**/*.mjs", "tools/**/*.mjs", "tests/**/*.mjs"]
+  "project": ["web/src/**/*.ts", "core/**/*.mjs", "tools/**/*.mjs", "tests/**/*.mjs"],
+  "tags": ["-@internal"]
 }
