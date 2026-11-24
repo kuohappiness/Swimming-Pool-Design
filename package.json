@@ -50,7 +50,7 @@
     "stylelint": "^18.1.0",
     "stylelint-config-recommended": "^19.1.0",
     "subset-font": "^2.9.0",
-    "typescript": "^5.8.3",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.73.0",
     "vite": "^8.3.8"
   },
