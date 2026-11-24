@@ -202,8 +202,14 @@ export class ScreenSpaceOcclusion {
     const scaledHeight = Math.max(1, Math.round(height * AMBIENT_OCCLUSION.resolutionScale));
     this.occlusionTarget.setSize(scaledWidth, scaledHeight);
     this.denoisedTarget.setSize(scaledWidth, scaledHeight);
-    this.occlusionMaterial.uniforms.resolution.value.set(scaledWidth, scaledHeight);
-    this.denoiseMaterial.uniforms.resolution.value.set(scaledWidth, scaledHeight);
+    (this.occlusionMaterial.uniforms.resolution.value as THREE.Vector2).set(
+      scaledWidth,
+      scaledHeight,
+    );
+    (this.denoiseMaterial.uniforms.resolution.value as THREE.Vector2).set(
+      scaledWidth,
+      scaledHeight,
+    );
   }
 
   /**
@@ -226,13 +232,17 @@ export class ScreenSpaceOcclusion {
     occlusion.tDepth.value = depth;
     occlusion.cameraNear.value = projection.near;
     occlusion.cameraFar.value = projection.far;
-    occlusion.cameraProjectionMatrix.value.copy(camera.projectionMatrix);
-    occlusion.cameraProjectionMatrixInverse.value.copy(camera.projectionMatrixInverse);
-    occlusion.cameraWorldMatrix.value.copy(camera.matrixWorld);
+    (occlusion.cameraProjectionMatrix.value as THREE.Matrix4).copy(camera.projectionMatrix);
+    (occlusion.cameraProjectionMatrixInverse.value as THREE.Matrix4).copy(
+      camera.projectionMatrixInverse,
+    );
+    (occlusion.cameraWorldMatrix.value as THREE.Matrix4).copy(camera.matrixWorld);
     (occlusion.uTowardSun.value as THREE.Vector3).copy(towardSun);
     const smoothing = this.denoiseMaterial.uniforms;
     smoothing.tDepth.value = depth;
-    smoothing.cameraProjectionMatrixInverse.value.copy(camera.projectionMatrixInverse);
+    (smoothing.cameraProjectionMatrixInverse.value as THREE.Matrix4).copy(
+      camera.projectionMatrixInverse,
+    );
 
     // 兩支著色器在天空（深度 1）都不畫，先清成白色：沒有遮擋。
     renderer.getClearColor(this.clearColor);

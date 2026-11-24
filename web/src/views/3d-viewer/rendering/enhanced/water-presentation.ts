@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isMesh } from '../three-guards';
 import type { VisualFrameState, VisualAssetContext, VisualWalkthroughState } from '../contracts';
 import type { RenderQualityProfile } from '../quality-profile';
 
@@ -26,15 +27,15 @@ export class EnhancedWaterPresentation {
   attach(context: VisualAssetContext) {
     if (this.surface || this.disposed) return;
     const candidate = context.siteRoot.getObjectByName(WATER_SURFACE_NAME);
-    if (!(candidate instanceof THREE.Mesh)) {
+    if (!isMesh(candidate)) {
       throw new TypeError(`Enhanced water surface is missing: ${WATER_SURFACE_NAME}`);
     }
     const sourceMaterial = Array.isArray(candidate.material)
       ? candidate.material[0]
       : candidate.material;
     if (!sourceMaterial) throw new TypeError('Enhanced water surface has no material.');
-    const expected = candidate.userData.waterSurfaceElevation;
-    if (!Number.isFinite(expected)) {
+    const expected: unknown = candidate.userData.waterSurfaceElevation;
+    if (typeof expected !== 'number' || !Number.isFinite(expected)) {
       throw new TypeError('Enhanced water surface must expose its shared surface elevation.');
     }
     const material = sourceMaterial.clone();
@@ -61,7 +62,7 @@ export class EnhancedWaterPresentation {
     waterline.userData = {
       visualOnly: true,
       collisionExcluded: true,
-      waterStateSource: candidate.userData.waterStateSource,
+      waterStateSource: candidate.userData.waterStateSource as unknown,
     };
     candidate.add(waterline);
     this.waterline = waterline;

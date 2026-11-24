@@ -1,6 +1,6 @@
 // Lint baseline (TASK-111) plus the dependency direction from the folder
 // migration (TASK-107, DEC-147): model/ -> core/ -> tools/ and web/.
-// Stricter and type-aware rules arrive with the later tooling work.
+// Website code also runs the type-aware rules (TASK-182).
 import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -46,6 +46,22 @@ export default tseslint.config(
   {
     files: ['web/src/**/*.ts'],
     languageOptions: { globals: globals.browser },
+  },
+  // 網站程式加上型別規則：抓出多餘的型別斷言、any 外流與忘記處理的 Promise（TASK-182）。
+  ...tseslint.configs.recommendedTypeChecked.map((config) => ({
+    ...config,
+    files: ['web/src/**/*.ts'],
+  })),
+  {
+    files: ['web/src/**/*.ts'],
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+    },
+    rules: {
+      // three.js 的 onBeforeCompile、onBeforeRender 等鉤子要先存下原本的函式，之後用
+      // previous.call(this, …) 串接或原樣放回；這條規則會把這種正確寫法全部當成錯。
+      '@typescript-eslint/unbound-method': 'off',
+    },
   },
   {
     files: ['core/**/*.mjs'],

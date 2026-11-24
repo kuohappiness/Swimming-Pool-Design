@@ -191,7 +191,8 @@ export class MirrorReflection {
     context.siteRoot.updateWorldMatrix(true, true);
     mesh.geometry.computeBoundingBox();
     const centre = mesh.geometry.boundingBox!.getCenter(new THREE.Vector3());
-    const normal = new THREE.Vector3(front[0], front[1], front[2]).normalize();
+    const [frontX, frontY, frontZ] = front as number[];
+    const normal = new THREE.Vector3(frontX, frontY, frontZ).normalize();
     // 鏡面網格 → SITE 根節點的物件座標。
     const meshToSite = new THREE.Matrix4()
       .copy(context.siteRoot.matrixWorld)

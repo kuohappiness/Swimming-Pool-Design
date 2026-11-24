@@ -49,7 +49,7 @@ export function createBloomPass(width: number, height: number): UnrealBloomPass 
     BLOOM.threshold,
   );
   const uniforms = pass.highPassUniforms as Record<string, THREE.IUniform>;
-  uniforms.smoothWidth!.value = BLOOM.knee;
+  uniforms.smoothWidth.value = BLOOM.knee;
   uniforms.luminosityCap = { value: BLOOM.cap };
   const original = pass.materialHighPassFilter;
   // 沿用同一份 uniform：UnrealBloomPass 每一格會把畫面與門檻寫進 highPassUniforms。

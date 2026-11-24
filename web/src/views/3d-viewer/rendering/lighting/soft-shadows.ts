@@ -180,7 +180,7 @@ const installed = new WeakMap<ShaderChunkTable, { original: string; users: numbe
  */
 export function installSoftShadows(
   options: SoftShadowOptions,
-  chunks: ShaderChunkTable = THREE.ShaderChunk as ShaderChunkTable,
+  chunks: ShaderChunkTable = THREE.ShaderChunk,
 ): (() => void) | null {
   let state = installed.get(chunks);
   if (!state) {

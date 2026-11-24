@@ -130,7 +130,7 @@ npm run test:e2e
 git diff --check
 ```
 
-`npm run lint` 依序跑 ESLint（含依賴方向）、stylelint（CSS）、knip（沒人用的檔案與套件）與 Prettier 格式檢查（`npm run format:check`）。格式不符時先跑 `npm run format` 再提交；`docs/`、`model/`、Markdown 等不排版的範圍見 `.prettierignore`。全庫一次排版的 commit 記在 `.git-blame-ignore-revs`，本機跑一次 `git config blame.ignoreRevsFile .git-blame-ignore-revs` 後 `git blame` 會略過它（[TASK-166](../tasks/2026-11-23-format-all.md)）。依賴更新由 Dependabot 每週一開一個合併 PR，大版本不自動提。
+`npm run lint` 依序跑 ESLint（含依賴方向；`web/src/` 另加型別規則，[TASK-182](../tasks/2026-11-24-typed-lint.md)）、stylelint（CSS）、knip（沒人用的檔案與套件）與 Prettier 格式檢查（`npm run format:check`）。格式不符時先跑 `npm run format` 再提交；`docs/`、`model/`、Markdown 等不排版的範圍見 `.prettierignore`。全庫一次排版的 commit 記在 `.git-blame-ignore-revs`，本機跑一次 `git config blame.ignoreRevsFile .git-blame-ignore-revs` 後 `git blame` 會略過它（[TASK-166](../tasks/2026-11-23-format-all.md)）。依賴更新由 Dependabot 每週一開一個合併 PR，大版本不自動提。
 
 `npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/web/`。`npm run dev` 只聽本機；要用手機連線測試時改用 `npm run dev:lan`。`npm run test:e2e` 需要本機的 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定瀏覽器路徑。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
 
