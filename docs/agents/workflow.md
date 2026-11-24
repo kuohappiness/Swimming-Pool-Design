@@ -130,6 +130,8 @@ npm run test:e2e
 git diff --check
 ```
 
+Node 版本以 `.node-version` 為準（目前 26，[TASK-185](../tasks/2026-11-24-node-26.md)），PR 檢查與 GitHub Pages 部署都讀這個檔；本機版本較舊時 `npm install` 會提示 `engines` 不符。
+
 `npm run lint` 依序跑 ESLint（含依賴方向；`web/src/` 另加型別規則，[TASK-182](../tasks/2026-11-24-typed-lint.md)）、stylelint（CSS）、knip（沒人用的檔案、套件與匯出；只給單元測試以 `vite.ssrLoadModule` 載入的匯出標 `@internal`，[TASK-183](../tasks/2026-11-24-unused-exports-web.md)）與 Prettier 格式檢查（`npm run format:check`）。格式不符時先跑 `npm run format` 再提交；`docs/`、`model/`、Markdown 等不排版的範圍見 `.prettierignore`。全庫一次排版的 commit 記在 `.git-blame-ignore-revs`，本機跑一次 `git config blame.ignoreRevsFile .git-blame-ignore-revs` 後 `git blame` 會略過它（[TASK-166](../tasks/2026-11-23-format-all.md)）。依賴更新由 Dependabot 每週一開一個合併 PR，大版本不自動提。
 
 `npm run build` 是提交前完整自動門檻；靜態成果輸出至 `dist/web/`。`npm run dev` 只聽本機；要用手機連線測試時改用 `npm run dev:lan`。`npm run test:e2e` 需要本機的 Chrome 或 Edge，Linux 或雲端環境以 `CHROME_PATH` 指定瀏覽器路徑。瀏覽器與手機 smoke 仍屬需要人工確認的視覺門檻。
@@ -142,7 +144,7 @@ git diff --check
 
 公開首頁是 `https://kuohappiness.github.io/Swimming-Pool-Design/`；設計理念使用根網址，日照研究、水循環、一堂游泳課、設計歷程、圖面、3D 與關於分別使用 `?view=solar-study`、`?view=water-cycle`、`?view=swim-class`、`?view=design-process`、`?view=drawings`、`?view=3d-viewer`、`?view=about`。`.github/workflows/deploy-pages.yml` 在 `main` push 或人工觸發時：
 
-- 以 lockfile 安裝依賴並執行 `npm run build`。
+- 以 `.node-version` 指定的 Node 版本、依 lockfile 安裝依賴並執行 `npm run build`。
 - 只上傳 `dist/web/`；`dist/` 不納入 Git 歷史。
 - build 成功後才部署；失敗時保留上一個成功網站。
 
