@@ -32,7 +32,7 @@ docs/tasks/<任務>.md ……… 規格與驗收；標題下寫狀態行；roadm
 1. 保留原始檔，不覆蓋既有來源。基地資料放 `source-materials/site/`（現場照片放 `photos/`），概念資料放 `source-materials/concepts/`（手繪稿放 `hand-sketches/`），公開統計資料放 `source-materials/data/`。
 2. 依 `SRC-<類型>-<序號>_<描述>.<副檔名>` 命名。
 3. 記錄像素、格式、SHA-256、用途與限制。公開統計資料另在檔內寫明提供者、測站或資料集編號、統計期間、取得日期、網址與使用條款；從網頁表格轉錄的要寫明是轉錄，不是原始位元組。
-4. 更新 [基地與來源](../site-and-sources.md) 與模型 `sources`。網站要用的影像另做衍生檔放在 `web/` 內，同樣記下尺寸與雜湊。
+4. 更新 [基地與來源](../site-and-sources.md) 與模型 `sources`。網站要用的影像另做衍生檔放在 `web/` 內，同樣記下尺寸、位元組數與雜湊，寫成「`檔名`（像素、位元組數 bytes、SHA-256 `雜湊`）」（`check:docs` 擋；3D 資產照 `check:assets`）。
 5. 若改變設計，另更新設計基準及 DEC、OPEN；若需要實作，開一份任務說明。
 
 ### 2.2 backlog

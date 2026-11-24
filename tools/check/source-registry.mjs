@@ -103,3 +103,40 @@ export async function validateSourceFiles(model, repoRoot) {
   }
   return errors;
 }
+
+// 網站用的衍生影像（工作流程 2.1）；3D 資產另有容量清單（check:assets），產生檔不入庫。
+const derivativeImagePattern = /\.(?:png|jpe?g|webp|gif|avif)$/i;
+const derivativeExcluded = ['web/src/views/3d-viewer/', 'web/src/generated/'];
+
+/** 是否算網站衍生影像：`web/` 底下的影像，排除 3D 資產與產生檔。 */
+export function isDerivativeImage(filePath) {
+  const normalized = filePath.split('\\').join('/');
+  return (
+    normalized.startsWith('web/') &&
+    derivativeImagePattern.test(normalized) &&
+    !derivativeExcluded.some((prefix) => normalized.startsWith(prefix))
+  );
+}
+
+/**
+ * 每個網站衍生影像都要在來源說明以「`檔名`（…、位元組數 bytes、SHA-256 `雜湊`）」登錄，
+ * 且數字與檔案本身相符。`images` 是 { path, byteSize, sha256 }。
+ */
+export function validateDerivativeImages({ text, source, images }) {
+  const errors = [];
+  for (const image of images) {
+    const name = image.path.split('/').pop();
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp('`(?:[^`]*/)?' + escaped + '`（([^）]*)）', 'g');
+    const notes = [...text.matchAll(pattern)].map((match) => match[1]);
+    if (!notes.length) {
+      errors.push(`${source}: ${image.path} is not registered with byte size and SHA-256`);
+      continue;
+    }
+    const bytes = `${image.byteSize.toLocaleString('en-US')} bytes`;
+    const hash = image.sha256.toUpperCase();
+    if (!notes.some((note) => note.includes(bytes) && note.toUpperCase().includes(hash)))
+      errors.push(`${source}: ${image.path} registration does not match ${bytes} and its SHA-256`);
+  }
+  return errors;
+}

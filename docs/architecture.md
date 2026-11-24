@@ -42,7 +42,7 @@ Swimming-Pool-Design/
 │  │                         build-textures、build-icons；textures/ 放自製貼圖的產生程式，一張一檔
 │  ├─ check/                 check-docs、check-model、check-assets；status-line、workflow-docs（狀態行與 roadmap、backlog 分節）、
 │  │                         stylelint-view-scope（分頁樣式不得外溢的 stylelint 規則）、
-│  │                         source-registry（來源表、模型 sources 與檔案雜湊三方一致）、
+│  │                         source-registry（來源表、模型 sources 與檔案雜湊三方一致；網站衍生影像的雜湊登錄）、
 │  │                         legacy-status-docs.json（舊格式任務說明的凍結清單）
 │  ├─ analysis/              solar-angle-report、solar-energy-report（印日照分析報告）、solar-optimize
 │  └─ capture/               capture-viewer-quality

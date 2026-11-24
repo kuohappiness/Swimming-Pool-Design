@@ -1,7 +1,12 @@
+import { createHash } from 'node:crypto';
 import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateSourceRegistry } from './source-registry.mjs';
+import {
+  isDerivativeImage,
+  validateDerivativeImages,
+  validateSourceRegistry,
+} from './source-registry.mjs';
 import { entryStatus, validateBacklog, validateRoadmap } from './workflow-docs.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -250,6 +255,23 @@ const canonicalModel = JSON.parse(
 );
 errors.push(
   ...validateSourceRegistry({ text: sourceContent, source: sourcePath, model: canonicalModel }),
+);
+const derivativeImages = [];
+for (const file of (await collectFiles('web')).map((item) => item.split(path.sep).join('/'))) {
+  if (!isDerivativeImage(file)) continue;
+  const bytes = await readFile(path.join(repoRoot, file));
+  derivativeImages.push({
+    path: file,
+    byteSize: bytes.byteLength,
+    sha256: createHash('sha256').update(bytes).digest('hex'),
+  });
+}
+errors.push(
+  ...validateDerivativeImages({
+    text: sourceContent,
+    source: sourcePath,
+    images: derivativeImages,
+  }),
 );
 
 const taskRows = taskContent
