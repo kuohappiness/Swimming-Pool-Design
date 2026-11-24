@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isMesh } from '../three-guards';
 import type {
   VisualAssetAdapter,
   VisualAssetContext,
@@ -33,7 +34,7 @@ function disposeGroup(group: THREE.Group) {
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   group.traverse((object) => {
-    if (!(object instanceof THREE.Mesh)) return;
+    if (!isMesh(object)) return;
     geometries.add(object.geometry);
     for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
       materials.add(material);
@@ -46,7 +47,7 @@ function disposeGroup(group: THREE.Group) {
 
 function siteBoundsFromVisualEntity(context: VisualAssetContext) {
   const ground = context.siteRoot.getObjectByName('CUTAWAY-HIDE-SITE-GROUND');
-  if (!(ground instanceof THREE.Mesh)) {
+  if (!isMesh(ground)) {
     throw new TypeError('SITE-01 visual anchor mesh is missing.');
   }
   ground.geometry.computeBoundingBox();
@@ -202,11 +203,7 @@ export class EnhancedVisualAssetAdapter implements VisualAssetAdapter {
     if (this.realisticWater)
       this.waterReady = this.startRealisticWater(this.realisticWater, context);
     context.siteRoot.traverse((object) => {
-      if (
-        !(object instanceof THREE.Mesh) ||
-        !object.name.startsWith('visual-only:POOL-01-caustic:')
-      )
-        return;
+      if (!isMesh(object) || !object.name.startsWith('visual-only:POOL-01-caustic:')) return;
       this.caustics.push({
         mesh: object,
         baseX: object.position.x,

@@ -4,7 +4,6 @@ import l3Drawing from '../../../../drawings/current/DRAW-L3-PLAN.svg?raw';
 import { resolveActiveGeometry } from '../../../../core/geometry/active-geometry.mjs';
 import type { MountedView } from '../../app/view-contract';
 import { getViewDefinition } from '../../app/router';
-import type { ProjectModel } from '../../shared/types';
 import campus02Large from './assets/origin-campus-02-1920.jpg';
 import campus02Small from './assets/origin-campus-02-960.jpg';
 import campus05Large from './assets/origin-campus-05-1920.jpg';
@@ -43,7 +42,7 @@ interface OriginImage {
 }
 
 const content = rawContent as { scenes: ConceptScene[]; contentHash: string; modelHash: string };
-const activeGeometry = resolveActiveGeometry(rawModel as unknown as ProjectModel) as unknown as {
+const activeGeometry = resolveActiveGeometry(rawModel) as unknown as {
   solar: { planRotation: { value: number } };
 };
 const planRotation = activeGeometry.solar.planRotation.value;

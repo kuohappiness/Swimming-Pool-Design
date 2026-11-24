@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isMesh } from '../three-guards';
 import type { VisualAssetAdapter, VisualAssetContext } from '../contracts';
 import type { RenderQualityProfile } from '../quality-profile';
 import { type VisualDetailLevel } from '../visual-detail';
@@ -50,7 +51,7 @@ export class EnhancedDetailLevelAdapter implements VisualAssetAdapter {
       }
       this.details.push(object);
       object.traverse((child) => {
-        if (!(child instanceof THREE.Mesh)) return;
+        if (!isMesh(child)) return;
         this.detailMeshes.add(child);
         if (object.userData.castVisualShadow === true) this.shadowCasters.add(child);
       });

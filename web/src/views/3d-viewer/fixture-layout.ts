@@ -85,8 +85,8 @@ export function getPoolUnderwaterLights(model: ViewerModel): PoolLight[] {
       if (covered) continue;
       lights.push(
         Object.freeze({
-          position: Object.freeze([x, height, z]) as readonly [number, number, number],
-          aim: Object.freeze([0, 0, aim]) as readonly [number, number, number],
+          position: Object.freeze<readonly [number, number, number]>([x, height, z]),
+          aim: Object.freeze<readonly [number, number, number]>([0, 0, aim]),
           lumens: POOL_LIGHT_LUMENS,
         }),
       );
@@ -98,7 +98,7 @@ export function getPoolUnderwaterLights(model: ViewerModel): PoolLight[] {
 const fixturesAt = (centres: readonly Point[], lumens: number): LightFixture[] =>
   centres.map((position) =>
     Object.freeze({
-      position: Object.freeze(position) as readonly [number, number, number],
+      position: Object.freeze<readonly [number, number, number]>(position),
       lumens,
     }),
   );

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isMesh } from './rendering/three-guards';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import rawViewerModel from '../../generated/viewer-model.json';
 import rawConceptContent from '../../generated/concept-content.json';
@@ -289,18 +290,18 @@ async function bootstrap() {
             ...(simulateOptionalEnvironmentFailure
               ? {
                   environmentTextureLoader: {
-                    load: async () => {
-                      throw new TypeError('Simulated optional environment asset failure.');
-                    },
+                    load: () =>
+                      Promise.reject(
+                        new TypeError('Simulated optional environment asset failure.'),
+                      ),
                   },
                 }
               : {}),
             ...(simulateRequiredMaterialFailure
               ? {
                   materialTextureSourceLoader: {
-                    loadTexture: async () => {
-                      throw new TypeError('Simulated required material asset failure.');
-                    },
+                    loadTexture: () =>
+                      Promise.reject(new TypeError('Simulated required material asset failure.')),
                   },
                 }
               : {}),
@@ -605,7 +606,7 @@ async function bootstrap() {
       // 雨（TASK-152 步驟 7）：雨天時屋頂玻璃上的水珠與水痕、屋頂低端的雨簾；水量與水花是概念示意。
       const rainCurtain = graph.siteRoot.getObjectByName(RAIN_CURTAIN_NAME);
       const rain =
-        realSunAvailable && rainCurtain instanceof THREE.Mesh
+        realSunAvailable && isMesh(rainCurtain)
           ? new RainEffects({
               curtain: rainCurtain,
               schematic: graph.siteRoot.getObjectByName(RAIN_CURTAIN_SCHEMATIC_NAME) ?? null,
@@ -1091,7 +1092,7 @@ async function bootstrap() {
             walkthroughError instanceof Error ? walkthroughError.message : '第一人稱漫遊無法啟動。';
         }
       };
-      enterWalkthroughButton.addEventListener('click', enterWalkthrough);
+      enterWalkthroughButton.addEventListener('click', () => void enterWalkthrough());
       exitWalkthroughButton.addEventListener('click', () => {
         void cameraModeManager.exit();
       });

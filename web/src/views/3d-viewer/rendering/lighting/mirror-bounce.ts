@@ -294,10 +294,9 @@ function scaleAlong(matrix: THREE.Matrix4, direction: THREE.Vector3): number {
   if (length === 0) return 1;
   scaleProbe.copy(direction).divideScalar(length);
   const elements = matrix.elements;
-  const x = elements[0]! * scaleProbe.x + elements[4]! * scaleProbe.y + elements[8]! * scaleProbe.z;
-  const y = elements[1]! * scaleProbe.x + elements[5]! * scaleProbe.y + elements[9]! * scaleProbe.z;
-  const z =
-    elements[2]! * scaleProbe.x + elements[6]! * scaleProbe.y + elements[10]! * scaleProbe.z;
+  const x = elements[0] * scaleProbe.x + elements[4] * scaleProbe.y + elements[8] * scaleProbe.z;
+  const y = elements[1] * scaleProbe.x + elements[5] * scaleProbe.y + elements[9] * scaleProbe.z;
+  const z = elements[2] * scaleProbe.x + elements[6] * scaleProbe.y + elements[10] * scaleProbe.z;
   return Math.hypot(x, y, z);
 }
 
