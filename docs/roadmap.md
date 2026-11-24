@@ -28,6 +28,7 @@
 
 | 日期 | 工作 |
 | --- | --- |
+| 2026-11-24 | **建置與部署的 Node 由 22 升到 26（TASK-185）**：`.node-version`、`engines` 與 GitHub Pages 部署都改用 Node 26，`@types/node` 對齊 26，建置、單元與瀏覽器測試在 Node 26 全過（已合併，[入口](tasks/2026-11-24-node-26.md)） |
 | 2026-11-24 | **型別檢查工具 TypeScript 由 5 升到 6（TASK-184）**：TypeScript 由 5.9 升到 6.0.3，型別檢查與型別規則照常通過，設定不用改；TypeScript 7 等 typescript-eslint 支援再升（已合併，[入口](tasks/2026-11-24-typescript-6.md)） |
 | 2026-11-24 | **網站程式清掉未用匯出，knip 開始檢查匯出（TASK-183）**：網站程式 114 個沒人在外面用的匯出改成檔內私有或刪除，圖面頁死掉的繪圖函式檔刪除，79 個只給單元測試的匯出標 `@internal`，knip 起改檢查匯出；3D 進階繪圖恢復另成一包（已合併，[入口](tasks/2026-11-24-unused-exports-web.md)） |
 | 2026-11-24 | **網站程式開啟 ESLint 型別規則（TASK-182）**：`web/src/` 開啟 typescript-eslint 的型別規則，原有 129 處全部改掉，網格判斷改用不外流 any 的 `isMesh`，畫面與行為不變（已合併，[入口](tasks/2026-11-24-typed-lint.md)） |
