@@ -4,6 +4,7 @@
  * 瀏覽器不會比螢幕更新得更快，所以間隔只會因為主執行緒忙而變長、不會變短；
  * 取偏低的百分位數就能避開載入時的卡頓。量到的值交給幀率調節器：50 Hz 的螢幕或被
  * 省電模式鎖在 30 fps 的瀏覽器，不該因為「達不到 60 fps」就一路降畫質。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export const DISPLAY_INTERVAL_MINIMUM_SAMPLES = 20;
 const LOW_PERCENTILE = 0.2;

@@ -19,12 +19,16 @@ export interface TranscoderUrls {
   readonly wasm: string;
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const BUNDLED_TRANSCODER_URLS: TranscoderUrls = Object.freeze({
   script: transcoderScriptUrl,
   wasm: transcoderWasmUrl,
 });
 
-/** 把 KTX2Loader 要的兩個固定檔名換成實際網址；其他網址原樣通過。 */
+/**
+ * 把 KTX2Loader 要的兩個固定檔名換成實際網址；其他網址原樣通過。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function resolveTranscoderUrl(
   url: string,
   urls: TranscoderUrls = BUNDLED_TRANSCODER_URLS,

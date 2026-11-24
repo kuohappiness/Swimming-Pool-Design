@@ -25,7 +25,7 @@ export interface PoolLight extends LightFixture {
   readonly aim: Vector3Tuple;
 }
 
-export interface FixtureBox {
+interface FixtureBox {
   readonly min: Vector3Tuple;
   readonly max: Vector3Tuple;
 }
@@ -55,7 +55,10 @@ export interface FixtureLayout {
   readonly poolLightLensRadius: number;
 }
 
-/** 太陽低於這個仰角（度）時開燈；陰天、雨天整天開著。 */
+/**
+ * 太陽低於這個仰角（度）時開燈；陰天、雨天整天開著。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const FIXTURES_ON_BELOW_ALTITUDE = 6;
 
 /**
@@ -63,17 +66,22 @@ export const FIXTURES_ON_BELOW_ALTITUDE = 6;
  * 白天燈具照度只有日光的幾個百分點，看得到的主要是發光面本身。
  */
 const DAYLIGHT_LUX_AT_ZENITH = 100_000;
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const DAY_LUX_SCALE = SUN_ZENITH_INTENSITY / DAYLIGHT_LUX_AT_ZENITH;
 /**
  * 夜裡的換算：場景的夜晚比真實的夜晚亮很多（像眼睛適應暗處、像夜景攝影），燈具也乘同樣的放大，
  * 600 lux 在夜裡等於場景的 1。真實的眼睛適應與曝光變化在鏡頭效果那一步（步驟 6）做。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export const NIGHT_LUX_SCALE = 1 / 600;
 
-/** 天花燈：中性偏暖白（約 4000 K），以亮度為 1 正規化的線性色彩。 */
+/**
+ * 天花燈：中性偏暖白（約 4000 K），以亮度為 1 正規化的線性色彩。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const CEILING_FIXTURE_COLOR: LinearColor = normaliseLuminance([1, 0.87, 0.72]);
 /** 水下燈：冷白（約 5500 K）。 */
-export const POOL_LIGHT_COLOR: LinearColor = normaliseLuminance([0.93, 0.98, 1]);
+const POOL_LIGHT_COLOR: LinearColor = normaliseLuminance([0.93, 0.98, 1]);
 
 /** 地面（池畔、池水）把燈光反射回天花與牆面的比例；室內補光用，視覺值。 */
 const FLOOR_REFLECTANCE = 0.25;
@@ -89,9 +97,13 @@ const FIXTURE_COUNT_BY_TIER = Object.freeze({ high: 12, medium: 6, low: 3 });
 const POOL_LIGHT_COUNT_BY_TIER = Object.freeze({ high: 12, medium: 6, low: 4 });
 export type FixtureQualityTier = keyof typeof FIXTURE_COUNT_BY_TIER;
 
-/** 著色器的陣列大小。 */
+/**
+ * 著色器的陣列大小。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const FIXTURE_ZONE_SLOTS = 2;
-export const FIXTURE_LIGHT_SLOTS = 24;
+const FIXTURE_LIGHT_SLOTS = 24;
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const POOL_LIGHT_SLOTS = 12;
 
 /** 光從空氣進到水裡，大多數角度的穿透率。 */
@@ -107,12 +119,18 @@ const smoothstep = (edge0: number, edge1: number, value: number) => {
   return t * t * (3 - 2 * t);
 };
 
-/** 燈有沒有開：陰天、雨天整天開；晴天在太陽低於 `FIXTURES_ON_BELOW_ALTITUDE` 時開。 */
+/**
+ * 燈有沒有開：陰天、雨天整天開；晴天在太陽低於 `FIXTURES_ON_BELOW_ALTITUDE` 時開。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function fixturesSwitchedOn(lighting: SunLighting): boolean {
   return lighting.weather !== 'clear' || lighting.altitude < FIXTURES_ON_BELOW_ALTITUDE;
 }
 
-/** 這一刻 1 lux 等於場景的多少。白天到夜裡在對數上隨日光漸變，和曝光一樣是連續的。 */
+/**
+ * 這一刻 1 lux 等於場景的多少。白天到夜裡在對數上隨日光漸變，和曝光一樣是連續的。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function fixtureLuxScale(lighting: SunLighting): number {
   const daylight = Math.min(1, Math.max(0, lighting.factors.daylight));
   return Math.exp(
@@ -121,18 +139,19 @@ export function fixtureLuxScale(lighting: SunLighting): number {
 }
 
 /** 室外水平面的照度（場景單位）：天光加上主光源的垂直分量。 */
-export function outdoorIlluminance(lighting: SunLighting): number {
+function outdoorIlluminance(lighting: SunLighting): number {
   return lighting.sky.intensity + lighting.key.intensity * Math.max(0, lighting.key.direction.z);
 }
 
 /** 朝下的朗伯發光面：光通量換成正下方的光強度（cd）。 */
-export function lambertianIntensity(lumens: number): number {
+function lambertianIntensity(lumens: number): number {
   return lumens / Math.PI;
 }
 
 /**
  * 把燈具就近兩兩合併，直到不超過 `maximum` 盞：位置依光通量加權平均，光通量相加。
  * 低畫質用較少盞燈，總光量不變。結果與輸入順序無關（同距離時取編號小的一對）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function aggregateFixtures<T extends LightFixture>(
   fixtures: readonly T[],
@@ -201,6 +220,7 @@ export function aggregateFixtures<T extends LightFixture>(
 /**
  * 一區地面的平均照度（lux）：在地面上取格點，加總每盞朝下燈具的直射照度。
  * 只用來估計室內補光與池水的散射亮度，不是照度計算。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function averageFloorIlluminance(zone: FixtureZone, samples = 6): number {
   const { min, max } = zone.inner;
@@ -225,6 +245,7 @@ export function averageFloorIlluminance(zone: FixtureZone, samples = 6): number 
   return total / (samples * samples);
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function assertFixtureLayout(layout: FixtureLayout): FixtureLayout {
   if (layout.zones.length > FIXTURE_ZONE_SLOTS) throw new RangeError('Too many fixture zones.');
   const finite = (values: readonly number[]) => values.every(Number.isFinite);
@@ -286,6 +307,7 @@ export interface FixtureLightUniforms {
 
 const filled = <T>(count: number, create: () => T) => Array.from({ length: count }, create);
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function createFixtureLightUniforms(): FixtureLightUniforms {
   return {
     uFixtureZoneCount: { value: 0 },
@@ -301,7 +323,7 @@ export function createFixtureLightUniforms(): FixtureLightUniforms {
   };
 }
 
-export const FIXTURE_LIGHTS_GLSL = /* glsl */ `
+const FIXTURE_LIGHTS_GLSL = /* glsl */ `
 #define FIXTURE_ZONE_SLOTS ${FIXTURE_ZONE_SLOTS}
 #define FIXTURE_LIGHT_SLOTS ${FIXTURE_LIGHT_SLOTS}
 uniform int uFixtureZoneCount;
@@ -366,7 +388,7 @@ const FIXTURE_LIGHTS_APPLY = /* glsl */ `
  * 材質的著色器要不要編進燈具照明。改了值要讓裝過的材質重編（`material.needsUpdate`）；
  * three.js 每個材質留著編過的版本，切回來不必再編。
  */
-export interface FixtureLightProgram {
+interface FixtureLightProgram {
   readonly compiled: boolean;
 }
 
@@ -375,6 +397,7 @@ const ALWAYS_COMPILED: FixtureLightProgram = Object.freeze({ compiled: true });
 /**
  * 把燈具照明裝進一個 three.js 內建的受光材質（標準、物理）。uniform 是共用的同一組物件、
  * 世界座標，只在光線或圖層改變時更新。回傳 false 代表這不是會受光的標準材質，不裝。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function installFixtureLights(
   material: THREE.Material,
@@ -429,10 +452,7 @@ export interface WorldFixtureLights {
 
 const SCENE_KEY = 'fixtureLights';
 
-export function publishSceneFixtureLights(
-  scene: THREE.Scene,
-  lights: WorldFixtureLights | null,
-): void {
+function publishSceneFixtureLights(scene: THREE.Scene, lights: WorldFixtureLights | null): void {
   scene.userData[SCENE_KEY] = lights;
 }
 

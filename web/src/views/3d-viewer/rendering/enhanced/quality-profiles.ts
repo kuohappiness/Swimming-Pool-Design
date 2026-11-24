@@ -69,6 +69,7 @@ export const ENHANCED_QUALITY_PROFILES: Readonly<
   }),
 });
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function assertEnhancedQualityProfiles(
   profiles: Readonly<Record<RenderQualityTier, EnhancedQualityProfile>> = ENHANCED_QUALITY_PROFILES,
 ): Readonly<Record<RenderQualityTier, EnhancedQualityProfile>> {

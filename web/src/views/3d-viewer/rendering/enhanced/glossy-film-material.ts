@@ -21,6 +21,7 @@ export interface GlossyFilmMaterialOptions {
   readonly reflectionIntensity?: number;
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const GLOSSY_FILM_PROGRAM_KEY = 'glossy-film-v1';
 
 const FILM_FRAGMENT = /* glsl */ `
@@ -39,7 +40,10 @@ const FILM_FRAGMENT = /* glsl */ `
 	);
 `;
 
-/** 把標準材質的片段著色器改成薄膜混合；找不到要換的片段就丟錯，不默默用錯的結果。 */
+/**
+ * 把標準材質的片段著色器改成薄膜混合；找不到要換的片段就丟錯，不默默用錯的結果。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function patchGlossyFilmFragmentShader(fragmentShader: string) {
   const anchor = '#include <opaque_fragment>';
   if (!fragmentShader.includes(anchor)) {

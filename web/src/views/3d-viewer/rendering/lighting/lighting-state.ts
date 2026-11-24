@@ -24,6 +24,7 @@ export interface SceneLightingPreset {
 
 const isWeather = (value: unknown): value is Weather => WEATHERS.includes(value as Weather);
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function parseClockTime(text: string): number {
   const match = /^(\d{2}):(\d{2})$/.exec(text);
   const hour = Number(match?.[1]);
@@ -57,7 +58,10 @@ export function siteMomentAt(epochMilliseconds: number, utcOffsetHours: number):
   });
 }
 
-/** `weather=night` 沒有另外指定時刻時用的時間。 */
+/**
+ * `weather=night` 沒有另外指定時刻時用的時間。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const NIGHT_ALIAS_MINUTES = 21 * 60;
 
 /**

@@ -9,7 +9,7 @@ import { EnhancedVisualAssetAdapter } from './visual-asset-adapter';
 import type { TextureSourceLoader } from './texture-loader';
 import type { PoolBasinShape, PoolHallShape } from '../water/water-surface';
 
-export interface EnhancedRenderingRuntimeOptions {
+interface EnhancedRenderingRuntimeOptions {
   readonly environmentTextureLoader?: EnvironmentTextureLoader;
   readonly materialTextureSourceLoader?: TextureSourceLoader;
   /** 模型的池體形狀；有給才啟用寫實水面。 */
@@ -18,7 +18,7 @@ export interface EnhancedRenderingRuntimeOptions {
   readonly poolHall?: PoolHallShape;
 }
 
-export async function createEnhancedMaterialPreviewRuntime(
+async function createEnhancedMaterialPreviewRuntime(
   renderer: THREE.WebGLRenderer,
   initialQuality: RenderQualityProfile = ENHANCED_QUALITY_PROFILES.high,
   options: EnhancedRenderingRuntimeOptions = {},

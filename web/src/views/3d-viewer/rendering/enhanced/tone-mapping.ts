@@ -8,6 +8,7 @@ export interface ToneMappingProfile {
   readonly outputColorSpace: THREE.ColorSpace;
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const TONE_MAPPING_PROFILES: Readonly<Record<EnvironmentId, ToneMappingProfile>> =
   Object.freeze({
     day: Object.freeze({

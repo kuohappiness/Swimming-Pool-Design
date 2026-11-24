@@ -16,7 +16,7 @@ export interface ViewerPoolPresentationSource {
   };
 }
 
-export const POOL_WATERLINE_OFFSET_BELOW_DECK = 0.08;
+const POOL_WATERLINE_OFFSET_BELOW_DECK = 0.08;
 /** 池底水道標線的寬度（公尺）。實體標線與水面折射看到的標線共用，兩邊才會重合。 */
 export const POOL_FLOOR_LANE_LINE_WIDTH = 0.16;
 /** 池底水道標線兩端距池壁的距離（公尺）。 */
@@ -64,7 +64,7 @@ export function getPoolFloorLaneLineCentres(model: ViewerPoolBasinSource): reado
  * 池梯：淺水端池壁兩側各一座，兩支扶手之間三階踏板，扶手往水下延伸到最後一階踏板下方。尺寸是 3D 展示用的示意值，
  * 場景裡畫的踏板與水面折射看到的踏板都從這裡拿，兩邊才會重合。
  */
-export const POOL_LADDER = Object.freeze({
+const POOL_LADDER = Object.freeze({
   /** 兩座池梯各離池的長邊多遠（公尺）。 */
   sideInset: 0.8,
   /** 兩支扶手離淺水端池壁的距離（公尺）。 */

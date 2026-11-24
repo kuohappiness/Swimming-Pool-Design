@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { MovementMode } from '../types.js';
 
-export interface UnderwaterAudioHook {
+interface UnderwaterAudioHook {
   setUnderwater(active: boolean): void | Promise<void>;
 }
 

@@ -36,6 +36,7 @@ export interface HallReflectionUniforms {
   readonly uHallProbeMaxMip: THREE.IUniform<number>;
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function createHallReflectionUniforms(): HallReflectionUniforms {
   return {
     uHallProbe: { value: null },
@@ -127,6 +128,7 @@ const COMMON = '#include <common>';
 /**
  * 把池廳反射裝進一個 three.js 內建的受光材質（標準、物理）。回傳 false 代表不裝
  * （不是標準材質，或它已經有自己的反射探針，例如鏡牆）。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function installHallReflection(
   material: THREE.Material,

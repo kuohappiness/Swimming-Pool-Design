@@ -18,7 +18,7 @@ import { getToneMappingProfile } from './tone-mapping';
 const MINIMUM_PIXEL_RATIO = 0.5;
 
 /** 後製時場景畫進的浮點貼圖用幾倍多重取樣抗鋸齒（直接畫到畫面時由畫布本身的抗鋸齒負責）。 */
-export const MULTISAMPLE_SAMPLES = 4;
+const MULTISAMPLE_SAMPLES = 4;
 
 /** 兩格之間最多算幾秒：分頁切走再回來時，曝光不會一下子跳到底。 */
 const MAXIMUM_FRAME_SECONDS = 0.25;

@@ -1,6 +1,5 @@
 import {
   deriveSiteOrientation,
-  normalizeBearingDegrees as normalizeCanonicalBearing,
   type NorthPlanDirection,
   type SiteOrientationReferenceSystem,
 } from '../../../../core/geometry/site-orientation.mjs';
@@ -11,10 +10,6 @@ export interface ViewerOrientation {
   threeWorldRotationRadians: number;
   northInSite: { x: number; y: number };
   northPlanDirection: NorthPlanDirection;
-}
-
-export function normalizeBearingDegrees(value: number): number {
-  return normalizeCanonicalBearing(value);
 }
 
 export function deriveViewerOrientation(
@@ -29,5 +24,3 @@ export function deriveViewerOrientation(
     northPlanDirection: orientation.northPlanDirection,
   };
 }
-
-export type { NorthPlanDirection };

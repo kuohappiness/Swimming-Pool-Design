@@ -74,6 +74,7 @@ export interface MirrorProbeUniforms {
   readonly uMirrorProbePosition: { value: THREE.Vector3 };
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function createMirrorProbeUniforms(): MirrorProbeUniforms {
   return {
     uMirrorProbeWorldToBox: { value: new THREE.Matrix4() },
@@ -87,6 +88,7 @@ export function createMirrorProbeUniforms(): MirrorProbeUniforms {
 /**
  * 換掉這個材質查環境貼圖的方向，加上盒狀視差修正。只改這一個材質，不動 three.js 的共用片段。
  * three.js 的著色器對不上（改版）時不硬換，回傳 false，鏡面仍有倒影，只是沒有視差修正。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function installMirrorProbeParallax(
   material: THREE.MeshStandardMaterial,

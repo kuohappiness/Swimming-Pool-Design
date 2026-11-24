@@ -9,7 +9,7 @@ export type DeepReadonly<T> = T extends (...args: never[]) => unknown
       : T;
 
 export type ReadonlyViewerModel = DeepReadonly<ViewerModel>;
-export type SiteCoordinateSystemId = 'SITE-XY';
+type SiteCoordinateSystemId = 'SITE-XY';
 
 export interface SiteBounds {
   readonly x1: number;
@@ -18,12 +18,12 @@ export interface SiteBounds {
   readonly y2: number;
 }
 
-export interface SitePoint {
+interface SitePoint {
   readonly x: number;
   readonly y: number;
 }
 
-export interface WalkthroughIdentity {
+interface WalkthroughIdentity {
   readonly schemaVersion: '1.0.0';
   readonly modelVersion: string;
   readonly revision: string;
@@ -32,7 +32,7 @@ export interface WalkthroughIdentity {
   readonly sourceModelHash: string;
 }
 
-export interface WalkthroughReferenceFrame {
+interface WalkthroughReferenceFrame {
   readonly coordinateSystemId: SiteCoordinateSystemId;
   readonly adapterId: 'SITE-XYZ-TO-THREE-RH';
   readonly siteX: 'threeX';
@@ -51,7 +51,7 @@ export interface FixedPlanTransform {
   readonly kind: 'fixed';
 }
 
-export interface RotatedPlanTransform {
+interface RotatedPlanTransform {
   readonly kind: 'rotate-around-pivot';
   readonly degrees: number;
   readonly pivot: SitePoint;
@@ -117,9 +117,6 @@ export interface OpeningDescriptor {
   readonly bounds?: SiteBounds;
 }
 
-export type CollisionDescriptor =
-  WalkSurfaceDescriptor | StairRampDescriptor | PoolShellDescriptor | OpeningDescriptor;
-
 export interface WaterVolumeDescriptor {
   readonly id: 'main-pool-water';
   readonly kind: 'water-volume';
@@ -168,7 +165,7 @@ export interface MovementIntent {
   readonly exitRequested: boolean;
 }
 
-export interface WalkthroughCapabilities {
+interface WalkthroughCapabilities {
   readonly inspectModePreserved: true;
   readonly desktopInput: true;
   readonly touchInput: true;

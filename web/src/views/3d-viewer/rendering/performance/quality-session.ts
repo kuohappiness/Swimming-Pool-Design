@@ -21,7 +21,10 @@ import {
  * 不引用 three.js 也不直接碰 DOM；畫面與選單由呼叫端依回呼更新，所以整段流程可以單元測試。
  */
 
-/** 使用者手動選的級別存在這個瀏覽器的 localStorage，下次造訪沿用。 */
+/**
+ * 使用者手動選的級別存在這個瀏覽器的 localStorage，下次造訪沿用。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export const QUALITY_STORAGE_KEY = 'swimming-pool-design.3d-viewer.quality';
 
 /** 選單的值：自動，或四級之一。 */
@@ -33,7 +36,7 @@ export const QUALITY_CHOICES: readonly { readonly value: QualityChoice; readonly
     ...REALISM_TIER_ORDER.map((id) => Object.freeze({ value: id, label: REALISM_TIERS[id].label })),
   ]);
 
-export interface QualityStorage {
+interface QualityStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;

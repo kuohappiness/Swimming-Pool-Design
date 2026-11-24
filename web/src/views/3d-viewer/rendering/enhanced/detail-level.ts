@@ -3,6 +3,7 @@ import { isMesh } from '../three-guards';
 import type { VisualAssetAdapter, VisualAssetContext } from '../contracts';
 import type { RenderQualityProfile } from '../quality-profile';
 import { type VisualDetailLevel } from '../visual-detail';
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export { markVisualDetail } from '../visual-detail';
 
 const LEVEL_RANK: Readonly<Record<VisualDetailLevel, number>> = Object.freeze({

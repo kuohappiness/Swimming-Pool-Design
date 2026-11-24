@@ -19,7 +19,7 @@ import {
  * 錯開，本身已經平滑，降噪的隨機取樣反而會讓它邊緣起雜點，所以只降噪 r。套到畫面上的方式見
  * `frame-grade.ts`。
  */
-export const AMBIENT_OCCLUSION = Object.freeze({
+const AMBIENT_OCCLUSION = Object.freeze({
   /** 相對於畫面的解析度。 */
   resolutionScale: 0.5,
   /** 找遮蔽物的半徑（公尺）：牆角、柱腳、池畔設備與樓板下緣的尺度。 */
@@ -40,7 +40,7 @@ export const AMBIENT_OCCLUSION = Object.freeze({
   }),
 });
 
-export const CONTACT_SHADOWS = Object.freeze({
+const CONTACT_SHADOWS = Object.freeze({
   steps: 16,
   /** 朝太陽找多遠（公尺）：人、池梯、出發台、長椅貼地處的影子長度。 */
   lengthMetres: 0.35,

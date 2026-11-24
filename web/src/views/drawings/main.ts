@@ -1,8 +1,14 @@
 import rawModel from '../../../../model/project-model.json';
 import type { ProjectModel, SheetRender } from '../../shared/types';
-import { escapeHtml } from './geometry';
 import { renderSheets, retiredSheetIds } from './sheets';
 import { attachPanZoom, type PanZoomControls } from './pan-zoom';
+
+const escapeHtml = (value: string) =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
 
 const model = rawModel as unknown as ProjectModel;
 const sheets = renderSheets(model);

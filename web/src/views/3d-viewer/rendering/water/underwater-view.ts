@@ -33,6 +33,7 @@ export interface UnderwaterViewOptions {
   readonly underwaterOnly?: readonly THREE.Object3D[];
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export const MAXIMUM_SHAFT_STEPS = 16;
 /** 取樣 14 次時光束取焦散圖樣的第幾層縮圖；次數每減半就再模糊一層。 */
 const SHAFT_BASE_LOD = 1.5;
@@ -48,7 +49,10 @@ const NEAR_PLANE_PROBES: ReadonlyArray<readonly [number, number]> = Object.freez
   [1, 1],
 ]);
 
-/** 鏡頭的近裁面有沒有任何一角在池水裡。 */
+/**
+ * 鏡頭的近裁面有沒有任何一角在池水裡。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function cameraTouchesWater(
   camera: THREE.Camera,
   worldToBasin: THREE.Matrix4,

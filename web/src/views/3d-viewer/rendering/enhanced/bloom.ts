@@ -8,6 +8,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
  * three.js 的 `UnrealBloomPass` 原本把超過門檻的整個顏色拿去暈，五層模糊加起來還乘 3，夜裡的
  * 燈具會把整個池廳蓋成一片霧。這裡改成只暈「比門檻亮出來的那一部分」，每個像素最多貢獻
  * `cap`，窄的光暈比寬的重；暈開的總量約是亮出來那一部分的 `strength × 9`。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export const BLOOM = Object.freeze({
   /** 門檻（線性亮度，曝光之後；白色約為 1）。 */

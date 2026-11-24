@@ -8,12 +8,12 @@ import type {
   WalkthroughSource,
 } from '../types.js';
 
-export interface CollisionFrame {
+interface CollisionFrame {
   readonly localToWorld: THREE.Matrix4;
   readonly worldToLocal: THREE.Matrix4;
 }
 
-export interface SurfaceCollisionProxy {
+interface SurfaceCollisionProxy {
   readonly id: string;
   readonly kind: 'surface';
   readonly frame: CollisionFrame;
@@ -22,14 +22,14 @@ export interface SurfaceCollisionProxy {
   readonly exclusions: readonly SiteBounds[];
 }
 
-export interface StairCollisionProxy {
+interface StairCollisionProxy {
   readonly id: string;
   readonly kind: 'stair';
   readonly frame: CollisionFrame;
   readonly descriptor: StairRampDescriptor;
 }
 
-export interface PoolBottomCollisionProxy {
+interface PoolBottomCollisionProxy {
   readonly id: string;
   readonly kind: 'pool-bottom';
   readonly frame: CollisionFrame;
@@ -69,7 +69,7 @@ function frameFromMatrix(localToWorld: THREE.Matrix4): CollisionFrame {
   });
 }
 
-export function createPlanTransformMatrix(transform: PlanTransform): THREE.Matrix4 {
+function createPlanTransformMatrix(transform: PlanTransform): THREE.Matrix4 {
   if (transform.kind === 'fixed') return new THREE.Matrix4();
   const { pivot } = transform;
   const radians = THREE.MathUtils.degToRad(transform.degrees);

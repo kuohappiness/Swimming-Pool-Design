@@ -9,6 +9,7 @@ export type DeviceClass = 'desktop' | 'mobile';
 /**
  * 幀率吃緊時可以暫時關掉的效果，依固定順序由前往後卸載、由後往前恢復。
  * 順序依「關掉後最不容易被察覺」排列：先暈光，最後才動到陰影層數與人物動畫。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export const SHED_ORDER = Object.freeze([
   'bloom',
@@ -182,6 +183,7 @@ export function sheddableSteps(definition: RealismTier): readonly ShedStep[] {
   return Object.freeze(SHED_ORDER.filter((step) => enabled[step]));
 }
 
+/** @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。 */
 export function assertRealismTiers(
   tiers: Readonly<Record<RealismTierId, RealismTier>> = REALISM_TIERS,
 ): Readonly<Record<RealismTierId, RealismTier>> {
@@ -238,17 +240,16 @@ export function assertRealismTiers(
   return tiers;
 }
 
-export function getRealismTier(id: RealismTierId): RealismTier {
-  return REALISM_TIERS[id];
-}
-
 /** 往下一級；已經是最低級時回傳 null。 */
 export function lowerRealismTier(id: RealismTierId): RealismTierId | null {
   const index = REALISM_TIER_ORDER.indexOf(id);
   return REALISM_TIER_ORDER[index + 1] ?? null;
 }
 
-/** 往上一級；已經是最高級時回傳 null。 */
+/**
+ * 往上一級；已經是最高級時回傳 null。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function higherRealismTier(id: RealismTierId): RealismTierId | null {
   const index = REALISM_TIER_ORDER.indexOf(id);
   return index > 0 ? REALISM_TIER_ORDER[index - 1] : null;

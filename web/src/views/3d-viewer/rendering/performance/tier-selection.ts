@@ -10,10 +10,10 @@ import {
 export const BENCHMARK_REFERENCE_TIER: RealismTierId = 'medium';
 
 /** 自動選級時保留的餘裕：估計成本不得超過幀預算的這個比例。 */
-export const BENCHMARK_HEADROOM_RATIO = 0.8;
+const BENCHMARK_HEADROOM_RATIO = 0.8;
 
 /** 手機自動選級的上限；更高的級別只能由使用者自己選。 */
-export const MOBILE_AUTOMATIC_CEILING: RealismTierId = 'medium';
+const MOBILE_AUTOMATIC_CEILING: RealismTierId = 'medium';
 
 export interface BenchmarkSummary {
   readonly frames: number;
@@ -52,12 +52,13 @@ export function parseRealismTierId(value: string | null | undefined): RealismTie
 
 /** 啟動檢測畫幾幀、前幾幀不計，以及整段檢測最多花多久（裝置太慢時提早結束）。 */
 export const BENCHMARK_FRAMES = 20;
-export const BENCHMARK_WARMUP_FRAMES = 5;
+const BENCHMARK_WARMUP_FRAMES = 5;
 export const BENCHMARK_TIME_LIMIT_MILLISECONDS = 1500;
 
 /**
  * 把啟動檢測的逐幀毫秒數整理成中位數與 p95。
  * 前幾幀含著色器編譯與貼圖上傳，不計入；有效樣本不足 `minimumSamples` 幀時回傳 null。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
  */
 export function summarizeBenchmark(
   frameMilliseconds: readonly number[],
@@ -95,7 +96,10 @@ export function summarizeBenchmarkRun(
   return summarizeBenchmark(frameMilliseconds, warmup, 1);
 }
 
-/** 檢測結果換算到某一級的估計每幀毫秒數。 */
+/**
+ * 檢測結果換算到某一級的估計每幀毫秒數。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function estimateFrameMilliseconds(
   benchmark: BenchmarkSummary,
   tier: RealismTierId,
@@ -109,7 +113,10 @@ function automaticCandidates(deviceClass: DeviceClass): readonly RealismTierId[]
   return REALISM_TIER_ORDER.slice(REALISM_TIER_ORDER.indexOf(MOBILE_AUTOMATIC_CEILING));
 }
 
-/** 估計成本在幀預算內的最高一級；都放不進去時用省電級。 */
+/**
+ * 估計成本在幀預算內的最高一級；都放不進去時用省電級。
+ * @internal 只給單元測試直接載入（knip 看不到 vite.ssrLoadModule），不是給其他模組用的匯出。
+ */
 export function chooseTierFromBenchmark(
   benchmark: BenchmarkSummary,
   deviceClass: DeviceClass,

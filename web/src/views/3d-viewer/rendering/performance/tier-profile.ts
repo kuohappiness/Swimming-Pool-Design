@@ -2,7 +2,7 @@ import type { RenderQualityProfile } from '../quality-profile';
 import type { RealismTier, ShedStep } from './realism-tiers';
 
 /** 卸載「水面倒影解析度」時，倒影貼圖的邊長剩下的比例。 */
-export const SHED_REFLECTION_RATIO = 0.5;
+const SHED_REFLECTION_RATIO = 0.5;
 
 /**
  * 把四級畫質（DEC-190）套到繪圖管線吃的設定上。

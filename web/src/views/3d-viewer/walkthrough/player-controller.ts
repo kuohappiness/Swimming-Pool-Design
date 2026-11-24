@@ -21,7 +21,7 @@ export interface MovementStrategy {
   step(state: PlayerState, intent: MovementIntent, deltaSeconds: number): void;
 }
 
-export const STATIONARY_MOVEMENT_STRATEGY: MovementStrategy = Object.freeze({
+const STATIONARY_MOVEMENT_STRATEGY: MovementStrategy = Object.freeze({
   id: 'stationary-task-054',
   step() {},
 });
