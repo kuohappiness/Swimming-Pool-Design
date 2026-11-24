@@ -553,6 +553,11 @@ export function validateModel(model) {
       use.entryVestibule?.shoeCubbyPairs >= 60,
     'The vestibule must stay at the L1 base elevation with at least 60 shoe cubbies for two overlapping classes.',
   );
+  check(
+    errors,
+    use.assemblyArea?.seatedClassCapacity >= 30,
+    'The assembly area must seat a class of at least 30 pupils (DEC-161).',
+  );
   const ramp = use.entryRamp;
   check(
     errors,

@@ -97,6 +97,6 @@
 
 懸空樓梯的結構、扶手與逃生的檢核。
 
-### 一班多少人
+### 換班與課表
 
-鞋櫃和集合區是用一班 {{active:l1.poolUse.assemblyArea.seatedClassCapacity|number}} 人、兩個班交接來安排的，這是設計時的假設。實際的班級人數與課表要由學校確認。
+一班大約 {{active:l1.poolUse.assemblyArea.seatedClassCapacity|number}} 人，集合區照這個人數安排。鞋櫃另外假設兩個班交接時同時在場；實際的課表與換班方式要由學校確認。
