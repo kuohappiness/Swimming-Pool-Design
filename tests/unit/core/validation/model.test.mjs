@@ -264,6 +264,12 @@ test('DEC-157 pool-use route and DEC-158 teaching platform are complete and fail
   );
   assert.match(
     mutate((g) => {
+      g.l1.poolUse.assemblyArea.seatedClassCapacity = 25;
+    }),
+    /class of at least 30 pupils/,
+  );
+  assert.match(
+    mutate((g) => {
       g.l1.poolUse.entryRamp.bounds.x2 = 7;
     }),
     /1:12 or gentler/,
