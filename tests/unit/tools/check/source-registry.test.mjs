@@ -4,7 +4,9 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  isDerivativeImage,
   parseSourceTable,
+  validateDerivativeImages,
   validateSourceRegistry,
 } from '../../../../tools/check/source-registry.mjs';
 
@@ -127,4 +129,46 @@ test('the repository source table and model sources agree', async () => {
     [],
   );
   assert.equal(value.sources.length, parseSourceTable(text).length);
+});
+
+test('derivative images are web images outside the 3D assets and generated files', () => {
+  assert.equal(isDerivativeImage('web/public/favicon-32.png'), true);
+  assert.equal(
+    isDerivativeImage('web/src/views/design-concept/assets/origin-section-960.jpg'),
+    true,
+  );
+  assert.equal(isDerivativeImage('web/src/views/3d-viewer/assets/materials/tile.webp'), false);
+  assert.equal(isDerivativeImage('web/src/generated/fonts/a.png'), false);
+  assert.equal(isDerivativeImage('web/src/views/drawings/index.ts'), false);
+  assert.equal(isDerivativeImage('source-materials/site/a.png'), false);
+});
+
+test('derivative images must be registered with matching byte size and hash', () => {
+  const text = `衍生檔 \`web/public/icon.png\`（32 × 32、1,972 bytes、SHA-256 \`${hash}\`）與 \`b-960.jpg\`（960 × 540、125,785 bytes、SHA-256 \`${hash}\`）。`;
+  const image = (name, byteSize, sha256 = hash.toLowerCase()) => ({
+    path: `web/x/${name}`,
+    byteSize,
+    sha256,
+  });
+  assert.deepEqual(
+    validateDerivativeImages({
+      text,
+      source: 'doc',
+      images: [image('icon.png', 1972), image('b-960.jpg', 125785)],
+    }),
+    [],
+  );
+  const errors = validateDerivativeImages({
+    text,
+    source: 'doc',
+    images: [
+      image('c.webp', 1),
+      image('icon.png', 1973),
+      image('b-960.jpg', 125785, 'b'.repeat(64)),
+    ],
+  });
+  assert.equal(errors.length, 3);
+  assert.match(errors[0], /web\/x\/c\.webp is not registered/);
+  assert.match(errors[1], /web\/x\/icon\.png registration does not match 1,973 bytes/);
+  assert.match(errors[2], /web\/x\/b-960\.jpg registration does not match/);
 });
